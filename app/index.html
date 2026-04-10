@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tradeprint — Login</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background-color: #0a0a0a;
+      color: #ffffff;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .logo {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin-bottom: 40px;
+      text-decoration: none;
+      color: #fff;
+    }
+
+    .logo span { color: #6366f1; }
+
+    .card {
+      background: #111;
+      border: 1px solid #222;
+      border-radius: 12px;
+      padding: 40px;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 32px;
+      border-bottom: 1px solid #222;
+    }
+
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 12px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 600;
+      color: #555;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+      margin-bottom: -1px;
+    }
+
+    .tab.active {
+      color: #6366f1;
+      border-bottom: 2px solid #6366f1;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      color: #888;
+      margin-bottom: 8px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px 16px;
+      font-size: 15px;
+      border-radius: 8px;
+      border: 1px solid #333;
+      background: #0a0a0a;
+      color: #fff;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input:focus { border-color: #6366f1; }
+
+    .btn {
+      width: 100%;
+      background-color: #6366f1;
+      color: white;
+      border: none;
+      padding: 14px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.2s;
+      margin-top: 8px;
+    }
+
+    .btn:hover { background-color: #4f46e5; }
+    .btn:disabled { background-color: #444; cursor: not-allowed; }
+
+    .message {
+      font-size: 13px;
+      margin-top: 16px;
+      text-align: center;
+      min-height: 20px;
+    }
+
+    .message.success { color: #6366f1; }
+    .message.error { color: #ef4444; }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+  </style>
+</head>
+<body>
+
+  <a href="/" class="logo">trade<span>print</span></a>
+
+  <div class="card">
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('login')">Log In</div>
+      <div class="tab" onclick="switchTab('signup')">Sign Up</div>
+    </div>
+
+    <!-- Login Panel -->
+    <div class="panel active" id="loginPanel">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="loginEmail" placeholder="you@example.com" />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="loginPassword" placeholder="••••••••" />
+      </div>
+      <button class="btn" id="loginBtn" onclick="login()">Log In</button>
+      <div class="message" id="loginMessage"></div>
+    </div>
+
+    <!-- Signup Panel -->
+    <div class="panel" id="signupPanel">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="signupEmail" placeholder="you@example.com" />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="signupPassword" placeholder="••••••••" />
+      </div>
+      <div class="form-group">
+        <label>Confirm Password</label>
+        <input type="password" id="signupConfirm" placeholder="••••••••" />
+      </div>
+      <button class="btn" id="signupBtn" onclick="signup()">Create Account</button>
+      <div class="message" id="signupMessage"></div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://fpdedufotkmvjsvxdcmk.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_1Q8yInISuuD3HDWI7mVesQ_A-DSkCM7';
+
+    function switchTab(tab) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      if (tab === 'login') {
+        document.querySelectorAll('.tab')[0].classList.add('active');
+        document.getElementById('loginPanel').classList.add('active');
+      } else {
+        document.querySelectorAll('.tab')[1].classList.add('active');
+        document.getElementById('signupPanel').classList.add('active');
+      }
+    }
+
+    async function login() {
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      const btn = document.getElementById('loginBtn');
+      const message = document.getElementById('loginMessage');
+
+      if (!email || !password) {
+        message.textContent = 'Please fill in all fields.';
+        message.className = 'message error';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Logging in...';
+
+      const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_KEY
+        },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await res.json();
+
+      if (data.access_token) {
+        localStorage.setItem('tp_token', data.access_token);
+        localStorage.setItem('tp_user', JSON.stringify(data.user));
+        window.location.href = '/dashboard';
+      } else {
+        message.textContent = data.error_description || 'Invalid email or password.';
+        message.className = 'message error';
+        btn.disabled = false;
+        btn.textContent = 'Log In';
+      }
+    }
+
+    async function signup() {
+      const email = document.getElementById('signupEmail').value.trim();
+      const password = document.getElementById('signupPassword').value;
+      const confirm = document.getElementById('signupConfirm').value;
+      const btn = document.getElementById('signupBtn');
+      const message = document.getElementById('signupMessage');
+
+      if (!email || !password || !confirm) {
+        message.textContent = 'Please fill in all fields.';
+        message.className = 'message error';
+        return;
+      }
+
+      if (password !== confirm) {
+        message.textContent = 'Passwords do not match.';
+        message.className = 'message error';
+        return;
+      }
+
+      if (password.length < 6) {
+        message.textContent = 'Password must be at least 6 characters.';
+        message.className = 'message error';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Creating account...';
+
+      const res = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_KEY
+        },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await res.json();
+
+      if (data.id || data.user) {
+        message.textContent = 'Account created! Check your email to confirm.';
+        message.className = 'message success';
+        btn.textContent = 'Done!';
+      } else {
+        message.textContent = data.msg || data.error_description || 'Something went wrong.';
+        message.className = 'message error';
+        btn.disabled = false;
+        btn.textContent = 'Create Account';
+      }
+    }
+  </script>
+</body>
+</html>
