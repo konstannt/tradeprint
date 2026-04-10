@@ -713,8 +713,9 @@
     const SUPABASE_KEY = 'sb_publishable_1Q8yInISuuD3HDWI7mVesQ_A-DSkCM7';
 
     const token = localStorage.getItem('tp_token');
-    const user = JSON.parse(localStorage.getItem('tp_user') || 'null');
-    if (!token) { window.location.href = '/app'; }
+const user = JSON.parse(localStorage.getItem('tp_user') || 'null');
+if (!token) { window.location.href = '/app'; }
+if (user?.email !== 'dean.tsi.198@gmail.com') { window.location.href = '/app'; }
 
     if (localStorage.getItem('tp_theme') === 'light') {
       document.getElementById('body').classList.add('light');
