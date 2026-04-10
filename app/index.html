@@ -261,7 +261,8 @@
         message.className = 'message success';
         btn.textContent = 'Done!';
       } else {
-        message.textContent = data.msg || data.error_description || 'Something went wrong.';
+        const errMsg = data.msg || data.error_description || '';
+message.textContent = errMsg.toLowerCase().includes('already') ? 'An account with this email already exists.' : 'Something went wrong. Please try again.';
         message.className = 'message error';
         btn.disabled = false;
         btn.textContent = 'Create Account';
