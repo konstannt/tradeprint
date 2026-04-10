@@ -5,11 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Tradeprint</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       background-color: #0a0a0a;
@@ -29,9 +25,7 @@
       margin-bottom: 16px;
     }
 
-    .logo span {
-      color: #6366f1;
-    }
+    .logo span { color: #6366f1; }
 
     .tagline {
       font-size: 18px;
@@ -39,10 +33,25 @@
       margin-bottom: 48px;
     }
 
-    .waitlist-text {
-      font-size: 14px;
-      color: #555;
-      margin-top: 24px;
+    .waitlist-form {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .waitlist-form input {
+      padding: 14px 20px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1px solid #333;
+      background: #111;
+      color: #fff;
+      width: 280px;
+      outline: none;
+    }
+
+    .waitlist-form input:focus {
+      border-color: #6366f1;
     }
 
     .btn {
@@ -55,18 +64,97 @@
       cursor: pointer;
       font-weight: 600;
       transition: background 0.2s;
+      white-space: nowrap;
     }
 
-    .btn:hover {
-      background-color: #4f46e5;
+    .btn:hover { background-color: #4f46e5; }
+    .btn:disabled { background-color: #444; cursor: not-allowed; }
+
+    .message {
+      font-size: 14px;
+      margin-top: 8px;
+      min-height: 20px;
+    }
+
+    .message.success { color: #6366f1; }
+    .message.error { color: #ef4444; }
+
+    .subtext {
+      font-size: 14px;
+      color: #555;
+      margin-top: 16px;
     }
   </style>
 </head>
 <body>
   <div class="logo">trade<span>print</span></div>
   <p class="tagline">Discover your edge. Trade with conviction.</p>
-  <button class="btn">Join the Waitlist</button>
-  <p class="waitlist-text">The smarter trading journal. Coming soon.</p>
+
+  <div class="waitlist-form">
+    <input type="email" id="emailInput" placeholder="Enter your email" />
+    <button class="btn" id="joinBtn" onclick="joinWaitlist()">Join the Waitlist</button>
+  </div>
+
+  <div class="message" id="message"></div>
+  <p class="subtext">The smarter trading journal. Coming soon.</p>
+
+  <script>
+    const SUPABASE_URL = 'https://fpdedufotkmvjsvxdcmk.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_1Q8yInISuuD3HDWI7mVesQ_A-DSkCM7';
+
+    async function joinWaitlist() {
+      const email = document.getElementById('emailInput').value.trim();
+      const btn = document.getElementById('joinBtn');
+      const message = document.getElementById('message');
+
+      if (!email || !email.includes('@')) {
+        message.textContent = 'Please enter a valid email.';
+        message.className = 'message error';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Joining...';
+
+      try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/waitlist`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify({ email })
+        });
+
+        if (response.ok) {
+          message.textContent = "You're on the list! We'll be in touch.";
+          message.className = 'message success';
+          document.getElementById('emailInput').value = '';
+          btn.textContent = 'Joined!';
+        } else {
+          const err = await response.json();
+          if (err.code === '23505') {
+            message.textContent = 'This email is already on the waitlist!';
+            message.className = 'message error';
+          } else {
+            throw new Error('Something went wrong.');
+          }
+          btn.disabled = false;
+          btn.textContent = 'Join the Waitlist';
+        }
+      } catch (err) {
+        message.textContent = 'Something went wrong. Please try again.';
+        message.className = 'message error';
+        btn.disabled = false;
+        btn.textContent = 'Join the Waitlist';
+      }
+    }
+
+    document.getElementById('emailInput').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') joinWaitlist();
+    });
+  </script>
 </body>
 </html>
- 
