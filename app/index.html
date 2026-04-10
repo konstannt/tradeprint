@@ -153,6 +153,7 @@
       <div class="form-group">
         <label>Password</label>
         <input type="password" id="signupPassword" placeholder="••••••••" />
+<div style="font-size:11px;color:#555;margin-top:6px;">Min 8 characters, 1 uppercase, 1 lowercase, 1 number</div>
       </div>
       <div class="form-group">
         <label>Confirm Password</label>
@@ -236,11 +237,26 @@
         return;
       }
 
-      if (password.length < 6) {
-        message.textContent = 'Password must be at least 6 characters.';
-        message.className = 'message error';
-        return;
-      }
+if (password.length < 8) {
+  message.textContent = 'Password must be at least 8 characters.';
+  message.className = 'message error';
+  return;
+}
+if (!/[A-Z]/.test(password)) {
+  message.textContent = 'Password must contain at least 1 uppercase letter.';
+  message.className = 'message error';
+  return;
+}
+if (!/[a-z]/.test(password)) {
+  message.textContent = 'Password must contain at least 1 lowercase letter.';
+  message.className = 'message error';
+  return;
+}
+if (!/[0-9]/.test(password)) {
+  message.textContent = 'Password must contain at least 1 number.';
+  message.className = 'message error';
+  return;
+}
 
       btn.disabled = true;
       btn.textContent = 'Creating account...';
@@ -257,7 +273,7 @@
       const data = await res.json();
 
       if (data.id || data.user) {
-        message.textContent = 'Account created! Check your email to confirm.';
+message.textContent = "If this email isn't registered yet, you'll receive a confirmation link shortly!";
         message.className = 'message success';
         btn.textContent = 'Done!';
       } else {
