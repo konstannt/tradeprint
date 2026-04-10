@@ -31,10 +31,34 @@
     }
     .overlay.active { display: block; }
 
-    /* CROPPER MODAL */
-    .crop-modal {
+    /* MODAL */
+    .modal {
       display: none; position: fixed; inset: 0;
       background: rgba(0,0,0,0.85); z-index: 100;
+      align-items: center; justify-content: center; padding: 20px;
+    }
+    .modal.active { display: flex; }
+    .modal-box {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 28px;
+      width: 100%; max-width: 520px;
+      max-height: 90vh; overflow-y: auto;
+    }
+    .modal-header {
+      display: flex; align-items: center;
+      justify-content: space-between; margin-bottom: 24px;
+    }
+    .modal-title { font-size: 18px; font-weight: 700; }
+    .modal-close {
+      background: none; border: none; color: var(--text2);
+      font-size: 22px; cursor: pointer; line-height: 1;
+    }
+    .modal-close:hover { color: var(--text); }
+
+    /* CROP MODAL */
+    .crop-modal {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.85); z-index: 200;
       align-items: center; justify-content: center;
     }
     .crop-modal.active { display: flex; }
@@ -190,6 +214,23 @@
     .page-title { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
     .page-subtitle { font-size: 14px; color: var(--text2); margin-bottom: 32px; }
 
+    .page-header {
+      display: flex; align-items: center;
+      justify-content: space-between; margin-bottom: 32px;
+    }
+    .page-header-left {}
+    .page-header h1 { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+    .page-header p { font-size: 14px; color: var(--text2); }
+
+    .btn-primary {
+      background: var(--accent); color: #fff; border: none;
+      padding: 10px 20px; border-radius: 8px;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      transition: background 0.2s; display: flex; align-items: center; gap: 8px;
+      white-space: nowrap;
+    }
+    .btn-primary:hover { background: var(--accent-hover); }
+
     .stats-grid {
       display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
       gap: 16px; margin-bottom: 32px;
@@ -204,6 +245,118 @@
       color: var(--text2); font-size: 15px;
     }
     .coming-soon span { display: block; font-size: 32px; margin-bottom: 12px; }
+
+    /* STRATEGIES */
+    .strategies-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .strategy-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 20px;
+      transition: border-color 0.2s; cursor: pointer;
+      position: relative;
+    }
+    .strategy-card:hover { border-color: var(--accent); }
+
+    .strategy-card-header {
+      display: flex; align-items: center;
+      justify-content: space-between; margin-bottom: 12px;
+    }
+    .strategy-name { font-size: 16px; font-weight: 700; }
+    .strategy-actions { display: flex; gap: 8px; }
+    .strategy-action-btn {
+      background: none; border: none; color: var(--text2);
+      cursor: pointer; padding: 4px; border-radius: 4px;
+      transition: color 0.2s;
+    }
+    .strategy-action-btn:hover { color: var(--text); }
+    .strategy-action-btn.delete:hover { color: var(--danger); }
+    .strategy-action-btn svg {
+      width: 15px; height: 15px; stroke: currentColor; fill: none;
+      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+    }
+
+    .strategy-desc {
+      font-size: 13px; color: var(--text2); margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    .confluence-list { display: flex; flex-wrap: wrap; gap: 6px; }
+    .confluence-tag {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 20px; padding: 4px 10px;
+      font-size: 12px; color: var(--text2);
+    }
+    .confluence-count {
+      font-size: 12px; color: var(--text2); margin-top: 8px;
+    }
+
+    .empty-strategies {
+      grid-column: 1/-1;
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 60px; text-align: center;
+      color: var(--text2);
+    }
+    .empty-strategies span { display: block; font-size: 32px; margin-bottom: 12px; }
+
+    /* FORM */
+    .form-field { margin-bottom: 20px; }
+    .form-field label {
+      display: block; font-size: 12px; color: var(--text2);
+      margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.4px;
+    }
+    .form-field input, .form-field textarea {
+      width: 100%; padding: 10px 14px; font-size: 14px;
+      border-radius: 8px; border: 1px solid var(--border);
+      background: var(--bg); color: var(--text); outline: none;
+      transition: border-color 0.2s; font-family: inherit;
+    }
+    .form-field input:focus, .form-field textarea:focus { border-color: var(--accent); }
+    .form-field textarea { resize: vertical; min-height: 80px; }
+
+    .confluence-input-row {
+      display: flex; gap: 8px; margin-bottom: 12px;
+    }
+    .confluence-input-row input { flex: 1; }
+    .add-confluence-btn {
+      background: var(--accent); color: #fff; border: none;
+      padding: 10px 16px; border-radius: 8px;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      white-space: nowrap; transition: background 0.2s;
+    }
+    .add-confluence-btn:hover { background: var(--accent-hover); }
+
+    .confluence-tags-edit { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+    .confluence-tag-edit {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 20px; padding: 4px 10px 4px 12px;
+      font-size: 12px; color: var(--text2);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .remove-confluence {
+      background: none; border: none; color: var(--text2);
+      cursor: pointer; font-size: 14px; line-height: 1;
+      padding: 0; transition: color 0.2s;
+    }
+    .remove-confluence:hover { color: var(--danger); }
+
+    .modal-footer {
+      display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;
+    }
+    .btn-secondary {
+      background: none; border: 1px solid var(--border);
+      color: var(--text); padding: 10px 20px;
+      border-radius: 8px; font-size: 14px; cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .btn-secondary:hover { border-color: var(--accent); }
+
+    .modal-msg { font-size: 13px; margin-top: 12px; min-height: 18px; }
+    .modal-msg.success { color: var(--success); }
+    .modal-msg.error { color: var(--danger); }
 
     /* SETTINGS */
     .settings-section {
@@ -286,6 +439,38 @@
 
   <div class="overlay" id="overlay" onclick="closeMobileSidebar()"></div>
 
+  <!-- STRATEGY MODAL -->
+  <div class="modal" id="strategyModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title" id="modalTitle">New Strategy</div>
+        <button class="modal-close" onclick="closeStrategyModal()">×</button>
+      </div>
+      <div class="form-field">
+        <label>Strategy Name</label>
+        <input type="text" id="strategyName" placeholder="e.g. Reversal, Continuation..." />
+      </div>
+      <div class="form-field">
+        <label>Description (optional)</label>
+        <textarea id="strategyDesc" placeholder="Describe your strategy..."></textarea>
+      </div>
+      <div class="form-field">
+        <label>Confluences</label>
+        <div class="confluence-input-row">
+          <input type="text" id="confluenceInput" placeholder="e.g. Session level sweep" onkeypress="if(event.key==='Enter')addConfluence()"/>
+          <button class="add-confluence-btn" onclick="addConfluence()">Add</button>
+        </div>
+        <div class="confluence-tags-edit" id="confluenceTags"></div>
+        <div style="font-size:12px;color:var(--text2);">Press Enter or click Add to add each confluence.</div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeStrategyModal()">Cancel</button>
+        <button class="btn-primary" onclick="saveStrategy()">Save Strategy</button>
+      </div>
+      <div class="modal-msg" id="strategyMsg"></div>
+    </div>
+  </div>
+
   <!-- CROP MODAL -->
   <div class="crop-modal" id="cropModal">
     <div class="crop-box">
@@ -362,6 +547,7 @@
   <!-- MAIN -->
   <div class="main">
 
+    <!-- DASHBOARD -->
     <div class="page active" id="page-dashboard">
       <div class="page-title">Dashboard</div>
       <div class="page-subtitle">Welcome back. Here's how you're doing.</div>
@@ -374,30 +560,48 @@
       <div class="coming-soon"><span>📊</span>Your stats will appear here as you log trades.</div>
     </div>
 
+    <!-- STRATEGIES -->
     <div class="page" id="page-strategies">
-      <div class="page-title">Strategies</div>
-      <div class="page-subtitle">Build and manage your trading strategies.</div>
-      <div class="coming-soon"><span>⚡</span>Coming soon.</div>
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Strategies</h1>
+          <p>Build and manage your trading strategies.</p>
+        </div>
+        <button class="btn-primary" onclick="openStrategyModal()">
+          <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Strategy
+        </button>
+      </div>
+      <div class="strategies-grid" id="strategiesGrid">
+        <div class="empty-strategies">
+          <span>⚡</span>
+          No strategies yet. Hit "New Strategy" to get started.
+        </div>
+      </div>
     </div>
 
+    <!-- CALENDAR -->
     <div class="page" id="page-calendar">
       <div class="page-title">Calendar</div>
       <div class="page-subtitle">Log and review your trades by day.</div>
       <div class="coming-soon"><span>📅</span>Coming soon.</div>
     </div>
 
+    <!-- TRADES -->
     <div class="page" id="page-trades">
       <div class="page-title">Trades</div>
       <div class="page-subtitle">Every trade you've logged.</div>
       <div class="coming-soon"><span>📋</span>Coming soon.</div>
     </div>
 
+    <!-- NOTES -->
     <div class="page" id="page-notes">
       <div class="page-title">Notes</div>
       <div class="page-subtitle">Your personal trading notebook.</div>
       <div class="coming-soon"><span>📝</span>Coming soon.</div>
     </div>
 
+    <!-- CALCULATOR -->
     <div class="page" id="page-calculator">
       <div class="page-title">Calculator</div>
       <div class="page-subtitle">Quick profit & loss calculator.</div>
@@ -416,7 +620,7 @@
           <div>
             <input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="openCropper(event)"/>
             <button class="upload-btn" onclick="document.getElementById('avatarInput').click()">Upload Photo</button>
-            <div style="font-size:12px; color:var(--text2); margin-top:6px;">JPG or PNG, max 2MB</div>
+            <div style="font-size:12px;color:var(--text2);margin-top:6px;">JPG or PNG, max 2MB</div>
             <div class="msg" id="avatarMsg" style="margin-top:6px;"></div>
           </div>
         </div>
@@ -436,7 +640,7 @@
         </div>
         <button class="save-btn" onclick="saveEmail()">Update Email</button>
         <div class="msg" id="emailMsg"></div>
-        <div style="margin-top:24px; padding-top:20px; border-top:1px solid var(--border);">
+        <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border);">
           <div class="settings-field">
             <label>New Password</label>
             <input type="password" id="newPassword" placeholder="••••••••" />
@@ -490,7 +694,7 @@
 
       <div class="settings-section">
         <div class="settings-section-title" style="color:var(--danger)">Danger Zone</div>
-        <p style="font-size:13px; color:var(--text2); margin-bottom:16px;">Log out of your Tradeprint account.</p>
+        <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">Log out of your Tradeprint account.</p>
         <button class="danger-btn" onclick="logout()">Log Out</button>
       </div>
     </div>
@@ -512,80 +716,10 @@
     }
 
     let cropper = null;
+    let editingStrategyId = null;
+    let confluences = [];
 
-    function openCropper(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        const img = document.getElementById('cropImage');
-        img.src = ev.target.result;
-        document.getElementById('cropModal').classList.add('active');
-        if (cropper) { cropper.destroy(); cropper = null; }
-        setTimeout(() => {
-          cropper = new Cropper(img, {
-            aspectRatio: 1,
-            viewMode: 1,
-            dragMode: 'move',
-            cropBoxResizable: true,
-            background: false,
-          });
-        }, 100);
-      };
-      reader.readAsDataURL(file);
-    }
-
-    function closeCropper() {
-      document.getElementById('cropModal').classList.remove('active');
-      if (cropper) { cropper.destroy(); cropper = null; }
-      document.getElementById('avatarInput').value = '';
-    }
-
-    async function cropAndSave() {
-      if (!cropper) return;
-      const msg = document.getElementById('avatarMsg');
-      msg.textContent = 'Uploading...';
-      msg.className = 'msg';
-
-      const canvas = cropper.getCroppedCanvas({ width: 256, height: 256 });
-      canvas.toBlob(async (blob) => {
-        const filename = `${user.id}`;
-        const res = await fetch(`${SUPABASE_URL}/storage/v1/object/avatars/${filename}`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'image/png',
-            'x-upsert': 'true'
-          },
-          body: blob
-        });
-
-        if (res.ok) {
-          const url = `${SUPABASE_URL}/storage/v1/object/public/avatars/${filename}?t=${Date.now()}`;
-          await fetch(`${SUPABASE_URL}/rest/v1/profiles`, {
-            method: 'POST',
-            headers: {
-              'apikey': SUPABASE_KEY,
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json',
-              'Prefer': 'resolution=merge-duplicates'
-            },
-            body: JSON.stringify({ id: user.id, avatar_url: url })
-          });
-
-          const imgTag = `<img src="${url}" alt="avatar"/>`;
-          document.getElementById('settingsAvatar').innerHTML = imgTag;
-          document.getElementById('sidebarAvatar').innerHTML = imgTag;
-          msg.textContent = 'Photo saved!';
-          msg.className = 'msg success';
-          closeCropper();
-        } else {
-          msg.textContent = 'Upload failed. Try again.';
-          msg.className = 'msg error';
-        }
-      }, 'image/png');
-    }
-
+    // LOAD PROFILE
     async function loadProfile() {
       if (!user) return;
       document.getElementById('sidebarEmail').textContent = user.email || '—';
@@ -623,6 +757,219 @@
     }
 
     loadProfile();
+
+    // STRATEGIES
+    async function loadStrategies() {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/strategies?user_id=eq.${user.id}&order=created_at.asc`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      renderStrategies(data);
+    }
+
+    function renderStrategies(strategies) {
+      const grid = document.getElementById('strategiesGrid');
+      if (!strategies || strategies.length === 0) {
+        grid.innerHTML = `<div class="empty-strategies"><span>⚡</span>No strategies yet. Hit "New Strategy" to get started.</div>`;
+        return;
+      }
+      grid.innerHTML = strategies.map(s => `
+        <div class="strategy-card">
+          <div class="strategy-card-header">
+            <div class="strategy-name">${s.name}</div>
+            <div class="strategy-actions">
+              <button class="strategy-action-btn" onclick="editStrategy('${s.id}')" title="Edit">
+                <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </button>
+              <button class="strategy-action-btn delete" onclick="deleteStrategy('${s.id}')" title="Delete">
+                <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+              </button>
+            </div>
+          </div>
+          ${s.description ? `<div class="strategy-desc">${s.description}</div>` : ''}
+          <div class="confluence-list">
+            ${s.confluences && s.confluences.length > 0
+              ? s.confluences.slice(0, 5).map(c => `<span class="confluence-tag">${c}</span>`).join('')
+              : '<span style="font-size:12px;color:var(--text2);">No confluences added yet.</span>'
+            }
+            ${s.confluences && s.confluences.length > 5 ? `<span class="confluence-tag">+${s.confluences.length - 5} more</span>` : ''}
+          </div>
+          <div class="confluence-count">${s.confluences ? s.confluences.length : 0} confluence${s.confluences?.length !== 1 ? 's' : ''}</div>
+        </div>
+      `).join('');
+    }
+
+    function openStrategyModal(id = null) {
+      editingStrategyId = id;
+      confluences = [];
+      document.getElementById('strategyName').value = '';
+      document.getElementById('strategyDesc').value = '';
+      document.getElementById('confluenceTags').innerHTML = '';
+      document.getElementById('strategyMsg').textContent = '';
+      document.getElementById('modalTitle').textContent = id ? 'Edit Strategy' : 'New Strategy';
+      document.getElementById('strategyModal').classList.add('active');
+    }
+
+    function closeStrategyModal() {
+      document.getElementById('strategyModal').classList.remove('active');
+      editingStrategyId = null;
+      confluences = [];
+    }
+
+    async function editStrategy(id) {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/strategies?id=eq.${id}&select=*`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (!data || !data[0]) return;
+      const s = data[0];
+      editingStrategyId = id;
+      confluences = s.confluences || [];
+      document.getElementById('strategyName').value = s.name;
+      document.getElementById('strategyDesc').value = s.description || '';
+      document.getElementById('modalTitle').textContent = 'Edit Strategy';
+      document.getElementById('strategyMsg').textContent = '';
+      renderConfluenceTags();
+      document.getElementById('strategyModal').classList.add('active');
+    }
+
+    async function deleteStrategy(id) {
+      if (!confirm('Delete this strategy?')) return;
+      await fetch(`${SUPABASE_URL}/rest/v1/strategies?id=eq.${id}`, {
+        method: 'DELETE',
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
+      });
+      loadStrategies();
+    }
+
+    function addConfluence() {
+      const input = document.getElementById('confluenceInput');
+      const val = input.value.trim();
+      if (!val) return;
+      if (confluences.includes(val)) {
+        input.value = '';
+        return;
+      }
+      confluences.push(val);
+      input.value = '';
+      renderConfluenceTags();
+    }
+
+    function removeConfluence(index) {
+      confluences.splice(index, 1);
+      renderConfluenceTags();
+    }
+
+    function renderConfluenceTags() {
+      document.getElementById('confluenceTags').innerHTML = confluences.map((c, i) => `
+        <div class="confluence-tag-edit">
+          ${c}
+          <button class="remove-confluence" onclick="removeConfluence(${i})">×</button>
+        </div>
+      `).join('');
+    }
+
+    async function saveStrategy() {
+      const name = document.getElementById('strategyName').value.trim();
+      const desc = document.getElementById('strategyDesc').value.trim();
+      const msg = document.getElementById('strategyMsg');
+
+      if (!name) {
+        msg.textContent = 'Please enter a strategy name.';
+        msg.className = 'modal-msg error';
+        return;
+      }
+
+      const payload = { user_id: user.id, name, description: desc, confluences };
+
+      let res;
+      if (editingStrategyId) {
+        res = await fetch(`${SUPABASE_URL}/rest/v1/strategies?id=eq.${editingStrategyId}`, {
+          method: 'PATCH',
+          headers: {
+            'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json', 'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify({ name, description: desc, confluences })
+        });
+      } else {
+        res = await fetch(`${SUPABASE_URL}/rest/v1/strategies`, {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json', 'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify(payload)
+        });
+      }
+
+      if (res.ok) {
+        closeStrategyModal();
+        loadStrategies();
+      } else {
+        msg.textContent = 'Something went wrong. Try again.';
+        msg.className = 'modal-msg error';
+      }
+    }
+
+    // AVATAR
+    function openCropper(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const img = document.getElementById('cropImage');
+        img.src = ev.target.result;
+        document.getElementById('cropModal').classList.add('active');
+        if (cropper) { cropper.destroy(); cropper = null; }
+        setTimeout(() => {
+          cropper = new Cropper(img, {
+            aspectRatio: 1, viewMode: 1, dragMode: 'move',
+            cropBoxResizable: true, background: false,
+          });
+        }, 100);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function closeCropper() {
+      document.getElementById('cropModal').classList.remove('active');
+      if (cropper) { cropper.destroy(); cropper = null; }
+      document.getElementById('avatarInput').value = '';
+    }
+
+    async function cropAndSave() {
+      if (!cropper) return;
+      const msg = document.getElementById('avatarMsg');
+      msg.textContent = 'Uploading...'; msg.className = 'msg';
+      const canvas = cropper.getCroppedCanvas({ width: 256, height: 256 });
+      canvas.toBlob(async (blob) => {
+        const filename = `${user.id}`;
+        const res = await fetch(`${SUPABASE_URL}/storage/v1/object/avatars/${filename}`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'image/png', 'x-upsert': 'true' },
+          body: blob
+        });
+        if (res.ok) {
+          const url = `${SUPABASE_URL}/storage/v1/object/public/avatars/${filename}?t=${Date.now()}`;
+          await fetch(`${SUPABASE_URL}/rest/v1/profiles`, {
+            method: 'POST',
+            headers: {
+              'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates'
+            },
+            body: JSON.stringify({ id: user.id, avatar_url: url })
+          });
+          const imgTag = `<img src="${url}" alt="avatar"/>`;
+          document.getElementById('settingsAvatar').innerHTML = imgTag;
+          document.getElementById('sidebarAvatar').innerHTML = imgTag;
+          msg.textContent = 'Photo saved!'; msg.className = 'msg success';
+          closeCropper();
+        } else {
+          msg.textContent = 'Upload failed.'; msg.className = 'msg error';
+        }
+      }, 'image/png');
+    }
 
     async function saveProfile() {
       const username = document.getElementById('usernameInput').value.trim();
@@ -694,6 +1041,7 @@
       document.querySelectorAll('.nav-item, .settings-row').forEach(n => n.classList.remove('active'));
       document.getElementById('page-' + name).classList.add('active');
       if (el) el.classList.add('active');
+      if (name === 'strategies') loadStrategies();
       closeMobileSidebar();
     }
 
