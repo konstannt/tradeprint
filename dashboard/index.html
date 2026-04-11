@@ -1249,8 +1249,10 @@
     let calNotesCache = [];
 
     async function initCalendar() {
-      await loadCalendarData();
-    }
+  document.getElementById('dayModal').classList.remove('active');
+  document.getElementById('logTradeModal').classList.remove('active');
+  await loadCalendarData();
+}
 
     async function loadCalendarData() {
       const firstDayOfMonth = new Date(calYear, calMonth, 1);
@@ -1418,9 +1420,9 @@ document.querySelectorAll('.day-tab')[0].classList.add('active');
     }
 
     function closeDayModal() {
-      document.getElementById('dayModal').classList.remove('active');
-      selectedDate = null;
-    }
+  document.getElementById('dayModal').classList.remove('active');
+  selectedDate = null;
+}
 
     async function loadDayTrades() {
       const res = await fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}&date=eq.${selectedDate}&select=*,strategies(name)&order=created_at.asc`, {
@@ -1544,7 +1546,9 @@ async function loadDayNote() {
       document.getElementById('logTradeModal').classList.add('active');
     }
 
-    function closeLogTrade() { document.getElementById('logTradeModal').classList.remove('active'); }
+    function closeLogTrade() {
+  document.getElementById('logTradeModal').classList.remove('active');
+}
 
     function handleResultChange() {
       const result = document.getElementById('tradeResult').value;
