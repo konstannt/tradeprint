@@ -35,10 +35,15 @@
     }
     .overlay.active { display: block; }
     .modal {
-      display: none; position: fixed; inset: 0;
-      background: rgba(0,0,0,0.85); z-index: 100;
-      align-items: center; justify-content: center; padding: 20px;
-    }
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.85); z-index: 100;
+  align-items: center; justify-content: center; padding: 20px;
+  pointer-events: none;
+}
+.modal.active {
+  display: flex;
+  pointer-events: all;
+}
     .modal.active { display: flex; }
     .modal-box {
       background: var(--bg2); border: 1px solid var(--border);
@@ -1478,7 +1483,15 @@ async function loadDayNote() {
   editor.innerHTML = data[0]?.content || '';
   editor.oninput = () => {
     clearTimeout(noteAutosaveTimer);
-    noteAutosaveTimer = setTimeout(() => saveNote(), 1000);
+    const dateAtSave = selectedDate;
+    noteAutosaveTimer = setTimeout(async () => {
+      const content = editor.innerHTML.trim() === '<br>' ? '' : editor.innerHTML;
+      await fetch(`${SUPABASE_URL}/rest/v1/day_notes`, {
+        method: 'POST',
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' },
+        body: JSON.stringify({ user_id: user.id, date: dateAtSave, content })
+      });
+    }, 1000);
   };
 }
 
