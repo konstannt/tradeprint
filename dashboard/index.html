@@ -35,15 +35,10 @@
     }
     .overlay.active { display: block; }
     .modal {
-  display: none; position: fixed; inset: 0;
-  background: rgba(0,0,0,0.85); z-index: 100;
-  align-items: center; justify-content: center; padding: 20px;
-  pointer-events: none;
-}
-.modal.active {
-  display: flex;
-  pointer-events: all;
-}
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.85); z-index: 100;
+      align-items: center; justify-content: center; padding: 20px;
+    }
     .modal.active { display: flex; }
     .modal-box {
       background: var(--bg2); border: 1px solid var(--border);
@@ -67,133 +62,56 @@
       align-items: center; justify-content: center;
     }
     .crop-modal.active { display: flex; }
-    .crop-box {
-      background: #111; border-radius: 12px;
-      padding: 24px; width: 90%; max-width: 480px;
-    }
+    .crop-box { background: #111; border-radius: 12px; padding: 24px; width: 90%; max-width: 480px; }
     .crop-box h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
     .crop-container { width: 100%; height: 320px; overflow: hidden; border-radius: 8px; }
     .crop-container img { max-width: 100%; }
     .crop-actions { display: flex; gap: 12px; margin-top: 16px; justify-content: flex-end; }
-    .crop-cancel {
-      background: none; border: 1px solid var(--border);
-      color: var(--text); padding: 10px 20px;
-      border-radius: 8px; cursor: pointer; font-size: 14px;
-    }
-    .crop-save {
-      background: var(--accent); color: #fff; border: none;
-      padding: 10px 20px; border-radius: 8px;
-      cursor: pointer; font-size: 14px; font-weight: 600;
-    }
+    .crop-cancel { background: none; border: 1px solid var(--border); color: var(--text); padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 14px; }
+    .crop-save { background: var(--accent); color: #fff; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; }
     .sidebar {
-      width: 220px; background: var(--bg2);
-      border-right: 1px solid var(--border);
-      display: flex; flex-direction: column;
-      padding: 24px 0 16px; flex-shrink: 0;
-      transition: width 0.25s ease;
-      overflow: hidden; position: relative; z-index: 20;
+      width: 220px; background: var(--bg2); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; padding: 24px 0 16px; flex-shrink: 0;
+      transition: width 0.25s ease; overflow: hidden; position: relative; z-index: 20;
     }
     .sidebar.collapsed { width: 60px; }
     @media (max-width: 768px) {
-      .sidebar {
-        position: fixed; top: 0; left: 0; height: 100%;
-        transform: translateX(-100%);
-        transition: transform 0.25s ease; width: 220px !important;
-      }
+      .sidebar { position: fixed; top: 0; left: 0; height: 100%; transform: translateX(-100%); transition: transform 0.25s ease; width: 220px !important; }
       .sidebar.mobile-open { transform: translateX(0); }
     }
-    .sidebar-header {
-      display: flex; align-items: center;
-      justify-content: space-between;
-      padding: 0 16px; margin-bottom: 32px; min-height: 28px;
-    }
-    .sidebar-logo {
-      font-size: 20px; font-weight: 800; letter-spacing: -0.5px;
-      text-decoration: none; color: var(--text);
-      white-space: nowrap; overflow: hidden; transition: opacity 0.2s;
-    }
+    .sidebar-header { display: flex; align-items: center; justify-content: space-between; padding: 0 16px; margin-bottom: 32px; min-height: 28px; }
+    .sidebar-logo { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; text-decoration: none; color: var(--text); white-space: nowrap; overflow: hidden; transition: opacity 0.2s; }
     .sidebar-logo span { color: var(--accent); }
     .sidebar.collapsed .sidebar-logo { opacity: 0; width: 0; }
-    .toggle-btn {
-      background: none; border: none; cursor: pointer;
-      color: var(--text2); padding: 4px; border-radius: 6px;
-      transition: color 0.2s, background 0.2s;
-      flex-shrink: 0; display: flex; align-items: center; justify-content: center;
-    }
+    .toggle-btn { background: none; border: none; cursor: pointer; color: var(--text2); padding: 4px; border-radius: 6px; transition: color 0.2s, background 0.2s; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
     .toggle-btn:hover { color: var(--text); background: var(--border); }
-    .toggle-btn svg {
-      width: 18px; height: 18px; stroke: currentColor; fill: none;
-      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
-    }
+    .toggle-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     .nav-section { flex: 1; display: flex; flex-direction: column; }
-    .nav-item {
-      display: flex; align-items: center; gap: 12px;
-      padding: 12px 20px; cursor: pointer;
-      font-size: 14px; font-weight: 500; color: var(--text2);
-      border-left: 2px solid transparent;
-      transition: all 0.2s; text-decoration: none; white-space: nowrap;
-    }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 20px; cursor: pointer; font-size: 14px; font-weight: 500; color: var(--text2); border-left: 2px solid transparent; transition: all 0.2s; text-decoration: none; white-space: nowrap; }
     .sidebar.collapsed .nav-item { padding: 12px 0; justify-content: center; }
     .sidebar.collapsed .nav-label { display: none; }
     .nav-item:hover { color: var(--text); background: var(--border); }
     .nav-item.active { color: var(--text); border-left: 2px solid var(--accent); background: var(--border); }
-    .nav-item svg {
-      width: 18px; height: 18px; stroke: currentColor; fill: none;
-      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0;
-    }
+    .nav-item svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
     .sidebar-bottom { padding: 16px 0 0; border-top: 1px solid var(--border); margin-top: 8px; }
-    .settings-row {
-      display: flex; align-items: center; gap: 12px;
-      padding: 10px 20px; cursor: pointer;
-      font-size: 14px; font-weight: 500; color: var(--text2);
-      border-left: 2px solid transparent; transition: all 0.2s; white-space: nowrap;
-    }
+    .settings-row { display: flex; align-items: center; gap: 12px; padding: 10px 20px; cursor: pointer; font-size: 14px; font-weight: 500; color: var(--text2); border-left: 2px solid transparent; transition: all 0.2s; white-space: nowrap; }
     .settings-row:hover { color: var(--text); background: var(--border); }
     .settings-row.active { color: var(--text); border-left: 2px solid var(--accent); background: var(--border); }
     .sidebar.collapsed .settings-row { padding: 10px 0; justify-content: center; }
     .sidebar.collapsed .settings-label { display: none; }
-    .settings-row svg {
-      width: 18px; height: 18px; stroke: currentColor; fill: none;
-      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0;
-    }
-    .user-row {
-      display: flex; align-items: center; gap: 10px;
-      padding: 8px 16px; cursor: pointer; transition: background 0.2s;
-    }
+    .settings-row svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+    .user-row { display: flex; align-items: center; gap: 10px; padding: 8px 16px; cursor: pointer; transition: background 0.2s; }
     .user-row:hover { background: var(--border); }
-    .avatar {
-      width: 32px; height: 32px; border-radius: 50%;
-      background: var(--accent); display: flex;
-      align-items: center; justify-content: center;
-      font-size: 13px; font-weight: 700; color: #fff;
-      flex-shrink: 0; overflow: hidden;
-    }
+    .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0; overflow: hidden; }
     .avatar img { width: 100%; height: 100%; object-fit: cover; }
     .user-details { overflow: hidden; flex: 1; }
-    .user-name {
-      font-size: 13px; font-weight: 600; color: var(--text);
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .user-email {
-      font-size: 11px; color: var(--text2);
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
+    .user-name { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-email { font-size: 11px; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .sidebar.collapsed .user-details { display: none; }
-    .mobile-topbar {
-      display: none; position: fixed; top: 0; left: 0; right: 0;
-      height: 56px; background: var(--bg2);
-      border-bottom: 1px solid var(--border);
-      align-items: center; padding: 0 16px; z-index: 5; gap: 16px;
-    }
+    .mobile-topbar { display: none; position: fixed; top: 0; left: 0; right: 0; height: 56px; background: var(--bg2); border-bottom: 1px solid var(--border); align-items: center; padding: 0 16px; z-index: 5; gap: 16px; }
     @media (max-width: 768px) { .mobile-topbar { display: flex; } }
-    .hamburger {
-      background: none; border: none; cursor: pointer; color: #888;
-      display: flex; align-items: center; justify-content: center; padding: 4px;
-    }
-    .hamburger svg {
-      width: 22px; height: 22px; stroke: currentColor; fill: none;
-      stroke-width: 2; stroke-linecap: round;
-    }
+    .hamburger { background: none; border: none; cursor: pointer; color: #888; display: flex; align-items: center; justify-content: center; padding: 4px; }
+    .hamburger svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
     .mobile-logo { font-size: 18px; font-weight: 800; text-decoration: none; color: var(--text); }
     .mobile-logo span { color: var(--accent); }
     .main { flex: 1; overflow-y: auto; padding: 40px; }
@@ -202,176 +120,74 @@
     .page.active { display: block; }
     .page-title { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
     .page-subtitle { font-size: 14px; color: var(--text2); margin-bottom: 32px; }
-    .page-header {
-      display: flex; align-items: center;
-      justify-content: space-between; margin-bottom: 32px;
-    }
+    .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; }
     .page-header h1 { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
     .page-header p { font-size: 14px; color: var(--text2); }
-    .btn-primary {
-      background: var(--accent); color: #fff; border: none;
-      padding: 10px 20px; border-radius: 8px;
-      font-size: 14px; font-weight: 600; cursor: pointer;
-      transition: background 0.2s; display: flex; align-items: center; gap: 8px;
-      white-space: nowrap;
-    }
+    .btn-primary { background: var(--accent); color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
     .btn-primary:hover { background: var(--accent-hover); }
-    .stats-grid {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      gap: 16px; margin-bottom: 32px;
-    }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; margin-bottom: 32px; }
     .stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
     .stat-label { font-size: 11px; color: var(--text2); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
     .stat-value { font-size: 28px; font-weight: 700; color: var(--text); }
-    .coming-soon {
-      background: var(--bg2); border: 1px solid var(--border);
-      border-radius: 10px; padding: 60px; text-align: center;
-      color: var(--text2); font-size: 15px;
-    }
+    .coming-soon { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 60px; text-align: center; color: var(--text2); font-size: 15px; }
     .coming-soon span { display: block; font-size: 32px; margin-bottom: 12px; }
-    .strategies-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 16px;
-    }
-    .strategy-card {
-      background: var(--bg2); border: 1px solid var(--border);
-      border-radius: 12px; padding: 20px;
-      transition: border-color 0.2s; position: relative;
-    }
+    .strategies-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+    .strategy-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 20px; transition: border-color 0.2s; position: relative; }
     .strategy-card:hover { border-color: var(--accent); }
-    .strategy-card-header {
-      display: flex; align-items: center;
-      justify-content: space-between; margin-bottom: 12px;
-    }
+    .strategy-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
     .strategy-name { font-size: 16px; font-weight: 700; }
     .strategy-actions { display: flex; gap: 8px; }
-    .strategy-action-btn {
-      background: none; border: none; color: var(--text2);
-      cursor: pointer; padding: 4px; border-radius: 4px; transition: color 0.2s;
-    }
+    .strategy-action-btn { background: none; border: none; color: var(--text2); cursor: pointer; padding: 4px; border-radius: 4px; transition: color 0.2s; }
     .strategy-action-btn:hover { color: var(--text); }
     .strategy-action-btn.delete:hover { color: var(--danger); }
-    .strategy-action-btn svg {
-      width: 15px; height: 15px; stroke: currentColor; fill: none;
-      stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
-    }
+    .strategy-action-btn svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     .strategy-desc { font-size: 13px; color: var(--text2); margin-bottom: 16px; line-height: 1.5; }
     .confluence-list { display: flex; flex-wrap: wrap; gap: 6px; }
-    .confluence-tag {
-      background: var(--bg); border: 1px solid var(--border);
-      border-radius: 20px; padding: 4px 10px; font-size: 12px; color: var(--text2);
-    }
+    .confluence-tag { background: var(--bg); border: 1px solid var(--border); border-radius: 20px; padding: 4px 10px; font-size: 12px; color: var(--text2); }
     .confluence-count { font-size: 12px; color: var(--text2); margin-top: 8px; }
-    .empty-strategies {
-      grid-column: 1/-1;
-      background: var(--bg2); border: 1px solid var(--border);
-      border-radius: 12px; padding: 60px; text-align: center; color: var(--text2);
-    }
+    .empty-strategies { grid-column: 1/-1; background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 60px; text-align: center; color: var(--text2); }
     .empty-strategies span { display: block; font-size: 32px; margin-bottom: 12px; }
     .form-field { margin-bottom: 20px; }
-    .form-field label {
-      display: block; font-size: 12px; color: var(--text2);
-      margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.4px;
-    }
-    .form-field input, .form-field textarea {
-      width: 100%; padding: 10px 14px; font-size: 14px;
-      border-radius: 8px; border: 1px solid var(--border);
-      background: var(--bg); color: var(--text); outline: none;
-      transition: border-color 0.2s; font-family: inherit;
-    }
+    .form-field label { display: block; font-size: 12px; color: var(--text2); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.4px; }
+    .form-field input, .form-field textarea { width: 100%; padding: 10px 14px; font-size: 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); outline: none; transition: border-color 0.2s; font-family: inherit; }
     .form-field input:focus, .form-field textarea:focus { border-color: var(--accent); }
     .form-field textarea { resize: vertical; min-height: 80px; }
     .confluence-input-row { display: flex; gap: 8px; margin-bottom: 12px; }
     .confluence-input-row input { flex: 1; }
-    .add-confluence-btn {
-      background: var(--accent); color: #fff; border: none;
-      padding: 10px 16px; border-radius: 8px;
-      font-size: 14px; font-weight: 600; cursor: pointer;
-      white-space: nowrap; transition: background 0.2s;
-    }
+    .add-confluence-btn { background: var(--accent); color: #fff; border: none; padding: 10px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: background 0.2s; }
     .add-confluence-btn:hover { background: var(--accent-hover); }
     .confluence-tags-edit { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
-    .confluence-tag-edit {
-      background: var(--bg); border: 1px solid var(--border);
-      border-radius: 20px; padding: 4px 10px 4px 12px;
-      font-size: 12px; color: var(--text2);
-      display: flex; align-items: center; gap: 6px;
-    }
-    .remove-confluence {
-      background: none; border: none; color: var(--text2);
-      cursor: pointer; font-size: 14px; line-height: 1; padding: 0; transition: color 0.2s;
-    }
+    .confluence-tag-edit { background: var(--bg); border: 1px solid var(--border); border-radius: 20px; padding: 4px 10px 4px 12px; font-size: 12px; color: var(--text2); display: flex; align-items: center; gap: 6px; }
+    .remove-confluence { background: none; border: none; color: var(--text2); cursor: pointer; font-size: 14px; line-height: 1; padding: 0; transition: color 0.2s; }
     .remove-confluence:hover { color: var(--danger); }
     .modal-footer { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; }
-    .btn-secondary {
-      background: none; border: 1px solid var(--border);
-      color: var(--text); padding: 10px 20px;
-      border-radius: 8px; font-size: 14px; cursor: pointer; transition: border-color 0.2s;
-    }
+    .btn-secondary { background: none; border: 1px solid var(--border); color: var(--text); padding: 10px 20px; border-radius: 8px; font-size: 14px; cursor: pointer; transition: border-color 0.2s; }
     .btn-secondary:hover { border-color: var(--accent); }
     .modal-msg { font-size: 13px; margin-top: 12px; min-height: 18px; }
     .modal-msg.success { color: var(--success); }
     .modal-msg.error { color: var(--danger); }
-    .settings-section {
-      background: var(--bg2); border: 1px solid var(--border);
-      border-radius: 12px; padding: 28px; margin-bottom: 20px; max-width: 560px;
-    }
-    .settings-section-title {
-      font-size: 15px; font-weight: 700; margin-bottom: 20px;
-      padding-bottom: 12px; border-bottom: 1px solid var(--border);
-    }
+    .settings-section { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 28px; margin-bottom: 20px; max-width: 560px; }
+    .settings-section-title { font-size: 15px; font-weight: 700; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
     .settings-field { margin-bottom: 18px; }
-    .settings-field label {
-      display: block; font-size: 12px; color: var(--text2);
-      margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.4px;
-    }
-    .settings-field input, .settings-field select {
-      width: 100%; padding: 10px 14px; font-size: 14px;
-      border-radius: 8px; border: 1px solid var(--border);
-      background: var(--bg); color: var(--text); outline: none; transition: border-color 0.2s;
-    }
+    .settings-field label { display: block; font-size: 12px; color: var(--text2); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.4px; }
+    .settings-field input, .settings-field select { width: 100%; padding: 10px 14px; font-size: 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); outline: none; transition: border-color 0.2s; }
     .settings-field input:focus { border-color: var(--accent); }
     .avatar-upload { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
-    .avatar-large {
-      width: 72px; height: 72px; border-radius: 50%;
-      background: var(--accent); display: flex;
-      align-items: center; justify-content: center;
-      font-size: 26px; font-weight: 700; color: #fff; overflow: hidden; flex-shrink: 0;
-    }
+    .avatar-large { width: 72px; height: 72px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 700; color: #fff; overflow: hidden; flex-shrink: 0; }
     .avatar-large img { width: 100%; height: 100%; object-fit: cover; }
-    .upload-btn {
-      background: var(--bg); border: 1px solid var(--border);
-      color: var(--text); padding: 8px 16px; border-radius: 8px;
-      font-size: 13px; cursor: pointer; transition: border-color 0.2s;
-    }
+    .upload-btn { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 8px 16px; border-radius: 8px; font-size: 13px; cursor: pointer; transition: border-color 0.2s; }
     .upload-btn:hover { border-color: var(--accent); }
-    .save-btn {
-      background: var(--accent); color: #fff; border: none;
-      padding: 10px 24px; border-radius: 8px;
-      font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s;
-    }
+    .save-btn { background: var(--accent); color: #fff; border: none; padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
     .save-btn:hover { background: var(--accent-hover); }
     .save-btn:disabled { background: var(--text2); cursor: not-allowed; }
-    .danger-btn {
-      background: none; border: 1px solid var(--danger); color: var(--danger);
-      padding: 10px 24px; border-radius: 8px;
-      font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;
-    }
+    .danger-btn { background: none; border: 1px solid var(--danger); color: var(--danger); padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
     .danger-btn:hover { background: var(--danger); color: #fff; }
     .toggle-switch { display: flex; align-items: center; justify-content: space-between; }
     .toggle-switch span { font-size: 14px; color: var(--text); }
     .switch { position: relative; width: 44px; height: 24px; }
     .switch input { opacity: 0; width: 0; height: 0; }
-    .slider {
-      position: absolute; inset: 0; background: var(--border);
-      border-radius: 24px; cursor: pointer; transition: background 0.2s;
-    }
-    .slider:before {
-      content: ''; position: absolute;
-      width: 18px; height: 18px; left: 3px; top: 3px;
-      background: #fff; border-radius: 50%; transition: transform 0.2s;
-    }
+    .slider { position: absolute; inset: 0; background: var(--border); border-radius: 24px; cursor: pointer; transition: background 0.2s; }
+    .slider:before { content: ''; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: transform 0.2s; }
     input:checked + .slider { background: var(--accent); }
     input:checked + .slider:before { transform: translateX(20px); }
     .msg { font-size: 13px; margin-top: 12px; min-height: 18px; }
@@ -380,17 +196,9 @@
     .calc-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
     /* CALENDAR */
-    .cal-header {
-      display: flex; align-items: center;
-      justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;
-    }
+    .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
     .cal-nav { display: flex; align-items: center; gap: 16px; }
-    .cal-nav-btn {
-      background: var(--bg2); border: 1px solid var(--border);
-      border-radius: 8px; width: 36px; height: 36px;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; color: var(--text2); transition: all 0.2s;
-    }
+    .cal-nav-btn { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text2); transition: all 0.2s; }
     .cal-nav-btn:hover { color: var(--text); border-color: var(--accent); }
     .cal-nav-btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     .cal-nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
@@ -399,35 +207,19 @@
     .cal-stat { text-align: right; }
     .cal-stat-label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
     .cal-stat-value { font-size: 22px; font-weight: 700; }
-    .cal-grid-wrapper {
-      background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
-    }
-    .cal-day-headers {
-      display: grid; grid-template-columns: repeat(7, 1fr) 120px;
-      border-bottom: 1px solid var(--border);
-    }
-    #page-calendar .cal-day-headers div {
-      padding: 10px; text-align: center;
-      font-size: 12px; font-weight: 600; color: var(--text2);
-      text-transform: uppercase; letter-spacing: 0.5px;
-    }
+    .cal-grid-wrapper { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .cal-day-headers { display: grid; grid-template-columns: repeat(7, 1fr) 120px; border-bottom: 1px solid var(--border); }
+    #page-calendar .cal-day-headers div { padding: 10px; text-align: center; font-size: 12px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; }
     .cal-week-header { background: rgba(99,102,241,0.06); }
     .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr) 120px; }
-    .cal-cell {
-      border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
-      min-height: 130px; padding: 8px; position: relative; cursor: pointer; transition: background 0.15s;
-    }
+    .cal-cell { border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); min-height: 130px; padding: 8px; position: relative; cursor: pointer; transition: background 0.15s; }
     .cal-cell:hover { background: rgba(255,255,255,0.03); }
     .cal-cell.empty { cursor: default; }
     .cal-cell.empty:hover { background: transparent; }
     .cal-cell.other-month { background: rgba(255,255,255,0.01); cursor: pointer; }
     .cal-cell.today { background: rgba(99,102,241,0.08); }
     .cal-cell.today .cal-day-num { color: var(--accent); font-weight: 700; }
-    .cal-week-cell {
-      border-bottom: 1px solid var(--border); background: rgba(99,102,241,0.04);
-      padding: 8px 6px; display: flex; flex-direction: column;
-      justify-content: center; align-items: center; gap: 4px; min-height: 130px;
-    }
+    .cal-week-cell { border-bottom: 1px solid var(--border); background: rgba(99,102,241,0.04); padding: 8px 6px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 4px; min-height: 130px; }
     .cal-week-pnl { font-size: 14px; font-weight: 700; text-align: center; }
     .cal-week-pnl.green { color: var(--success); }
     .cal-week-pnl.red { color: var(--danger); }
@@ -437,82 +229,39 @@
     .cal-day-pnl.green { color: var(--success); }
     .cal-day-pnl.red { color: var(--danger); }
     .cal-day-trades { font-size: 11px; color: var(--text2); }
-    .cal-day-note-indicator {
-      width: 6px; height: 6px; border-radius: 50%;
-      background: var(--accent); position: absolute; top: 8px; right: 8px;
-    }
-    .cal-plus {
-      position: absolute; bottom: 6px; right: 6px;
-      width: 20px; height: 20px; border-radius: 50%;
-      background: var(--accent); color: #fff;
-      display: none; align-items: center; justify-content: center;
-      font-size: 14px; line-height: 1;
-    }
+    .cal-day-note-indicator { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); position: absolute; top: 8px; right: 8px; }
+    .cal-plus { position: absolute; bottom: 6px; right: 6px; width: 20px; height: 20px; border-radius: 50%; background: var(--accent); color: #fff; display: none; align-items: center; justify-content: center; font-size: 14px; line-height: 1; }
     .cal-cell:hover .cal-plus { display: flex; }
     .cal-cell.empty .cal-plus { display: none !important; }
     .day-stats { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
-    .day-stat-card {
-      background: var(--bg); border: 1px solid var(--border);
-      border-radius: 8px; padding: 10px 14px; flex: 1; min-width: 70px;
-    }
+    .day-stat-card { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; flex: 1; min-width: 70px; }
     .day-stat-label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px; }
     .day-stat-val { font-size: 16px; font-weight: 700; }
     .day-tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
-    .day-tab {
-      padding: 10px 20px; cursor: pointer; font-size: 14px; font-weight: 600;
-      color: var(--text2); border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.2s;
-    }
+    .day-tab { padding: 10px 20px; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--text2); border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.2s; }
     .day-tab.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
     .day-panel { display: none; }
     .day-panel.active { display: block; }
-    .note-toolbar {
-      display: flex; align-items: center; gap: 4px; flex-wrap: wrap;
-      padding: 8px; background: var(--bg);
-      border: 1px solid var(--border); border-bottom: none; border-radius: 8px 8px 0 0;
-    }
-    .note-tool {
-      background: none; border: none; color: var(--text);
-      padding: 4px 8px; border-radius: 4px; cursor: pointer;
-      font-size: 13px; transition: background 0.2s; line-height: 1.4;
-    }
+    .note-toolbar { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; padding: 8px; background: var(--bg); border: 1px solid var(--border); border-bottom: none; border-radius: 8px 8px 0 0; }
+    .note-tool { background: none; border: none; color: var(--text); padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 13px; transition: background 0.2s; line-height: 1.4; }
     .note-tool:hover { background: var(--border); }
     .note-tool-divider { width: 1px; height: 18px; background: var(--border); margin: 0 4px; }
-    .note-tool-select {
-      background: var(--bg); border: 1px solid var(--border);
-      color: var(--text); border-radius: 4px; padding: 3px 6px;
-      font-size: 12px; cursor: pointer; outline: none;
-    }
-    .note-editor {
-      width: 100%; min-height: 500px; max-height: 700px;
-      padding: 14px; font-size: 14px; line-height: 1.7;
-      border: 1px solid var(--border); border-radius: 0 0 8px 8px;
-      background: var(--bg); color: var(--text);
-      outline: none; overflow-y: auto; font-family: inherit;
-    }
+    .note-tool-select { background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 4px; padding: 3px 6px; font-size: 12px; cursor: pointer; outline: none; }
+    .note-editor { width: 100%; min-height: 500px; max-height: 700px; padding: 14px; font-size: 14px; line-height: 1.7; border: 1px solid var(--border); border-radius: 0 0 8px 8px; background: var(--bg); color: var(--text); outline: none; overflow-y: auto; font-family: inherit; }
     .note-editor:empty:before { content: attr(placeholder); color: var(--text2); pointer-events: none; }
     .note-editor hr { border: none; border-top: 1px solid var(--border); margin: 12px 0; }
     .note-editor img { max-width: 100%; border-radius: 6px; margin: 8px 0; }
-    .trade-entry {
-      background: var(--bg); border: 1px solid var(--border);
-      border-radius: 8px; padding: 14px; margin-bottom: 10px;
-      display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    }
+    .trade-entry { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
     .trade-entry-left { flex: 1; }
     .trade-entry-strategy { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
     .trade-entry-detail { font-size: 12px; color: var(--text2); }
     .trade-entry-pnl { font-size: 16px; font-weight: 700; white-space: nowrap; }
     .trade-entry-pnl.green { color: var(--success); }
     .trade-entry-pnl.red { color: var(--danger); }
-    .trade-delete-btn {
-      background: none; border: none; color: var(--text2);
-      cursor: pointer; padding: 4px; border-radius: 4px; transition: color 0.2s;
-    }
+    .trade-delete-btn { background: none; border: none; color: var(--text2); cursor: pointer; padding: 4px; border-radius: 4px; transition: color 0.2s; }
     .trade-delete-btn:hover { color: var(--danger); }
     .trade-delete-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
-    .confluence-check {
-      display: flex; align-items: center; gap: 10px;
-      padding: 8px 0; border-bottom: 1px solid var(--border); cursor: pointer;
-    }
+    .confluence-check { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
     .confluence-check:last-child { border-bottom: none; }
     .confluence-check input { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
     .confluence-check label { font-size: 14px; color: var(--text); cursor: pointer; flex: 1; }
@@ -653,10 +402,7 @@
     <!-- STRATEGIES -->
     <div class="page" id="page-strategies">
       <div class="page-header">
-        <div>
-          <h1>Strategies</h1>
-          <p>Build and manage your trading strategies.</p>
-        </div>
+        <div><h1>Strategies</h1><p>Build and manage your trading strategies.</p></div>
         <button class="btn-primary" onclick="openStrategyModal()">
           <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           New Strategy
@@ -680,18 +426,9 @@
           </button>
         </div>
         <div class="cal-monthly-stats">
-          <div class="cal-stat">
-            <div class="cal-stat-label">Monthly PNL</div>
-            <div class="cal-stat-value" id="calMonthlyPnl">—</div>
-          </div>
-          <div class="cal-stat">
-            <div class="cal-stat-label">Trades</div>
-            <div class="cal-stat-value" id="calMonthlyTrades">—</div>
-          </div>
-          <div class="cal-stat">
-            <div class="cal-stat-label">Win Rate</div>
-            <div class="cal-stat-value" id="calMonthlyWinRate">—</div>
-          </div>
+          <div class="cal-stat"><div class="cal-stat-label">Monthly PNL</div><div class="cal-stat-value" id="calMonthlyPnl">—</div></div>
+          <div class="cal-stat"><div class="cal-stat-label">Trades</div><div class="cal-stat-value" id="calMonthlyTrades">—</div></div>
+          <div class="cal-stat"><div class="cal-stat-label">Win Rate</div><div class="cal-stat-value" id="calMonthlyWinRate">—</div></div>
         </div>
       </div>
       <div class="cal-grid-wrapper">
@@ -775,24 +512,14 @@
             </div>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-            <div class="form-field">
-              <label>Planned R:R</label>
-              <input type="number" id="tradePlannedRR" placeholder="e.g. 2" step="0.1"/>
-            </div>
-            <div class="form-field">
-              <label>Actual R:R</label>
-              <input type="number" id="tradeActualRR" placeholder="e.g. 1.5" step="0.1"/>
-            </div>
+            <div class="form-field"><label>Planned R:R</label><input type="number" id="tradePlannedRR" placeholder="e.g. 2" step="0.1"/></div>
+            <div class="form-field"><label>Actual R:R</label><input type="number" id="tradeActualRR" placeholder="e.g. 1.5" step="0.1"/></div>
           </div>
           <div class="form-field">
             <label>Did you follow your rules?</label>
             <div style="display:flex;gap:12px;margin-top:4px;">
-              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px;color:var(--text);">
-                <input type="radio" name="followedRules" value="true" checked/> Yes
-              </label>
-              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px;color:var(--text);">
-                <input type="radio" name="followedRules" value="false"/> No
-              </label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px;color:var(--text);"><input type="radio" name="followedRules" value="true" checked/> Yes</label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px;color:var(--text);"><input type="radio" name="followedRules" value="false"/> No</label>
             </div>
           </div>
           <div class="form-field">
@@ -844,30 +571,18 @@
             <div class="msg" id="avatarMsg" style="margin-top:6px;"></div>
           </div>
         </div>
-        <div class="settings-field">
-          <label>Username</label>
-          <input type="text" id="usernameInput" placeholder="e.g. konstannt" />
-        </div>
+        <div class="settings-field"><label>Username</label><input type="text" id="usernameInput" placeholder="e.g. konstannt" /></div>
         <button class="save-btn" onclick="saveProfile()">Save Profile</button>
         <div class="msg" id="profileMsg"></div>
       </div>
       <div class="settings-section">
         <div class="settings-section-title">Account</div>
-        <div class="settings-field">
-          <label>Email</label>
-          <input type="email" id="emailInput" placeholder="your@email.com" />
-        </div>
+        <div class="settings-field"><label>Email</label><input type="email" id="emailInput" placeholder="your@email.com" /></div>
         <button class="save-btn" onclick="saveEmail()">Update Email</button>
         <div class="msg" id="emailMsg"></div>
         <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border);">
-          <div class="settings-field">
-            <label>New Password</label>
-            <input type="password" id="newPassword" placeholder="••••••••" />
-          </div>
-          <div class="settings-field">
-            <label>Confirm New Password</label>
-            <input type="password" id="confirmPassword" placeholder="••••••••" />
-          </div>
+          <div class="settings-field"><label>New Password</label><input type="password" id="newPassword" placeholder="••••••••" /></div>
+          <div class="settings-field"><label>Confirm New Password</label><input type="password" id="confirmPassword" placeholder="••••••••" /></div>
           <button class="save-btn" onclick="savePassword()">Update Password</button>
           <div class="msg" id="passwordMsg"></div>
         </div>
@@ -876,10 +591,7 @@
         <div class="settings-section-title">Appearance</div>
         <div class="toggle-switch">
           <span>Light Mode</span>
-          <label class="switch">
-            <input type="checkbox" id="themeToggle" onchange="toggleTheme()"/>
-            <span class="slider"></span>
-          </label>
+          <label class="switch"><input type="checkbox" id="themeToggle" onchange="toggleTheme()"/><span class="slider"></span></label>
         </div>
       </div>
       <div class="settings-section">
@@ -887,23 +599,14 @@
         <div class="settings-field">
           <label>Default Ticker</label>
           <select id="defaultTicker">
-            <option value="MNQ">MNQ</option>
-            <option value="NQ">NQ</option>
-            <option value="MES">MES</option>
-            <option value="ES">ES</option>
-            <option value="MGC">MGC</option>
-            <option value="GC">GC</option>
+            <option value="MNQ">MNQ</option><option value="NQ">NQ</option>
+            <option value="MES">MES</option><option value="ES">ES</option>
+            <option value="MGC">MGC</option><option value="GC">GC</option>
           </select>
         </div>
         <div class="calc-row">
-          <div class="settings-field">
-            <label>Default Contracts</label>
-            <input type="number" id="defaultContracts" placeholder="e.g. 2" min="1" />
-          </div>
-          <div class="settings-field">
-            <label>Default R:R</label>
-            <input type="text" id="defaultRR" placeholder="e.g. 2" />
-          </div>
+          <div class="settings-field"><label>Default Contracts</label><input type="number" id="defaultContracts" placeholder="e.g. 2" min="1" /></div>
+          <div class="settings-field"><label>Default R:R</label><input type="text" id="defaultRR" placeholder="e.g. 2" /></div>
         </div>
         <button class="save-btn" onclick="saveCalcDefaults()">Save Defaults</button>
         <div class="msg" id="calcMsg"></div>
@@ -935,6 +638,15 @@
     let cropper = null;
     let editingStrategyId = null;
     let confluences = [];
+    let calYear = new Date().getFullYear();
+    let calMonth = new Date().getMonth();
+    let selectedDate = null;
+    let dayTrades = [];
+    let allStrategies = [];
+    let calTradesCache = [];
+    let calNotesCache = [];
+    let noteAutosaveTimer = null;
+    const MIN_DATE = new Date(2026, 0, 1);
 
     async function loadProfile() {
       if (!user) return;
@@ -999,9 +711,7 @@
           </div>
           ${s.description ? `<div class="strategy-desc">${s.description}</div>` : ''}
           <div class="confluence-list">
-            ${s.confluences && s.confluences.length > 0
-              ? s.confluences.slice(0, 5).map(c => `<span class="confluence-tag">${c}</span>`).join('')
-              : '<span style="font-size:12px;color:var(--text2);">No confluences added yet.</span>'}
+            ${s.confluences && s.confluences.length > 0 ? s.confluences.slice(0, 5).map(c => `<span class="confluence-tag">${c}</span>`).join('') : '<span style="font-size:12px;color:var(--text2);">No confluences added yet.</span>'}
             ${s.confluences && s.confluences.length > 5 ? `<span class="confluence-tag">+${s.confluences.length - 5} more</span>` : ''}
           </div>
           <div class="confluence-count">${s.confluences ? s.confluences.length : 0} confluence${s.confluences?.length !== 1 ? 's' : ''}</div>
@@ -1068,10 +778,7 @@
 
     function renderConfluenceTags() {
       document.getElementById('confluenceTags').innerHTML = confluences.map((c, i) => `
-        <div class="confluence-tag-edit">
-          ${c}
-          <button class="remove-confluence" onclick="removeConfluence(${i})">×</button>
-        </div>
+        <div class="confluence-tag-edit">${c}<button class="remove-confluence" onclick="removeConfluence(${i})">×</button></div>
       `).join('');
     }
 
@@ -1080,7 +787,6 @@
       const desc = document.getElementById('strategyDesc').value.trim();
       const msg = document.getElementById('strategyMsg');
       if (!name) { msg.textContent = 'Please enter a strategy name.'; msg.className = 'modal-msg error'; return; }
-      const payload = { user_id: user.id, name, description: desc, confluences };
       let res;
       if (editingStrategyId) {
         res = await fetch(`${SUPABASE_URL}/rest/v1/strategies?id=eq.${editingStrategyId}`, {
@@ -1092,7 +798,7 @@
         res = await fetch(`${SUPABASE_URL}/rest/v1/strategies`, {
           method: 'POST',
           headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-          body: JSON.stringify(payload)
+          body: JSON.stringify({ user_id: user.id, name, description: desc, confluences })
         });
       }
       if (res.ok) { closeStrategyModal(); loadStrategies(); }
@@ -1238,21 +944,11 @@
       window.location.href = '/app';
     }
 
-    // CALENDAR
-    const MIN_DATE = new Date(2026, 0, 1);
-    let calYear = new Date().getFullYear();
-    let calMonth = new Date().getMonth();
-    let selectedDate = null;
-    let dayTrades = [];
-    let allStrategies = [];
-    let calTradesCache = [];
-    let calNotesCache = [];
-
     async function initCalendar() {
-  document.getElementById('dayModal').classList.remove('active');
-  document.getElementById('logTradeModal').classList.remove('active');
-  await loadCalendarData();
-}
+      document.getElementById('dayModal').classList.remove('active');
+      document.getElementById('logTradeModal').classList.remove('active');
+      await loadCalendarData();
+    }
 
     async function loadCalendarData() {
       const firstDayOfMonth = new Date(calYear, calMonth, 1);
@@ -1339,10 +1035,7 @@
         cell.onclick = () => openDayModal(dateStr);
         cell.innerHTML = `
           <div class="cal-day-num" style="${!isCurrentMonth ? 'opacity:0.35;' : ''}">${dayNum}</div>
-          ${dayTradesArr.length > 0 ? `
-            <div class="cal-day-pnl ${pnlColor}">${dayPnl >= 0 ? '+' : ''}$${dayPnl.toFixed(0)}</div>
-            <div class="cal-day-trades">${dayTradesArr.length} trade${dayTradesArr.length !== 1 ? 's' : ''}</div>
-          ` : ''}
+          ${dayTradesArr.length > 0 ? `<div class="cal-day-pnl ${pnlColor}">${dayPnl >= 0 ? '+' : ''}$${dayPnl.toFixed(0)}</div><div class="cal-day-trades">${dayTradesArr.length} trade${dayTradesArr.length !== 1 ? 's' : ''}</div>` : ''}
           ${hasNote ? '<div class="cal-day-note-indicator"></div>' : ''}
           <div class="cal-plus">+</div>
         `;
@@ -1385,10 +1078,7 @@
         if (weekTrades > 0) {
           const weekWinRate = Math.round((weekWins / weekTrades) * 100);
           const pnlClass = weekPnl > 0 ? 'green' : weekPnl < 0 ? 'red' : '';
-          weekCell.innerHTML = `
-            <div class="cal-week-pnl ${pnlClass}">${weekPnl >= 0 ? '+' : ''}$${weekPnl.toFixed(0)}</div>
-            <div class="cal-week-meta">${weekTrades}T · ${weekWinRate}%</div>
-          `;
+          weekCell.innerHTML = `<div class="cal-week-pnl ${pnlClass}">${weekPnl >= 0 ? '+' : ''}$${weekPnl.toFixed(0)}</div><div class="cal-week-meta">${weekTrades}T · ${weekWinRate}%</div>`;
         }
         grid.appendChild(weekCell);
       }
@@ -1410,19 +1100,19 @@
       document.getElementById('dayStats').innerHTML = '';
       document.getElementById('dayTradesList').innerHTML = '<div class="no-trades" style="color:var(--text2);">Loading...</div>';
       document.getElementById('noteEditor').innerHTML = '';
-      document.getElementById('noteMsg').textContent = '';
       document.querySelectorAll('.day-tab').forEach(t => t.classList.remove('active'));
-document.querySelectorAll('.day-panel').forEach(p => p.classList.remove('active'));
-document.getElementById('dayPanelTrades').classList.add('active');
-document.querySelectorAll('.day-tab')[0].classList.add('active');
+      document.querySelectorAll('.day-panel').forEach(p => p.classList.remove('active'));
+      document.getElementById('dayPanelTrades').classList.add('active');
+      document.querySelectorAll('.day-tab')[0].classList.add('active');
       document.getElementById('dayModal').classList.add('active');
       await Promise.all([loadDayTrades(), loadDayNote()]);
     }
 
     function closeDayModal() {
-  document.getElementById('dayModal').classList.remove('active');
-  selectedDate = null;
-}
+      clearTimeout(noteAutosaveTimer);
+      document.getElementById('dayModal').classList.remove('active');
+      selectedDate = null;
+    }
 
     async function loadDayTrades() {
       const res = await fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}&date=eq.${selectedDate}&select=*,strategies(name)&order=created_at.asc`, {
@@ -1477,38 +1167,26 @@ document.querySelectorAll('.day-tab')[0].classList.add('active');
       loadCalendarData();
     }
 
-    let noteAutosaveTimer = null;
-
-async function loadDayNote() {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/day_notes?user_id=eq.${user.id}&date=eq.${selectedDate}&select=*`, {
-    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
-  });
-  const data = await res.json();
-  const editor = document.getElementById('noteEditor');
-  editor.innerHTML = data[0]?.content || '';
-  editor.oninput = () => {
-    clearTimeout(noteAutosaveTimer);
-    const dateAtSave = selectedDate;
-    noteAutosaveTimer = setTimeout(async () => {
-      const content = editor.innerHTML.trim() === '<br>' ? '' : editor.innerHTML;
-      await fetch(`${SUPABASE_URL}/rest/v1/day_notes`, {
-        method: 'POST',
-        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' },
-        body: JSON.stringify({ user_id: user.id, date: dateAtSave, content })
+    async function loadDayNote() {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/day_notes?user_id=eq.${user.id}&date=eq.${selectedDate}&select=*`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
       });
-    }, 1000);
-  };
-}
-
-    async function saveNote() {
-  const editor = document.getElementById('noteEditor');
-  const content = editor.innerHTML.trim() === '<br>' ? '' : editor.innerHTML;
-  await fetch(`${SUPABASE_URL}/rest/v1/day_notes`, {
-    method: 'POST',
-    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' },
-    body: JSON.stringify({ user_id: user.id, date: selectedDate, content })
-  });
-}
+      const data = await res.json();
+      const editor = document.getElementById('noteEditor');
+      editor.innerHTML = data[0]?.content || '';
+      editor.oninput = () => {
+        clearTimeout(noteAutosaveTimer);
+        const dateAtSave = selectedDate;
+        noteAutosaveTimer = setTimeout(async () => {
+          const content = editor.innerHTML.trim() === '<br>' ? '' : editor.innerHTML;
+          await fetch(`${SUPABASE_URL}/rest/v1/day_notes`, {
+            method: 'POST',
+            headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' },
+            body: JSON.stringify({ user_id: user.id, date: dateAtSave, content })
+          });
+        }, 1000);
+      };
+    }
 
     function noteFormat(cmd) { document.getElementById('noteEditor').focus(); document.execCommand(cmd, false, null); }
     function noteFormatBlock(val) { if (!val) return; document.getElementById('noteEditor').focus(); document.execCommand('formatBlock', false, val); }
@@ -1546,9 +1224,7 @@ async function loadDayNote() {
       document.getElementById('logTradeModal').classList.add('active');
     }
 
-    function closeLogTrade() {
-  document.getElementById('logTradeModal').classList.remove('active');
-}
+    function closeLogTrade() { document.getElementById('logTradeModal').classList.remove('active'); }
 
     function handleResultChange() {
       const result = document.getElementById('tradeResult').value;
