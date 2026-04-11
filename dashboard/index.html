@@ -1469,27 +1469,43 @@
       loadCalendarData();
     }
 
-    async function loadDayNote() {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/day_notes?user_id=eq.${user.id}&date=eq.${selectedDate}&select=*`, {
-        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
-      });
-      const data = await res.json();
-      document.getElementById('noteEditor').innerHTML = data[0]?.content || '';
-      document.getElementById('noteMsg').textContent = '';
-    }
+    let noteAutosaveTimer = null;
 
-    async function saveNote() {
-      const editor = document.getElementById('noteEditor');
-      const content = editor.innerHTML.trim() === '<br>' ? '' : editor.innerHTML;
-      const msg = document.getElementById('noteMsg');
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/day_notes`, {
-        method: 'POST',
-        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' },
-        body: JSON.stringify({ user_id: user.id, date: selectedDate, content: content })
-      });
-      if (res.ok) { msg.textContent = 'Note saved!'; msg.className = 'msg success'; loadCalendarData(); }
-      else { msg.textContent = 'Could not save note.'; msg.className = 'msg error'; }
-    }
+async function loadDayNote() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/day_notes?user_id=eq.${user.id}&date=eq.${selectedDate}&select=*`, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
+  });
+  const data = await res.json();
+  const editor = document.getElementById('noteEditor');
+  editor.innerHTML = data[0]?.content || '';
+  document.getElementById('noteMsg').textContent = '';
+
+  editor.oninput = () => {
+    clearTimeout(noteAutosaveTimer);
+    document.getElementById('noteMsg').textContent = 'Saving...';
+    document.getElementById('noteMsg').className = 'msg';
+    noteAutosaveTimer = setTimeout(() => saveNote(true), 1000);
+  };
+}
+
+    async function saveNote(auto = false) {
+  const editor = document.getElementById('noteEditor');
+  const content = editor.innerHTML.trim() === '<br>' ? '' : editor.innerHTML;
+  const msg = document.getElementById('noteMsg');
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/day_notes`, {
+    method: 'POST',
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' },
+    body: JSON.stringify({ user_id: user.id, date: selectedDate, content })
+  });
+  if (res.ok) {
+    msg.textContent = auto ? 'Saved' : 'Note saved!';
+    msg.className = 'msg success';
+    if (!auto) loadCalendarData();
+    else setTimeout(() => { if (msg.textContent === 'Saved') msg.textContent = ''; }, 2000);
+  } else {
+    msg.textContent = 'Could not save.'; msg.className = 'msg error';
+  }
+}
 
     function noteFormat(cmd) { document.getElementById('noteEditor').focus(); document.execCommand(cmd, false, null); }
     function noteFormatBlock(val) { if (!val) return; document.getElementById('noteEditor').focus(); document.execCommand('formatBlock', false, val); }
