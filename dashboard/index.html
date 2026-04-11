@@ -4,16 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
-<link rel="apple-touch-icon" href="/apple-touch-icon.png"/>
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-<meta name="apple-mobile-web-app-title" content="Tradeprint"/>
-<meta name="theme-color" content="#0a0a0a"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="Tradeprint"/>
+  <meta name="theme-color" content="#0a0a0a"/>
   <title>Tradeprint — Dashboard</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css"/>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-
     :root {
       --bg: #0a0a0a; --bg2: #111; --border: #1e1e1e;
       --text: #ffffff; --text2: #555;
@@ -30,14 +29,11 @@
       display: flex; height: 100vh; overflow: hidden;
       transition: background 0.2s, color 0.2s;
     }
-
     .overlay {
       display: none; position: fixed; inset: 0;
       background: rgba(0,0,0,0.6); z-index: 10;
     }
     .overlay.active { display: block; }
-
-    /* MODAL */
     .modal {
       display: none; position: fixed; inset: 0;
       background: rgba(0,0,0,0.85); z-index: 100;
@@ -60,8 +56,6 @@
       font-size: 22px; cursor: pointer; line-height: 1;
     }
     .modal-close:hover { color: var(--text); }
-
-    /* CROP MODAL */
     .crop-modal {
       display: none; position: fixed; inset: 0;
       background: rgba(0,0,0,0.85); z-index: 200;
@@ -86,8 +80,6 @@
       padding: 10px 20px; border-radius: 8px;
       cursor: pointer; font-size: 14px; font-weight: 600;
     }
-
-    /* SIDEBAR */
     .sidebar {
       width: 220px; background: var(--bg2);
       border-right: 1px solid var(--border);
@@ -105,7 +97,6 @@
       }
       .sidebar.mobile-open { transform: translateX(0); }
     }
-
     .sidebar-header {
       display: flex; align-items: center;
       justify-content: space-between;
@@ -118,7 +109,6 @@
     }
     .sidebar-logo span { color: var(--accent); }
     .sidebar.collapsed .sidebar-logo { opacity: 0; width: 0; }
-
     .toggle-btn {
       background: none; border: none; cursor: pointer;
       color: var(--text2); padding: 4px; border-radius: 6px;
@@ -130,9 +120,7 @@
       width: 18px; height: 18px; stroke: currentColor; fill: none;
       stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
     }
-
     .nav-section { flex: 1; display: flex; flex-direction: column; }
-
     .nav-item {
       display: flex; align-items: center; gap: 12px;
       padding: 12px 20px; cursor: pointer;
@@ -148,9 +136,7 @@
       width: 18px; height: 18px; stroke: currentColor; fill: none;
       stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0;
     }
-
     .sidebar-bottom { padding: 16px 0 0; border-top: 1px solid var(--border); margin-top: 8px; }
-
     .settings-row {
       display: flex; align-items: center; gap: 12px;
       padding: 10px 20px; cursor: pointer;
@@ -165,13 +151,11 @@
       width: 18px; height: 18px; stroke: currentColor; fill: none;
       stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0;
     }
-
     .user-row {
       display: flex; align-items: center; gap: 10px;
       padding: 8px 16px; cursor: pointer; transition: background 0.2s;
     }
     .user-row:hover { background: var(--border); }
-
     .avatar {
       width: 32px; height: 32px; border-radius: 50%;
       background: var(--accent); display: flex;
@@ -180,7 +164,6 @@
       flex-shrink: 0; overflow: hidden;
     }
     .avatar img { width: 100%; height: 100%; object-fit: cover; }
-
     .user-details { overflow: hidden; flex: 1; }
     .user-name {
       font-size: 13px; font-weight: 600; color: var(--text);
@@ -191,8 +174,6 @@
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .sidebar.collapsed .user-details { display: none; }
-
-    /* MOBILE */
     .mobile-topbar {
       display: none; position: fixed; top: 0; left: 0; right: 0;
       height: 56px; background: var(--bg2);
@@ -210,24 +191,18 @@
     }
     .mobile-logo { font-size: 18px; font-weight: 800; text-decoration: none; color: var(--text); }
     .mobile-logo span { color: var(--accent); }
-
-    /* MAIN */
     .main { flex: 1; overflow-y: auto; padding: 40px; }
     @media (max-width: 768px) { .main { padding: 76px 20px 20px; } }
-
     .page { display: none; }
     .page.active { display: block; }
     .page-title { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
     .page-subtitle { font-size: 14px; color: var(--text2); margin-bottom: 32px; }
-
     .page-header {
       display: flex; align-items: center;
       justify-content: space-between; margin-bottom: 32px;
     }
-    .page-header-left {}
     .page-header h1 { font-size: 24px; font-weight: 700; margin-bottom: 4px; }
     .page-header p { font-size: 14px; color: var(--text2); }
-
     .btn-primary {
       background: var(--accent); color: #fff; border: none;
       padding: 10px 20px; border-radius: 8px;
@@ -236,7 +211,6 @@
       white-space: nowrap;
     }
     .btn-primary:hover { background: var(--accent-hover); }
-
     .stats-grid {
       display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
       gap: 16px; margin-bottom: 32px;
@@ -244,29 +218,23 @@
     .stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
     .stat-label { font-size: 11px; color: var(--text2); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
     .stat-value { font-size: 28px; font-weight: 700; color: var(--text); }
-
     .coming-soon {
       background: var(--bg2); border: 1px solid var(--border);
       border-radius: 10px; padding: 60px; text-align: center;
       color: var(--text2); font-size: 15px;
     }
     .coming-soon span { display: block; font-size: 32px; margin-bottom: 12px; }
-
-    /* STRATEGIES */
     .strategies-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       gap: 16px;
     }
-
     .strategy-card {
       background: var(--bg2); border: 1px solid var(--border);
       border-radius: 12px; padding: 20px;
-      transition: border-color 0.2s; cursor: pointer;
-      position: relative;
+      transition: border-color 0.2s; position: relative;
     }
     .strategy-card:hover { border-color: var(--accent); }
-
     .strategy-card-header {
       display: flex; align-items: center;
       justify-content: space-between; margin-bottom: 12px;
@@ -275,8 +243,7 @@
     .strategy-actions { display: flex; gap: 8px; }
     .strategy-action-btn {
       background: none; border: none; color: var(--text2);
-      cursor: pointer; padding: 4px; border-radius: 4px;
-      transition: color 0.2s;
+      cursor: pointer; padding: 4px; border-radius: 4px; transition: color 0.2s;
     }
     .strategy-action-btn:hover { color: var(--text); }
     .strategy-action-btn.delete:hover { color: var(--danger); }
@@ -284,31 +251,19 @@
       width: 15px; height: 15px; stroke: currentColor; fill: none;
       stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
     }
-
-    .strategy-desc {
-      font-size: 13px; color: var(--text2); margin-bottom: 16px;
-      line-height: 1.5;
-    }
-
+    .strategy-desc { font-size: 13px; color: var(--text2); margin-bottom: 16px; line-height: 1.5; }
     .confluence-list { display: flex; flex-wrap: wrap; gap: 6px; }
     .confluence-tag {
       background: var(--bg); border: 1px solid var(--border);
-      border-radius: 20px; padding: 4px 10px;
-      font-size: 12px; color: var(--text2);
+      border-radius: 20px; padding: 4px 10px; font-size: 12px; color: var(--text2);
     }
-    .confluence-count {
-      font-size: 12px; color: var(--text2); margin-top: 8px;
-    }
-
+    .confluence-count { font-size: 12px; color: var(--text2); margin-top: 8px; }
     .empty-strategies {
       grid-column: 1/-1;
       background: var(--bg2); border: 1px solid var(--border);
-      border-radius: 12px; padding: 60px; text-align: center;
-      color: var(--text2);
+      border-radius: 12px; padding: 60px; text-align: center; color: var(--text2);
     }
     .empty-strategies span { display: block; font-size: 32px; margin-bottom: 12px; }
-
-    /* FORM */
     .form-field { margin-bottom: 20px; }
     .form-field label {
       display: block; font-size: 12px; color: var(--text2);
@@ -322,10 +277,7 @@
     }
     .form-field input:focus, .form-field textarea:focus { border-color: var(--accent); }
     .form-field textarea { resize: vertical; min-height: 80px; }
-
-    .confluence-input-row {
-      display: flex; gap: 8px; margin-bottom: 12px;
-    }
+    .confluence-input-row { display: flex; gap: 8px; margin-bottom: 12px; }
     .confluence-input-row input { flex: 1; }
     .add-confluence-btn {
       background: var(--accent); color: #fff; border: none;
@@ -334,7 +286,6 @@
       white-space: nowrap; transition: background 0.2s;
     }
     .add-confluence-btn:hover { background: var(--accent-hover); }
-
     .confluence-tags-edit { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
     .confluence-tag-edit {
       background: var(--bg); border: 1px solid var(--border);
@@ -344,27 +295,19 @@
     }
     .remove-confluence {
       background: none; border: none; color: var(--text2);
-      cursor: pointer; font-size: 14px; line-height: 1;
-      padding: 0; transition: color 0.2s;
+      cursor: pointer; font-size: 14px; line-height: 1; padding: 0; transition: color 0.2s;
     }
     .remove-confluence:hover { color: var(--danger); }
-
-    .modal-footer {
-      display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px;
-    }
+    .modal-footer { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; }
     .btn-secondary {
       background: none; border: 1px solid var(--border);
       color: var(--text); padding: 10px 20px;
-      border-radius: 8px; font-size: 14px; cursor: pointer;
-      transition: border-color 0.2s;
+      border-radius: 8px; font-size: 14px; cursor: pointer; transition: border-color 0.2s;
     }
     .btn-secondary:hover { border-color: var(--accent); }
-
     .modal-msg { font-size: 13px; margin-top: 12px; min-height: 18px; }
     .modal-msg.success { color: var(--success); }
     .modal-msg.error { color: var(--danger); }
-
-    /* SETTINGS */
     .settings-section {
       background: var(--bg2); border: 1px solid var(--border);
       border-radius: 12px; padding: 28px; margin-bottom: 20px; max-width: 560px;
@@ -381,28 +324,23 @@
     .settings-field input, .settings-field select {
       width: 100%; padding: 10px 14px; font-size: 14px;
       border-radius: 8px; border: 1px solid var(--border);
-      background: var(--bg); color: var(--text); outline: none;
-      transition: border-color 0.2s;
+      background: var(--bg); color: var(--text); outline: none; transition: border-color 0.2s;
     }
     .settings-field input:focus { border-color: var(--accent); }
-
     .avatar-upload { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
     .avatar-large {
       width: 72px; height: 72px; border-radius: 50%;
       background: var(--accent); display: flex;
       align-items: center; justify-content: center;
-      font-size: 26px; font-weight: 700; color: #fff;
-      overflow: hidden; flex-shrink: 0;
+      font-size: 26px; font-weight: 700; color: #fff; overflow: hidden; flex-shrink: 0;
     }
     .avatar-large img { width: 100%; height: 100%; object-fit: cover; }
-
     .upload-btn {
       background: var(--bg); border: 1px solid var(--border);
       color: var(--text); padding: 8px 16px; border-radius: 8px;
       font-size: 13px; cursor: pointer; transition: border-color 0.2s;
     }
     .upload-btn:hover { border-color: var(--accent); }
-
     .save-btn {
       background: var(--accent); color: #fff; border: none;
       padding: 10px 24px; border-radius: 8px;
@@ -410,14 +348,12 @@
     }
     .save-btn:hover { background: var(--accent-hover); }
     .save-btn:disabled { background: var(--text2); cursor: not-allowed; }
-
     .danger-btn {
       background: none; border: 1px solid var(--danger); color: var(--danger);
       padding: 10px 24px; border-radius: 8px;
       font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;
     }
     .danger-btn:hover { background: var(--danger); color: #fff; }
-
     .toggle-switch { display: flex; align-items: center; justify-content: space-between; }
     .toggle-switch span { font-size: 14px; color: var(--text); }
     .switch { position: relative; width: 44px; height: 24px; }
@@ -433,190 +369,159 @@
     }
     input:checked + .slider { background: var(--accent); }
     input:checked + .slider:before { transform: translateX(20px); }
-
     .msg { font-size: 13px; margin-top: 12px; min-height: 18px; }
     .msg.success { color: var(--success); }
     .msg.error { color: var(--danger); }
-
     .calc-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
     /* CALENDAR */
-.cal-header {
-  display: flex; align-items: center;
-  justify-content: space-between;
-  margin-bottom: 24px; flex-wrap: wrap; gap: 16px;
-}
-.cal-nav { display: flex; align-items: center; gap: 16px; }
-.cal-nav-btn {
-  background: var(--bg2); border: 1px solid var(--border);
-  border-radius: 8px; width: 36px; height: 36px;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; color: var(--text2); transition: all 0.2s;
-}
-.cal-nav-btn:hover { color: var(--text); border-color: var(--accent); }
-.cal-nav-btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.cal-nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-.cal-month-label { font-size: 20px; font-weight: 700; min-width: 160px; text-align: center; }
-.cal-monthly-stats { display: flex; gap: 24px; }
-.cal-stat { text-align: right; }
-.cal-stat-label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
-.cal-stat-value { font-size: 22px; font-weight: 700; }
-
-.cal-grid-wrapper {
-  background: var(--bg2); border: 1px solid var(--border);
-  border-radius: 12px; overflow: hidden;
-}
-.cal-day-headers {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr) 120px;
-  border-bottom: 1px solid var(--border);
-}
-#page-calendar .cal-day-headers div {
-  padding: 10px; text-align: center;
-  font-size: 12px; font-weight: 600; color: var(--text2);
-  text-transform: uppercase; letter-spacing: 0.5px;
-}
-.cal-week-header { background: rgba(99,102,241,0.06); }
-
-.cal-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr) 120px;
-}
-
-.cal-cell {
-  border-right: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-  min-height: 130px; padding: 8px;
-  position: relative; cursor: pointer; transition: background 0.15s;
-}
-.cal-cell:hover { background: rgba(255,255,255,0.03); }
-.cal-cell.empty { cursor: default; }
-.cal-cell.empty:hover { background: transparent; }
-.cal-cell.other-month { background: rgba(255,255,255,0.01); cursor: pointer; }
-.cal-cell.today { background: rgba(99,102,241,0.08); }
-.cal-cell.today .cal-day-num { color: var(--accent); font-weight: 700; }
-
-.cal-week-cell {
-  border-bottom: 1px solid var(--border);
-  background: rgba(99,102,241,0.04);
-  padding: 8px 6px;
-  display: flex; flex-direction: column;
-  justify-content: center; align-items: center;
-  gap: 4px; min-height: 130px;
-}
-.cal-week-pnl { font-size: 14px; font-weight: 700; text-align: center; }
-.cal-week-meta { font-size: 11px; color: var(--text2); text-align: center; }
-.cal-week-pnl.green { color: var(--success); }
-.cal-week-pnl.red { color: var(--danger); }
-
-.cal-day-num { font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 4px; }
-.cal-day-pnl { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
-.cal-day-pnl.green { color: var(--success); }
-.cal-day-pnl.red { color: var(--danger); }
-.cal-day-trades { font-size: 11px; color: var(--text2); }
-.cal-day-note-indicator {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--accent); position: absolute; top: 8px; right: 8px;
-}
-.cal-plus {
-  position: absolute; bottom: 6px; right: 6px;
-  width: 20px; height: 20px; border-radius: 50%;
-  background: var(--accent); color: #fff;
-  display: none; align-items: center; justify-content: center;
-  font-size: 14px; line-height: 1;
-}
-.cal-cell:hover .cal-plus { display: flex; }
-.cal-cell.empty .cal-plus { display: none !important; }
-
-/* DAY MODAL */
-.day-stats { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
-.day-stat-card {
-  background: var(--bg); border: 1px solid var(--border);
-  border-radius: 8px; padding: 10px 14px; flex: 1; min-width: 70px;
-}
-.day-stat-label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px; }
-.day-stat-val { font-size: 16px; font-weight: 700; }
-
-.day-tabs {
-  display: flex; border-bottom: 1px solid var(--border); margin-bottom: 20px;
-}
-.day-tab {
-  padding: 10px 20px; cursor: pointer; font-size: 14px; font-weight: 600;
-  color: var(--text2); border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.2s;
-}
-.day-tab.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
-.day-panel { display: none; }
-.day-panel.active { display: block; }
-
-/* RICH TEXT NOTE */
-.note-toolbar {
-  display: flex; align-items: center; gap: 4px; flex-wrap: wrap;
-  padding: 8px; background: var(--bg);
-  border: 1px solid var(--border); border-bottom: none;
-  border-radius: 8px 8px 0 0;
-}
-.note-tool {
-  background: none; border: none; color: var(--text);
-  padding: 4px 8px; border-radius: 4px; cursor: pointer;
-  font-size: 13px; transition: background 0.2s; line-height: 1.4;
-}
-.note-tool:hover { background: var(--border); }
-.note-tool-divider { width: 1px; height: 18px; background: var(--border); margin: 0 4px; }
-.note-tool-select {
-  background: var(--bg); border: 1px solid var(--border);
-  color: var(--text); border-radius: 4px; padding: 3px 6px;
-  font-size: 12px; cursor: pointer; outline: none;
-}
-.note-editor {
-  width: 100%; min-height: 1000px; max-height: 1200px;
-  padding: 14px; font-size: 14px; line-height: 1.7;
-  border: 1px solid var(--border); border-radius: 0 0 8px 8px;
-  background: var(--bg); color: var(--text);
-  outline: none; overflow-y: auto;
-  font-family: inherit;
-}
-.note-editor:empty:before {
-  content: attr(placeholder); color: var(--text2); pointer-events: none;
-}
-.note-editor hr { border: none; border-top: 1px solid var(--border); margin: 12px 0; }
-.note-editor img { max-width: 100%; border-radius: 6px; margin: 8px 0; }
-
-.trade-entry {
-  background: var(--bg); border: 1px solid var(--border);
-  border-radius: 8px; padding: 14px; margin-bottom: 10px;
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
-}
-.trade-entry-left { flex: 1; }
-.trade-entry-strategy { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
-.trade-entry-detail { font-size: 12px; color: var(--text2); }
-.trade-entry-pnl { font-size: 16px; font-weight: 700; white-space: nowrap; }
-.trade-entry-pnl.green { color: var(--success); }
-.trade-entry-pnl.red { color: var(--danger); }
-.trade-delete-btn {
-  background: none; border: none; color: var(--text2);
-  cursor: pointer; padding: 4px; border-radius: 4px; transition: color 0.2s;
-}
-.trade-delete-btn:hover { color: var(--danger); }
-.trade-delete-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
-
-.confluence-check {
-  display: flex; align-items: center; gap: 10px;
-  padding: 8px 0; border-bottom: 1px solid var(--border); cursor: pointer;
-}
-.confluence-check:last-child { border-bottom: none; }
-.confluence-check input { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
-.confluence-check label { font-size: 14px; color: var(--text); cursor: pointer; flex: 1; }
-.no-trades { text-align: center; padding: 32px; color: var(--text2); font-size: 14px; }
-
-@media (max-width: 768px) {
-  .cal-cell { min-height: 55px; padding: 4px; }
-  .cal-week-cell { min-height: 55px; padding: 4px; }
-  .cal-day-num { font-size: 10px; }
-  .cal-day-pnl { font-size: 10px; }
-  .cal-monthly-stats { gap: 10px; }
-  .cal-stat-value { font-size: 14px; }
-  .cal-week-pnl { font-size: 10px; }
-  .cal-week-meta { font-size: 9px; }
-}
+    .cal-header {
+      display: flex; align-items: center;
+      justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;
+    }
+    .cal-nav { display: flex; align-items: center; gap: 16px; }
+    .cal-nav-btn {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 8px; width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--text2); transition: all 0.2s;
+    }
+    .cal-nav-btn:hover { color: var(--text); border-color: var(--accent); }
+    .cal-nav-btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .cal-nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .cal-month-label { font-size: 20px; font-weight: 700; min-width: 160px; text-align: center; }
+    .cal-monthly-stats { display: flex; gap: 24px; }
+    .cal-stat { text-align: right; }
+    .cal-stat-label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .cal-stat-value { font-size: 22px; font-weight: 700; }
+    .cal-grid-wrapper {
+      background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+    }
+    .cal-day-headers {
+      display: grid; grid-template-columns: repeat(7, 1fr) 120px;
+      border-bottom: 1px solid var(--border);
+    }
+    #page-calendar .cal-day-headers div {
+      padding: 10px; text-align: center;
+      font-size: 12px; font-weight: 600; color: var(--text2);
+      text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .cal-week-header { background: rgba(99,102,241,0.06); }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr) 120px; }
+    .cal-cell {
+      border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
+      min-height: 130px; padding: 8px; position: relative; cursor: pointer; transition: background 0.15s;
+    }
+    .cal-cell:hover { background: rgba(255,255,255,0.03); }
+    .cal-cell.empty { cursor: default; }
+    .cal-cell.empty:hover { background: transparent; }
+    .cal-cell.other-month { background: rgba(255,255,255,0.01); cursor: pointer; }
+    .cal-cell.today { background: rgba(99,102,241,0.08); }
+    .cal-cell.today .cal-day-num { color: var(--accent); font-weight: 700; }
+    .cal-week-cell {
+      border-bottom: 1px solid var(--border); background: rgba(99,102,241,0.04);
+      padding: 8px 6px; display: flex; flex-direction: column;
+      justify-content: center; align-items: center; gap: 4px; min-height: 130px;
+    }
+    .cal-week-pnl { font-size: 14px; font-weight: 700; text-align: center; }
+    .cal-week-pnl.green { color: var(--success); }
+    .cal-week-pnl.red { color: var(--danger); }
+    .cal-week-meta { font-size: 11px; color: var(--text2); text-align: center; }
+    .cal-day-num { font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 4px; }
+    .cal-day-pnl { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+    .cal-day-pnl.green { color: var(--success); }
+    .cal-day-pnl.red { color: var(--danger); }
+    .cal-day-trades { font-size: 11px; color: var(--text2); }
+    .cal-day-note-indicator {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent); position: absolute; top: 8px; right: 8px;
+    }
+    .cal-plus {
+      position: absolute; bottom: 6px; right: 6px;
+      width: 20px; height: 20px; border-radius: 50%;
+      background: var(--accent); color: #fff;
+      display: none; align-items: center; justify-content: center;
+      font-size: 14px; line-height: 1;
+    }
+    .cal-cell:hover .cal-plus { display: flex; }
+    .cal-cell.empty .cal-plus { display: none !important; }
+    .day-stats { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+    .day-stat-card {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 10px 14px; flex: 1; min-width: 70px;
+    }
+    .day-stat-label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px; }
+    .day-stat-val { font-size: 16px; font-weight: 700; }
+    .day-tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+    .day-tab {
+      padding: 10px 20px; cursor: pointer; font-size: 14px; font-weight: 600;
+      color: var(--text2); border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.2s;
+    }
+    .day-tab.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
+    .day-panel { display: none; }
+    .day-panel.active { display: block; }
+    .note-toolbar {
+      display: flex; align-items: center; gap: 4px; flex-wrap: wrap;
+      padding: 8px; background: var(--bg);
+      border: 1px solid var(--border); border-bottom: none; border-radius: 8px 8px 0 0;
+    }
+    .note-tool {
+      background: none; border: none; color: var(--text);
+      padding: 4px 8px; border-radius: 4px; cursor: pointer;
+      font-size: 13px; transition: background 0.2s; line-height: 1.4;
+    }
+    .note-tool:hover { background: var(--border); }
+    .note-tool-divider { width: 1px; height: 18px; background: var(--border); margin: 0 4px; }
+    .note-tool-select {
+      background: var(--bg); border: 1px solid var(--border);
+      color: var(--text); border-radius: 4px; padding: 3px 6px;
+      font-size: 12px; cursor: pointer; outline: none;
+    }
+    .note-editor {
+      width: 100%; min-height: 500px; max-height: 700px;
+      padding: 14px; font-size: 14px; line-height: 1.7;
+      border: 1px solid var(--border); border-radius: 0 0 8px 8px;
+      background: var(--bg); color: var(--text);
+      outline: none; overflow-y: auto; font-family: inherit;
+    }
+    .note-editor:empty:before { content: attr(placeholder); color: var(--text2); pointer-events: none; }
+    .note-editor hr { border: none; border-top: 1px solid var(--border); margin: 12px 0; }
+    .note-editor img { max-width: 100%; border-radius: 6px; margin: 8px 0; }
+    .trade-entry {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 14px; margin-bottom: 10px;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    }
+    .trade-entry-left { flex: 1; }
+    .trade-entry-strategy { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+    .trade-entry-detail { font-size: 12px; color: var(--text2); }
+    .trade-entry-pnl { font-size: 16px; font-weight: 700; white-space: nowrap; }
+    .trade-entry-pnl.green { color: var(--success); }
+    .trade-entry-pnl.red { color: var(--danger); }
+    .trade-delete-btn {
+      background: none; border: none; color: var(--text2);
+      cursor: pointer; padding: 4px; border-radius: 4px; transition: color 0.2s;
+    }
+    .trade-delete-btn:hover { color: var(--danger); }
+    .trade-delete-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
+    .confluence-check {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 0; border-bottom: 1px solid var(--border); cursor: pointer;
+    }
+    .confluence-check:last-child { border-bottom: none; }
+    .confluence-check input { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
+    .confluence-check label { font-size: 14px; color: var(--text); cursor: pointer; flex: 1; }
+    .no-trades { text-align: center; padding: 32px; color: var(--text2); font-size: 14px; }
+    @media (max-width: 768px) {
+      .cal-cell { min-height: 55px; padding: 4px; }
+      .cal-week-cell { min-height: 55px; padding: 4px; }
+      .cal-day-num { font-size: 10px; }
+      .cal-day-pnl { font-size: 10px; }
+      .cal-monthly-stats { gap: 10px; }
+      .cal-stat-value { font-size: 14px; }
+      .cal-week-pnl { font-size: 10px; }
+      .cal-week-meta { font-size: 9px; }
+    }
   </style>
 </head>
 <body id="body">
@@ -659,9 +564,7 @@
   <div class="crop-modal" id="cropModal">
     <div class="crop-box">
       <h3>Crop your photo</h3>
-      <div class="crop-container">
-        <img id="cropImage" src="" alt="crop"/>
-      </div>
+      <div class="crop-container"><img id="cropImage" src="" alt="crop"/></div>
       <div class="crop-actions">
         <button class="crop-cancel" onclick="closeCropper()">Cancel</button>
         <button class="crop-save" onclick="cropAndSave()">Save Photo</button>
@@ -685,7 +588,6 @@
         <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
     </div>
-
     <div class="nav-section">
       <a class="nav-item active" onclick="showPage('dashboard', this)">
         <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
@@ -712,7 +614,6 @@
         <span class="nav-label">Calculator</span>
       </a>
     </div>
-
     <div class="sidebar-bottom">
       <div class="settings-row" id="settings-nav" onclick="showPage('settings', this)">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -747,7 +648,7 @@
     <!-- STRATEGIES -->
     <div class="page" id="page-strategies">
       <div class="page-header">
-        <div class="page-header-left">
+        <div>
           <h1>Strategies</h1>
           <p>Build and manage your trading strategies.</p>
         </div>
@@ -757,275 +658,152 @@
         </button>
       </div>
       <div class="strategies-grid" id="strategiesGrid">
-        <div class="empty-strategies">
-          <span>⚡</span>
-          No strategies yet. Hit "New Strategy" to get started.
-        </div>
+        <div class="empty-strategies"><span>⚡</span>No strategies yet. Hit "New Strategy" to get started.</div>
       </div>
     </div>
 
     <!-- CALENDAR -->
-<div class="page" id="page-calendar">
-
-  <div class="cal-header">
-    <div class="cal-nav">
-      <button class="cal-nav-btn" onclick="changeMonth(-1)">
-        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-      </button>
-      <div class="cal-month-label" id="calMonthLabel">April 2026</div>
-      <button class="cal-nav-btn" onclick="changeMonth(1)" id="calNextBtn">
-        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-      </button>
-    </div>
-    <div class="cal-monthly-stats">
-      <div class="cal-stat">
-        <div class="cal-stat-label">Monthly PNL</div>
-        <div class="cal-stat-value" id="calMonthlyPnl">—</div>
-      </div>
-      <div class="cal-stat">
-        <div class="cal-stat-label">Trades</div>
-        <div class="cal-stat-value" id="calMonthlyTrades">—</div>
-      </div>
-      <div class="cal-stat">
-        <div class="cal-stat-label">Win Rate</div>
-        <div class="cal-stat-value" id="calMonthlyWinRate">—</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="cal-grid-wrapper">
-    <div class="cal-day-headers">
-      <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div class="cal-week-header">Week</div>
-    </div>
-    <div class="cal-grid" id="calGrid"></div>
-  </div>
-
-  <!-- Day Modal -->
-  <div class="modal" id="dayModal" onclick="handleDayModalClick(event)">
-    <div class="modal-box" style="max-width:620px;" onclick="event.stopPropagation()">
-      <div class="modal-header">
-        <div class="modal-title" id="dayModalTitle">April 1</div>
-        <button class="modal-close" onclick="closeDayModal()">×</button>
-      </div>
-      <div class="day-stats" id="dayStats"></div>
-      <div class="day-tabs">
-        <div class="day-tab active" onclick="switchDayTab('trades', this)">Trades</div>
-        <div class="day-tab" onclick="switchDayTab('note', this)">Note</div>
-      </div>
-
-      <div class="day-panel active" id="dayPanelTrades">
-        <div id="dayTradesList"></div>
-        <button class="btn-primary" style="margin-top:16px;width:100%;" onclick="openLogTrade()">
-          <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Log Trade
-        </button>
-      </div>
-
-      <div class="day-panel" id="dayPanelNote">
-        <div class="note-toolbar">
-          <button class="note-tool" onclick="noteFormat('bold')" title="Bold"><b>B</b></button>
-          <button class="note-tool" onclick="noteFormat('italic')" title="Italic"><i>I</i></button>
-          <button class="note-tool" onclick="noteFormat('underline')" title="Underline"><u>U</u></button>
-          <div class="note-tool-divider"></div>
-          <select class="note-tool-select" id="noteSizeSelect" onchange="noteFormatBlock(this.value)">
-  <option value="">Size</option>
-  <option value="h2">Large</option>
-  <option value="h3">Medium</option>
-  <option value="p">Normal</option>
-  <option value="small">Small</option>
-</select>
-          <div class="note-tool-divider"></div>
-          <button class="note-tool" onclick="insertHR()" title="Divider">—</button>
-          <button class="note-tool" onclick="document.getElementById('noteImgInput').click()" title="Insert Image">IMG</button>
-          <input type="file" id="noteImgInput" accept="image/*" style="display:none" onchange="insertImage(event)"/>
+    <div class="page" id="page-calendar">
+      <div class="cal-header">
+        <div class="cal-nav">
+          <button class="cal-nav-btn" onclick="changeMonth(-1)">
+            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <div class="cal-month-label" id="calMonthLabel">April 2026</div>
+          <button class="cal-nav-btn" onclick="changeMonth(1)" id="calNextBtn">
+            <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
         </div>
-        <div class="note-editor" id="noteEditor" contenteditable="true" placeholder="Write anything about this day — market observations, mindset, what you noticed..."></div>
-        <button class="save-btn" style="margin-top:12px;" onclick="saveNote()">Save Note</button>
-        <div class="msg" id="noteMsg"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Log Trade Modal -->
-  <div class="modal" id="logTradeModal" onclick="handleLogTradeModalClick(event)">
-    <div class="modal-box" style="max-width:540px;" onclick="event.stopPropagation()">
-      <div class="modal-header">
-        <div class="modal-title" id="logTradeTitle">Log Trade</div>
-        <button class="modal-close" onclick="closeLogTrade()">×</button>
-      </div>
-
-      <div class="form-field">
-        <label>Strategy</label>
-        <select id="tradeStrategy" style="width:100%;padding:10px 14px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;" onchange="loadStrategyConfluences()">
-          <option value="">Select a strategy...</option>
-        </select>
-      </div>
-
-      <div class="form-field" id="confluenceSection" style="display:none;">
-        <label>Confluences Present</label>
-        <div id="confluenceChecklist"></div>
-      </div>
-
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-        <div class="form-field">
-          <label>Result</label>
-          <select id="tradeResult" style="width:100%;padding:10px 14px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;" onchange="handleResultChange()">
-            <option value="win">Win</option>
-            <option value="loss">Loss</option>
-            <option value="breakeven">Breakeven</option>
-          </select>
+        <div class="cal-monthly-stats">
+          <div class="cal-stat">
+            <div class="cal-stat-label">Monthly PNL</div>
+            <div class="cal-stat-value" id="calMonthlyPnl">—</div>
+          </div>
+          <div class="cal-stat">
+            <div class="cal-stat-label">Trades</div>
+            <div class="cal-stat-value" id="calMonthlyTrades">—</div>
+          </div>
+          <div class="cal-stat">
+            <div class="cal-stat-label">Win Rate</div>
+            <div class="cal-stat-value" id="calMonthlyWinRate">—</div>
+          </div>
         </div>
-        <div class="form-field">
-          <label>PNL ($)</label>
-          <input type="number" id="tradePnl" placeholder="e.g. 250" step="0.01" oninput="this.value=this.value.replace(/[^0-9.\-]/g,'')"/>
+      </div>
+      <div class="cal-grid-wrapper">
+        <div class="cal-day-headers">
+          <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div class="cal-week-header">Week</div>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+
+      <!-- Day Modal -->
+      <div class="modal" id="dayModal" onclick="handleDayModalClick(event)">
+        <div class="modal-box" style="max-width:620px;" onclick="event.stopPropagation()">
+          <div class="modal-header">
+            <div class="modal-title" id="dayModalTitle">April 1</div>
+            <button class="modal-close" onclick="closeDayModal()">×</button>
+          </div>
+          <div class="day-stats" id="dayStats"></div>
+          <div class="day-tabs">
+            <div class="day-tab active" onclick="switchDayTab('trades', this)">Trades</div>
+            <div class="day-tab" onclick="switchDayTab('note', this)">Note</div>
+          </div>
+          <div class="day-panel active" id="dayPanelTrades">
+            <div id="dayTradesList"></div>
+            <button class="btn-primary" style="margin-top:16px;width:100%;" onclick="openLogTrade()">
+              <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Log Trade
+            </button>
+          </div>
+          <div class="day-panel" id="dayPanelNote">
+            <div class="note-toolbar">
+              <button class="note-tool" onclick="noteFormat('bold')"><b>B</b></button>
+              <button class="note-tool" onclick="noteFormat('italic')"><i>I</i></button>
+              <button class="note-tool" onclick="noteFormat('underline')"><u>U</u></button>
+              <div class="note-tool-divider"></div>
+              <select class="note-tool-select" id="noteSizeSelect" onchange="noteFormatBlock(this.value)">
+                <option value="">Size</option>
+                <option value="h2">Large</option>
+                <option value="h3">Medium</option>
+                <option value="p">Normal</option>
+                <option value="small">Small</option>
+              </select>
+              <div class="note-tool-divider"></div>
+              <button class="note-tool" onclick="insertHR()">—</button>
+              <button class="note-tool" onclick="document.getElementById('noteImgInput').click()">IMG</button>
+              <input type="file" id="noteImgInput" accept="image/*" style="display:none" onchange="insertImage(event)"/>
+            </div>
+            <div class="note-editor" id="noteEditor" contenteditable="true" placeholder="Write anything about this day — market observations, mindset, what you noticed..."></div>
+            <button class="save-btn" style="margin-top:12px;" onclick="saveNote()">Save Note</button>
+            <div class="msg" id="noteMsg"></div>
+          </div>
         </div>
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-        <div class="form-field">
-          <label>Planned R:R</label>
-          <input type="number" id="tradePlannedRR" placeholder="e.g. 2" step="0.1"/>
+      <!-- Log Trade Modal -->
+      <div class="modal" id="logTradeModal" onclick="handleLogTradeModalClick(event)">
+        <div class="modal-box" style="max-width:540px;" onclick="event.stopPropagation()">
+          <div class="modal-header">
+            <div class="modal-title" id="logTradeTitle">Log Trade</div>
+            <button class="modal-close" onclick="closeLogTrade()">×</button>
+          </div>
+          <div class="form-field">
+            <label>Strategy</label>
+            <select id="tradeStrategy" style="width:100%;padding:10px 14px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;" onchange="loadStrategyConfluences()">
+              <option value="">Select a strategy...</option>
+            </select>
+          </div>
+          <div class="form-field" id="confluenceSection" style="display:none;">
+            <label>Confluences Present</label>
+            <div id="confluenceChecklist"></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div class="form-field">
+              <label>Result</label>
+              <select id="tradeResult" style="width:100%;padding:10px 14px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;" onchange="handleResultChange()">
+                <option value="win">Win</option>
+                <option value="loss">Loss</option>
+                <option value="breakeven">Breakeven</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label>PNL ($)</label>
+              <input type="number" id="tradePnl" placeholder="e.g. 250" step="0.01"/>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div class="form-field">
+              <label>Planned R:R</label>
+              <input type="number" id="tradePlannedRR" placeholder="e.g. 2" step="0.1"/>
+            </div>
+            <div class="form-field">
+              <label>Actual R:R</label>
+              <input type="number" id="tradeActualRR" placeholder="e.g. 1.5" step="0.1"/>
+            </div>
+          </div>
+          <div class="form-field">
+            <label>Did you follow your rules?</label>
+            <div style="display:flex;gap:12px;margin-top:4px;">
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px;color:var(--text);">
+                <input type="radio" name="followedRules" value="true" checked/> Yes
+              </label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px;color:var(--text);">
+                <input type="radio" name="followedRules" value="false"/> No
+              </label>
+            </div>
+          </div>
+          <div class="form-field">
+            <label>Trade Notes (optional)</label>
+            <textarea id="tradeNotes" placeholder="What happened? Any observations..." style="width:100%;min-height:80px;padding:10px 14px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;resize:vertical;font-family:inherit;"></textarea>
+          </div>
+          <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeLogTrade()">Cancel</button>
+            <button class="btn-primary" onclick="saveTrade()">Save Trade</button>
+          </div>
+          <div class="modal-msg" id="tradeMsg"></div>
         </div>
-        <div class="form-field">
-          <label>Actual R:R</label>
-          <input type="number" id="tradeActualRR" placeholder="e.g. 1.5" step="0.1"/>
-        </div>
-      </div>
-
-      <div class="form-field">
-        <label>Did you follow your rules?</label>
-        <div style="display:flex;gap:12px;margin-top:4px;">
-          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px;color:var(--text);">
-            <input type="radio" name="followedRules" value="true" checked/> Yes
-          </label>
-          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px;color:var(--text);">
-            <input type="radio" name="followedRules" value="false"/> No
-          </label>
-        </div>
-      </div>
-
-      <div class="form-field">
-        <label>Trade Notes (optional)</label>
-        <textarea id="tradeNotes" placeholder="What happened? Any observations..." style="width:100%;min-height:80px;padding:10px 14px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;resize:vertical;font-family:inherit;"></textarea>
-      </div>
-
-      <div class="modal-footer">
-        <button class="btn-secondary" onclick="closeLogTrade()">Cancel</button>
-        <button class="btn-primary" onclick="saveTrade()">Save Trade</button>
-      </div>
-      <div class="modal-msg" id="tradeMsg"></div>
-    </div>
-  </div>
-
-</div>
-
-  <!-- Day Modal -->
-  <div class="modal" id="dayModal">
-    <div class="modal-box" style="max-width:580px;">
-      <div class="modal-header">
-        <div class="modal-title" id="dayModalTitle">April 1</div>
-        <button class="modal-close" onclick="closeDayModal()">×</button>
-      </div>
-
-      <!-- Day Stats -->
-      <div class="day-stats" id="dayStats"></div>
-
-      <!-- Tabs -->
-      <div class="day-tabs">
-        <div class="day-tab active" onclick="switchDayTab('trades', this)">Trades</div>
-        <div class="day-tab" onclick="switchDayTab('note', this)">Note</div>
-      </div>
-
-      <!-- Trades Tab -->
-      <div class="day-panel active" id="dayPanelTrades">
-        <div id="dayTradesList"></div>
-        <button class="btn-primary" style="margin-top:16px; width:100%;" onclick="openLogTrade()">
-          <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Log Trade
-        </button>
-      </div>
-
-      <!-- Note Tab -->
-      <div class="day-panel" id="dayPanelNote">
-        <textarea id="dayNoteText" placeholder="Write anything about this day — market observations, mindset, what you noticed..." style="width:100%;min-height:200px;padding:12px 14px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;resize:vertical;font-family:inherit;line-height:1.6;"></textarea>
-        <button class="save-btn" style="margin-top:12px;" onclick="saveNote()">Save Note</button>
-        <div class="msg" id="noteMsg"></div>
       </div>
     </div>
-  </div>
-
-  <!-- Log Trade Modal -->
-  <div class="modal" id="logTradeModal">
-    <div class="modal-box" style="max-width:540px;">
-      <div class="modal-header">
-        <div class="modal-title" id="logTradeTitle">Log Trade</div>
-        <button class="modal-close" onclick="closeLogTrade()">×</button>
-      </div>
-
-      <div class="form-field">
-        <label>Strategy</label>
-        <select id="tradeStrategy" style="width:100%;padding:10px 14px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;" onchange="loadStrategyConfluences()">
-          <option value="">Select a strategy...</option>
-        </select>
-      </div>
-
-      <div class="form-field" id="confluenceSection" style="display:none;">
-        <label>Confluences Present</label>
-        <div id="confluenceChecklist"></div>
-      </div>
-
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-        <div class="form-field">
-          <label>Result</label>
-          <select id="tradeResult" style="width:100%;padding:10px 14px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;">
-            <option value="win">Win</option>
-            <option value="loss">Loss</option>
-            <option value="breakeven">Breakeven</option>
-          </select>
-        </div>
-        <div class="form-field">
-          <label>PNL ($)</label>
-          <input type="number" id="tradePnl" placeholder="e.g. 250 or -150" step="0.01"/>
-        </div>
-      </div>
-
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-        <div class="form-field">
-          <label>Planned R:R</label>
-          <input type="number" id="tradePlannedRR" placeholder="e.g. 2" step="0.1"/>
-        </div>
-        <div class="form-field">
-          <label>Actual R:R</label>
-          <input type="number" id="tradeActualRR" placeholder="e.g. 1.5" step="0.1"/>
-        </div>
-      </div>
-
-      <div class="form-field">
-        <label>Did you follow your rules?</label>
-        <div style="display:flex;gap:12px;margin-top:4px;">
-          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px;color:var(--text);">
-            <input type="radio" name="followedRules" value="true" checked/> Yes
-          </label>
-          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px;color:var(--text);">
-            <input type="radio" name="followedRules" value="false"/> No
-          </label>
-        </div>
-      </div>
-
-      <div class="form-field">
-        <label>Trade Notes (optional)</label>
-        <textarea id="tradeNotes" placeholder="What happened? Any observations..." style="width:100%;min-height:80px;padding:10px 14px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;resize:vertical;font-family:inherit;"></textarea>
-      </div>
-
-      <div class="modal-footer">
-        <button class="btn-secondary" onclick="closeLogTrade()">Cancel</button>
-        <button class="btn-primary" onclick="saveTrade()">Save Trade</button>
-      </div>
-      <div class="modal-msg" id="tradeMsg"></div>
-    </div>
-  </div>
-
-</div>
 
     <!-- TRADES -->
     <div class="page" id="page-trades">
@@ -1052,7 +830,6 @@
     <div class="page" id="page-settings">
       <div class="page-title">Settings</div>
       <div class="page-subtitle">Manage your account and preferences.</div>
-
       <div class="settings-section">
         <div class="settings-section-title">Profile</div>
         <div class="avatar-upload">
@@ -1071,7 +848,6 @@
         <button class="save-btn" onclick="saveProfile()">Save Profile</button>
         <div class="msg" id="profileMsg"></div>
       </div>
-
       <div class="settings-section">
         <div class="settings-section-title">Account</div>
         <div class="settings-field">
@@ -1093,7 +869,6 @@
           <div class="msg" id="passwordMsg"></div>
         </div>
       </div>
-
       <div class="settings-section">
         <div class="settings-section-title">Appearance</div>
         <div class="toggle-switch">
@@ -1104,7 +879,6 @@
           </label>
         </div>
       </div>
-
       <div class="settings-section">
         <div class="settings-section-title">Calculator Defaults</div>
         <div class="settings-field">
@@ -1131,7 +905,6 @@
         <button class="save-btn" onclick="saveCalcDefaults()">Save Defaults</button>
         <div class="msg" id="calcMsg"></div>
       </div>
-
       <div class="settings-section">
         <div class="settings-section-title" style="color:var(--danger)">Danger Zone</div>
         <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">Log out of your Tradeprint account.</p>
@@ -1147,9 +920,9 @@
     const SUPABASE_KEY = 'sb_publishable_1Q8yInISuuD3HDWI7mVesQ_A-DSkCM7';
 
     const token = localStorage.getItem('tp_token');
-const user = JSON.parse(localStorage.getItem('tp_user') || 'null');
-if (!token) { window.location.href = '/app'; }
-if (user?.email !== 'dean.tsi.198@gmail.com') { window.location.href = '/app'; }
+    const user = JSON.parse(localStorage.getItem('tp_user') || 'null');
+    if (!token) { window.location.href = '/app'; }
+    if (user?.email !== 'dean.tsi.198@gmail.com') { window.location.href = '/app'; }
 
     if (localStorage.getItem('tp_theme') === 'light') {
       document.getElementById('body').classList.add('light');
@@ -1160,28 +933,25 @@ if (user?.email !== 'dean.tsi.198@gmail.com') { window.location.href = '/app'; }
     let editingStrategyId = null;
     let confluences = [];
 
-    // LOAD PROFILE
     async function loadProfile() {
       if (!user) return;
       document.getElementById('sidebarEmail').textContent = user.email || '—';
       document.getElementById('emailInput').value = user.email || '';
-
       const res = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${user.id}&select=*`, {
         headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();
-
       if (data && data[0]) {
         const p = data[0];
         const display = p.username || user.email?.split('@')[0] || '?';
         document.getElementById('sidebarUsername').textContent = display;
         document.getElementById('usernameInput').value = p.username || '';
-        const initial = display[0].toUpperCase();
         if (p.avatar_url) {
           const imgTag = `<img src="${p.avatar_url}" alt="avatar"/>`;
           document.getElementById('sidebarAvatar').innerHTML = imgTag;
           document.getElementById('settingsAvatar').innerHTML = imgTag;
         } else {
+          const initial = display[0].toUpperCase();
           document.getElementById('sidebarAvatar').textContent = initial;
           document.getElementById('settingsAvatar').textContent = initial;
         }
@@ -1191,15 +961,12 @@ if (user?.email !== 'dean.tsi.198@gmail.com') { window.location.href = '/app'; }
         document.getElementById('sidebarAvatar').textContent = display[0].toUpperCase();
         document.getElementById('settingsAvatar').textContent = display[0].toUpperCase();
       }
-
       document.getElementById('defaultTicker').value = localStorage.getItem('tp_ticker') || 'MNQ';
       document.getElementById('defaultContracts').value = localStorage.getItem('tp_contracts') || '';
       document.getElementById('defaultRR').value = localStorage.getItem('tp_rr') || '';
     }
-
     loadProfile();
 
-    // STRATEGIES
     async function loadStrategies() {
       const res = await fetch(`${SUPABASE_URL}/rest/v1/strategies?user_id=eq.${user.id}&order=created_at.asc`, {
         headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
@@ -1219,10 +986,10 @@ if (user?.email !== 'dean.tsi.198@gmail.com') { window.location.href = '/app'; }
           <div class="strategy-card-header">
             <div class="strategy-name">${s.name}</div>
             <div class="strategy-actions">
-              <button class="strategy-action-btn" onclick="editStrategy('${s.id}')" title="Edit">
+              <button class="strategy-action-btn" onclick="editStrategy('${s.id}')">
                 <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
               </button>
-              <button class="strategy-action-btn delete" onclick="deleteStrategy('${s.id}')" title="Delete">
+              <button class="strategy-action-btn delete" onclick="deleteStrategy('${s.id}')">
                 <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
               </button>
             </div>
@@ -1231,8 +998,7 @@ if (user?.email !== 'dean.tsi.198@gmail.com') { window.location.href = '/app'; }
           <div class="confluence-list">
             ${s.confluences && s.confluences.length > 0
               ? s.confluences.slice(0, 5).map(c => `<span class="confluence-tag">${c}</span>`).join('')
-              : '<span style="font-size:12px;color:var(--text2);">No confluences added yet.</span>'
-            }
+              : '<span style="font-size:12px;color:var(--text2);">No confluences added yet.</span>'}
             ${s.confluences && s.confluences.length > 5 ? `<span class="confluence-tag">+${s.confluences.length - 5} more</span>` : ''}
           </div>
           <div class="confluence-count">${s.confluences ? s.confluences.length : 0} confluence${s.confluences?.length !== 1 ? 's' : ''}</div>
@@ -1286,11 +1052,7 @@ if (user?.email !== 'dean.tsi.198@gmail.com') { window.location.href = '/app'; }
     function addConfluence() {
       const input = document.getElementById('confluenceInput');
       const val = input.value.trim();
-      if (!val) return;
-      if (confluences.includes(val)) {
-        input.value = '';
-        return;
-      }
+      if (!val || confluences.includes(val)) { input.value = ''; return; }
       confluences.push(val);
       input.value = '';
       renderConfluenceTags();
@@ -1314,46 +1076,26 @@ if (user?.email !== 'dean.tsi.198@gmail.com') { window.location.href = '/app'; }
       const name = document.getElementById('strategyName').value.trim();
       const desc = document.getElementById('strategyDesc').value.trim();
       const msg = document.getElementById('strategyMsg');
-
-      if (!name) {
-        msg.textContent = 'Please enter a strategy name.';
-        msg.className = 'modal-msg error';
-        return;
-      }
-
+      if (!name) { msg.textContent = 'Please enter a strategy name.'; msg.className = 'modal-msg error'; return; }
       const payload = { user_id: user.id, name, description: desc, confluences };
-
       let res;
       if (editingStrategyId) {
         res = await fetch(`${SUPABASE_URL}/rest/v1/strategies?id=eq.${editingStrategyId}`, {
           method: 'PATCH',
-          headers: {
-            'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json', 'Prefer': 'return=minimal'
-          },
+          headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
           body: JSON.stringify({ name, description: desc, confluences })
         });
       } else {
         res = await fetch(`${SUPABASE_URL}/rest/v1/strategies`, {
           method: 'POST',
-          headers: {
-            'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json', 'Prefer': 'return=minimal'
-          },
+          headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
           body: JSON.stringify(payload)
         });
       }
-
-      if (res.ok) {
-        closeStrategyModal();
-        loadStrategies();
-      } else {
-        msg.textContent = 'Something went wrong. Try again.';
-        msg.className = 'modal-msg error';
-      }
+      if (res.ok) { closeStrategyModal(); loadStrategies(); }
+      else { msg.textContent = 'Something went wrong.'; msg.className = 'modal-msg error'; }
     }
 
-    // AVATAR
     function openCropper(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -1364,10 +1106,7 @@ if (user?.email !== 'dean.tsi.198@gmail.com') { window.location.href = '/app'; }
         document.getElementById('cropModal').classList.add('active');
         if (cropper) { cropper.destroy(); cropper = null; }
         setTimeout(() => {
-          cropper = new Cropper(img, {
-            aspectRatio: 1, viewMode: 1, dragMode: 'move',
-            cropBoxResizable: true, background: false,
-          });
+          cropper = new Cropper(img, { aspectRatio: 1, viewMode: 1, dragMode: 'move', cropBoxResizable: true, background: false });
         }, 100);
       };
       reader.readAsDataURL(file);
@@ -1395,10 +1134,7 @@ if (user?.email !== 'dean.tsi.198@gmail.com') { window.location.href = '/app'; }
           const url = `${SUPABASE_URL}/storage/v1/object/public/avatars/${filename}?t=${Date.now()}`;
           await fetch(`${SUPABASE_URL}/rest/v1/profiles`, {
             method: 'POST',
-            headers: {
-              'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates'
-            },
+            headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' },
             body: JSON.stringify({ id: user.id, avatar_url: url })
           });
           const imgTag = `<img src="${url}" alt="avatar"/>`;
@@ -1419,10 +1155,7 @@ if (user?.email !== 'dean.tsi.198@gmail.com') { window.location.href = '/app'; }
       btn.disabled = true;
       const res = await fetch(`${SUPABASE_URL}/rest/v1/profiles`, {
         method: 'POST',
-        headers: {
-          'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates'
-        },
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' },
         body: JSON.stringify({ id: user.id, username })
       });
       if (res.ok) {
@@ -1483,7 +1216,7 @@ if (user?.email !== 'dean.tsi.198@gmail.com') { window.location.href = '/app'; }
       document.getElementById('page-' + name).classList.add('active');
       if (el) el.classList.add('active');
       if (name === 'strategies') loadStrategies();
-if (name === 'calendar') initCalendar();
+      if (name === 'calendar') initCalendar();
       closeMobileSidebar();
     }
 
@@ -1501,452 +1234,359 @@ if (name === 'calendar') initCalendar();
       localStorage.removeItem('tp_user');
       window.location.href = '/app';
     }
+
     // CALENDAR
-const MIN_DATE = new Date(2026, 0, 1);
-let calYear = new Date().getFullYear();
-let calMonth = new Date().getMonth();
-let selectedDate = null;
-let dayTrades = [];
-let allStrategies = [];
-let calTradesCache = [];
-let calNotesCache = [];
+    const MIN_DATE = new Date(2026, 0, 1);
+    let calYear = new Date().getFullYear();
+    let calMonth = new Date().getMonth();
+    let selectedDate = null;
+    let dayTrades = [];
+    let allStrategies = [];
+    let calTradesCache = [];
+    let calNotesCache = [];
 
-async function initCalendar() {
-  await loadCalendarData();
-}
-
-async function loadCalendarData() {
-  const firstDayOfMonth = new Date(calYear, calMonth, 1);
-  const lastDayOfMonth = new Date(calYear, calMonth + 1, 0);
-  
-  const weekStart = new Date(firstDayOfMonth);
-  weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-  
-  const weekEnd = new Date(lastDayOfMonth);
-  weekEnd.setDate(weekEnd.getDate() + (6 - weekEnd.getDay()));
-
-  const firstDay = weekStart.toISOString().split('T')[0];
-  const lastDay = weekEnd.toISOString().split('T')[0];
-
-  const [tradesRes, notesRes] = await Promise.all([
-    fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}&date=gte.${firstDay}&date=lte.${lastDay}&select=*`, {
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
-    }),
-    fetch(`${SUPABASE_URL}/rest/v1/day_notes?user_id=eq.${user.id}&date=gte.${firstDay}&date=lte.${lastDay}&select=*`, {
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
-    })
-  ]);
-
-  calTradesCache = await tradesRes.json();
-  calNotesCache = await notesRes.json();
-
-  const monthFirstDay = new Date(calYear, calMonth, 1).toISOString().split('T')[0];
-  const monthLastDay = new Date(calYear, calMonth + 1, 0).toISOString().split('T')[0];
-  const monthTrades = calTradesCache.filter(t => t.date >= monthFirstDay && t.date <= monthLastDay);
-
-  renderCalendar(calTradesCache, calNotesCache);
-  updateMonthlyStats(monthTrades);
-  updateNavButtons();
-}
-
-function updateNavButtons() {
-  const prevBtn = document.querySelector('.cal-nav-btn');
-  const nextBtn = document.getElementById('calNextBtn');
-  const now = new Date();
-  prevBtn.disabled = calYear === MIN_DATE.getFullYear() && calMonth === MIN_DATE.getMonth();
-  nextBtn.disabled = calYear > now.getFullYear() || (calYear === now.getFullYear() && calMonth >= now.getMonth());
-}
-
-function updateMonthlyStats(trades) {
-  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  document.getElementById('calMonthLabel').textContent = `${monthNames[calMonth]} ${calYear}`;
-
-  if (!trades || trades.length === 0) {
-    document.getElementById('calMonthlyPnl').textContent = '—';
-    document.getElementById('calMonthlyTrades').textContent = '—';
-    document.getElementById('calMonthlyWinRate').textContent = '—';
-    return;
-  }
-
-  const totalPnl = trades.reduce((sum, t) => sum + (parseFloat(t.pnl) || 0), 0);
-  const wins = trades.filter(t => t.result === 'win').length;
-  const winRate = Math.round((wins / trades.length) * 100);
-
-  const pnlEl = document.getElementById('calMonthlyPnl');
-  pnlEl.textContent = `${totalPnl >= 0 ? '+' : ''}$${totalPnl.toFixed(2)}`;
-  pnlEl.style.color = totalPnl > 0 ? 'var(--success)' : totalPnl < 0 ? 'var(--danger)' : 'var(--text)';
-  document.getElementById('calMonthlyTrades').textContent = trades.length;
-  document.getElementById('calMonthlyWinRate').textContent = `${winRate}%`;
-}
-
-function renderCalendar(trades, notes) {
-  const grid = document.getElementById('calGrid');
-  grid.innerHTML = '';
-
-  const firstDayOfMonth = new Date(calYear, calMonth, 1);
-  const firstDayOfWeek = firstDayOfMonth.getDay();
-  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
-  const today = new Date();
-
-  const tradesByDay = {};
-  trades.forEach(t => {
-    if (!tradesByDay[t.date]) tradesByDay[t.date] = [];
-    tradesByDay[t.date].push(t);
-  });
-
-  const notesByDay = {};
-  notes.forEach(n => { notesByDay[n.date] = n; });
-
-  function makeDateStr(y, m, d) {
-    return `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-  }
-
-  function makeCell(dateStr, dayNum, isCurrentMonth) {
-    const isToday = today.toISOString().split('T')[0] === dateStr;
-    const dayTradesArr = tradesByDay[dateStr] || [];
-    const hasNote = !!notesByDay[dateStr];
-    const dayPnl = dayTradesArr.reduce((sum, t) => sum + (parseFloat(t.pnl) || 0), 0);
-    const pnlColor = dayPnl > 0 ? 'green' : dayPnl < 0 ? 'red' : '';
-
-    const cell = document.createElement('div');
-    cell.className = `cal-cell${isToday ? ' today' : ''}${!isCurrentMonth ? ' other-month' : ''}`;
-    cell.onclick = () => openDayModal(dateStr);
-    cell.innerHTML = `
-      <div class="cal-day-num" style="${!isCurrentMonth ? 'opacity:0.35;' : ''}">${dayNum}</div>
-      ${dayTradesArr.length > 0 ? `
-        <div class="cal-day-pnl ${pnlColor}">${dayPnl >= 0 ? '+' : ''}$${dayPnl.toFixed(0)}</div>
-        <div class="cal-day-trades">${dayTradesArr.length} trade${dayTradesArr.length !== 1 ? 's' : ''}</div>
-      ` : ''}
-      ${hasNote ? '<div class="cal-day-note-indicator"></div>' : ''}
-      <div class="cal-plus">+</div>
-    `;
-    return { cell, dayTradesArr, dayPnl };
-  }
-
-  let weekNum = 0;
-
-  const prevMonthDays = new Date(calYear, calMonth, 0).getDate();
-  let allCells = [];
-
-  for (let i = firstDayOfWeek - 1; i >= 0; i--) {
-    const d = prevMonthDays - i;
-    const prevMonth = calMonth - 1 < 0 ? 11 : calMonth - 1;
-    const prevYear = calMonth - 1 < 0 ? calYear - 1 : calYear;
-    const dateStr = makeDateStr(prevYear, prevMonth, d);
-    allCells.push({ dateStr, dayNum: d, isCurrentMonth: false });
-  }
-
-  for (let d = 1; d <= daysInMonth; d++) {
-    const dateStr = makeDateStr(calYear, calMonth, d);
-    allCells.push({ dateStr, dayNum: d, isCurrentMonth: true });
-  }
-
-  const remaining = (7 - (allCells.length % 7)) % 7;
-  const nextMonth = calMonth + 1 > 11 ? 0 : calMonth + 1;
-  const nextYear = calMonth + 1 > 11 ? calYear + 1 : calYear;
-  for (let d = 1; d <= remaining; d++) {
-    const dateStr = makeDateStr(nextYear, nextMonth, d);
-    allCells.push({ dateStr, dayNum: d, isCurrentMonth: false });
-  }
-
-  for (let i = 0; i < allCells.length; i += 7) {
-    const week = allCells.slice(i, i + 7);
-    let weekPnl = 0, weekTrades = 0, weekWins = 0;
-
-    week.forEach(({ dateStr, dayNum, isCurrentMonth }) => {
-      const { cell, dayTradesArr, dayPnl } = makeCell(dateStr, dayNum, isCurrentMonth);
-      grid.appendChild(cell);
-      weekPnl += dayPnl;
-      weekTrades += dayTradesArr.length;
-      weekWins += dayTradesArr.filter(t => t.result === 'win').length;
-    });
-
-    const weekCell = document.createElement('div');
-    weekCell.className = 'cal-week-cell';
-    if (weekTrades > 0) {
-      const weekWinRate = Math.round((weekWins / weekTrades) * 100);
-      const pnlClass = weekPnl > 0 ? 'green' : weekPnl < 0 ? 'red' : '';
-      weekCell.innerHTML = `
-        <div class="cal-week-pnl ${pnlClass}">${weekPnl >= 0 ? '+' : ''}$${weekPnl.toFixed(0)}</div>
-        <div class="cal-week-meta">${weekTrades}T · ${weekWinRate}%</div>
-      `;
-    }
-    grid.appendChild(weekCell);
-  }
-}
-
-    weekCells.forEach(c => grid.appendChild(c));
-
-    const fillerCount = weekNum === 0
-      ? 7 - firstDayOfMonth - weekCells.length
-      : 7 - weekCells.length;
-    for (let f = 0; f < fillerCount; f++) {
-      const empty = document.createElement('div');
-      empty.className = 'cal-cell empty';
-      grid.appendChild(empty);
+    async function initCalendar() {
+      await loadCalendarData();
     }
 
-    const weekCell = document.createElement('div');
-    weekCell.className = 'cal-week-cell';
-    if (weekTrades > 0) {
-      const weekWinRate = Math.round((weekWins / weekTrades) * 100);
-      const pnlClass = weekPnl > 0 ? 'green' : weekPnl < 0 ? 'red' : '';
-      weekCell.innerHTML = `
-        <div class="cal-week-pnl ${pnlClass}">${weekPnl >= 0 ? '+' : ''}$${weekPnl.toFixed(0)}</div>
-        <div class="cal-week-meta">${weekTrades}T · ${weekWinRate}%</div>
-      `;
+    async function loadCalendarData() {
+      const firstDayOfMonth = new Date(calYear, calMonth, 1);
+      const lastDayOfMonth = new Date(calYear, calMonth + 1, 0);
+      const weekStart = new Date(firstDayOfMonth);
+      weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+      const weekEnd = new Date(lastDayOfMonth);
+      weekEnd.setDate(weekEnd.getDate() + (6 - weekEnd.getDay()));
+      const firstDay = weekStart.toISOString().split('T')[0];
+      const lastDay = weekEnd.toISOString().split('T')[0];
+
+      const [tradesRes, notesRes] = await Promise.all([
+        fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}&date=gte.${firstDay}&date=lte.${lastDay}&select=*`, {
+          headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
+        }),
+        fetch(`${SUPABASE_URL}/rest/v1/day_notes?user_id=eq.${user.id}&date=gte.${firstDay}&date=lte.${lastDay}&select=*`, {
+          headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
+        })
+      ]);
+
+      calTradesCache = await tradesRes.json();
+      calNotesCache = await notesRes.json();
+
+      const monthFirstDay = new Date(calYear, calMonth, 1).toISOString().split('T')[0];
+      const monthLastDay = new Date(calYear, calMonth + 1, 0).toISOString().split('T')[0];
+      const monthTrades = calTradesCache.filter(t => t.date >= monthFirstDay && t.date <= monthLastDay);
+
+      renderCalendar(calTradesCache, calNotesCache);
+      updateMonthlyStats(monthTrades);
+      updateNavButtons();
     }
-    grid.appendChild(weekCell);
-    weekNum++;
-  }
-}
 
-function handleDayModalClick(e) {
-  if (e.target === document.getElementById('dayModal')) closeDayModal();
-}
+    function updateNavButtons() {
+      const prevBtn = document.querySelector('.cal-nav-btn');
+      const nextBtn = document.getElementById('calNextBtn');
+      const now = new Date();
+      prevBtn.disabled = calYear === MIN_DATE.getFullYear() && calMonth === MIN_DATE.getMonth();
+      nextBtn.disabled = calYear > now.getFullYear() || (calYear === now.getFullYear() && calMonth >= now.getMonth());
+    }
 
-function handleLogTradeModalClick(e) {
-  if (e.target === document.getElementById('logTradeModal')) closeLogTrade();
-}
+    function updateMonthlyStats(trades) {
+      const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      document.getElementById('calMonthLabel').textContent = `${monthNames[calMonth]} ${calYear}`;
+      if (!trades || trades.length === 0) {
+        document.getElementById('calMonthlyPnl').textContent = '—';
+        document.getElementById('calMonthlyTrades').textContent = '—';
+        document.getElementById('calMonthlyWinRate').textContent = '—';
+        return;
+      }
+      const totalPnl = trades.reduce((sum, t) => sum + (parseFloat(t.pnl) || 0), 0);
+      const wins = trades.filter(t => t.result === 'win').length;
+      const winRate = Math.round((wins / trades.length) * 100);
+      const pnlEl = document.getElementById('calMonthlyPnl');
+      pnlEl.textContent = `${totalPnl >= 0 ? '+' : ''}$${totalPnl.toFixed(2)}`;
+      pnlEl.style.color = totalPnl > 0 ? 'var(--success)' : totalPnl < 0 ? 'var(--danger)' : 'var(--text)';
+      document.getElementById('calMonthlyTrades').textContent = trades.length;
+      document.getElementById('calMonthlyWinRate').textContent = `${winRate}%`;
+    }
 
-async function openDayModal(dateStr) {
-  selectedDate = dateStr;
-  const date = new Date(dateStr + 'T12:00:00');
-  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  document.getElementById('dayModalTitle').textContent = `${monthNames[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+    function renderCalendar(trades, notes) {
+      const grid = document.getElementById('calGrid');
+      grid.innerHTML = '';
+      const firstDayOfMonth = new Date(calYear, calMonth, 1);
+      const firstDayOfWeek = firstDayOfMonth.getDay();
+      const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+      const today = new Date();
+      const tradesByDay = {};
+      trades.forEach(t => { if (!tradesByDay[t.date]) tradesByDay[t.date] = []; tradesByDay[t.date].push(t); });
+      const notesByDay = {};
+      notes.forEach(n => { notesByDay[n.date] = n; });
 
-  document.getElementById('dayStats').innerHTML = '';
-  document.getElementById('dayTradesList').innerHTML = '<div class="no-trades" style="color:var(--text2);">Loading...</div>';
-  document.getElementById('noteEditor').innerHTML = '';
-  document.getElementById('noteMsg').textContent = '';
+      function makeDateStr(y, m, d) {
+        return `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      }
 
-  switchDayTab('trades', document.querySelector('.day-tab'));
-  document.getElementById('dayModal').classList.add('active');
+      function makeCell(dateStr, dayNum, isCurrentMonth) {
+        const isToday = today.toISOString().split('T')[0] === dateStr;
+        const dayTradesArr = tradesByDay[dateStr] || [];
+        const hasNote = !!notesByDay[dateStr];
+        const dayPnl = dayTradesArr.reduce((sum, t) => sum + (parseFloat(t.pnl) || 0), 0);
+        const pnlColor = dayPnl > 0 ? 'green' : dayPnl < 0 ? 'red' : '';
+        const cell = document.createElement('div');
+        cell.className = `cal-cell${isToday ? ' today' : ''}${!isCurrentMonth ? ' other-month' : ''}`;
+        cell.onclick = () => openDayModal(dateStr);
+        cell.innerHTML = `
+          <div class="cal-day-num" style="${!isCurrentMonth ? 'opacity:0.35;' : ''}">${dayNum}</div>
+          ${dayTradesArr.length > 0 ? `
+            <div class="cal-day-pnl ${pnlColor}">${dayPnl >= 0 ? '+' : ''}$${dayPnl.toFixed(0)}</div>
+            <div class="cal-day-trades">${dayTradesArr.length} trade${dayTradesArr.length !== 1 ? 's' : ''}</div>
+          ` : ''}
+          ${hasNote ? '<div class="cal-day-note-indicator"></div>' : ''}
+          <div class="cal-plus">+</div>
+        `;
+        return { cell, dayTradesArr, dayPnl };
+      }
 
-  await Promise.all([loadDayTrades(), loadDayNote()]);
-}
+      const prevMonthDays = new Date(calYear, calMonth, 0).getDate();
+      let allCells = [];
 
-function closeDayModal() {
-  document.getElementById('dayModal').classList.remove('active');
-  selectedDate = null;
-}
+      for (let i = firstDayOfWeek - 1; i >= 0; i--) {
+        const d = prevMonthDays - i;
+        const prevMonth = calMonth - 1 < 0 ? 11 : calMonth - 1;
+        const prevYear = calMonth - 1 < 0 ? calYear - 1 : calYear;
+        allCells.push({ dateStr: makeDateStr(prevYear, prevMonth, d), dayNum: d, isCurrentMonth: false });
+      }
 
-async function loadDayTrades() {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}&date=eq.${selectedDate}&select=*,strategies(name)&order=created_at.asc`, {
-    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
-  });
-  dayTrades = await res.json();
-  renderDayTrades();
-}
+      for (let d = 1; d <= daysInMonth; d++) {
+        allCells.push({ dateStr: makeDateStr(calYear, calMonth, d), dayNum: d, isCurrentMonth: true });
+      }
 
-function renderDayTrades() {
-  const list = document.getElementById('dayTradesList');
-  const totalPnl = dayTrades.reduce((sum, t) => sum + (parseFloat(t.pnl) || 0), 0);
-  const wins = dayTrades.filter(t => t.result === 'win').length;
+      const remaining = (7 - (allCells.length % 7)) % 7;
+      const nextMonth = calMonth + 1 > 11 ? 0 : calMonth + 1;
+      const nextYear = calMonth + 1 > 11 ? calYear + 1 : calYear;
+      for (let d = 1; d <= remaining; d++) {
+        allCells.push({ dateStr: makeDateStr(nextYear, nextMonth, d), dayNum: d, isCurrentMonth: false });
+      }
 
-  document.getElementById('dayStats').innerHTML = dayTrades.length > 0 ? `
-    <div class="day-stat-card"><div class="day-stat-label">Trades</div><div class="day-stat-val">${dayTrades.length}</div></div>
-    <div class="day-stat-card"><div class="day-stat-label">PNL</div><div class="day-stat-val" style="color:${totalPnl > 0 ? 'var(--success)' : totalPnl < 0 ? 'var(--danger)' : 'var(--text)'}">${totalPnl >= 0 ? '+' : ''}$${totalPnl.toFixed(2)}</div></div>
-    <div class="day-stat-card"><div class="day-stat-label">Win Rate</div><div class="day-stat-val">${dayTrades.length ? Math.round((wins/dayTrades.length)*100) : 0}%</div></div>
-  ` : '';
+      for (let i = 0; i < allCells.length; i += 7) {
+        const week = allCells.slice(i, i + 7);
+        let weekPnl = 0, weekTrades = 0, weekWins = 0;
+        week.forEach(({ dateStr, dayNum, isCurrentMonth }) => {
+          const { cell, dayTradesArr, dayPnl } = makeCell(dateStr, dayNum, isCurrentMonth);
+          grid.appendChild(cell);
+          weekPnl += dayPnl;
+          weekTrades += dayTradesArr.length;
+          weekWins += dayTradesArr.filter(t => t.result === 'win').length;
+        });
+        const weekCell = document.createElement('div');
+        weekCell.className = 'cal-week-cell';
+        if (weekTrades > 0) {
+          const weekWinRate = Math.round((weekWins / weekTrades) * 100);
+          const pnlClass = weekPnl > 0 ? 'green' : weekPnl < 0 ? 'red' : '';
+          weekCell.innerHTML = `
+            <div class="cal-week-pnl ${pnlClass}">${weekPnl >= 0 ? '+' : ''}$${weekPnl.toFixed(0)}</div>
+            <div class="cal-week-meta">${weekTrades}T · ${weekWinRate}%</div>
+          `;
+        }
+        grid.appendChild(weekCell);
+      }
+    }
 
-  if (!dayTrades.length) {
-    list.innerHTML = '<div class="no-trades">No trades logged for this day.</div>';
-    return;
-  }
+    function handleDayModalClick(e) {
+      if (e.target === document.getElementById('dayModal')) closeDayModal();
+    }
 
-  list.innerHTML = dayTrades.map(t => {
-    const pnl = parseFloat(t.pnl) || 0;
-    const pnlClass = pnl > 0 ? 'green' : pnl < 0 ? 'red' : '';
-    const stratName = t.strategies?.name || 'Unknown strategy';
-    return `
-      <div class="trade-entry">
-        <div class="trade-entry-left">
-          <div class="trade-entry-strategy">${stratName} — <span style="color:${t.result === 'win' ? 'var(--success)' : t.result === 'loss' ? 'var(--danger)' : 'var(--text2)'};text-transform:capitalize;">${t.result}</span></div>
-          <div class="trade-entry-detail">
-            ${t.confluences_used?.length ? `${t.confluences_used.length} confluences` : 'No confluences'}
-            ${t.planned_rr ? `· Planned ${t.planned_rr}R` : ''}
-            ${t.actual_rr ? `· Got ${t.actual_rr}R` : ''}
-            ${!t.followed_rules ? ' · <span style="color:var(--danger);">Rules broken</span>' : ''}
+    function handleLogTradeModalClick(e) {
+      if (e.target === document.getElementById('logTradeModal')) closeLogTrade();
+    }
+
+    async function openDayModal(dateStr) {
+      selectedDate = dateStr;
+      const date = new Date(dateStr + 'T12:00:00');
+      const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      document.getElementById('dayModalTitle').textContent = `${monthNames[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+      document.getElementById('dayStats').innerHTML = '';
+      document.getElementById('dayTradesList').innerHTML = '<div class="no-trades" style="color:var(--text2);">Loading...</div>';
+      document.getElementById('noteEditor').innerHTML = '';
+      document.getElementById('noteMsg').textContent = '';
+      switchDayTab('trades', document.querySelector('.day-tab'));
+      document.getElementById('dayModal').classList.add('active');
+      await Promise.all([loadDayTrades(), loadDayNote()]);
+    }
+
+    function closeDayModal() {
+      document.getElementById('dayModal').classList.remove('active');
+      selectedDate = null;
+    }
+
+    async function loadDayTrades() {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}&date=eq.${selectedDate}&select=*,strategies(name)&order=created_at.asc`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
+      });
+      dayTrades = await res.json();
+      renderDayTrades();
+    }
+
+    function renderDayTrades() {
+      const list = document.getElementById('dayTradesList');
+      const totalPnl = dayTrades.reduce((sum, t) => sum + (parseFloat(t.pnl) || 0), 0);
+      const wins = dayTrades.filter(t => t.result === 'win').length;
+      document.getElementById('dayStats').innerHTML = dayTrades.length > 0 ? `
+        <div class="day-stat-card"><div class="day-stat-label">Trades</div><div class="day-stat-val">${dayTrades.length}</div></div>
+        <div class="day-stat-card"><div class="day-stat-label">PNL</div><div class="day-stat-val" style="color:${totalPnl > 0 ? 'var(--success)' : totalPnl < 0 ? 'var(--danger)' : 'var(--text)'}">${totalPnl >= 0 ? '+' : ''}$${totalPnl.toFixed(2)}</div></div>
+        <div class="day-stat-card"><div class="day-stat-label">Win Rate</div><div class="day-stat-val">${dayTrades.length ? Math.round((wins/dayTrades.length)*100) : 0}%</div></div>
+      ` : '';
+      if (!dayTrades.length) { list.innerHTML = '<div class="no-trades">No trades logged for this day.</div>'; return; }
+      list.innerHTML = dayTrades.map(t => {
+        const pnl = parseFloat(t.pnl) || 0;
+        const pnlClass = pnl > 0 ? 'green' : pnl < 0 ? 'red' : '';
+        const stratName = t.strategies?.name || 'Unknown strategy';
+        return `
+          <div class="trade-entry">
+            <div class="trade-entry-left">
+              <div class="trade-entry-strategy">${stratName} — <span style="color:${t.result === 'win' ? 'var(--success)' : t.result === 'loss' ? 'var(--danger)' : 'var(--text2)'};text-transform:capitalize;">${t.result}</span></div>
+              <div class="trade-entry-detail">
+                ${t.confluences_used?.length ? `${t.confluences_used.length} confluences` : 'No confluences'}
+                ${t.planned_rr ? `· Planned ${t.planned_rr}R` : ''}
+                ${t.actual_rr ? `· Got ${t.actual_rr}R` : ''}
+                ${!t.followed_rules ? ' · <span style="color:var(--danger);">Rules broken</span>' : ''}
+              </div>
+              ${t.notes ? `<div class="trade-entry-detail" style="margin-top:4px;font-style:italic;">"${t.notes}"</div>` : ''}
+            </div>
+            <div class="trade-entry-pnl ${pnlClass}">${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)}</div>
+            <button class="trade-delete-btn" onclick="deleteTrade('${t.id}')">
+              <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+            </button>
           </div>
-          ${t.notes ? `<div class="trade-entry-detail" style="margin-top:4px;font-style:italic;">"${t.notes}"</div>` : ''}
+        `;
+      }).join('');
+    }
+
+    async function deleteTrade(id) {
+      if (!confirm('Delete this trade?')) return;
+      await fetch(`${SUPABASE_URL}/rest/v1/trades?id=eq.${id}`, {
+        method: 'DELETE',
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
+      });
+      await loadDayTrades();
+      loadCalendarData();
+    }
+
+    async function loadDayNote() {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/day_notes?user_id=eq.${user.id}&date=eq.${selectedDate}&select=*`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      document.getElementById('noteEditor').innerHTML = data[0]?.content || '';
+      document.getElementById('noteMsg').textContent = '';
+    }
+
+    async function saveNote() {
+      const editor = document.getElementById('noteEditor');
+      const content = editor.innerHTML.trim() === '<br>' ? '' : editor.innerHTML;
+      const msg = document.getElementById('noteMsg');
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/day_notes`, {
+        method: 'POST',
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' },
+        body: JSON.stringify({ user_id: user.id, date: selectedDate, content: content })
+      });
+      if (res.ok) { msg.textContent = 'Note saved!'; msg.className = 'msg success'; loadCalendarData(); }
+      else { msg.textContent = 'Could not save note.'; msg.className = 'msg error'; }
+    }
+
+    function noteFormat(cmd) { document.getElementById('noteEditor').focus(); document.execCommand(cmd, false, null); }
+    function noteFormatBlock(val) { if (!val) return; document.getElementById('noteEditor').focus(); document.execCommand('formatBlock', false, val); }
+    function insertHR() { document.getElementById('noteEditor').focus(); document.execCommand('insertHTML', false, '<hr/>'); }
+    function insertImage(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        document.getElementById('noteEditor').focus();
+        document.execCommand('insertHTML', false, `<img src="${ev.target.result}" style="max-width:100%;border-radius:6px;margin:8px 0;"/>`);
+      };
+      reader.readAsDataURL(file);
+      e.target.value = '';
+    }
+
+    async function openLogTrade() {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/strategies?user_id=eq.${user.id}&select=*`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
+      });
+      allStrategies = await res.json();
+      const select = document.getElementById('tradeStrategy');
+      select.innerHTML = '<option value="">Select a strategy...</option>' +
+        allStrategies.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+      document.getElementById('confluenceSection').style.display = 'none';
+      document.getElementById('confluenceChecklist').innerHTML = '';
+      document.getElementById('tradePnl').value = '';
+      document.getElementById('tradeNotes').value = '';
+      document.getElementById('tradePlannedRR').value = '';
+      document.getElementById('tradeActualRR').value = '';
+      document.getElementById('tradeResult').value = 'win';
+      document.querySelector('input[name="followedRules"][value="true"]').checked = true;
+      document.getElementById('tradeMsg').textContent = '';
+      document.getElementById('logTradeTitle').textContent = `Log Trade — ${document.getElementById('dayModalTitle').textContent}`;
+      document.getElementById('logTradeModal').classList.add('active');
+    }
+
+    function closeLogTrade() { document.getElementById('logTradeModal').classList.remove('active'); }
+
+    function handleResultChange() {
+      const result = document.getElementById('tradeResult').value;
+      const pnlInput = document.getElementById('tradePnl');
+      if (result === 'loss' && pnlInput.value && parseFloat(pnlInput.value) > 0) pnlInput.value = '-' + pnlInput.value;
+      if (result === 'win' && pnlInput.value && parseFloat(pnlInput.value) < 0) pnlInput.value = Math.abs(parseFloat(pnlInput.value));
+    }
+
+    function loadStrategyConfluences() {
+      const stratId = document.getElementById('tradeStrategy').value;
+      const strat = allStrategies.find(s => s.id === stratId);
+      const section = document.getElementById('confluenceSection');
+      const checklist = document.getElementById('confluenceChecklist');
+      if (!strat || !strat.confluences?.length) { section.style.display = 'none'; return; }
+      section.style.display = 'block';
+      checklist.innerHTML = strat.confluences.map((c, i) => `
+        <div class="confluence-check">
+          <input type="checkbox" id="conf${i}" value="${c}"/>
+          <label for="conf${i}">${c}</label>
         </div>
-        <div class="trade-entry-pnl ${pnlClass}">${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)}</div>
-        <button class="trade-delete-btn" onclick="deleteTrade('${t.id}')">
-          <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
-        </button>
-      </div>
-    `;
-  }).join('');
-}
+      `).join('');
+    }
 
-async function deleteTrade(id) {
-  if (!confirm('Delete this trade?')) return;
-  await fetch(`${SUPABASE_URL}/rest/v1/trades?id=eq.${id}`, {
-    method: 'DELETE',
-    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
-  });
-  await loadDayTrades();
-  loadCalendarData();
-}
+    async function saveTrade() {
+      const strategyId = document.getElementById('tradeStrategy').value;
+      const result = document.getElementById('tradeResult').value;
+      let pnl = parseFloat(document.getElementById('tradePnl').value) || 0;
+      if (result === 'loss' && pnl > 0) pnl = -pnl;
+      if (result === 'win' && pnl < 0) pnl = Math.abs(pnl);
+      const plannedRR = parseFloat(document.getElementById('tradePlannedRR').value) || null;
+      const actualRR = parseFloat(document.getElementById('tradeActualRR').value) || null;
+      const notes = document.getElementById('tradeNotes').value.trim();
+      const followedRules = document.querySelector('input[name="followedRules"]:checked').value === 'true';
+      const msg = document.getElementById('tradeMsg');
+      const checkedBoxes = document.querySelectorAll('#confluenceChecklist input:checked');
+      const confluencesUsed = Array.from(checkedBoxes).map(cb => cb.value);
+      if (!strategyId) { msg.textContent = 'Please select a strategy.'; msg.className = 'modal-msg error'; return; }
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/trades`, {
+        method: 'POST',
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+        body: JSON.stringify({ user_id: user.id, strategy_id: strategyId, date: selectedDate, result, pnl, planned_rr: plannedRR, actual_rr: actualRR, notes, followed_rules: followedRules, confluences_used: confluencesUsed })
+      });
+      if (res.ok) { closeLogTrade(); await loadDayTrades(); loadCalendarData(); }
+      else { msg.textContent = 'Could not save trade.'; msg.className = 'modal-msg error'; }
+    }
 
-async function loadDayNote() {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/day_notes?user_id=eq.${user.id}&date=eq.${selectedDate}&select=*`, {
-    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
-  });
-  const data = await res.json();
-  document.getElementById('noteEditor').innerHTML = data[0]?.content || '';
-  document.getElementById('noteMsg').textContent = '';
-}
+    function switchDayTab(name, el) {
+      document.querySelectorAll('.day-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.day-panel').forEach(p => p.classList.remove('active'));
+      document.getElementById('dayPanel' + name.charAt(0).toUpperCase() + name.slice(1)).classList.add('active');
+      el.classList.add('active');
+    }
 
-async function saveNote() {
-  const editor = document.getElementById('noteEditor');
-  const content = editor.innerHTML.trim() === '<br>' ? '' : editor.innerHTML;
-  const msg = document.getElementById('noteMsg');
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/day_notes`, {
-    method: 'POST',
-    headers: {
-      'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates'
-    },
-    body: JSON.stringify({ user_id: user.id, date: selectedDate, content: content })
-  });
-  if (res.ok) {
-    msg.textContent = 'Note saved!'; msg.className = 'msg success';
-    loadCalendarData();
-  } else {
-    msg.textContent = 'Could not save note.'; msg.className = 'msg error';
-  }
-}
-
-function noteFormat(cmd) {
-  document.getElementById('noteEditor').focus();
-  document.execCommand(cmd, false, null);
-}
-
-function noteFormatBlock(val) {
-  if (!val) return;
-  document.getElementById('noteEditor').focus();
-  document.execCommand('formatBlock', false, val);
-}
-
-function insertHR() {
-  document.getElementById('noteEditor').focus();
-  document.execCommand('insertHTML', false, '<hr/>');
-}
-
-function insertImage(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (ev) => {
-    document.getElementById('noteEditor').focus();
-    document.execCommand('insertHTML', false, `<img src="${ev.target.result}" style="max-width:100%;border-radius:6px;margin:8px 0;"/>`);
-  };
-  reader.readAsDataURL(file);
-  e.target.value = '';
-}
-
-async function openLogTrade() {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/strategies?user_id=eq.${user.id}&select=*`, {
-    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
-  });
-  allStrategies = await res.json();
-
-  const select = document.getElementById('tradeStrategy');
-  select.innerHTML = '<option value="">Select a strategy...</option>' +
-    allStrategies.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
-
-  document.getElementById('confluenceSection').style.display = 'none';
-  document.getElementById('confluenceChecklist').innerHTML = '';
-  document.getElementById('tradePnl').value = '';
-  document.getElementById('tradeNotes').value = '';
-  document.getElementById('tradePlannedRR').value = '';
-  document.getElementById('tradeActualRR').value = '';
-  document.getElementById('tradeResult').value = 'win';
-  document.querySelector('input[name="followedRules"][value="true"]').checked = true;
-  document.getElementById('tradeMsg').textContent = '';
-  document.getElementById('logTradeTitle').textContent = `Log Trade — ${document.getElementById('dayModalTitle').textContent}`;
-  document.getElementById('logTradeModal').classList.add('active');
-}
-
-function closeLogTrade() {
-  document.getElementById('logTradeModal').classList.remove('active');
-}
-
-function handleResultChange() {
-  const result = document.getElementById('tradeResult').value;
-  const pnlInput = document.getElementById('tradePnl');
-  if (result === 'loss' && pnlInput.value && parseFloat(pnlInput.value) > 0) {
-    pnlInput.value = '-' + pnlInput.value;
-  }
-  if (result === 'win' && pnlInput.value && parseFloat(pnlInput.value) < 0) {
-    pnlInput.value = Math.abs(parseFloat(pnlInput.value));
-  }
-}
-
-function loadStrategyConfluences() {
-  const stratId = document.getElementById('tradeStrategy').value;
-  const strat = allStrategies.find(s => s.id === stratId);
-  const section = document.getElementById('confluenceSection');
-  const checklist = document.getElementById('confluenceChecklist');
-  if (!strat || !strat.confluences?.length) { section.style.display = 'none'; return; }
-  section.style.display = 'block';
-  checklist.innerHTML = strat.confluences.map((c, i) => `
-    <div class="confluence-check">
-      <input type="checkbox" id="conf${i}" value="${c}"/>
-      <label for="conf${i}">${c}</label>
-    </div>
-  `).join('');
-}
-
-async function saveTrade() {
-  const strategyId = document.getElementById('tradeStrategy').value;
-  const result = document.getElementById('tradeResult').value;
-  let pnl = parseFloat(document.getElementById('tradePnl').value) || 0;
-  if (result === 'loss' && pnl > 0) pnl = -pnl;
-  if (result === 'win' && pnl < 0) pnl = Math.abs(pnl);
-  const plannedRR = parseFloat(document.getElementById('tradePlannedRR').value) || null;
-  const actualRR = parseFloat(document.getElementById('tradeActualRR').value) || null;
-  const notes = document.getElementById('tradeNotes').value.trim();
-  const followedRules = document.querySelector('input[name="followedRules"]:checked').value === 'true';
-  const msg = document.getElementById('tradeMsg');
-  const checkedBoxes = document.querySelectorAll('#confluenceChecklist input:checked');
-  const confluencesUsed = Array.from(checkedBoxes).map(cb => cb.value);
-
-  if (!strategyId) { msg.textContent = 'Please select a strategy.'; msg.className = 'modal-msg error'; return; }
-
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/trades`, {
-    method: 'POST',
-    headers: {
-      'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json', 'Prefer': 'return=minimal'
-    },
-    body: JSON.stringify({ user_id: user.id, strategy_id: strategyId, date: selectedDate, result, pnl, planned_rr: plannedRR, actual_rr: actualRR, notes, followed_rules: followedRules, confluences_used: confluencesUsed })
-  });
-
-  if (res.ok) {
-    closeLogTrade();
-    await loadDayTrades();
-    loadCalendarData();
-  } else {
-    msg.textContent = 'Could not save trade.'; msg.className = 'modal-msg error';
-  }
-}
-
-function switchDayTab(name, el) {
-  document.querySelectorAll('.day-tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.day-panel').forEach(p => p.classList.remove('active'));
-  document.getElementById('dayPanel' + name.charAt(0).toUpperCase() + name.slice(1)).classList.add('active');
-  el.classList.add('active');
-}
-
-function changeMonth(dir) {
-  calMonth += dir;
-  if (calMonth > 11) { calMonth = 0; calYear++; }
-  if (calMonth < 0) { calMonth = 11; calYear--; }
-  loadCalendarData();
-}
+    function changeMonth(dir) {
+      calMonth += dir;
+      if (calMonth > 11) { calMonth = 0; calYear++; }
+      if (calMonth < 0) { calMonth = 11; calYear--; }
+      loadCalendarData();
+    }
   </script>
 </body>
 </html>
