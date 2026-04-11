@@ -1490,7 +1490,6 @@ async function loadDayNote() {
     headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' },
     body: JSON.stringify({ user_id: user.id, date: selectedDate, content })
   });
-  loadCalendarData();
 }
 
     function noteFormat(cmd) { document.getElementById('noteEditor').focus(); document.execCommand(cmd, false, null); }
