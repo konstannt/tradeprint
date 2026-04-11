@@ -1409,7 +1409,10 @@
       document.getElementById('dayTradesList').innerHTML = '<div class="no-trades" style="color:var(--text2);">Loading...</div>';
       document.getElementById('noteEditor').innerHTML = '';
       document.getElementById('noteMsg').textContent = '';
-      switchDayTab('trades', document.querySelector('.day-tab'));
+      document.querySelectorAll('.day-tab').forEach(t => t.classList.remove('active'));
+document.querySelectorAll('.day-panel').forEach(p => p.classList.remove('active'));
+document.getElementById('dayPanelTrades').classList.add('active');
+document.querySelectorAll('.day-tab')[0].classList.add('active');
       document.getElementById('dayModal').classList.add('active');
       await Promise.all([loadDayTrades(), loadDayNote()]);
     }
