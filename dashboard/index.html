@@ -459,7 +459,7 @@
 .cal-monthly-stats { display: flex; gap: 24px; }
 .cal-stat { text-align: right; }
 .cal-stat-label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
-.cal-stat-value { font-size: 18px; font-weight: 700; }
+.cal-stat-value { font-size: 22px; font-weight: 700; }
 
 .cal-grid-wrapper {
   background: var(--bg2); border: 1px solid var(--border);
@@ -467,7 +467,7 @@
 }
 .cal-day-headers {
   display: grid;
-  grid-template-columns: repeat(7, 1fr) 90px;
+  grid-template-columns: repeat(7, 1fr) 120px;
   border-bottom: 1px solid var(--border);
 }
 #page-calendar .cal-day-headers div {
@@ -479,7 +479,7 @@
 
 .cal-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr) 90px;
+  grid-template-columns: repeat(7, 1fr) 120px;
 }
 
 .cal-cell {
@@ -491,6 +491,7 @@
 .cal-cell:hover { background: rgba(255,255,255,0.03); }
 .cal-cell.empty { cursor: default; }
 .cal-cell.empty:hover { background: transparent; }
+.cal-cell.other-month { background: rgba(255,255,255,0.01); cursor: pointer; }
 .cal-cell.today { background: rgba(99,102,241,0.08); }
 .cal-cell.today .cal-day-num { color: var(--accent); font-weight: 700; }
 
@@ -502,10 +503,10 @@
   justify-content: center; align-items: center;
   gap: 4px; min-height: 130px;
 }
-.cal-week-pnl { font-size: 12px; font-weight: 700; text-align: center; }
+.cal-week-pnl { font-size: 14px; font-weight: 700; text-align: center; }
+.cal-week-meta { font-size: 11px; color: var(--text2); text-align: center; }
 .cal-week-pnl.green { color: var(--success); }
 .cal-week-pnl.red { color: var(--danger); }
-.cal-week-meta { font-size: 10px; color: var(--text2); text-align: center; }
 
 .cal-day-num { font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 4px; }
 .cal-day-pnl { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
@@ -566,7 +567,7 @@
   font-size: 12px; cursor: pointer; outline: none;
 }
 .note-editor {
-  width: 100%; min-height: 400px; max-height: 600px;
+  width: 100%; min-height: 1000px; max-height: 1200px;
   padding: 14px; font-size: 14px; line-height: 1.7;
   border: 1px solid var(--border); border-radius: 0 0 8px 8px;
   background: var(--bg); color: var(--text);
@@ -917,14 +918,6 @@
   </div>
 
 </div>
-
-  <!-- Calendar Grid -->
-  <div class="cal-grid-wrapper">
-    <div class="cal-day-headers">
-      <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
-    </div>
-    <div class="cal-grid" id="calGrid"></div>
-  </div>
 
   <!-- Day Modal -->
   <div class="modal" id="dayModal">
@@ -1523,8 +1516,17 @@ async function initCalendar() {
 }
 
 async function loadCalendarData() {
-  const firstDay = new Date(calYear, calMonth, 1).toISOString().split('T')[0];
-  const lastDay = new Date(calYear, calMonth + 1, 0).toISOString().split('T')[0];
+  const firstDayOfMonth = new Date(calYear, calMonth, 1);
+  const lastDayOfMonth = new Date(calYear, calMonth + 1, 0);
+  
+  const weekStart = new Date(firstDayOfMonth);
+  weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+  
+  const weekEnd = new Date(lastDayOfMonth);
+  weekEnd.setDate(weekEnd.getDate() + (6 - weekEnd.getDay()));
+
+  const firstDay = weekStart.toISOString().split('T')[0];
+  const lastDay = weekEnd.toISOString().split('T')[0];
 
   const [tradesRes, notesRes] = await Promise.all([
     fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}&date=gte.${firstDay}&date=lte.${lastDay}&select=*`, {
@@ -1538,8 +1540,12 @@ async function loadCalendarData() {
   calTradesCache = await tradesRes.json();
   calNotesCache = await notesRes.json();
 
+  const monthFirstDay = new Date(calYear, calMonth, 1).toISOString().split('T')[0];
+  const monthLastDay = new Date(calYear, calMonth + 1, 0).toISOString().split('T')[0];
+  const monthTrades = calTradesCache.filter(t => t.date >= monthFirstDay && t.date <= monthLastDay);
+
   renderCalendar(calTradesCache, calNotesCache);
-  updateMonthlyStats(calTradesCache);
+  updateMonthlyStats(monthTrades);
   updateNavButtons();
 }
 
@@ -1577,7 +1583,8 @@ function renderCalendar(trades, notes) {
   const grid = document.getElementById('calGrid');
   grid.innerHTML = '';
 
-  const firstDayOfMonth = new Date(calYear, calMonth, 1).getDay();
+  const firstDayOfMonth = new Date(calYear, calMonth, 1);
+  const firstDayOfWeek = firstDayOfMonth.getDay();
   const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
   const today = new Date();
 
@@ -1590,52 +1597,83 @@ function renderCalendar(trades, notes) {
   const notesByDay = {};
   notes.forEach(n => { notesByDay[n.date] = n; });
 
-  let currentDay = 1;
+  function makeDateStr(y, m, d) {
+    return `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+  }
+
+  function makeCell(dateStr, dayNum, isCurrentMonth) {
+    const isToday = today.toISOString().split('T')[0] === dateStr;
+    const dayTradesArr = tradesByDay[dateStr] || [];
+    const hasNote = !!notesByDay[dateStr];
+    const dayPnl = dayTradesArr.reduce((sum, t) => sum + (parseFloat(t.pnl) || 0), 0);
+    const pnlColor = dayPnl > 0 ? 'green' : dayPnl < 0 ? 'red' : '';
+
+    const cell = document.createElement('div');
+    cell.className = `cal-cell${isToday ? ' today' : ''}${!isCurrentMonth ? ' other-month' : ''}`;
+    cell.onclick = () => openDayModal(dateStr);
+    cell.innerHTML = `
+      <div class="cal-day-num" style="${!isCurrentMonth ? 'opacity:0.35;' : ''}">${dayNum}</div>
+      ${dayTradesArr.length > 0 ? `
+        <div class="cal-day-pnl ${pnlColor}">${dayPnl >= 0 ? '+' : ''}$${dayPnl.toFixed(0)}</div>
+        <div class="cal-day-trades">${dayTradesArr.length} trade${dayTradesArr.length !== 1 ? 's' : ''}</div>
+      ` : ''}
+      ${hasNote ? '<div class="cal-day-note-indicator"></div>' : ''}
+      <div class="cal-plus">+</div>
+    `;
+    return { cell, dayTradesArr, dayPnl };
+  }
+
   let weekNum = 0;
 
-  while (currentDay <= daysInMonth) {
-    const weekStart = currentDay === 1 ? firstDayOfMonth : 0;
-    const weekCells = [];
-    let weekPnl = 0;
-    let weekTrades = 0;
-    let weekWins = 0;
+  const prevMonthDays = new Date(calYear, calMonth, 0).getDate();
+  let allCells = [];
 
-    for (let col = (currentDay === 1 ? firstDayOfMonth : 0); col < 7 && currentDay <= daysInMonth; col++) {
-      const dateStr = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(currentDay).padStart(2, '0')}`;
-      const isToday = today.getFullYear() === calYear && today.getMonth() === calMonth && today.getDate() === currentDay;
-      const dayTradesArr = tradesByDay[dateStr] || [];
-      const hasNote = !!notesByDay[dateStr];
+  for (let i = firstDayOfWeek - 1; i >= 0; i--) {
+    const d = prevMonthDays - i;
+    const prevMonth = calMonth - 1 < 0 ? 11 : calMonth - 1;
+    const prevYear = calMonth - 1 < 0 ? calYear - 1 : calYear;
+    const dateStr = makeDateStr(prevYear, prevMonth, d);
+    allCells.push({ dateStr, dayNum: d, isCurrentMonth: false });
+  }
 
-      const dayPnl = dayTradesArr.reduce((sum, t) => sum + (parseFloat(t.pnl) || 0), 0);
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = makeDateStr(calYear, calMonth, d);
+    allCells.push({ dateStr, dayNum: d, isCurrentMonth: true });
+  }
+
+  const remaining = (7 - (allCells.length % 7)) % 7;
+  const nextMonth = calMonth + 1 > 11 ? 0 : calMonth + 1;
+  const nextYear = calMonth + 1 > 11 ? calYear + 1 : calYear;
+  for (let d = 1; d <= remaining; d++) {
+    const dateStr = makeDateStr(nextYear, nextMonth, d);
+    allCells.push({ dateStr, dayNum: d, isCurrentMonth: false });
+  }
+
+  for (let i = 0; i < allCells.length; i += 7) {
+    const week = allCells.slice(i, i + 7);
+    let weekPnl = 0, weekTrades = 0, weekWins = 0;
+
+    week.forEach(({ dateStr, dayNum, isCurrentMonth }) => {
+      const { cell, dayTradesArr, dayPnl } = makeCell(dateStr, dayNum, isCurrentMonth);
+      grid.appendChild(cell);
       weekPnl += dayPnl;
       weekTrades += dayTradesArr.length;
       weekWins += dayTradesArr.filter(t => t.result === 'win').length;
-      const pnlColor = dayPnl > 0 ? 'green' : dayPnl < 0 ? 'red' : '';
+    });
 
-      const cell = document.createElement('div');
-      cell.className = `cal-cell${isToday ? ' today' : ''}`;
-      const d = currentDay;
-      cell.onclick = () => openDayModal(dateStr);
-      cell.innerHTML = `
-        <div class="cal-day-num">${d}</div>
-        ${dayTradesArr.length > 0 ? `
-          <div class="cal-day-pnl ${pnlColor}">${dayPnl >= 0 ? '+' : ''}$${dayPnl.toFixed(0)}</div>
-          <div class="cal-day-trades">${dayTradesArr.length} trade${dayTradesArr.length !== 1 ? 's' : ''}</div>
-        ` : ''}
-        ${hasNote ? '<div class="cal-day-note-indicator"></div>' : ''}
-        <div class="cal-plus">+</div>
+    const weekCell = document.createElement('div');
+    weekCell.className = 'cal-week-cell';
+    if (weekTrades > 0) {
+      const weekWinRate = Math.round((weekWins / weekTrades) * 100);
+      const pnlClass = weekPnl > 0 ? 'green' : weekPnl < 0 ? 'red' : '';
+      weekCell.innerHTML = `
+        <div class="cal-week-pnl ${pnlClass}">${weekPnl >= 0 ? '+' : ''}$${weekPnl.toFixed(0)}</div>
+        <div class="cal-week-meta">${weekTrades}T · ${weekWinRate}%</div>
       `;
-      weekCells.push(cell);
-      currentDay++;
     }
-
-    if (weekNum === 0 && firstDayOfMonth > 0) {
-      for (let e = 0; e < firstDayOfMonth; e++) {
-        const empty = document.createElement('div');
-        empty.className = 'cal-cell empty';
-        grid.appendChild(empty);
-      }
-    }
+    grid.appendChild(weekCell);
+  }
+}
 
     weekCells.forEach(c => grid.appendChild(c));
 
@@ -1762,7 +1800,8 @@ async function loadDayNote() {
 }
 
 async function saveNote() {
-  const content = document.getElementById('noteEditor').innerHTML;
+  const editor = document.getElementById('noteEditor');
+  const content = editor.innerHTML.trim() === '<br>' ? '' : editor.innerHTML;
   const msg = document.getElementById('noteMsg');
   const res = await fetch(`${SUPABASE_URL}/rest/v1/day_notes`, {
     method: 'POST',
@@ -1770,7 +1809,7 @@ async function saveNote() {
       'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates'
     },
-    body: JSON.stringify({ user_id: user.id, date: selectedDate, content: content || '' })
+    body: JSON.stringify({ user_id: user.id, date: selectedDate, content: content })
   });
   if (res.ok) {
     msg.textContent = 'Note saved!'; msg.className = 'msg success';
