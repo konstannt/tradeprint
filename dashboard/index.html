@@ -470,7 +470,7 @@
   grid-template-columns: repeat(7, 1fr) 90px;
   border-bottom: 1px solid var(--border);
 }
-.cal-day-headers div {
+#page-calendar .cal-day-headers div {
   padding: 10px; text-align: center;
   font-size: 12px; font-weight: 600; color: var(--text2);
   text-transform: uppercase; letter-spacing: 0.5px;
@@ -485,7 +485,7 @@
 .cal-cell {
   border-right: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
-  min-height: 90px; padding: 8px;
+  min-height: 130px; padding: 8px;
   position: relative; cursor: pointer; transition: background 0.15s;
 }
 .cal-cell:hover { background: rgba(255,255,255,0.03); }
@@ -500,7 +500,7 @@
   padding: 8px 6px;
   display: flex; flex-direction: column;
   justify-content: center; align-items: center;
-  gap: 4px; min-height: 90px;
+  gap: 4px; min-height: 130px;
 }
 .cal-week-pnl { font-size: 12px; font-weight: 700; text-align: center; }
 .cal-week-pnl.green { color: var(--success); }
@@ -566,7 +566,7 @@
   font-size: 12px; cursor: pointer; outline: none;
 }
 .note-editor {
-  width: 100%; min-height: 280px; max-height: 400px;
+  width: 100%; min-height: 400px; max-height: 600px;
   padding: 14px; font-size: 14px; line-height: 1.7;
   border: 1px solid var(--border); border-radius: 0 0 8px 8px;
   background: var(--bg); color: var(--text);
@@ -826,16 +826,16 @@
           <button class="note-tool" onclick="noteFormat('italic')" title="Italic"><i>I</i></button>
           <button class="note-tool" onclick="noteFormat('underline')" title="Underline"><u>U</u></button>
           <div class="note-tool-divider"></div>
-          <select class="note-tool-select" onchange="noteFormatBlock(this.value); this.value=''" >
-            <option value="">Size</option>
-            <option value="h2">Large</option>
-            <option value="h3">Medium</option>
-            <option value="p">Normal</option>
-            <option value="small">Small</option>
-          </select>
+          <select class="note-tool-select" id="noteSizeSelect" onchange="noteFormatBlock(this.value)">
+  <option value="">Size</option>
+  <option value="h2">Large</option>
+  <option value="h3">Medium</option>
+  <option value="p">Normal</option>
+  <option value="small">Small</option>
+</select>
           <div class="note-tool-divider"></div>
           <button class="note-tool" onclick="insertHR()" title="Divider">—</button>
-          <button class="note-tool" onclick="document.getElementById('noteImgInput').click()" title="Insert Image">🖼</button>
+          <button class="note-tool" onclick="document.getElementById('noteImgInput').click()" title="Insert Image">IMG</button>
           <input type="file" id="noteImgInput" accept="image/*" style="display:none" onchange="insertImage(event)"/>
         </div>
         <div class="note-editor" id="noteEditor" contenteditable="true" placeholder="Write anything about this day — market observations, mindset, what you noticed..."></div>
@@ -1770,7 +1770,7 @@ async function saveNote() {
       'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates'
     },
-    body: JSON.stringify({ user_id: user.id, date: selectedDate, content })
+    body: JSON.stringify({ user_id: user.id, date: selectedDate, content: content || '' })
   });
   if (res.ok) {
     msg.textContent = 'Note saved!'; msg.className = 'msg success';
