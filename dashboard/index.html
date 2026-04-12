@@ -1069,6 +1069,25 @@
 
   editor.oninput = trigger;
   editor.onkeyup = trigger;
+
+  editor.onkeydown = (e) => {
+    if (e.key === 'Enter') {
+      const sel = window.getSelection();
+      if (sel && sel.rangeCount > 0) {
+        const range = sel.getRangeAt(0);
+        const node = range.startContainer;
+        const text = node.textContent || '';
+        const offset = range.startOffset;
+        const before = text.substring(0, offset);
+        if (before.endsWith('--')) {
+          e.preventDefault();
+          document.execCommand('delete', false, null);
+          document.execCommand('delete', false, null);
+          document.execCommand('insertHTML', false, '<hr/><br/>');
+        }
+      }
+    }
+  };
 }
 
       editor.onkeydown = (e) => {
