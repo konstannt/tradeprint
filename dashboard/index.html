@@ -278,6 +278,36 @@
 .img-lightbox img { max-width: 90vw; max-height: 90vh; border-radius: 12px; object-fit: contain; }
 
     .notion-tool.active { background: var(--border); color: var(--text); }
+
+    /* TRADES PAGE */
+.trades-filters { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+.trades-filters select { padding: 8px 14px; font-size: 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg2); color: var(--text); outline: none; cursor: pointer; transition: border-color 0.2s; }
+.trades-filters select:focus { border-color: var(--accent); }
+.trades-table { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.trades-table-header { display: grid; grid-template-columns: 100px 1fr 90px 100px 80px 80px 1fr 40px; padding: 12px 20px; border-bottom: 1px solid var(--border); gap: 12px; }
+.trades-table-header div { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; }
+.trades-table-row { display: grid; grid-template-columns: 100px 1fr 90px 100px 80px 80px 1fr 40px; padding: 14px 20px; border-bottom: 1px solid var(--border); gap: 12px; align-items: center; transition: background 0.15s; }
+.trades-table-row:last-child { border-bottom: none; }
+.trades-table-row:hover { background: rgba(255,255,255,0.02); }
+.trades-table-cell { font-size: 14px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.trades-table-cell.muted { color: var(--text2); font-size: 13px; }
+.trades-badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+.trades-badge.win { background: rgba(34,197,94,0.15); color: var(--success); }
+.trades-badge.loss { background: rgba(239,68,68,0.15); color: var(--danger); }
+.trades-badge.breakeven { background: rgba(255,255,255,0.08); color: var(--text2); }
+.trades-empty { text-align: center; padding: 60px; color: var(--text2); font-size: 15px; }
+.trades-empty span { display: block; font-size: 32px; margin-bottom: 12px; }
+.trade-delete-btn { background: none; border: none; color: var(--text2); cursor: pointer; padding: 4px; border-radius: 4px; transition: color 0.2s; }
+.trade-delete-btn:hover { color: var(--danger); }
+.trade-delete-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
+@media (max-width: 768px) {
+  .trades-table-header { display: none; }
+  .trades-table-row { grid-template-columns: 1fr auto; grid-template-rows: auto auto; gap: 6px; padding: 14px 16px; }
+  .trades-table-row .trades-table-cell:nth-child(n+3) { display: none; }
+  .trades-table-row .trades-table-cell:nth-child(2) { grid-column: 1; }
+  .trades-table-row .trades-table-cell:nth-child(4) { grid-column: 2; grid-row: 1; }
+  .trade-delete-btn { grid-column: 2; grid-row: 2; }
+}
   </style>
 </head>
 <body id="body">
@@ -518,10 +548,36 @@
     </div>
 
     <div class="page" id="page-trades">
-      <div class="page-title">Trades</div>
-      <div class="page-subtitle">Every trade you've logged.</div>
-      <div class="coming-soon"><span>📋</span>Coming soon.</div>
-    </div>
+  <div class="page-header">
+    <div><h1>Trades</h1><p>Every trade you've logged.</p></div>
+  </div>
+
+  <!-- Stats Bar -->
+  <div class="stats-grid" id="tradesStatsGrid" style="margin-bottom:24px;"></div>
+
+  <!-- Filters -->
+  <div class="trades-filters">
+    <select id="filterStrategy" onchange="filterTrades()">
+      <option value="">All Strategies</option>
+    </select>
+    <select id="filterResult" onchange="filterTrades()">
+      <option value="">All Results</option>
+      <option value="win">Win</option>
+      <option value="loss">Loss</option>
+      <option value="breakeven">Breakeven</option>
+    </select>
+    <select id="filterSort" onchange="filterTrades()">
+      <option value="date_desc">Newest First</option>
+      <option value="date_asc">Oldest First</option>
+      <option value="pnl_desc">Highest PNL</option>
+      <option value="pnl_asc">Lowest PNL</option>
+    </select>
+    <button class="btn-secondary" onclick="clearTradeFilters()">Clear</button>
+  </div>
+
+  <!-- Trades List -->
+  <div id="tradesListContainer"></div>
+</div>
 
     <div class="page" id="page-notes">
       <div class="page-title">Notes</div>
@@ -846,6 +902,7 @@
       if (el) el.classList.add('active');
       if (name === 'strategies') loadStrategies();
       if (name === 'calendar') initCalendar();
+      if (name === 'trades') loadTrades();
       closeMobileSidebar();
     }
 
@@ -1226,6 +1283,137 @@ function closeLightbox() {
     
     function handleStrategyModalClick(e) {
   if (e.target === document.getElementById('strategyModal')) closeStrategyModal();
+}
+
+    let allTrades = [];
+let filteredTrades = [];
+
+async function loadTrades() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}&select=*,strategies(name)&order=date.desc,created_at.desc`, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
+  });
+  allTrades = await res.json();
+
+  // Populate strategy filter
+  const strategies = [...new Set(allTrades.map(t => t.strategies?.name).filter(Boolean))];
+  const filterSelect = document.getElementById('filterStrategy');
+  filterSelect.innerHTML = '<option value="">All Strategies</option>' +
+    strategies.map(s => `<option value="${s}">${s}</option>`).join('');
+
+  filterTrades();
+}
+
+function filterTrades() {
+  const stratFilter = document.getElementById('filterStrategy').value;
+  const resultFilter = document.getElementById('filterResult').value;
+  const sort = document.getElementById('filterSort').value;
+
+  filteredTrades = allTrades.filter(t => {
+    if (stratFilter && t.strategies?.name !== stratFilter) return false;
+    if (resultFilter && t.result !== resultFilter) return false;
+    return true;
+  });
+
+  filteredTrades.sort((a, b) => {
+    if (sort === 'date_desc') return new Date(b.date) - new Date(a.date);
+    if (sort === 'date_asc') return new Date(a.date) - new Date(b.date);
+    if (sort === 'pnl_desc') return (parseFloat(b.pnl)||0) - (parseFloat(a.pnl)||0);
+    if (sort === 'pnl_asc') return (parseFloat(a.pnl)||0) - (parseFloat(b.pnl)||0);
+    return 0;
+  });
+
+  renderTradesStats();
+  renderTradesList();
+}
+
+function clearTradeFilters() {
+  document.getElementById('filterStrategy').value = '';
+  document.getElementById('filterResult').value = '';
+  document.getElementById('filterSort').value = 'date_desc';
+  filterTrades();
+}
+
+function renderTradesStats() {
+  const trades = filteredTrades;
+  const grid = document.getElementById('tradesStatsGrid');
+  if (!trades.length) { grid.innerHTML = ''; return; }
+  const totalPnl = trades.reduce((sum, t) => sum + (parseFloat(t.pnl)||0), 0);
+  const wins = trades.filter(t => t.result === 'win').length;
+  const losses = trades.filter(t => t.result === 'loss').length;
+  const winRate = Math.round((wins / trades.length) * 100);
+  const avgRR = trades.filter(t => t.actual_rr).reduce((sum, t, _, arr) => sum + parseFloat(t.actual_rr) / arr.length, 0);
+  const bestTrade = Math.max(...trades.map(t => parseFloat(t.pnl)||0));
+  const worstTrade = Math.min(...trades.map(t => parseFloat(t.pnl)||0));
+
+  grid.innerHTML = `
+    <div class="stat-card"><div class="stat-label">Total Trades</div><div class="stat-value">${trades.length}</div></div>
+    <div class="stat-card"><div class="stat-label">Total PNL</div><div class="stat-value" style="color:${totalPnl>0?'var(--success)':totalPnl<0?'var(--danger)':'var(--text)'}">${formatPnl(totalPnl)}</div></div>
+    <div class="stat-card"><div class="stat-label">Win Rate</div><div class="stat-value">${winRate}%</div></div>
+    <div class="stat-card"><div class="stat-label">Wins / Losses</div><div class="stat-value"><span style="color:var(--success)">${wins}</span> / <span style="color:var(--danger)">${losses}</span></div></div>
+    <div class="stat-card"><div class="stat-label">Avg R:R</div><div class="stat-value">${avgRR ? avgRR.toFixed(2) : '—'}</div></div>
+    <div class="stat-card"><div class="stat-label">Best Trade</div><div class="stat-value" style="color:var(--success)">${bestTrade > -Infinity ? formatPnl(bestTrade) : '—'}</div></div>
+    <div class="stat-card"><div class="stat-label">Worst Trade</div><div class="stat-value" style="color:var(--danger)">${worstTrade < Infinity ? formatPnl(worstTrade) : '—'}</div></div>
+  `;
+}
+
+function renderTradesList() {
+  const container = document.getElementById('tradesListContainer');
+  if (!filteredTrades.length) {
+    container.innerHTML = '<div class="trades-empty"><span>📋</span>No trades found.</div>';
+    return;
+  }
+
+  const rows = filteredTrades.map(t => {
+    const pnl = parseFloat(t.pnl) || 0;
+    const pnlColor = pnl > 0 ? 'var(--success)' : pnl < 0 ? 'var(--danger)' : 'var(--text)';
+    const date = new Date(t.date + 'T12:00:00');
+    const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const confluences = t.confluences_used?.length ? `${t.confluences_used.length} confluences` : '—';
+    const rr = t.actual_rr ? `${t.actual_rr}R` : '—';
+    const followed = t.followed_rules ? '' : '<span style="color:var(--danger);font-size:11px;">Rules broken</span>';
+    return `
+      <div class="trades-table-row">
+        <div class="trades-table-cell muted">${dateStr}</div>
+        <div class="trades-table-cell">${t.strategies?.name || '—'}</div>
+        <div class="trades-table-cell"><span class="trades-badge ${t.result}">${t.result}</span></div>
+        <div class="trades-table-cell" style="color:${pnlColor};font-weight:700;">${formatPnl(pnl)}</div>
+        <div class="trades-table-cell muted">${rr}</div>
+        <div class="trades-table-cell muted">${confluences}</div>
+        <div class="trades-table-cell muted">${t.notes ? `"${t.notes}"` : followed || '—'}</div>
+        <div class="trades-table-cell">
+          <button class="trade-delete-btn" onclick="deleteTradeFromList('${t.id}')">
+            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  container.innerHTML = `
+    <div class="trades-table">
+      <div class="trades-table-header">
+        <div>Date</div>
+        <div>Strategy</div>
+        <div>Result</div>
+        <div>PNL</div>
+        <div>R:R</div>
+        <div>Confluences</div>
+        <div>Notes</div>
+        <div></div>
+      </div>
+      ${rows}
+    </div>
+  `;
+}
+
+async function deleteTradeFromList(id) {
+  if (!confirm('Delete this trade?')) return;
+  await fetch(`${SUPABASE_URL}/rest/v1/trades?id=eq.${id}`, {
+    method: 'DELETE',
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
+  });
+  allTrades = allTrades.filter(t => t.id !== id);
+  filterTrades();
 }
   </script>
   <div class="img-lightbox" id="imgLightbox" onclick="closeLightbox()">
