@@ -29,38 +29,16 @@
       display: flex; height: 100vh; overflow: hidden;
       transition: background 0.2s, color 0.2s;
     }
-    .overlay {
-      display: none; position: fixed; inset: 0;
-      background: rgba(0,0,0,0.6); z-index: 10;
-    }
+    .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 10; }
     .overlay.active { display: block; }
-    .modal {
-      display: none; position: fixed; inset: 0;
-      background: rgba(0,0,0,0.85); z-index: 100;
-      align-items: center; justify-content: center; padding: 20px;
-    }
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
     .modal.active { display: flex; }
-    .modal-box {
-      background: var(--bg2); border: 1px solid var(--border);
-      border-radius: 12px; padding: 28px;
-      width: 100%; max-width: 520px;
-      max-height: 90vh; overflow-y: auto;
-    }
-    .modal-header {
-      display: flex; align-items: center;
-      justify-content: space-between; margin-bottom: 24px;
-    }
+    .modal-box { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 28px; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
     .modal-title { font-size: 18px; font-weight: 700; }
-    .modal-close {
-      background: none; border: none; color: var(--text2);
-      font-size: 22px; cursor: pointer; line-height: 1;
-    }
+    .modal-close { background: none; border: none; color: var(--text2); font-size: 22px; cursor: pointer; line-height: 1; }
     .modal-close:hover { color: var(--text); }
-    .crop-modal {
-      display: none; position: fixed; inset: 0;
-      background: rgba(0,0,0,0.85); z-index: 200;
-      align-items: center; justify-content: center;
-    }
+    .crop-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 200; align-items: center; justify-content: center; }
     .crop-modal.active { display: flex; }
     .crop-box { background: #111; border-radius: 12px; padding: 24px; width: 90%; max-width: 480px; }
     .crop-box h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
@@ -69,11 +47,7 @@
     .crop-actions { display: flex; gap: 12px; margin-top: 16px; justify-content: flex-end; }
     .crop-cancel { background: none; border: 1px solid var(--border); color: var(--text); padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 14px; }
     .crop-save { background: var(--accent); color: #fff; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; }
-    .sidebar {
-      width: 220px; background: var(--bg2); border-right: 1px solid var(--border);
-      display: flex; flex-direction: column; padding: 24px 0 16px; flex-shrink: 0;
-      transition: width 0.25s ease; overflow: hidden; position: relative; z-index: 20;
-    }
+    .sidebar { width: 220px; background: var(--bg2); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 24px 0 16px; flex-shrink: 0; transition: width 0.25s ease; overflow: hidden; position: relative; z-index: 20; }
     .sidebar.collapsed { width: 60px; }
     @media (max-width: 768px) {
       .sidebar { position: fixed; top: 0; left: 0; height: 100%; transform: translateX(-100%); transition: transform 0.25s ease; width: 220px !important; }
@@ -208,74 +182,109 @@
     .cal-stat-label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
     .cal-stat-value { font-size: 22px; font-weight: 700; }
     .cal-grid-wrapper { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-    .cal-day-headers { display: grid; grid-template-columns: repeat(7, 1fr) 120px; border-bottom: 1px solid var(--border); }
-    #page-calendar .cal-day-headers div { padding: 10px; text-align: center; font-size: 12px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; }
+    .cal-day-headers { display: grid; grid-template-columns: repeat(7, 1fr) 80px; border-bottom: 1px solid var(--border); }
+    #page-calendar .cal-day-headers div { padding: 10px 4px; text-align: center; font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; }
     .cal-week-header { background: rgba(99,102,241,0.06); }
-    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr) 120px; }
-    .cal-cell { border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); min-height: 130px; padding: 8px; position: relative; cursor: pointer; transition: background 0.15s; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr) 80px; }
+    .cal-cell { border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); min-height: 110px; padding: 8px 6px; position: relative; cursor: pointer; transition: background 0.15s; }
     .cal-cell:hover { background: rgba(255,255,255,0.03); }
     .cal-cell.empty { cursor: default; }
     .cal-cell.empty:hover { background: transparent; }
     .cal-cell.other-month { background: rgba(255,255,255,0.01); cursor: pointer; }
     .cal-cell.today { background: rgba(99,102,241,0.08); }
     .cal-cell.today .cal-day-num { color: var(--accent); font-weight: 700; }
-    .cal-week-cell { border-bottom: 1px solid var(--border); background: rgba(99,102,241,0.04); padding: 8px 6px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 4px; min-height: 130px; }
-    .cal-week-pnl { font-size: 14px; font-weight: 700; text-align: center; }
+    .cal-week-cell { border-bottom: 1px solid var(--border); background: rgba(99,102,241,0.04); padding: 6px 4px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 3px; min-height: 110px; }
+    .cal-week-pnl { font-size: 12px; font-weight: 700; text-align: center; }
     .cal-week-pnl.green { color: var(--success); }
     .cal-week-pnl.red { color: var(--danger); }
-    .cal-week-meta { font-size: 11px; color: var(--text2); text-align: center; }
-    .cal-day-num { font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 4px; }
-    .cal-day-pnl { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+    .cal-week-meta { font-size: 10px; color: var(--text2); text-align: center; }
+    .cal-day-num { font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 4px; }
+    .cal-day-pnl { font-size: 12px; font-weight: 700; margin-bottom: 2px; }
     .cal-day-pnl.green { color: var(--success); }
     .cal-day-pnl.red { color: var(--danger); }
-    .cal-day-trades { font-size: 11px; color: var(--text2); }
-    .cal-day-note-indicator { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); position: absolute; top: 8px; right: 8px; }
-    .cal-plus { position: absolute; bottom: 6px; right: 6px; width: 20px; height: 20px; border-radius: 50%; background: var(--accent); color: #fff; display: none; align-items: center; justify-content: center; font-size: 14px; line-height: 1; }
+    .cal-day-trades { font-size: 10px; color: var(--text2); }
+    .cal-day-note-indicator { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); position: absolute; top: 7px; right: 7px; }
+    .cal-plus { position: absolute; bottom: 5px; right: 5px; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); color: #fff; display: none; align-items: center; justify-content: center; font-size: 13px; line-height: 1; }
     .cal-cell:hover .cal-plus { display: flex; }
     .cal-cell.empty .cal-plus { display: none !important; }
-    .day-stats { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
-    .day-stat-card { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; flex: 1; min-width: 70px; }
-    .day-stat-label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px; }
-    .day-stat-val { font-size: 16px; font-weight: 700; }
-    .day-tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
-    .day-tab { padding: 10px 20px; cursor: pointer; font-size: 14px; font-weight: 600; color: var(--text2); border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.2s; }
-    .day-tab.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
-    .day-panel { display: none; }
-    .day-panel.active { display: block; }
-    .note-toolbar { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; padding: 8px; background: var(--bg); border: 1px solid var(--border); border-bottom: none; border-radius: 8px 8px 0 0; }
-    .note-tool { background: none; border: none; color: var(--text); padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 13px; transition: background 0.2s; line-height: 1.4; }
-    .note-tool:hover { background: var(--border); }
-    .note-tool-divider { width: 1px; height: 18px; background: var(--border); margin: 0 4px; }
-    .note-tool-select { background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 4px; padding: 3px 6px; font-size: 12px; cursor: pointer; outline: none; }
-    .note-editor { width: 100%; min-height: 500px; max-height: 700px; padding: 14px; font-size: 14px; line-height: 1.7; border: 1px solid var(--border); border-radius: 0 0 8px 8px; background: var(--bg); color: var(--text); outline: none; overflow-y: auto; font-family: inherit; }
-    .note-editor:empty:before { content: attr(placeholder); color: var(--text2); pointer-events: none; }
-    .note-editor hr { border: none; border-top: 1px solid var(--border); margin: 12px 0; }
-    .note-editor img { max-width: 100%; border-radius: 6px; margin: 8px 0; }
-    .trade-entry { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-    .trade-entry-left { flex: 1; }
-    .trade-entry-strategy { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
-    .trade-entry-detail { font-size: 12px; color: var(--text2); }
-    .trade-entry-pnl { font-size: 16px; font-weight: 700; white-space: nowrap; }
-    .trade-entry-pnl.green { color: var(--success); }
-    .trade-entry-pnl.red { color: var(--danger); }
-    .trade-delete-btn { background: none; border: none; color: var(--text2); cursor: pointer; padding: 4px; border-radius: 4px; transition: color 0.2s; }
-    .trade-delete-btn:hover { color: var(--danger); }
-    .trade-delete-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
+
+    /* MOBILE CALENDAR */
+    @media (max-width: 768px) {
+      .cal-header { flex-direction: column; align-items: flex-start; }
+      .cal-monthly-stats { width: 100%; justify-content: space-between; }
+      .cal-stat { text-align: center; }
+      .cal-day-headers { grid-template-columns: repeat(7, 1fr); }
+      .cal-day-headers .cal-week-header { display: none; }
+      .cal-grid { grid-template-columns: repeat(7, 1fr); }
+      .cal-week-cell { display: none; }
+      .cal-cell { min-height: 52px; padding: 4px 3px; }
+      .cal-day-num { font-size: 10px; }
+      .cal-day-pnl { font-size: 9px; }
+      .cal-day-trades { font-size: 8px; }
+      .cal-plus { width: 14px; height: 14px; font-size: 11px; }
+    }
+
+    /* DAY MODAL — Notion style */
+    .day-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
+    .day-modal-overlay.active { display: flex; }
+    .day-modal-box {
+      background: var(--bg2); border-radius: 16px;
+      width: 100%; max-width: 720px;
+      max-height: 92vh; overflow-y: auto;
+      display: flex; flex-direction: column;
+    }
+    @media (max-width: 768px) {
+      .day-modal-overlay { padding: 0; align-items: flex-end; }
+      .day-modal-box { max-width: 100%; border-radius: 16px 16px 0 0; max-height: 92vh; }
+    }
+    .day-modal-header {
+      padding: 28px 28px 0;
+      display: flex; align-items: flex-start; justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 20px; margin-bottom: 0;
+    }
+    .day-modal-date { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+    .day-modal-close { background: none; border: none; color: var(--text2); font-size: 24px; cursor: pointer; padding: 4px; border-radius: 6px; transition: color 0.2s; line-height: 1; }
+    .day-modal-close:hover { color: var(--text); }
+    .day-modal-stats { display: flex; gap: 20px; padding: 20px 28px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+    .day-modal-stat { display: flex; flex-direction: column; gap: 3px; }
+    .day-modal-stat-label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; }
+    .day-modal-stat-val { font-size: 20px; font-weight: 700; }
+    .day-modal-body { padding: 0 28px 28px; flex: 1; }
+    .day-modal-section-title { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.8px; margin: 24px 0 12px; }
+
+    /* Note editor — Notion style */
+    .notion-note { min-height: 160px; max-height: 300px; overflow-y: auto; font-size: 15px; line-height: 1.8; color: var(--text); outline: none; cursor: text; padding: 4px 0; }
+    .notion-note:empty:before { content: attr(placeholder); color: var(--text2); pointer-events: none; }
+    .notion-note hr { border: none; border-top: 1px solid var(--border); margin: 12px 0; }
+    .notion-note img { max-width: 100%; border-radius: 8px; margin: 8px 0; display: block; }
+    .notion-note-toolbar { display: flex; gap: 4px; align-items: center; padding: 6px 0; margin-bottom: 8px; flex-wrap: wrap; }
+    .notion-tool { background: none; border: none; color: var(--text2); padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; transition: all 0.15s; }
+    .notion-tool:hover { background: var(--border); color: var(--text); }
+    .notion-tool-divider { width: 1px; height: 16px; background: var(--border); margin: 0 3px; }
+
+    /* Trade feed */
+    .trade-feed { display: flex; flex-direction: column; gap: 10px; }
+    .trade-feed-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: var(--bg); border-radius: 10px; border: 1px solid var(--border); gap: 12px; }
+    .trade-feed-left { flex: 1; }
+    .trade-feed-strat { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+    .trade-feed-detail { font-size: 12px; color: var(--text2); }
+    .trade-feed-pnl { font-size: 16px; font-weight: 700; white-space: nowrap; }
+    .trade-feed-pnl.green { color: var(--success); }
+    .trade-feed-pnl.red { color: var(--danger); }
+    .trade-feed-delete { background: none; border: none; color: var(--text2); cursor: pointer; padding: 4px; border-radius: 4px; transition: color 0.2s; }
+    .trade-feed-delete:hover { color: var(--danger); }
+    .trade-feed-delete svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
+    .log-trade-btn { display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: none; border: 1px dashed var(--border); border-radius: 10px; color: var(--text2); font-size: 14px; cursor: pointer; width: 100%; transition: all 0.2s; margin-top: 8px; }
+    .log-trade-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .log-trade-btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
+
+    /* LOG TRADE MODAL */
     .confluence-check { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
     .confluence-check:last-child { border-bottom: none; }
     .confluence-check input { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
     .confluence-check label { font-size: 14px; color: var(--text); cursor: pointer; flex: 1; }
-    .no-trades { text-align: center; padding: 32px; color: var(--text2); font-size: 14px; }
-    @media (max-width: 768px) {
-      .cal-cell { min-height: 55px; padding: 4px; }
-      .cal-week-cell { min-height: 55px; padding: 4px; }
-      .cal-day-num { font-size: 10px; }
-      .cal-day-pnl { font-size: 10px; }
-      .cal-monthly-stats { gap: 10px; }
-      .cal-stat-value { font-size: 14px; }
-      .cal-week-pnl { font-size: 10px; }
-      .cal-week-meta { font-size: 9px; }
-    }
+    .no-trades { text-align: center; padding: 24px; color: var(--text2); font-size: 14px; }
   </style>
 </head>
 <body id="body">
@@ -323,6 +332,90 @@
         <button class="crop-cancel" onclick="closeCropper()">Cancel</button>
         <button class="crop-save" onclick="cropAndSave()">Save Photo</button>
       </div>
+    </div>
+  </div>
+
+  <!-- DAY MODAL -->
+  <div class="day-modal-overlay" id="dayModal" onclick="handleDayModalClick(event)">
+    <div class="day-modal-box" onclick="event.stopPropagation()">
+      <div class="day-modal-header">
+        <div class="day-modal-date" id="dayModalTitle">April 11, 2026</div>
+        <button class="day-modal-close" onclick="closeDayModal()">×</button>
+      </div>
+      <div class="day-modal-stats" id="dayStats"></div>
+      <div class="day-modal-body">
+        <div class="day-modal-section-title">Notes</div>
+        <div class="notion-note-toolbar">
+          <button class="notion-tool" onclick="noteFormat('bold')"><b>B</b></button>
+          <button class="notion-tool" onclick="noteFormat('italic')"><i>I</i></button>
+          <button class="notion-tool" onclick="noteFormat('underline')"><u>U</u></button>
+          <div class="notion-tool-divider"></div>
+          <button class="notion-tool" onclick="insertHR()">— Divider</button>
+          <button class="notion-tool" onclick="document.getElementById('noteImgInput').click()">↑ Image</button>
+          <input type="file" id="noteImgInput" accept="image/*" style="display:none" onchange="insertImage(event)"/>
+        </div>
+        <div class="notion-note" id="noteEditor" contenteditable="true" placeholder="Write anything about this day — market observations, mindset, what you noticed..."></div>
+        <div class="day-modal-section-title">Trades</div>
+        <div class="trade-feed" id="dayTradesList"></div>
+        <button class="log-trade-btn" onclick="openLogTrade()">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Log a trade
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOG TRADE MODAL -->
+  <div class="modal" id="logTradeModal" onclick="handleLogTradeModalClick(event)">
+    <div class="modal-box" style="max-width:540px;" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title" id="logTradeTitle">Log Trade</div>
+        <button class="modal-close" onclick="closeLogTrade()">×</button>
+      </div>
+      <div class="form-field">
+        <label>Strategy</label>
+        <select id="tradeStrategy" style="width:100%;padding:10px 14px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;" onchange="loadStrategyConfluences()">
+          <option value="">Select a strategy...</option>
+        </select>
+      </div>
+      <div class="form-field" id="confluenceSection" style="display:none;">
+        <label>Confluences Present</label>
+        <div id="confluenceChecklist"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="form-field">
+          <label>Result</label>
+          <select id="tradeResult" style="width:100%;padding:10px 14px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;" onchange="handleResultChange()">
+            <option value="win">Win</option>
+            <option value="loss">Loss</option>
+            <option value="breakeven">Breakeven</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>PNL ($)</label>
+          <input type="number" id="tradePnl" placeholder="e.g. 250" step="0.01"/>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="form-field"><label>Planned R:R</label><input type="number" id="tradePlannedRR" placeholder="e.g. 2" step="0.1"/></div>
+        <div class="form-field"><label>Actual R:R</label><input type="number" id="tradeActualRR" placeholder="e.g. 1.5" step="0.1"/></div>
+      </div>
+      <div class="form-field">
+        <label>Did you follow your rules?</label>
+        <div style="display:flex;gap:12px;margin-top:4px;">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px;color:var(--text);"><input type="radio" name="followedRules" value="true" checked/> Yes</label>
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px;color:var(--text);"><input type="radio" name="followedRules" value="false"/> No</label>
+        </div>
+      </div>
+      <div class="form-field">
+        <label>Trade Notes (optional)</label>
+        <textarea id="tradeNotes" placeholder="What happened? Any observations..." style="width:100%;min-height:80px;padding:10px 14px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;resize:vertical;font-family:inherit;"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeLogTrade()">Cancel</button>
+        <button class="btn-primary" onclick="saveTrade()">Save Trade</button>
+      </div>
+      <div class="modal-msg" id="tradeMsg"></div>
     </div>
   </div>
 
@@ -433,105 +526,9 @@
       </div>
       <div class="cal-grid-wrapper">
         <div class="cal-day-headers">
-          <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div class="cal-week-header">Week</div>
+          <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div class="cal-week-header">Wk</div>
         </div>
         <div class="cal-grid" id="calGrid"></div>
-      </div>
-
-      <!-- Day Modal -->
-      <div class="modal" id="dayModal" onclick="handleDayModalClick(event)">
-        <div class="modal-box" style="max-width:620px;" onclick="event.stopPropagation()">
-          <div class="modal-header">
-            <div class="modal-title" id="dayModalTitle">April 1</div>
-            <button class="modal-close" onclick="closeDayModal()">×</button>
-          </div>
-          <div class="day-stats" id="dayStats"></div>
-          <div class="day-tabs">
-            <div class="day-tab active" onclick="switchDayTab('trades', this)">Trades</div>
-            <div class="day-tab" onclick="switchDayTab('note', this)">Note</div>
-          </div>
-          <div class="day-panel active" id="dayPanelTrades">
-            <div id="dayTradesList"></div>
-            <button class="btn-primary" style="margin-top:16px;width:100%;" onclick="openLogTrade()">
-              <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              Log Trade
-            </button>
-          </div>
-          <div class="day-panel" id="dayPanelNote">
-            <div class="note-toolbar">
-              <button class="note-tool" onclick="noteFormat('bold')"><b>B</b></button>
-              <button class="note-tool" onclick="noteFormat('italic')"><i>I</i></button>
-              <button class="note-tool" onclick="noteFormat('underline')"><u>U</u></button>
-              <div class="note-tool-divider"></div>
-              <select class="note-tool-select" id="noteSizeSelect" onchange="noteFormatBlock(this.value)">
-                <option value="">Size</option>
-                <option value="h2">Large</option>
-                <option value="h3">Medium</option>
-                <option value="p">Normal</option>
-                <option value="small">Small</option>
-              </select>
-              <div class="note-tool-divider"></div>
-              <button class="note-tool" onclick="insertHR()">—</button>
-              <button class="note-tool" onclick="document.getElementById('noteImgInput').click()">IMG</button>
-              <input type="file" id="noteImgInput" accept="image/*" style="display:none" onchange="insertImage(event)"/>
-            </div>
-            <div class="note-editor" id="noteEditor" contenteditable="true" placeholder="Write anything about this day — market observations, mindset, what you noticed..."></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Log Trade Modal -->
-      <div class="modal" id="logTradeModal" onclick="handleLogTradeModalClick(event)">
-        <div class="modal-box" style="max-width:540px;" onclick="event.stopPropagation()">
-          <div class="modal-header">
-            <div class="modal-title" id="logTradeTitle">Log Trade</div>
-            <button class="modal-close" onclick="closeLogTrade()">×</button>
-          </div>
-          <div class="form-field">
-            <label>Strategy</label>
-            <select id="tradeStrategy" style="width:100%;padding:10px 14px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;" onchange="loadStrategyConfluences()">
-              <option value="">Select a strategy...</option>
-            </select>
-          </div>
-          <div class="form-field" id="confluenceSection" style="display:none;">
-            <label>Confluences Present</label>
-            <div id="confluenceChecklist"></div>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-            <div class="form-field">
-              <label>Result</label>
-              <select id="tradeResult" style="width:100%;padding:10px 14px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;" onchange="handleResultChange()">
-                <option value="win">Win</option>
-                <option value="loss">Loss</option>
-                <option value="breakeven">Breakeven</option>
-              </select>
-            </div>
-            <div class="form-field">
-              <label>PNL ($)</label>
-              <input type="number" id="tradePnl" placeholder="e.g. 250" step="0.01"/>
-            </div>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-            <div class="form-field"><label>Planned R:R</label><input type="number" id="tradePlannedRR" placeholder="e.g. 2" step="0.1"/></div>
-            <div class="form-field"><label>Actual R:R</label><input type="number" id="tradeActualRR" placeholder="e.g. 1.5" step="0.1"/></div>
-          </div>
-          <div class="form-field">
-            <label>Did you follow your rules?</label>
-            <div style="display:flex;gap:12px;margin-top:4px;">
-              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px;color:var(--text);"><input type="radio" name="followedRules" value="true" checked/> Yes</label>
-              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px;color:var(--text);"><input type="radio" name="followedRules" value="false"/> No</label>
-            </div>
-          </div>
-          <div class="form-field">
-            <label>Trade Notes (optional)</label>
-            <textarea id="tradeNotes" placeholder="What happened? Any observations..." style="width:100%;min-height:80px;padding:10px 14px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;resize:vertical;font-family:inherit;"></textarea>
-          </div>
-          <div class="modal-footer">
-            <button class="btn-secondary" onclick="closeLogTrade()">Cancel</button>
-            <button class="btn-primary" onclick="saveTrade()">Save Trade</button>
-          </div>
-          <div class="modal-msg" id="tradeMsg"></div>
-        </div>
       </div>
     </div>
 
@@ -647,6 +644,16 @@
     let calNotesCache = [];
     let noteAutosaveTimer = null;
     const MIN_DATE = new Date(2026, 0, 1);
+
+    function formatPnl(pnl) {
+      if (pnl >= 0) return `+$${pnl.toFixed(2)}`;
+      return `-$${Math.abs(pnl).toFixed(2)}`;
+    }
+
+    function formatPnlShort(pnl) {
+      if (pnl >= 0) return `+$${Math.round(pnl)}`;
+      return `-$${Math.round(Math.abs(pnl))}`;
+    }
 
     async function loadProfile() {
       if (!user) return;
@@ -944,6 +951,7 @@
       window.location.href = '/app';
     }
 
+    // CALENDAR
     async function initCalendar() {
       document.getElementById('dayModal').classList.remove('active');
       document.getElementById('logTradeModal').classList.remove('active');
@@ -1002,7 +1010,7 @@
       const wins = trades.filter(t => t.result === 'win').length;
       const winRate = Math.round((wins / trades.length) * 100);
       const pnlEl = document.getElementById('calMonthlyPnl');
-      pnlEl.textContent = `${totalPnl >= 0 ? '+' : ''}$${totalPnl.toFixed(2)}`;
+      pnlEl.textContent = formatPnl(totalPnl);
       pnlEl.style.color = totalPnl > 0 ? 'var(--success)' : totalPnl < 0 ? 'var(--danger)' : 'var(--text)';
       document.getElementById('calMonthlyTrades').textContent = trades.length;
       document.getElementById('calMonthlyWinRate').textContent = `${winRate}%`;
@@ -1034,8 +1042,8 @@
         cell.className = `cal-cell${isToday ? ' today' : ''}${!isCurrentMonth ? ' other-month' : ''}`;
         cell.onclick = () => openDayModal(dateStr);
         cell.innerHTML = `
-          <div class="cal-day-num" style="${!isCurrentMonth ? 'opacity:0.35;' : ''}">${dayNum}</div>
-          ${dayTradesArr.length > 0 ? `<div class="cal-day-pnl ${pnlColor}">${dayPnl >= 0 ? '+' : ''}$${dayPnl.toFixed(0)}</div><div class="cal-day-trades">${dayTradesArr.length} trade${dayTradesArr.length !== 1 ? 's' : ''}</div>` : ''}
+          <div class="cal-day-num" style="${!isCurrentMonth ? 'opacity:0.3;' : ''}">${dayNum}</div>
+          ${dayTradesArr.length > 0 ? `<div class="cal-day-pnl ${pnlColor}">${formatPnlShort(dayPnl)}</div><div class="cal-day-trades">${dayTradesArr.length}T</div>` : ''}
           ${hasNote ? '<div class="cal-day-note-indicator"></div>' : ''}
           <div class="cal-plus">+</div>
         `;
@@ -1078,7 +1086,7 @@
         if (weekTrades > 0) {
           const weekWinRate = Math.round((weekWins / weekTrades) * 100);
           const pnlClass = weekPnl > 0 ? 'green' : weekPnl < 0 ? 'red' : '';
-          weekCell.innerHTML = `<div class="cal-week-pnl ${pnlClass}">${weekPnl >= 0 ? '+' : ''}$${weekPnl.toFixed(0)}</div><div class="cal-week-meta">${weekTrades}T · ${weekWinRate}%</div>`;
+          weekCell.innerHTML = `<div class="cal-week-pnl ${pnlClass}">${formatPnlShort(weekPnl)}</div><div class="cal-week-meta">${weekTrades}T · ${weekWinRate}%</div>`;
         }
         grid.appendChild(weekCell);
       }
@@ -1098,12 +1106,8 @@
       const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
       document.getElementById('dayModalTitle').textContent = `${monthNames[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
       document.getElementById('dayStats').innerHTML = '';
-      document.getElementById('dayTradesList').innerHTML = '<div class="no-trades" style="color:var(--text2);">Loading...</div>';
+      document.getElementById('dayTradesList').innerHTML = '<div class="no-trades">Loading...</div>';
       document.getElementById('noteEditor').innerHTML = '';
-      document.querySelectorAll('.day-tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.day-panel').forEach(p => p.classList.remove('active'));
-      document.getElementById('dayPanelTrades').classList.add('active');
-      document.querySelectorAll('.day-tab')[0].classList.add('active');
       document.getElementById('dayModal').classList.add('active');
       await Promise.all([loadDayTrades(), loadDayNote()]);
     }
@@ -1112,6 +1116,7 @@
       clearTimeout(noteAutosaveTimer);
       document.getElementById('dayModal').classList.remove('active');
       selectedDate = null;
+      loadCalendarData();
     }
 
     async function loadDayTrades() {
@@ -1126,30 +1131,36 @@
       const list = document.getElementById('dayTradesList');
       const totalPnl = dayTrades.reduce((sum, t) => sum + (parseFloat(t.pnl) || 0), 0);
       const wins = dayTrades.filter(t => t.result === 'win').length;
+
       document.getElementById('dayStats').innerHTML = dayTrades.length > 0 ? `
-        <div class="day-stat-card"><div class="day-stat-label">Trades</div><div class="day-stat-val">${dayTrades.length}</div></div>
-        <div class="day-stat-card"><div class="day-stat-label">PNL</div><div class="day-stat-val" style="color:${totalPnl > 0 ? 'var(--success)' : totalPnl < 0 ? 'var(--danger)' : 'var(--text)'}">${totalPnl >= 0 ? '+' : ''}$${totalPnl.toFixed(2)}</div></div>
-        <div class="day-stat-card"><div class="day-stat-label">Win Rate</div><div class="day-stat-val">${dayTrades.length ? Math.round((wins/dayTrades.length)*100) : 0}%</div></div>
+        <div class="day-modal-stat"><div class="day-modal-stat-label">Trades</div><div class="day-modal-stat-val">${dayTrades.length}</div></div>
+        <div class="day-modal-stat"><div class="day-modal-stat-label">PNL</div><div class="day-modal-stat-val" style="color:${totalPnl > 0 ? 'var(--success)' : totalPnl < 0 ? 'var(--danger)' : 'var(--text)'}">${formatPnl(totalPnl)}</div></div>
+        <div class="day-modal-stat"><div class="day-modal-stat-label">Win Rate</div><div class="day-modal-stat-val">${Math.round((wins/dayTrades.length)*100)}%</div></div>
       ` : '';
-      if (!dayTrades.length) { list.innerHTML = '<div class="no-trades">No trades logged for this day.</div>'; return; }
+
+      if (!dayTrades.length) {
+        list.innerHTML = '<div class="no-trades">No trades logged yet.</div>';
+        return;
+      }
+
       list.innerHTML = dayTrades.map(t => {
         const pnl = parseFloat(t.pnl) || 0;
         const pnlClass = pnl > 0 ? 'green' : pnl < 0 ? 'red' : '';
         const stratName = t.strategies?.name || 'Unknown strategy';
         return `
-          <div class="trade-entry">
-            <div class="trade-entry-left">
-              <div class="trade-entry-strategy">${stratName} — <span style="color:${t.result === 'win' ? 'var(--success)' : t.result === 'loss' ? 'var(--danger)' : 'var(--text2)'};text-transform:capitalize;">${t.result}</span></div>
-              <div class="trade-entry-detail">
+          <div class="trade-feed-item">
+            <div class="trade-feed-left">
+              <div class="trade-feed-strat">${stratName} — <span style="color:${t.result === 'win' ? 'var(--success)' : t.result === 'loss' ? 'var(--danger)' : 'var(--text2)'};text-transform:capitalize;">${t.result}</span></div>
+              <div class="trade-feed-detail">
                 ${t.confluences_used?.length ? `${t.confluences_used.length} confluences` : 'No confluences'}
-                ${t.planned_rr ? `· Planned ${t.planned_rr}R` : ''}
-                ${t.actual_rr ? `· Got ${t.actual_rr}R` : ''}
+                ${t.planned_rr ? ` · Planned ${t.planned_rr}R` : ''}
+                ${t.actual_rr ? ` · Got ${t.actual_rr}R` : ''}
                 ${!t.followed_rules ? ' · <span style="color:var(--danger);">Rules broken</span>' : ''}
               </div>
-              ${t.notes ? `<div class="trade-entry-detail" style="margin-top:4px;font-style:italic;">"${t.notes}"</div>` : ''}
+              ${t.notes ? `<div class="trade-feed-detail" style="margin-top:3px;font-style:italic;">"${t.notes}"</div>` : ''}
             </div>
-            <div class="trade-entry-pnl ${pnlClass}">${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)}</div>
-            <button class="trade-delete-btn" onclick="deleteTrade('${t.id}')">
+            <div class="trade-feed-pnl ${pnlClass}">${formatPnl(pnl)}</div>
+            <button class="trade-feed-delete" onclick="deleteTrade('${t.id}')">
               <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
             </button>
           </div>
@@ -1164,7 +1175,6 @@
         headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
       });
       await loadDayTrades();
-      loadCalendarData();
     }
 
     async function loadDayNote() {
@@ -1174,6 +1184,7 @@
       const data = await res.json();
       const editor = document.getElementById('noteEditor');
       editor.innerHTML = data[0]?.content || '';
+
       editor.oninput = () => {
         clearTimeout(noteAutosaveTimer);
         const dateAtSave = selectedDate;
@@ -1186,10 +1197,27 @@
           });
         }, 1000);
       };
+
+      editor.onkeydown = (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          const sel = window.getSelection();
+          if (sel && sel.rangeCount > 0) {
+            const range = sel.getRangeAt(0);
+            const text = range.startContainer.textContent;
+            const offset = range.startOffset;
+            const beforeCursor = text.substring(0, offset);
+            if (beforeCursor.endsWith('--')) {
+              e.preventDefault();
+              document.execCommand('delete', false, null);
+              document.execCommand('delete', false, null);
+              document.execCommand('insertHTML', false, '<hr/><br/>');
+            }
+          }
+        }
+      };
     }
 
     function noteFormat(cmd) { document.getElementById('noteEditor').focus(); document.execCommand(cmd, false, null); }
-    function noteFormatBlock(val) { if (!val) return; document.getElementById('noteEditor').focus(); document.execCommand('formatBlock', false, val); }
     function insertHR() { document.getElementById('noteEditor').focus(); document.execCommand('insertHTML', false, '<hr/>'); }
     function insertImage(e) {
       const file = e.target.files[0];
@@ -1197,7 +1225,7 @@
       const reader = new FileReader();
       reader.onload = (ev) => {
         document.getElementById('noteEditor').focus();
-        document.execCommand('insertHTML', false, `<img src="${ev.target.result}" style="max-width:100%;border-radius:6px;margin:8px 0;"/>`);
+        document.execCommand('insertHTML', false, `<img src="${ev.target.result}" style="max-width:100%;border-radius:8px;margin:8px 0;display:block;"/>`);
       };
       reader.readAsDataURL(file);
       e.target.value = '';
@@ -1267,15 +1295,8 @@
         headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
         body: JSON.stringify({ user_id: user.id, strategy_id: strategyId, date: selectedDate, result, pnl, planned_rr: plannedRR, actual_rr: actualRR, notes, followed_rules: followedRules, confluences_used: confluencesUsed })
       });
-      if (res.ok) { closeLogTrade(); await loadDayTrades(); loadCalendarData(); }
+      if (res.ok) { closeLogTrade(); await loadDayTrades(); }
       else { msg.textContent = 'Could not save trade.'; msg.className = 'modal-msg error'; }
-    }
-
-    function switchDayTab(name, el) {
-      document.querySelectorAll('.day-tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.day-panel').forEach(p => p.classList.remove('active'));
-      document.getElementById('dayPanel' + name.charAt(0).toUpperCase() + name.slice(1)).classList.add('active');
-      el.classList.add('active');
     }
 
     function changeMonth(dir) {
