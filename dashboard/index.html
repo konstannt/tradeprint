@@ -222,11 +222,11 @@
     .day-modal-overlay.active { display: flex; }
     .day-modal-box { background: var(--bg2); border-radius: 16px; width: 100%; max-width: 860px; min-height: 80vh; max-height: 92vh; overflow-y: auto; display: flex; flex-direction: column; }
     @media (max-width: 768px) { .day-modal-overlay { padding: 0; align-items: flex-end; } .day-modal-box { max-width: 100%; border-radius: 20px 20px 0 0; min-height: unset; max-height: 92vh; } }
-    .day-modal-header { padding: 32px 36px 20px; display: flex; align-items: flex-start; justify-content: space-between; border-bottom: 1px solid var(--border); }
+    .day-modal-header { padding: 32px 36px 24px; display: flex; align-items: flex-start; justify-content: space-between; border-bottom: 1px solid var(--border); }
     .day-modal-date { font-size: 30px; font-weight: 800; letter-spacing: -0.5px; }
     .day-modal-close { background: none; border: none; color: var(--text2); font-size: 26px; cursor: pointer; padding: 4px; border-radius: 6px; transition: color 0.2s; line-height: 1; margin-top: 4px; }
     .day-modal-close:hover { color: var(--text); }
-    .day-modal-stats { display: flex; gap: 32px; padding: 20px 36px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+    .day-modal-stats { display: flex; gap: 32px; padding: 0 36px; flex-wrap: wrap; }
     .day-modal-stat { display: flex; flex-direction: column; gap: 4px; }
     .day-modal-stat-label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.6px; }
     .day-modal-stat-val { font-size: 28px; font-weight: 700; }
@@ -1046,13 +1046,13 @@
       const wins = dayTrades.filter(t => t.result === 'win').length;
       const losses = dayTrades.filter(t => t.result === 'loss').length;
 
-      document.getElementById('dayStats').innerHTML = dayTrades.length > 0 ? `
-        <div class="day-modal-stat"><div class="day-modal-stat-label">Trades</div><div class="day-modal-stat-val">${dayTrades.length}</div></div>
-        <div class="day-modal-stat"><div class="day-modal-stat-label">PNL</div><div class="day-modal-stat-val" style="color:${totalPnl > 0 ? 'var(--success)' : totalPnl < 0 ? 'var(--danger)' : 'var(--text)'}">${formatPnl(totalPnl)}</div></div>
-        <div class="day-modal-stat"><div class="day-modal-stat-label">Win Rate</div><div class="day-modal-stat-val">${Math.round((wins/dayTrades.length)*100)}%</div></div>
-        <div class="day-modal-stat"><div class="day-modal-stat-label">Wins</div><div class="day-modal-stat-val" style="color:var(--success)">${wins}</div></div>
-        <div class="day-modal-stat"><div class="day-modal-stat-label">Losses</div><div class="day-modal-stat-val" style="color:var(--danger)">${losses}</div></div>
-      ` : '';
+      document.getElementById('dayStats').innerHTML = dayTrades.length > 0 ? `<div style="display:flex;gap:32px;padding:20px 36px;flex-wrap:wrap;border-bottom:1px solid var(--border);width:100%;">
+  <div class="day-modal-stat"><div class="day-modal-stat-label">Trades</div><div class="day-modal-stat-val">${dayTrades.length}</div></div>
+  <div class="day-modal-stat"><div class="day-modal-stat-label">PNL</div><div class="day-modal-stat-val" style="color:${totalPnl > 0 ? 'var(--success)' : totalPnl < 0 ? 'var(--danger)' : 'var(--text)'}">${formatPnl(totalPnl)}</div></div>
+  <div class="day-modal-stat"><div class="day-modal-stat-label">Win Rate</div><div class="day-modal-stat-val">${Math.round((wins/dayTrades.length)*100)}%</div></div>
+  <div class="day-modal-stat"><div class="day-modal-stat-label">Wins</div><div class="day-modal-stat-val" style="color:var(--success)">${wins}</div></div>
+  <div class="day-modal-stat"><div class="day-modal-stat-label">Losses</div><div class="day-modal-stat-val" style="color:var(--danger)">${losses}</div></div>
+</div>` : '';
 
       if (!dayTrades.length) { list.innerHTML = ''; return; }
 
@@ -1093,6 +1093,9 @@
       const editor = document.getElementById('noteEditor');
       selectedNoteId = note?.id || null;
       editor.innerHTML = note?.content || '';
+      editor.ondblclick = (e) => {
+  if (e.target.tagName === 'IMG') openLightbox(e.target);
+};
 
       const trigger = () => {
         clearTimeout(noteAutosaveTimer);
