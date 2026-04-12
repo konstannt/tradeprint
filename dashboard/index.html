@@ -341,7 +341,7 @@
           <button class="notion-tool" onclick="document.getElementById('noteImgInput').click()">↑ Image</button>
           <input type="file" id="noteImgInput" accept="image/*" style="display:none" onchange="insertImage(event)"/>
         </div>
-        <div class="notion-note" id="noteEditor" contenteditable="true" placeholder="Write anything about this day — market observations, mindset, what you noticed..."></div>
+        <div class="notion-note" id="noteEditor" contenteditable="true" tabindex="0" placeholder="Write anything about this day — market observations, mindset, what you noticed..."></div>
 
       </div>
     </div>
@@ -1067,8 +1067,8 @@
     }, 1000);
   };
 
-  editor.oninput = trigger;
-  editor.onkeyup = trigger;
+  editor.addEventListener('input', trigger);
+editor.addEventListener('keyup', trigger);
 
   editor.onkeydown = (e) => {
     if (e.key === 'Enter') {
