@@ -249,7 +249,7 @@
     .log-trade-btn:hover { border-color: var(--accent); color: var(--accent); }
     .log-trade-btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
 
-    /* Note editor (calendar day modal) */
+    /* Note editor */
     .notion-note-toolbar { display: flex; gap: 4px; align-items: center; padding: 6px 0; margin-bottom: 10px; flex-wrap: wrap; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
     .notion-tool { background: none; border: none; color: var(--text2); padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.15s; }
     .notion-tool:hover { background: var(--border); color: var(--text); }
@@ -346,20 +346,37 @@
     .note-body-editor::-webkit-scrollbar { width: 6px; }
     .note-body-editor::-webkit-scrollbar-track { background: transparent; }
     .note-body-editor::-webkit-scrollbar-thumb { background: var(--border); border-radius: 6px; }
-
-    /* Floating toolbar */
     .float-toolbar { display: none; position: fixed; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 4px 6px; gap: 2px; z-index: 200; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
     .float-toolbar.visible { display: flex; }
     .float-btn { background: none; border: none; color: var(--text2); padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 13px; transition: all 0.15s; }
     .float-btn:hover { background: var(--border); color: var(--text); }
     .float-btn.active { background: var(--accent); color: #fff; }
-
     @media (max-width: 768px) {
       .notes-layout { flex-direction: column; height: auto; min-height: calc(100vh - 100px); }
       .notes-sidebar { width: 100%; height: 200px; border-right: none; border-bottom: 1px solid var(--border); }
       .note-title-input { padding: 16px 16px 8px; font-size: 24px; }
       .note-body-editor { padding: 4px 16px 24px; }
     }
+
+    /* CALCULATOR PAGE */
+    .calc-layout { max-width: 640px; }
+    .calc-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 28px; margin-bottom: 20px; }
+    .calc-card-title { font-size: 13px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 20px; }
+    .calc-input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .calc-field { display: flex; flex-direction: column; gap: 8px; }
+    .calc-field label { font-size: 12px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.4px; }
+    .calc-field input, .calc-field select { width: 100%; padding: 12px 14px; font-size: 15px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); outline: none; transition: border-color 0.2s; font-family: inherit; }
+    .calc-field input:focus, .calc-field select:focus { border-color: var(--accent); }
+    .calc-results { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; }
+    .calc-result-card { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 20px; text-align: center; }
+    .calc-result-label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+    .calc-result-value { font-size: 26px; font-weight: 800; color: var(--text); }
+    .calc-result-value.green { color: var(--success); }
+    .calc-result-value.red { color: var(--danger); }
+    .calc-result-value.accent { color: var(--accent); }
+    .calc-reset-btn { background: none; border: 1px solid var(--border); color: var(--text2); padding: 10px 20px; border-radius: 8px; font-size: 14px; cursor: pointer; transition: all 0.2s; margin-top: 4px; }
+    .calc-reset-btn:hover { border-color: var(--accent); color: var(--text); }
+    @media (max-width: 768px) { .calc-input-grid { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body id="body">
@@ -494,12 +511,17 @@
     </div>
   </div>
 
-  <!-- FLOATING TOOLBAR (Notes page) -->
+  <!-- FLOATING TOOLBAR -->
   <div class="float-toolbar" id="floatToolbar">
     <button class="float-btn" data-ncmd="bold" onclick="notesFormat('bold')"><b>B</b></button>
     <button class="float-btn" data-ncmd="italic" onclick="notesFormat('italic')"><i>I</i></button>
     <button class="float-btn" data-ncmd="underline" onclick="notesFormat('underline')"><u>U</u></button>
     <button class="float-btn" onclick="notesFormatH1()">H1</button>
+  </div>
+
+  <!-- IMAGE LIGHTBOX -->
+  <div class="img-lightbox" id="imgLightbox" onclick="closeLightbox()">
+    <img id="lightboxImg" src="" alt=""/>
   </div>
 
   <!-- MOBILE TOP BAR -->
@@ -633,7 +655,6 @@
 
     <div class="page" id="page-notes">
       <div class="notes-layout">
-        <!-- Left panel -->
         <div class="notes-sidebar">
           <div class="notes-sidebar-header">
             <span class="notes-sidebar-title">Notes</span>
@@ -643,13 +664,12 @@
           </div>
           <div class="notes-list" id="notesList"></div>
         </div>
-        <!-- Right panel -->
         <div class="notes-editor-area" id="notesEditorArea">
           <div class="notes-editor-empty" id="notesEditorEmpty">
             <span>📝</span>
             Select a note or create a new one
           </div>
-          <div id="notesEditorInner" style="display:none;flex-direction:column;flex:1;overflow:hidden;display:none;">
+          <div id="notesEditorInner" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
             <div class="notes-top-bar">
               <button class="notes-format-btn" data-ncmd="bold" onclick="notesFormat('bold')"><b>B</b></button>
               <button class="notes-format-btn" data-ncmd="italic" onclick="notesFormat('italic')"><i>I</i></button>
@@ -671,8 +691,63 @@
 
     <div class="page" id="page-calculator">
       <div class="page-title">Calculator</div>
-      <div class="page-subtitle">Quick profit & loss calculator.</div>
-      <div class="coming-soon"><span>🧮</span>Coming soon.</div>
+      <div class="page-subtitle">Plan your trade before you take it.</div>
+      <div class="calc-layout">
+        <div class="calc-card">
+          <div class="calc-card-title">Trade Setup</div>
+          <div class="calc-input-grid">
+            <div class="calc-field">
+              <label>Ticker</label>
+              <select id="calcTicker" onchange="runCalc()">
+                <option value="MNQ">MNQ</option>
+                <option value="NQ">NQ</option>
+                <option value="MES">MES</option>
+                <option value="ES">ES</option>
+                <option value="MGC">MGC</option>
+                <option value="GC">GC</option>
+              </select>
+            </div>
+            <div class="calc-field">
+              <label>Contracts</label>
+              <input type="number" id="calcContracts" placeholder="1" min="1" oninput="runCalc()"/>
+            </div>
+            <div class="calc-field">
+              <label>Entry Price</label>
+              <input type="number" id="calcEntry" placeholder="e.g. 21000" step="0.01" oninput="runCalc()"/>
+            </div>
+            <div class="calc-field">
+              <label>Stop Loss</label>
+              <input type="number" id="calcSL" placeholder="e.g. 20950" step="0.01" oninput="runCalc()"/>
+            </div>
+            <div class="calc-field">
+              <label>Target</label>
+              <input type="number" id="calcTP" placeholder="e.g. 21100" step="0.01" oninput="runCalc()"/>
+            </div>
+          </div>
+          <button class="calc-reset-btn" onclick="resetCalc()">Clear</button>
+        </div>
+        <div class="calc-card" id="calcResultsCard" style="display:none;">
+          <div class="calc-card-title">Results</div>
+          <div class="calc-results">
+            <div class="calc-result-card">
+              <div class="calc-result-label">Dollar Risk</div>
+              <div class="calc-result-value red" id="calcRisk">—</div>
+            </div>
+            <div class="calc-result-card">
+              <div class="calc-result-label">Dollar Profit</div>
+              <div class="calc-result-value green" id="calcProfit">—</div>
+            </div>
+            <div class="calc-result-card">
+              <div class="calc-result-label">R:R Ratio</div>
+              <div class="calc-result-value accent" id="calcRR">—</div>
+            </div>
+            <div class="calc-result-card">
+              <div class="calc-result-label">Win Rate Needed</div>
+              <div class="calc-result-value" id="calcWinNeeded">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="page" id="page-settings">
@@ -738,11 +813,6 @@
 
   </div>
 
-  <!-- Image lightbox -->
-  <div class="img-lightbox" id="imgLightbox" onclick="closeLightbox()">
-    <img id="lightboxImg" src="" alt=""/>
-  </div>
-
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
   <script>
     const SUPABASE_URL = 'https://fpdedufotkmvjsvxdcmk.supabase.co';
@@ -771,10 +841,19 @@
     let noteAutosaveTimer = null;
     const MIN_DATE = new Date(2026, 0, 1);
 
-    // Notes page state
     let allPageNotes = [];
     let currentNoteId = null;
     let noteSaveTimer = null;
+
+    // Tick specs per ticker
+    const TICK_SPECS = {
+      MNQ: { tickSize: 0.25, tickValue: 0.50 },
+      NQ:  { tickSize: 0.25, tickValue: 5.00 },
+      MES: { tickSize: 0.25, tickValue: 1.25 },
+      ES:  { tickSize: 0.25, tickValue: 12.50 },
+      MGC: { tickSize: 0.10, tickValue: 1.00 },
+      GC:  { tickSize: 0.10, tickValue: 10.00 },
+    };
 
     function formatPnl(pnl) {
       if (pnl >= 0) return `+$${pnl.toFixed(2)}`;
@@ -998,6 +1077,7 @@
       if (name === 'calendar') initCalendar();
       if (name === 'trades') loadTrades();
       if (name === 'notes') initNotes();
+      if (name === 'calculator') initCalcPage();
       closeMobileSidebar();
     }
 
@@ -1005,6 +1085,52 @@
     function openMobileSidebar() { document.getElementById('sidebar').classList.add('mobile-open'); document.getElementById('overlay').classList.add('active'); }
     function closeMobileSidebar() { document.getElementById('sidebar').classList.remove('mobile-open'); document.getElementById('overlay').classList.remove('active'); }
     function logout() { localStorage.removeItem('tp_token'); localStorage.removeItem('tp_user'); window.location.href = '/app'; }
+
+    // ─── CALCULATOR ──────────────────────────────────────────────
+    function initCalcPage() {
+      const ticker = localStorage.getItem('tp_ticker') || 'MNQ';
+      const contracts = localStorage.getItem('tp_contracts') || '';
+      document.getElementById('calcTicker').value = ticker;
+      document.getElementById('calcContracts').value = contracts;
+      document.getElementById('calcEntry').value = '';
+      document.getElementById('calcSL').value = '';
+      document.getElementById('calcTP').value = '';
+      document.getElementById('calcResultsCard').style.display = 'none';
+    }
+
+    function runCalc() {
+      const ticker = document.getElementById('calcTicker').value;
+      const contracts = parseFloat(document.getElementById('calcContracts').value) || 0;
+      const entry = parseFloat(document.getElementById('calcEntry').value);
+      const sl = parseFloat(document.getElementById('calcSL').value);
+      const tp = parseFloat(document.getElementById('calcTP').value);
+
+      if (!contracts || isNaN(entry) || isNaN(sl) || isNaN(tp)) {
+        document.getElementById('calcResultsCard').style.display = 'none';
+        return;
+      }
+
+      const spec = TICK_SPECS[ticker];
+      const slTicks = Math.abs(entry - sl) / spec.tickSize;
+      const tpTicks = Math.abs(tp - entry) / spec.tickSize;
+      const risk = slTicks * spec.tickValue * contracts;
+      const profit = tpTicks * spec.tickValue * contracts;
+      const rr = risk > 0 ? (profit / risk) : 0;
+      const winNeeded = rr > 0 ? Math.round((1 / (1 + rr)) * 100) : 0;
+
+      document.getElementById('calcRisk').textContent = `-$${risk.toFixed(2)}`;
+      document.getElementById('calcProfit').textContent = `+$${profit.toFixed(2)}`;
+      document.getElementById('calcRR').textContent = `${rr.toFixed(2)}R`;
+      document.getElementById('calcWinNeeded').textContent = `${winNeeded}%`;
+      document.getElementById('calcResultsCard').style.display = 'block';
+    }
+
+    function resetCalc() {
+      document.getElementById('calcEntry').value = '';
+      document.getElementById('calcSL').value = '';
+      document.getElementById('calcTP').value = '';
+      document.getElementById('calcResultsCard').style.display = 'none';
+    }
 
     // ─── CALENDAR ───────────────────────────────────────────────
     async function initCalendar() {
@@ -1628,12 +1754,11 @@
       });
     }
 
-    // Floating toolbar on text select
     document.addEventListener('mouseup', () => {
       const sel = window.getSelection();
       const toolbar = document.getElementById('floatToolbar');
       const body = document.getElementById('noteBodyEditor');
-      if (!body || !body.contains(document.activeElement) && !body.contains(sel?.anchorNode)) {
+      if (!body || (!body.contains(document.activeElement) && !body.contains(sel?.anchorNode))) {
         toolbar.classList.remove('visible'); return;
       }
       if (sel && sel.toString().length > 0) {
@@ -1665,14 +1790,12 @@
       document.getElementById('imgLightbox').classList.remove('active');
       document.getElementById('lightboxImg').src = '';
     }
-
     function updateToolbarState() {
       document.querySelectorAll('.notion-tool[data-cmd]').forEach(btn => {
         const cmd = btn.getAttribute('data-cmd');
         btn.classList.toggle('active', document.queryCommandState(cmd));
       });
     }
-
     function handleStrategyModalClick(e) {
       if (e.target === document.getElementById('strategyModal')) closeStrategyModal();
     }
