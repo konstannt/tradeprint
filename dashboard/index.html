@@ -608,6 +608,7 @@
     let calYear = new Date().getFullYear();
     let calMonth = new Date().getMonth();
     let selectedDate = null;
+    let selectedNoteId = null;
     let dayTrades = [];
     let allStrategies = [];
     let calTradesCache = [];
@@ -984,91 +985,172 @@
       await Promise.all([loadDayTrades(), loadDayNote()]);
     }
 
-    async function closeDayModal() {
-  clearTimeout(noteAutosaveTimer);
+    function getNoteContent() {
   const editor = document.getElementById('noteEditor');
-  const content = editor.innerHTML.trim() === '<br>' ? '' : editor.innerHTML;
-  if (selectedDate && content !== null) {
-    await fetch(`${SUPABASE_URL}/rest/v1/day_notes`, {
-      method: 'POST',
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' },
-      body: JSON.stringify({ user_id: user.id, date: selectedDate, content })
+  const raw = editor.innerHTML;
+  const empty = raw
+    .replace(/<br\s*\/?>/gi, '')
+    .replace(/<div><\/div>/gi, '')
+    .trim() === '';
+
+  return empty ? '' : raw;
+}
+
+async function saveDayNoteNow(dateStr, content) {
+  if (!dateStr) return;
+
+  const payload = {
+    user_id: user.id,
+    date: dateStr,
+    content
+  };
+
+  if (selectedNoteId) {
+    await fetch(`${SUPABASE_URL}/rest/v1/day_notes?id=eq.${selectedNoteId}`, {
+      method: 'PATCH',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify(payload)
     });
+    return;
   }
+
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/day_notes`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    },
+    body: JSON.stringify(payload)
+  });
+
+  const data = await res.json();
+  if (data && data[0]?.id) selectedNoteId = data[0].id;
+}
+
+async function closeDayModal() {
+  clearTimeout(noteAutosaveTimer);
+
+  const content = getNoteContent();
+  await saveDayNoteNow(selectedDate, content);
+
   document.getElementById('dayModal').classList.remove('active');
   selectedDate = null;
+  selectedNoteId = null;
   loadCalendarData();
 }
 
-    async function loadDayTrades() {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}&date=eq.${selectedDate}&select=*,strategies(name)&order=created_at.asc`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } });
-      dayTrades = await res.json();
-      renderDayTrades();
-    }
+async function loadDayTrades() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}&date=eq.${selectedDate}&select=*,strategies(name)&order=created_at.asc`, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
+  });
+  dayTrades = await res.json();
+  renderDayTrades();
+}
 
-    function renderDayTrades() {
-      const list = document.getElementById('dayTradesList');
-      const totalPnl = dayTrades.reduce((sum, t) => sum + (parseFloat(t.pnl) || 0), 0);
-      const wins = dayTrades.filter(t => t.result === 'win').length;
-      document.getElementById('dayStats').innerHTML = dayTrades.length > 0 ? `
-        <div class="day-modal-stat"><div class="day-modal-stat-label">Trades</div><div class="day-modal-stat-val">${dayTrades.length}</div></div>
-        <div class="day-modal-stat"><div class="day-modal-stat-label">PNL</div><div class="day-modal-stat-val" style="color:${totalPnl > 0 ? 'var(--success)' : totalPnl < 0 ? 'var(--danger)' : 'var(--text)'}">${formatPnl(totalPnl)}</div></div>
-        <div class="day-modal-stat"><div class="day-modal-stat-label">Win Rate</div><div class="day-modal-stat-val">${Math.round((wins/dayTrades.length)*100)}%</div></div>
-      ` : '';
-      if (!dayTrades.length) { list.innerHTML = '<div class="no-trades">No trades logged yet.</div>'; return; }
-      list.innerHTML = dayTrades.map(t => {
-        const pnl = parseFloat(t.pnl) || 0;
-        const pnlClass = pnl > 0 ? 'green' : pnl < 0 ? 'red' : '';
-        return `
-          <div class="trade-feed-item">
-            <div class="trade-feed-left">
-              <div class="trade-feed-strat">${t.strategies?.name || 'Unknown'} — <span style="color:${t.result==='win'?'var(--success)':t.result==='loss'?'var(--danger)':'var(--text2)'};text-transform:capitalize;">${t.result}</span></div>
-              <div class="trade-feed-detail">
-                ${t.confluences_used?.length ? `${t.confluences_used.length} confluences` : 'No confluences'}
-                ${t.planned_rr ? ` · Planned ${t.planned_rr}R` : ''}
-                ${t.actual_rr ? ` · Got ${t.actual_rr}R` : ''}
-                ${!t.followed_rules ? ' · <span style="color:var(--danger);">Rules broken</span>' : ''}
-              </div>
-              ${t.notes ? `<div class="trade-feed-detail" style="margin-top:3px;font-style:italic;">"${t.notes}"</div>` : ''}
-            </div>
-            <div class="trade-feed-pnl ${pnlClass}">${formatPnl(pnl)}</div>
-            <button class="trade-feed-delete" onclick="deleteTrade('${t.id}')">
-              <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
-            </button>
+function renderDayTrades() {
+  const list = document.getElementById('dayTradesList');
+  const totalPnl = dayTrades.reduce((sum, t) => sum + (parseFloat(t.pnl) || 0), 0);
+  const wins = dayTrades.filter(t => t.result === 'win').length;
+
+  document.getElementById('dayStats').innerHTML = dayTrades.length > 0 ? `
+    <div class="day-modal-stat"><div class="day-modal-stat-label">Trades</div><div class="day-modal-stat-val">${dayTrades.length}</div></div>
+    <div class="day-modal-stat"><div class="day-modal-stat-label">PNL</div><div class="day-modal-stat-val" style="color:${totalPnl > 0 ? 'var(--success)' : totalPnl < 0 ? 'var(--danger)' : 'var(--text)'}">${formatPnl(totalPnl)}</div></div>
+    <div class="day-modal-stat"><div class="day-modal-stat-label">Win Rate</div><div class="day-modal-stat-val">${Math.round((wins/dayTrades.length)*100)}%</div></div>
+  ` : '';
+
+  if (!dayTrades.length) {
+    list.innerHTML = '<div class="no-trades">No trades logged yet.</div>';
+    return;
+  }
+
+  list.innerHTML = dayTrades.map(t => {
+    const pnl = parseFloat(t.pnl) || 0;
+    const pnlClass = pnl > 0 ? 'green' : pnl < 0 ? 'red' : '';
+
+    return `
+      <div class="trade-feed-item">
+        <div class="trade-feed-left">
+          <div class="trade-feed-strat">${t.strategies?.name || 'Unknown'} — <span style="color:${t.result==='win'?'var(--success)':t.result==='loss'?'var(--danger)':'var(--text2)'};text-transform:capitalize;">${t.result}</span></div>
+          <div class="trade-feed-detail">
+            ${t.confluences_used?.length ? `${t.confluences_used.length} confluences` : 'No confluences'}
+            ${t.planned_rr ? ` · Planned ${t.planned_rr}R` : ''}
+            ${t.actual_rr ? ` · Got ${t.actual_rr}R` : ''}
+            ${!t.followed_rules ? ' · <span style="color:var(--danger);">Rules broken</span>' : ''}
           </div>
-        `;
-      }).join('');
-    }
+          ${t.notes ? `<div class="trade-feed-detail" style="margin-top:3px;font-style:italic;">"${t.notes}"</div>` : ''}
+        </div>
+        <div class="trade-feed-pnl ${pnlClass}">${formatPnl(pnl)}</div>
+        <button class="trade-feed-delete" onclick="deleteTrade('${t.id}')">
+          <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+        </button>
+      </div>
+    `;
+  }).join('');
+}
 
-    async function deleteTrade(id) {
-      if (!confirm('Delete this trade?')) return;
-      await fetch(`${SUPABASE_URL}/rest/v1/trades?id=eq.${id}`, { method: 'DELETE', headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } });
-      await loadDayTrades();
-    }
+async function deleteTrade(id) {
+  if (!confirm('Delete this trade?')) return;
+  await fetch(`${SUPABASE_URL}/rest/v1/trades?id=eq.${id}`, {
+    method: 'DELETE',
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
+  });
+  await loadDayTrades();
+}
 
-   async function loadDayNote() {
+async function loadDayNote() {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/day_notes?user_id=eq.${user.id}&date=eq.${selectedDate}&select=*`, {
     headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
   });
+
   const data = await res.json();
+  const note = data[0] || null;
   const editor = document.getElementById('noteEditor');
-  editor.innerHTML = data[0]?.content || '';
+
+  selectedNoteId = note?.id || null;
+  editor.innerHTML = note?.content || '';
 
   const trigger = () => {
     clearTimeout(noteAutosaveTimer);
+
     const dateAtSave = selectedDate;
     noteAutosaveTimer = setTimeout(async () => {
-      const content = editor.innerHTML.replace(/<br\s*\/?>/gi,'').replace(/<div><\/div>/gi,'').trim() === '' ? '' : editor.innerHTML;
-      await fetch(`${SUPABASE_URL}/rest/v1/day_notes`, {
-        method: 'POST',
-        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' },
-        body: JSON.stringify({ user_id: user.id, date: dateAtSave, content })
-      });
+      await saveDayNoteNow(dateAtSave, getNoteContent());
     }, 1000);
   };
 
-  editor.addEventListener('input', trigger);
-editor.addEventListener('keyup', trigger);
+  editor.oninput = trigger;
+  editor.onkeyup = trigger;
+
+  editor.onkeydown = (e) => {
+    if (e.key === 'Enter') {
+      const sel = window.getSelection();
+
+      if (sel && sel.rangeCount > 0) {
+        const range = sel.getRangeAt(0);
+        const node = range.startContainer;
+        const text = node.textContent || '';
+        const offset = range.startOffset;
+        const before = text.substring(0, offset);
+
+        if (before.endsWith('--')) {
+          e.preventDefault();
+          document.execCommand('delete', false, null);
+          document.execCommand('delete', false, null);
+          document.execCommand('insertHTML', false, '<hr/><br/>');
+          trigger();
+        }
+      }
+    }
+  };
+}
+
 
   editor.onkeydown = (e) => {
     if (e.key === 'Enter') {
