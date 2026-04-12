@@ -1019,6 +1019,8 @@ async function saveDayNoteNow(dateStr, content) {
     return;
   }
 
+  if (!content) return;
+
   const res = await fetch(`${SUPABASE_URL}/rest/v1/day_notes`, {
     method: 'POST',
     headers: {
