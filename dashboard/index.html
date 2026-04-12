@@ -175,7 +175,7 @@
     #page-calendar .cal-day-headers div { padding: 10px 4px; text-align: center; font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; }
     .cal-week-header { background: rgba(99,102,241,0.06); }
     .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr) 100px; grid-auto-rows: 140px; }
-    .cal-cell { border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 8px 6px; position: relative; cursor: pointer; transition: background 0.15s; display: flex; flex-direction: column; align-items: center; overflow: hidden; }
+    .cal-cell { border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 8px 6px; position: relative; cursor: pointer; transition: background 0.15s; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
     .cal-cell:hover { background: rgba(255,255,255,0.03); }
     .cal-cell.empty { cursor: default; }
     .cal-cell.empty:hover { background: transparent; }
@@ -183,16 +183,16 @@
     .cal-cell.today { background: rgba(99,102,241,0.08); }
     .cal-cell.today .cal-day-num { color: var(--accent); font-weight: 700; }
     .cal-week-cell { border-bottom: 1px solid var(--border); background: rgba(99,102,241,0.04); padding: 6px 4px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 3px; }
-    .cal-week-pnl { font-size: 12px; font-weight: 700; text-align: center; }
-    .cal-week-pnl.green { color: var(--success); }
-    .cal-week-pnl.red { color: var(--danger); }
-    .cal-week-meta { font-size: 10px; color: var(--text2); text-align: center; }
-    .cal-day-num { font-size: 11px; font-weight: 600; color: var(--text2); margin-bottom: 4px; align-self: flex-start; }
-    .cal-day-pnl { font-size: 13px; font-weight: 700; margin-bottom: 1px; text-align: center; }
+    .cal-week-pnl { font-size: 14px; font-weight: 700; text-align: center; margin-bottom: 2px; }
+.cal-week-pnl.green { color: var(--success); }
+.cal-week-pnl.red { color: var(--danger); }
+.cal-week-meta { font-size: 11px; color: var(--text2); text-align: center; line-height: 1.6; }
+    .cal-day-num { font-size: 11px; font-weight: 600; color: var(--text2); position: absolute; top: 8px; left: 8px; }
+    .cal-day-pnl { font-size: 15px; font-weight: 700; margin-bottom: 2px; text-align: center; }
     .cal-day-pnl.green { color: var(--success); }
     .cal-day-pnl.red { color: var(--danger); }
-    .cal-day-trades { font-size: 10px; color: var(--text2); text-align: center; }
-    .cal-day-winrate { font-size: 10px; color: var(--text2); text-align: center; }
+    .cal-day-trades { font-size: 12px; color: var(--text2); text-align: center; }
+.cal-day-winrate { font-size: 12px; color: var(--text2); text-align: center; }
     .cal-day-note-indicator { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); position: absolute; top: 6px; right: 6px; }
     .cal-plus { position: absolute; bottom: 4px; right: 4px; width: 16px; height: 16px; border-radius: 50%; background: var(--accent); color: #fff; display: none; align-items: center; justify-content: center; font-size: 12px; line-height: 1; }
     .cal-cell:hover .cal-plus { display: flex; }
@@ -967,7 +967,7 @@
         weekCell.className = 'cal-week-cell';
         if (weekTrades > 0) {
           const pnlClass = weekPnl > 0 ? 'green' : weekPnl < 0 ? 'red' : '';
-          weekCell.innerHTML = `<div class="cal-week-pnl ${pnlClass}">${formatPnlShort(weekPnl)}</div><div class="cal-week-meta">${weekTrades}T · ${Math.round((weekWins/weekTrades)*100)}%</div>`;
+          weekCell.innerHTML = `<div class="cal-week-pnl ${pnlClass}">${formatPnlShort(weekPnl)}</div><div class="cal-week-meta">${weekTrades} trade${weekTrades !== 1 ? 's' : ''}<br>${Math.round((weekWins/weekTrades)*100)}% WR</div>`;
         }
         grid.appendChild(weekCell);
       }
