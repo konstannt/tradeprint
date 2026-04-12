@@ -1052,7 +1052,7 @@
       const editor = document.getElementById('noteEditor');
       editor.innerHTML = data[0]?.content || '';
 
-      editor.oninput = () => {
+      editor.onkeyup = () => {
         clearTimeout(noteAutosaveTimer);
         const dateAtSave = selectedDate;
         noteAutosaveTimer = setTimeout(async () => {
