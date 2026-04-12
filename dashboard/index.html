@@ -69,7 +69,6 @@
     .avatar img { width: 100%; height: 100%; object-fit: cover; }
     .user-details { overflow: hidden; flex: 1; }
     .user-name { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .user-email { font-size: 11px; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .sidebar.collapsed .user-details { display: none; }
     .mobile-topbar { display: none; position: fixed; top: 0; left: 0; right: 0; height: 56px; background: var(--bg2); border-bottom: 1px solid var(--border); align-items: center; padding: 0 16px; z-index: 5; gap: 16px; }
     @media (max-width: 768px) { .mobile-topbar { display: flex; } }
@@ -184,15 +183,15 @@
     .cal-cell.today .cal-day-num { color: var(--accent); font-weight: 700; }
     .cal-week-cell { border-bottom: 1px solid var(--border); background: rgba(99,102,241,0.04); padding: 6px 4px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 3px; }
     .cal-week-pnl { font-size: 14px; font-weight: 700; text-align: center; margin-bottom: 2px; }
-.cal-week-pnl.green { color: var(--success); }
-.cal-week-pnl.red { color: var(--danger); }
-.cal-week-meta { font-size: 11px; color: var(--text2); text-align: center; line-height: 1.6; }
+    .cal-week-pnl.green { color: var(--success); }
+    .cal-week-pnl.red { color: var(--danger); }
+    .cal-week-meta { font-size: 11px; color: var(--text2); text-align: center; line-height: 1.6; }
     .cal-day-num { font-size: 11px; font-weight: 600; color: var(--text2); position: absolute; top: 8px; left: 8px; }
     .cal-day-pnl { font-size: 15px; font-weight: 700; margin-bottom: 2px; text-align: center; }
     .cal-day-pnl.green { color: var(--success); }
     .cal-day-pnl.red { color: var(--danger); }
     .cal-day-trades { font-size: 12px; color: var(--text2); text-align: center; }
-.cal-day-winrate { font-size: 12px; color: var(--text2); text-align: center; }
+    .cal-day-winrate { font-size: 12px; color: var(--text2); text-align: center; }
     .cal-day-note-indicator { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); position: absolute; top: 6px; right: 6px; }
     .cal-plus { position: absolute; bottom: 4px; right: 4px; width: 16px; height: 16px; border-radius: 50%; background: var(--accent); color: #fff; display: none; align-items: center; justify-content: center; font-size: 12px; line-height: 1; }
     .cal-cell:hover .cal-plus { display: flex; }
@@ -209,10 +208,10 @@
       .cal-grid { grid-template-columns: repeat(7, 1fr); grid-auto-rows: 52px; }
       .cal-week-cell { display: none; }
       .cal-cell { padding: 3px 2px; justify-content: flex-start; }
-.cal-day-num { font-size: 10px; margin-bottom: 2px; position: static; align-self: flex-start; }
-.cal-day-pnl { font-size: 9px; }
-.cal-day-trades { display: none; }
-.cal-day-winrate { display: none; }
+      .cal-day-num { font-size: 10px; margin-bottom: 2px; position: static; align-self: flex-start; }
+      .cal-day-pnl { font-size: 9px; }
+      .cal-day-trades { display: none; }
+      .cal-day-winrate { display: none; }
       .cal-plus { width: 12px; height: 12px; font-size: 9px; bottom: 2px; right: 2px; }
       .cal-day-note-indicator { width: 4px; height: 4px; top: 3px; right: 3px; }
     }
@@ -250,10 +249,11 @@
     .log-trade-btn:hover { border-color: var(--accent); color: var(--accent); }
     .log-trade-btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
 
-    /* Note editor */
+    /* Note editor (calendar day modal) */
     .notion-note-toolbar { display: flex; gap: 4px; align-items: center; padding: 6px 0; margin-bottom: 10px; flex-wrap: wrap; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
     .notion-tool { background: none; border: none; color: var(--text2); padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.15s; }
     .notion-tool:hover { background: var(--border); color: var(--text); }
+    .notion-tool.active { background: var(--border); color: var(--text); }
     .notion-tool-divider { width: 1px; height: 18px; background: var(--border); margin: 0 4px; }
     .notion-note { min-height: 200px; overflow-y: auto; font-size: 15px; line-height: 1.8; color: var(--text); outline: none; cursor: text; padding: 4px 0; }
     .notion-note:empty:before { content: attr(placeholder); color: var(--text2); pointer-events: none; }
@@ -265,49 +265,101 @@
     .confluence-check:last-child { border-bottom: none; }
     .confluence-check input { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
     .confluence-check label { font-size: 14px; color: var(--text); cursor: pointer; flex: 1; }
-    
+
     /* Scrollbar */
-.day-modal-box::-webkit-scrollbar { width: 8px; }
-.day-modal-box::-webkit-scrollbar-track { background: var(--bg2); border-radius: 8px; }
-.day-modal-box::-webkit-scrollbar-thumb { background: var(--border); border-radius: 8px; }
-.day-modal-box::-webkit-scrollbar-thumb:hover { background: var(--text2); }
+    .day-modal-box::-webkit-scrollbar { width: 8px; }
+    .day-modal-box::-webkit-scrollbar-track { background: var(--bg2); border-radius: 8px; }
+    .day-modal-box::-webkit-scrollbar-thumb { background: var(--border); border-radius: 8px; }
+    .day-modal-box::-webkit-scrollbar-thumb:hover { background: var(--text2); }
 
-/* Image lightbox */
-.img-lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 300; align-items: center; justify-content: center; cursor: zoom-out; }
-.img-lightbox.active { display: flex; }
-.img-lightbox img { max-width: 90vw; max-height: 90vh; border-radius: 12px; object-fit: contain; }
-
-    .notion-tool.active { background: var(--border); color: var(--text); }
+    /* Image lightbox */
+    .img-lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 300; align-items: center; justify-content: center; cursor: zoom-out; }
+    .img-lightbox.active { display: flex; }
+    .img-lightbox img { max-width: 90vw; max-height: 90vh; border-radius: 12px; object-fit: contain; }
 
     /* TRADES PAGE */
-.trades-filters { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
-.trades-filters select { padding: 8px 14px; font-size: 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg2); color: var(--text); outline: none; cursor: pointer; transition: border-color 0.2s; }
-.trades-filters select:focus { border-color: var(--accent); }
-.trades-table { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-.trades-table-header { display: grid; grid-template-columns: 100px 1fr 90px 100px 80px 80px 1fr 40px; padding: 12px 20px; border-bottom: 1px solid var(--border); gap: 12px; }
-.trades-table-header div { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; }
-.trades-table-row { display: grid; grid-template-columns: 100px 1fr 90px 100px 80px 80px 1fr 40px; padding: 14px 20px; border-bottom: 1px solid var(--border); gap: 12px; align-items: center; transition: background 0.15s; }
-.trades-table-row:last-child { border-bottom: none; }
-.trades-table-row:hover { background: rgba(255,255,255,0.02); }
-.trades-table-cell { font-size: 14px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.trades-table-cell.muted { color: var(--text2); font-size: 13px; }
-.trades-badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-.trades-badge.win { background: rgba(34,197,94,0.15); color: var(--success); }
-.trades-badge.loss { background: rgba(239,68,68,0.15); color: var(--danger); }
-.trades-badge.breakeven { background: rgba(255,255,255,0.08); color: var(--text2); }
-.trades-empty { text-align: center; padding: 60px; color: var(--text2); font-size: 15px; }
-.trades-empty span { display: block; font-size: 32px; margin-bottom: 12px; }
-.trade-delete-btn { background: none; border: none; color: var(--text2); cursor: pointer; padding: 4px; border-radius: 4px; transition: color 0.2s; }
-.trade-delete-btn:hover { color: var(--danger); }
-.trade-delete-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
-@media (max-width: 768px) {
-  .trades-table-header { display: none; }
-  .trades-table-row { grid-template-columns: 1fr auto; grid-template-rows: auto auto; gap: 6px; padding: 14px 16px; }
-  .trades-table-row .trades-table-cell:nth-child(n+3) { display: none; }
-  .trades-table-row .trades-table-cell:nth-child(2) { grid-column: 1; }
-  .trades-table-row .trades-table-cell:nth-child(4) { grid-column: 2; grid-row: 1; }
-  .trade-delete-btn { grid-column: 2; grid-row: 2; }
-}
+    .trades-filters { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+    .trades-filters select { padding: 8px 14px; font-size: 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg2); color: var(--text); outline: none; cursor: pointer; transition: border-color 0.2s; }
+    .trades-filters select:focus { border-color: var(--accent); }
+    .trades-table { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .trades-table-header { display: grid; grid-template-columns: 100px 1fr 90px 100px 80px 80px 1fr 40px; padding: 12px 20px; border-bottom: 1px solid var(--border); gap: 12px; }
+    .trades-table-header div { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; }
+    .trades-table-row { display: grid; grid-template-columns: 100px 1fr 90px 100px 80px 80px 1fr 40px; padding: 14px 20px; border-bottom: 1px solid var(--border); gap: 12px; align-items: center; transition: background 0.15s; }
+    .trades-table-row:last-child { border-bottom: none; }
+    .trades-table-row:hover { background: rgba(255,255,255,0.02); }
+    .trades-table-cell { font-size: 14px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .trades-table-cell.muted { color: var(--text2); font-size: 13px; }
+    .trades-badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .trades-badge.win { background: rgba(34,197,94,0.15); color: var(--success); }
+    .trades-badge.loss { background: rgba(239,68,68,0.15); color: var(--danger); }
+    .trades-badge.breakeven { background: rgba(255,255,255,0.08); color: var(--text2); }
+    .trades-empty { text-align: center; padding: 60px; color: var(--text2); font-size: 15px; }
+    .trades-empty span { display: block; font-size: 32px; margin-bottom: 12px; }
+    .trade-delete-btn { background: none; border: none; color: var(--text2); cursor: pointer; padding: 4px; border-radius: 4px; transition: color 0.2s; }
+    .trade-delete-btn:hover { color: var(--danger); }
+    .trade-delete-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
+    @media (max-width: 768px) {
+      .trades-table-header { display: none; }
+      .trades-table-row { grid-template-columns: 1fr auto; grid-template-rows: auto auto; gap: 6px; padding: 14px 16px; }
+      .trades-table-row .trades-table-cell:nth-child(n+3) { display: none; }
+      .trades-table-row .trades-table-cell:nth-child(2) { grid-column: 1; }
+      .trades-table-row .trades-table-cell:nth-child(4) { grid-column: 2; grid-row: 1; }
+      .trade-delete-btn { grid-column: 2; grid-row: 2; }
+    }
+
+    /* NOTES PAGE */
+    .notes-layout { display: flex; height: calc(100vh - 80px); gap: 0; background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .notes-sidebar { width: 260px; flex-shrink: 0; border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+    .notes-sidebar-header { padding: 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .notes-sidebar-title { font-size: 13px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; }
+    .new-note-btn { background: var(--accent); color: #fff; border: none; width: 28px; height: 28px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; flex-shrink: 0; }
+    .new-note-btn:hover { background: var(--accent-hover); }
+    .new-note-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.5; stroke-linecap: round; }
+    .notes-list { flex: 1; overflow-y: auto; padding: 8px 0; }
+    .notes-list::-webkit-scrollbar { width: 4px; }
+    .notes-list::-webkit-scrollbar-track { background: transparent; }
+    .notes-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    .note-list-item { padding: 10px 16px; cursor: pointer; border-left: 2px solid transparent; transition: all 0.15s; }
+    .note-list-item:hover { background: rgba(255,255,255,0.03); }
+    .note-list-item.active { border-left-color: var(--accent); background: rgba(99,102,241,0.08); }
+    .note-list-title { font-size: 14px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px; }
+    .note-list-date { font-size: 11px; color: var(--text2); }
+    .note-list-empty { padding: 32px 16px; text-align: center; color: var(--text2); font-size: 13px; }
+    .notes-editor-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    .notes-editor-empty { flex: 1; display: flex; align-items: center; justify-content: center; color: var(--text2); font-size: 15px; flex-direction: column; gap: 12px; }
+    .notes-editor-empty span { font-size: 36px; }
+    .notes-top-bar { padding: 12px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .notes-format-btn { background: none; border: none; color: var(--text2); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.15s; }
+    .notes-format-btn:hover { background: var(--border); color: var(--text); }
+    .notes-format-btn.active { background: var(--border); color: var(--text); }
+    .notes-format-divider { width: 1px; height: 18px; background: var(--border); margin: 0 2px; }
+    .notes-autosave { font-size: 11px; color: var(--text2); margin-left: auto; }
+    .notes-delete-btn { background: none; border: none; color: var(--text2); padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 13px; transition: color 0.15s; margin-left: 4px; }
+    .notes-delete-btn:hover { color: var(--danger); }
+    .note-title-input { width: 100%; background: none; border: none; outline: none; font-size: 32px; font-weight: 800; color: var(--text); font-family: inherit; padding: 28px 36px 12px; letter-spacing: -0.5px; }
+    .note-title-input::placeholder { color: var(--text2); }
+    .note-body-editor { flex: 1; overflow-y: auto; padding: 4px 36px 40px; font-size: 16px; line-height: 1.8; color: var(--text); outline: none; cursor: text; }
+    .note-body-editor:empty:before { content: attr(placeholder); color: var(--text2); pointer-events: none; }
+    .note-body-editor hr { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+    .note-body-editor img { max-width: 100%; border-radius: 8px; margin: 8px 0; display: block; cursor: zoom-in; }
+    .note-body-editor h1 { font-size: 24px; font-weight: 700; margin: 16px 0 8px; }
+    .note-body-editor::-webkit-scrollbar { width: 6px; }
+    .note-body-editor::-webkit-scrollbar-track { background: transparent; }
+    .note-body-editor::-webkit-scrollbar-thumb { background: var(--border); border-radius: 6px; }
+
+    /* Floating toolbar */
+    .float-toolbar { display: none; position: fixed; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 4px 6px; gap: 2px; z-index: 200; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+    .float-toolbar.visible { display: flex; }
+    .float-btn { background: none; border: none; color: var(--text2); padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 13px; transition: all 0.15s; }
+    .float-btn:hover { background: var(--border); color: var(--text); }
+    .float-btn.active { background: var(--accent); color: #fff; }
+
+    @media (max-width: 768px) {
+      .notes-layout { flex-direction: column; height: auto; min-height: calc(100vh - 100px); }
+      .notes-sidebar { width: 100%; height: 200px; border-right: none; border-bottom: 1px solid var(--border); }
+      .note-title-input { padding: 16px 16px 8px; font-size: 24px; }
+      .note-body-editor { padding: 4px 16px 24px; }
+    }
   </style>
 </head>
 <body id="body">
@@ -376,8 +428,8 @@
         <div class="day-modal-section-title">Notes</div>
         <div class="notion-note-toolbar">
           <button class="notion-tool" data-cmd="bold" onclick="noteFormat('bold')"><b>B</b></button>
-<button class="notion-tool" data-cmd="italic" onclick="noteFormat('italic')"><i>I</i></button>
-<button class="notion-tool" data-cmd="underline" onclick="noteFormat('underline')"><u>U</u></button>
+          <button class="notion-tool" data-cmd="italic" onclick="noteFormat('italic')"><i>I</i></button>
+          <button class="notion-tool" data-cmd="underline" onclick="noteFormat('underline')"><u>U</u></button>
           <div class="notion-tool-divider"></div>
           <button class="notion-tool" onclick="insertHR()">— Divider</button>
           <button class="notion-tool" onclick="document.getElementById('noteImgInput').click()">↑ Image</button>
@@ -442,6 +494,14 @@
     </div>
   </div>
 
+  <!-- FLOATING TOOLBAR (Notes page) -->
+  <div class="float-toolbar" id="floatToolbar">
+    <button class="float-btn" data-ncmd="bold" onclick="notesFormat('bold')"><b>B</b></button>
+    <button class="float-btn" data-ncmd="italic" onclick="notesFormat('italic')"><i>I</i></button>
+    <button class="float-btn" data-ncmd="underline" onclick="notesFormat('underline')"><u>U</u></button>
+    <button class="float-btn" onclick="notesFormatH1()">H1</button>
+  </div>
+
   <!-- MOBILE TOP BAR -->
   <div class="mobile-topbar">
     <button class="hamburger" onclick="openMobileSidebar()">
@@ -492,8 +552,8 @@
       <div class="user-row" onclick="showPage('settings', document.getElementById('settings-nav'))">
         <div class="avatar" id="sidebarAvatar">?</div>
         <div class="user-details">
-  <div class="user-name" id="sidebarUsername">—</div>
-</div>
+          <div class="user-name" id="sidebarUsername">—</div>
+        </div>
       </div>
     </div>
   </div>
@@ -548,41 +608,65 @@
     </div>
 
     <div class="page" id="page-trades">
-  <div class="page-header">
-    <div><h1>Trades</h1><p>Every trade you've logged.</p></div>
-  </div>
-
-  <!-- Stats Bar -->
-  <div class="stats-grid" id="tradesStatsGrid" style="margin-bottom:24px;"></div>
-
-  <!-- Filters -->
-  <div class="trades-filters">
-    <select id="filterStrategy" onchange="filterTrades()">
-      <option value="">All Strategies</option>
-    </select>
-    <select id="filterResult" onchange="filterTrades()">
-      <option value="">All Results</option>
-      <option value="win">Win</option>
-      <option value="loss">Loss</option>
-      <option value="breakeven">Breakeven</option>
-    </select>
-    <select id="filterSort" onchange="filterTrades()">
-      <option value="date_desc">Newest First</option>
-      <option value="date_asc">Oldest First</option>
-      <option value="pnl_desc">Highest PNL</option>
-      <option value="pnl_asc">Lowest PNL</option>
-    </select>
-    <button class="btn-secondary" onclick="clearTradeFilters()">Clear</button>
-  </div>
-
-  <!-- Trades List -->
-  <div id="tradesListContainer"></div>
-</div>
+      <div class="page-header">
+        <div><h1>Trades</h1><p>Every trade you've logged.</p></div>
+      </div>
+      <div class="stats-grid" id="tradesStatsGrid" style="margin-bottom:24px;"></div>
+      <div class="trades-filters">
+        <select id="filterStrategy" onchange="filterTrades()"><option value="">All Strategies</option></select>
+        <select id="filterResult" onchange="filterTrades()">
+          <option value="">All Results</option>
+          <option value="win">Win</option>
+          <option value="loss">Loss</option>
+          <option value="breakeven">Breakeven</option>
+        </select>
+        <select id="filterSort" onchange="filterTrades()">
+          <option value="date_desc">Newest First</option>
+          <option value="date_asc">Oldest First</option>
+          <option value="pnl_desc">Highest PNL</option>
+          <option value="pnl_asc">Lowest PNL</option>
+        </select>
+        <button class="btn-secondary" onclick="clearTradeFilters()">Clear</button>
+      </div>
+      <div id="tradesListContainer"></div>
+    </div>
 
     <div class="page" id="page-notes">
-      <div class="page-title">Notes</div>
-      <div class="page-subtitle">Your personal trading notebook.</div>
-      <div class="coming-soon"><span>📝</span>Coming soon.</div>
+      <div class="notes-layout">
+        <!-- Left panel -->
+        <div class="notes-sidebar">
+          <div class="notes-sidebar-header">
+            <span class="notes-sidebar-title">Notes</span>
+            <button class="new-note-btn" onclick="createNote()" title="New note">
+              <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+          </div>
+          <div class="notes-list" id="notesList"></div>
+        </div>
+        <!-- Right panel -->
+        <div class="notes-editor-area" id="notesEditorArea">
+          <div class="notes-editor-empty" id="notesEditorEmpty">
+            <span>📝</span>
+            Select a note or create a new one
+          </div>
+          <div id="notesEditorInner" style="display:none;flex-direction:column;flex:1;overflow:hidden;display:none;">
+            <div class="notes-top-bar">
+              <button class="notes-format-btn" data-ncmd="bold" onclick="notesFormat('bold')"><b>B</b></button>
+              <button class="notes-format-btn" data-ncmd="italic" onclick="notesFormat('italic')"><i>I</i></button>
+              <button class="notes-format-btn" data-ncmd="underline" onclick="notesFormat('underline')"><u>U</u></button>
+              <div class="notes-format-divider"></div>
+              <button class="notes-format-btn" onclick="notesFormatH1()">H1</button>
+              <button class="notes-format-btn" onclick="notesInsertHR()">— Divider</button>
+              <button class="notes-format-btn" onclick="document.getElementById('notesImgInput').click()">↑ Image</button>
+              <input type="file" id="notesImgInput" accept="image/*" style="display:none" onchange="notesInsertImage(event)"/>
+              <span class="notes-autosave" id="notesAutosaveStatus"></span>
+              <button class="notes-delete-btn" onclick="deleteCurrentNote()" title="Delete note">🗑</button>
+            </div>
+            <input type="text" class="note-title-input" id="noteTitleInput" placeholder="Untitled" oninput="scheduleNoteSave()"/>
+            <div class="note-body-editor" id="noteBodyEditor" contenteditable="true" placeholder="Start writing..."></div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="page" id="page-calculator">
@@ -654,6 +738,11 @@
 
   </div>
 
+  <!-- Image lightbox -->
+  <div class="img-lightbox" id="imgLightbox" onclick="closeLightbox()">
+    <img id="lightboxImg" src="" alt=""/>
+  </div>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
   <script>
     const SUPABASE_URL = 'https://fpdedufotkmvjsvxdcmk.supabase.co';
@@ -681,6 +770,11 @@
     let calNotesCache = [];
     let noteAutosaveTimer = null;
     const MIN_DATE = new Date(2026, 0, 1);
+
+    // Notes page state
+    let allPageNotes = [];
+    let currentNoteId = null;
+    let noteSaveTimer = null;
 
     function formatPnl(pnl) {
       if (pnl >= 0) return `+$${pnl.toFixed(2)}`;
@@ -903,6 +997,7 @@
       if (name === 'strategies') loadStrategies();
       if (name === 'calendar') initCalendar();
       if (name === 'trades') loadTrades();
+      if (name === 'notes') initNotes();
       closeMobileSidebar();
     }
 
@@ -911,6 +1006,7 @@
     function closeMobileSidebar() { document.getElementById('sidebar').classList.remove('mobile-open'); document.getElementById('overlay').classList.remove('active'); }
     function logout() { localStorage.removeItem('tp_token'); localStorage.removeItem('tp_user'); window.location.href = '/app'; }
 
+    // ─── CALENDAR ───────────────────────────────────────────────
     async function initCalendar() {
       document.getElementById('dayModal').classList.remove('active');
       document.getElementById('logTradeModal').classList.remove('active');
@@ -1104,12 +1200,12 @@
       const losses = dayTrades.filter(t => t.result === 'loss').length;
 
       document.getElementById('dayStats').innerHTML = dayTrades.length > 0 ? `<div style="display:flex;gap:32px;padding:20px 36px;flex-wrap:wrap;border-bottom:1px solid var(--border);width:100%;">
-  <div class="day-modal-stat"><div class="day-modal-stat-label">Trades</div><div class="day-modal-stat-val">${dayTrades.length}</div></div>
-  <div class="day-modal-stat"><div class="day-modal-stat-label">PNL</div><div class="day-modal-stat-val" style="color:${totalPnl > 0 ? 'var(--success)' : totalPnl < 0 ? 'var(--danger)' : 'var(--text)'}">${formatPnl(totalPnl)}</div></div>
-  <div class="day-modal-stat"><div class="day-modal-stat-label">Win Rate</div><div class="day-modal-stat-val">${Math.round((wins/dayTrades.length)*100)}%</div></div>
-  <div class="day-modal-stat"><div class="day-modal-stat-label">Wins</div><div class="day-modal-stat-val" style="color:var(--success)">${wins}</div></div>
-  <div class="day-modal-stat"><div class="day-modal-stat-label">Losses</div><div class="day-modal-stat-val" style="color:var(--danger)">${losses}</div></div>
-</div>` : '';
+        <div class="day-modal-stat"><div class="day-modal-stat-label">Trades</div><div class="day-modal-stat-val">${dayTrades.length}</div></div>
+        <div class="day-modal-stat"><div class="day-modal-stat-label">PNL</div><div class="day-modal-stat-val" style="color:${totalPnl > 0 ? 'var(--success)' : totalPnl < 0 ? 'var(--danger)' : 'var(--text)'}">${formatPnl(totalPnl)}</div></div>
+        <div class="day-modal-stat"><div class="day-modal-stat-label">Win Rate</div><div class="day-modal-stat-val">${Math.round((wins/dayTrades.length)*100)}%</div></div>
+        <div class="day-modal-stat"><div class="day-modal-stat-label">Wins</div><div class="day-modal-stat-val" style="color:var(--success)">${wins}</div></div>
+        <div class="day-modal-stat"><div class="day-modal-stat-label">Losses</div><div class="day-modal-stat-val" style="color:var(--danger)">${losses}</div></div>
+      </div>` : '';
 
       if (!dayTrades.length) { list.innerHTML = ''; return; }
 
@@ -1150,9 +1246,7 @@
       const editor = document.getElementById('noteEditor');
       selectedNoteId = note?.id || null;
       editor.innerHTML = note?.content || '';
-      editor.ondblclick = (e) => {
-  if (e.target.tagName === 'IMG') openLightbox(e.target);
-};
+      editor.ondblclick = (e) => { if (e.target.tagName === 'IMG') openLightbox(e.target); };
 
       const trigger = () => {
         clearTimeout(noteAutosaveTimer);
@@ -1164,7 +1258,7 @@
 
       editor.oninput = trigger;
       editor.onkeyup = (e) => { trigger(); updateToolbarState(); };
-editor.onmouseup = updateToolbarState;
+      editor.onmouseup = updateToolbarState;
 
       editor.onkeydown = (e) => {
         if (e.key === 'Enter') {
@@ -1193,9 +1287,9 @@ editor.onmouseup = updateToolbarState;
       const file = e.target.files[0]; if (!file) return;
       const reader = new FileReader();
       reader.onload = (ev) => {
-  document.getElementById('noteEditor').focus();
-  document.execCommand('insertHTML', false, `<img src="${ev.target.result}" style="max-width:100%;border-radius:8px;margin:8px 0;display:block;cursor:zoom-in;" ondblclick="openLightbox(this)"/>`);
-};
+        document.getElementById('noteEditor').focus();
+        document.execCommand('insertHTML', false, `<img src="${ev.target.result}" style="max-width:100%;border-radius:8px;margin:8px 0;display:block;cursor:zoom-in;" ondblclick="openLightbox(this)"/>`);
+      };
       reader.readAsDataURL(file);
       e.target.value = '';
     }
@@ -1265,159 +1359,323 @@ editor.onmouseup = updateToolbarState;
       loadCalendarData();
     }
 
+    // ─── TRADES PAGE ────────────────────────────────────────────
+    let allTrades = [];
+    let filteredTrades = [];
+
+    async function loadTrades() {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}&select=*,strategies(name)&order=date.desc,created_at.desc`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
+      });
+      allTrades = await res.json();
+      const strategies = [...new Set(allTrades.map(t => t.strategies?.name).filter(Boolean))];
+      const filterSelect = document.getElementById('filterStrategy');
+      filterSelect.innerHTML = '<option value="">All Strategies</option>' + strategies.map(s => `<option value="${s}">${s}</option>`).join('');
+      filterTrades();
+    }
+
+    function filterTrades() {
+      const stratFilter = document.getElementById('filterStrategy').value;
+      const resultFilter = document.getElementById('filterResult').value;
+      const sort = document.getElementById('filterSort').value;
+      filteredTrades = allTrades.filter(t => {
+        if (stratFilter && t.strategies?.name !== stratFilter) return false;
+        if (resultFilter && t.result !== resultFilter) return false;
+        return true;
+      });
+      filteredTrades.sort((a, b) => {
+        if (sort === 'date_desc') return new Date(b.date) - new Date(a.date);
+        if (sort === 'date_asc') return new Date(a.date) - new Date(b.date);
+        if (sort === 'pnl_desc') return (parseFloat(b.pnl)||0) - (parseFloat(a.pnl)||0);
+        if (sort === 'pnl_asc') return (parseFloat(a.pnl)||0) - (parseFloat(b.pnl)||0);
+        return 0;
+      });
+      renderTradesStats();
+      renderTradesList();
+    }
+
+    function clearTradeFilters() {
+      document.getElementById('filterStrategy').value = '';
+      document.getElementById('filterResult').value = '';
+      document.getElementById('filterSort').value = 'date_desc';
+      filterTrades();
+    }
+
+    function renderTradesStats() {
+      const trades = filteredTrades;
+      const grid = document.getElementById('tradesStatsGrid');
+      if (!trades.length) { grid.innerHTML = ''; return; }
+      const totalPnl = trades.reduce((sum, t) => sum + (parseFloat(t.pnl)||0), 0);
+      const wins = trades.filter(t => t.result === 'win').length;
+      const losses = trades.filter(t => t.result === 'loss').length;
+      const winRate = Math.round((wins / trades.length) * 100);
+      const avgRR = trades.filter(t => t.actual_rr).reduce((sum, t, _, arr) => sum + parseFloat(t.actual_rr) / arr.length, 0);
+      const bestTrade = Math.max(...trades.map(t => parseFloat(t.pnl)||0));
+      const worstTrade = Math.min(...trades.map(t => parseFloat(t.pnl)||0));
+      grid.innerHTML = `
+        <div class="stat-card"><div class="stat-label">Total Trades</div><div class="stat-value">${trades.length}</div></div>
+        <div class="stat-card"><div class="stat-label">Total PNL</div><div class="stat-value" style="color:${totalPnl>0?'var(--success)':totalPnl<0?'var(--danger)':'var(--text)'}">${formatPnl(totalPnl)}</div></div>
+        <div class="stat-card"><div class="stat-label">Win Rate</div><div class="stat-value">${winRate}%</div></div>
+        <div class="stat-card"><div class="stat-label">Wins / Losses</div><div class="stat-value"><span style="color:var(--success)">${wins}</span> / <span style="color:var(--danger)">${losses}</span></div></div>
+        <div class="stat-card"><div class="stat-label">Avg R:R</div><div class="stat-value">${avgRR ? avgRR.toFixed(2) : '—'}</div></div>
+        <div class="stat-card"><div class="stat-label">Best Trade</div><div class="stat-value" style="color:var(--success)">${bestTrade > -Infinity ? formatPnl(bestTrade) : '—'}</div></div>
+        <div class="stat-card"><div class="stat-label">Worst Trade</div><div class="stat-value" style="color:var(--danger)">${worstTrade < Infinity ? formatPnl(worstTrade) : '—'}</div></div>
+      `;
+    }
+
+    function renderTradesList() {
+      const container = document.getElementById('tradesListContainer');
+      if (!filteredTrades.length) {
+        container.innerHTML = '<div class="trades-empty"><span>📋</span>No trades found.</div>';
+        return;
+      }
+      const rows = filteredTrades.map(t => {
+        const pnl = parseFloat(t.pnl) || 0;
+        const pnlColor = pnl > 0 ? 'var(--success)' : pnl < 0 ? 'var(--danger)' : 'var(--text)';
+        const date = new Date(t.date + 'T12:00:00');
+        const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        const confluences = t.confluences_used?.length ? `${t.confluences_used.length} confluences` : '—';
+        const rr = t.actual_rr ? `${t.actual_rr}R` : '—';
+        const followed = t.followed_rules ? '' : '<span style="color:var(--danger);font-size:11px;">Rules broken</span>';
+        return `
+          <div class="trades-table-row">
+            <div class="trades-table-cell muted">${dateStr}</div>
+            <div class="trades-table-cell">${t.strategies?.name || '—'}</div>
+            <div class="trades-table-cell"><span class="trades-badge ${t.result}">${t.result}</span></div>
+            <div class="trades-table-cell" style="color:${pnlColor};font-weight:700;">${formatPnl(pnl)}</div>
+            <div class="trades-table-cell muted">${rr}</div>
+            <div class="trades-table-cell muted">${confluences}</div>
+            <div class="trades-table-cell muted">${t.notes ? `"${t.notes}"` : followed || '—'}</div>
+            <div class="trades-table-cell">
+              <button class="trade-delete-btn" onclick="deleteTradeFromList('${t.id}')">
+                <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+      container.innerHTML = `
+        <div class="trades-table">
+          <div class="trades-table-header">
+            <div>Date</div><div>Strategy</div><div>Result</div><div>PNL</div><div>R:R</div><div>Confluences</div><div>Notes</div><div></div>
+          </div>
+          ${rows}
+        </div>
+      `;
+    }
+
+    async function deleteTradeFromList(id) {
+      if (!confirm('Delete this trade?')) return;
+      await fetch(`${SUPABASE_URL}/rest/v1/trades?id=eq.${id}`, { method: 'DELETE', headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } });
+      allTrades = allTrades.filter(t => t.id !== id);
+      filterTrades();
+    }
+
+    // ─── NOTES PAGE ─────────────────────────────────────────────
+    async function initNotes() {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/notes?user_id=eq.${user.id}&order=updated_at.desc`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
+      });
+      allPageNotes = await res.json();
+      renderNotesList();
+      if (currentNoteId) {
+        const still = allPageNotes.find(n => n.id === currentNoteId);
+        if (still) openNote(still.id);
+        else closeNoteEditor();
+      }
+    }
+
+    function renderNotesList() {
+      const list = document.getElementById('notesList');
+      if (!allPageNotes.length) {
+        list.innerHTML = '<div class="note-list-empty">No notes yet. Hit + to create one.</div>';
+        return;
+      }
+      list.innerHTML = allPageNotes.map(n => {
+        const date = new Date(n.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        return `
+          <div class="note-list-item${n.id === currentNoteId ? ' active' : ''}" onclick="openNote('${n.id}')">
+            <div class="note-list-title">${n.title || 'Untitled'}</div>
+            <div class="note-list-date">${date}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function openNote(id) {
+      clearTimeout(noteSaveTimer);
+      const note = allPageNotes.find(n => n.id === id);
+      if (!note) return;
+      currentNoteId = id;
+      document.getElementById('notesEditorEmpty').style.display = 'none';
+      const inner = document.getElementById('notesEditorInner');
+      inner.style.display = 'flex';
+      document.getElementById('noteTitleInput').value = note.title || '';
+      const body = document.getElementById('noteBodyEditor');
+      body.innerHTML = note.content || '';
+      document.getElementById('notesAutosaveStatus').textContent = '';
+      renderNotesList();
+
+      body.ondblclick = (e) => { if (e.target.tagName === 'IMG') openLightbox(e.target); };
+      body.oninput = scheduleNoteSave;
+      body.onmouseup = updateNotesToolbarState;
+      body.onkeyup = () => { scheduleNoteSave(); updateNotesToolbarState(); };
+      body.onkeydown = (e) => {
+        if (e.key === 'Enter') {
+          const sel = window.getSelection();
+          if (sel && sel.rangeCount > 0) {
+            const range = sel.getRangeAt(0);
+            const node = range.startContainer;
+            const text = node.textContent || '';
+            const before = text.substring(0, range.startOffset);
+            if (before.endsWith('--')) {
+              e.preventDefault();
+              document.execCommand('delete', false, null);
+              document.execCommand('delete', false, null);
+              document.execCommand('insertHTML', false, '<hr/><br/>');
+              scheduleNoteSave();
+            }
+          }
+        }
+      };
+    }
+
+    function closeNoteEditor() {
+      currentNoteId = null;
+      document.getElementById('notesEditorEmpty').style.display = 'flex';
+      document.getElementById('notesEditorInner').style.display = 'none';
+      renderNotesList();
+    }
+
+    function scheduleNoteSave() {
+      document.getElementById('notesAutosaveStatus').textContent = 'Saving...';
+      clearTimeout(noteSaveTimer);
+      noteSaveTimer = setTimeout(saveCurrentNote, 1000);
+    }
+
+    async function saveCurrentNote() {
+      if (!currentNoteId) return;
+      const title = document.getElementById('noteTitleInput').value.trim() || 'Untitled';
+      const content = document.getElementById('noteBodyEditor').innerHTML;
+      await fetch(`${SUPABASE_URL}/rest/v1/notes?id=eq.${currentNoteId}`, {
+        method: 'PATCH',
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+        body: JSON.stringify({ title, content, updated_at: new Date().toISOString() })
+      });
+      const note = allPageNotes.find(n => n.id === currentNoteId);
+      if (note) { note.title = title; note.content = content; note.updated_at = new Date().toISOString(); }
+      document.getElementById('notesAutosaveStatus').textContent = 'Saved';
+      setTimeout(() => { if (document.getElementById('notesAutosaveStatus').textContent === 'Saved') document.getElementById('notesAutosaveStatus').textContent = ''; }, 2000);
+      renderNotesList();
+    }
+
+    async function createNote() {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/notes`, {
+        method: 'POST',
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+        body: JSON.stringify({ user_id: user.id, title: 'Untitled', content: '' })
+      });
+      const data = await res.json();
+      if (data && data[0]) {
+        allPageNotes.unshift(data[0]);
+        renderNotesList();
+        openNote(data[0].id);
+        setTimeout(() => document.getElementById('noteTitleInput').focus(), 50);
+      }
+    }
+
+    async function deleteCurrentNote() {
+      if (!currentNoteId) return;
+      if (!confirm('Delete this note?')) return;
+      await fetch(`${SUPABASE_URL}/rest/v1/notes?id=eq.${currentNoteId}`, { method: 'DELETE', headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } });
+      allPageNotes = allPageNotes.filter(n => n.id !== currentNoteId);
+      closeNoteEditor();
+    }
+
+    function notesFormat(cmd) {
+      document.getElementById('noteBodyEditor').focus();
+      document.execCommand(cmd, false, null);
+      updateNotesToolbarState();
+    }
+
+    function notesFormatH1() {
+      document.getElementById('noteBodyEditor').focus();
+      document.execCommand('formatBlock', false, 'H1');
+      updateNotesToolbarState();
+    }
+
+    function notesInsertHR() {
+      document.getElementById('noteBodyEditor').focus();
+      document.execCommand('insertHTML', false, '<hr/><br/>');
+    }
+
+    function notesInsertImage(e) {
+      const file = e.target.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        document.getElementById('noteBodyEditor').focus();
+        document.execCommand('insertHTML', false, `<img src="${ev.target.result}" style="max-width:100%;border-radius:8px;margin:8px 0;display:block;cursor:zoom-in;" ondblclick="openLightbox(this)"/>`);
+        scheduleNoteSave();
+      };
+      reader.readAsDataURL(file);
+      e.target.value = '';
+    }
+
+    function updateNotesToolbarState() {
+      document.querySelectorAll('.notes-format-btn[data-ncmd]').forEach(btn => {
+        const cmd = btn.getAttribute('data-ncmd');
+        btn.classList.toggle('active', document.queryCommandState(cmd));
+      });
+    }
+
+    // Floating toolbar on text select
+    document.addEventListener('mouseup', () => {
+      const sel = window.getSelection();
+      const toolbar = document.getElementById('floatToolbar');
+      const body = document.getElementById('noteBodyEditor');
+      if (!body || !body.contains(document.activeElement) && !body.contains(sel?.anchorNode)) {
+        toolbar.classList.remove('visible'); return;
+      }
+      if (sel && sel.toString().length > 0) {
+        const range = sel.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+        toolbar.style.top = `${rect.top + window.scrollY - 44}px`;
+        toolbar.style.left = `${rect.left + window.scrollX + rect.width / 2 - 80}px`;
+        toolbar.classList.add('visible');
+        document.querySelectorAll('.float-btn[data-ncmd]').forEach(btn => {
+          btn.classList.toggle('active', document.queryCommandState(btn.getAttribute('data-ncmd')));
+        });
+      } else {
+        toolbar.classList.remove('visible');
+      }
+    });
+
+    document.addEventListener('mousedown', (e) => {
+      if (!document.getElementById('floatToolbar').contains(e.target)) {
+        document.getElementById('floatToolbar').classList.remove('visible');
+      }
+    });
+
+    // ─── SHARED UTILS ────────────────────────────────────────────
     function openLightbox(img) {
-  document.getElementById('lightboxImg').src = img.src;
-  document.getElementById('imgLightbox').classList.add('active');
-}
-function closeLightbox() {
-  document.getElementById('imgLightbox').classList.remove('active');
-  document.getElementById('lightboxImg').src = '';
-}
+      document.getElementById('lightboxImg').src = img.src;
+      document.getElementById('imgLightbox').classList.add('active');
+    }
+    function closeLightbox() {
+      document.getElementById('imgLightbox').classList.remove('active');
+      document.getElementById('lightboxImg').src = '';
+    }
 
     function updateToolbarState() {
-  document.querySelectorAll('.notion-tool[data-cmd]').forEach(btn => {
-    const cmd = btn.getAttribute('data-cmd');
-    btn.classList.toggle('active', document.queryCommandState(cmd));
-  });
-}
-    
+      document.querySelectorAll('.notion-tool[data-cmd]').forEach(btn => {
+        const cmd = btn.getAttribute('data-cmd');
+        btn.classList.toggle('active', document.queryCommandState(cmd));
+      });
+    }
+
     function handleStrategyModalClick(e) {
-  if (e.target === document.getElementById('strategyModal')) closeStrategyModal();
-}
-
-    let allTrades = [];
-let filteredTrades = [];
-
-async function loadTrades() {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}&select=*,strategies(name)&order=date.desc,created_at.desc`, {
-    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
-  });
-  allTrades = await res.json();
-
-  // Populate strategy filter
-  const strategies = [...new Set(allTrades.map(t => t.strategies?.name).filter(Boolean))];
-  const filterSelect = document.getElementById('filterStrategy');
-  filterSelect.innerHTML = '<option value="">All Strategies</option>' +
-    strategies.map(s => `<option value="${s}">${s}</option>`).join('');
-
-  filterTrades();
-}
-
-function filterTrades() {
-  const stratFilter = document.getElementById('filterStrategy').value;
-  const resultFilter = document.getElementById('filterResult').value;
-  const sort = document.getElementById('filterSort').value;
-
-  filteredTrades = allTrades.filter(t => {
-    if (stratFilter && t.strategies?.name !== stratFilter) return false;
-    if (resultFilter && t.result !== resultFilter) return false;
-    return true;
-  });
-
-  filteredTrades.sort((a, b) => {
-    if (sort === 'date_desc') return new Date(b.date) - new Date(a.date);
-    if (sort === 'date_asc') return new Date(a.date) - new Date(b.date);
-    if (sort === 'pnl_desc') return (parseFloat(b.pnl)||0) - (parseFloat(a.pnl)||0);
-    if (sort === 'pnl_asc') return (parseFloat(a.pnl)||0) - (parseFloat(b.pnl)||0);
-    return 0;
-  });
-
-  renderTradesStats();
-  renderTradesList();
-}
-
-function clearTradeFilters() {
-  document.getElementById('filterStrategy').value = '';
-  document.getElementById('filterResult').value = '';
-  document.getElementById('filterSort').value = 'date_desc';
-  filterTrades();
-}
-
-function renderTradesStats() {
-  const trades = filteredTrades;
-  const grid = document.getElementById('tradesStatsGrid');
-  if (!trades.length) { grid.innerHTML = ''; return; }
-  const totalPnl = trades.reduce((sum, t) => sum + (parseFloat(t.pnl)||0), 0);
-  const wins = trades.filter(t => t.result === 'win').length;
-  const losses = trades.filter(t => t.result === 'loss').length;
-  const winRate = Math.round((wins / trades.length) * 100);
-  const avgRR = trades.filter(t => t.actual_rr).reduce((sum, t, _, arr) => sum + parseFloat(t.actual_rr) / arr.length, 0);
-  const bestTrade = Math.max(...trades.map(t => parseFloat(t.pnl)||0));
-  const worstTrade = Math.min(...trades.map(t => parseFloat(t.pnl)||0));
-
-  grid.innerHTML = `
-    <div class="stat-card"><div class="stat-label">Total Trades</div><div class="stat-value">${trades.length}</div></div>
-    <div class="stat-card"><div class="stat-label">Total PNL</div><div class="stat-value" style="color:${totalPnl>0?'var(--success)':totalPnl<0?'var(--danger)':'var(--text)'}">${formatPnl(totalPnl)}</div></div>
-    <div class="stat-card"><div class="stat-label">Win Rate</div><div class="stat-value">${winRate}%</div></div>
-    <div class="stat-card"><div class="stat-label">Wins / Losses</div><div class="stat-value"><span style="color:var(--success)">${wins}</span> / <span style="color:var(--danger)">${losses}</span></div></div>
-    <div class="stat-card"><div class="stat-label">Avg R:R</div><div class="stat-value">${avgRR ? avgRR.toFixed(2) : '—'}</div></div>
-    <div class="stat-card"><div class="stat-label">Best Trade</div><div class="stat-value" style="color:var(--success)">${bestTrade > -Infinity ? formatPnl(bestTrade) : '—'}</div></div>
-    <div class="stat-card"><div class="stat-label">Worst Trade</div><div class="stat-value" style="color:var(--danger)">${worstTrade < Infinity ? formatPnl(worstTrade) : '—'}</div></div>
-  `;
-}
-
-function renderTradesList() {
-  const container = document.getElementById('tradesListContainer');
-  if (!filteredTrades.length) {
-    container.innerHTML = '<div class="trades-empty"><span>📋</span>No trades found.</div>';
-    return;
-  }
-
-  const rows = filteredTrades.map(t => {
-    const pnl = parseFloat(t.pnl) || 0;
-    const pnlColor = pnl > 0 ? 'var(--success)' : pnl < 0 ? 'var(--danger)' : 'var(--text)';
-    const date = new Date(t.date + 'T12:00:00');
-    const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    const confluences = t.confluences_used?.length ? `${t.confluences_used.length} confluences` : '—';
-    const rr = t.actual_rr ? `${t.actual_rr}R` : '—';
-    const followed = t.followed_rules ? '' : '<span style="color:var(--danger);font-size:11px;">Rules broken</span>';
-    return `
-      <div class="trades-table-row">
-        <div class="trades-table-cell muted">${dateStr}</div>
-        <div class="trades-table-cell">${t.strategies?.name || '—'}</div>
-        <div class="trades-table-cell"><span class="trades-badge ${t.result}">${t.result}</span></div>
-        <div class="trades-table-cell" style="color:${pnlColor};font-weight:700;">${formatPnl(pnl)}</div>
-        <div class="trades-table-cell muted">${rr}</div>
-        <div class="trades-table-cell muted">${confluences}</div>
-        <div class="trades-table-cell muted">${t.notes ? `"${t.notes}"` : followed || '—'}</div>
-        <div class="trades-table-cell">
-          <button class="trade-delete-btn" onclick="deleteTradeFromList('${t.id}')">
-            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
-          </button>
-        </div>
-      </div>
-    `;
-  }).join('');
-
-  container.innerHTML = `
-    <div class="trades-table">
-      <div class="trades-table-header">
-        <div>Date</div>
-        <div>Strategy</div>
-        <div>Result</div>
-        <div>PNL</div>
-        <div>R:R</div>
-        <div>Confluences</div>
-        <div>Notes</div>
-        <div></div>
-      </div>
-      ${rows}
-    </div>
-  `;
-}
-
-async function deleteTradeFromList(id) {
-  if (!confirm('Delete this trade?')) return;
-  await fetch(`${SUPABASE_URL}/rest/v1/trades?id=eq.${id}`, {
-    method: 'DELETE',
-    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
-  });
-  allTrades = allTrades.filter(t => t.id !== id);
-  filterTrades();
-}
+      if (e.target === document.getElementById('strategyModal')) closeStrategyModal();
+    }
   </script>
-  <div class="img-lightbox" id="imgLightbox" onclick="closeLightbox()">
-  <img id="lightboxImg" src="" alt=""/>
-</div>
 </body>
 </html>
