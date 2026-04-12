@@ -285,7 +285,7 @@
   <div class="overlay" id="overlay" onclick="closeMobileSidebar()"></div>
 
   <!-- STRATEGY MODAL -->
-  <div class="modal" id="strategyModal">
+  <div class="modal" id="strategyModal" onclick="handleStrategyModalClick(event)">
     <div class="modal-box">
       <div class="modal-header">
         <div class="modal-title" id="modalTitle">New Strategy</div>
@@ -1224,6 +1224,10 @@ function closeLightbox() {
     const cmd = btn.getAttribute('data-cmd');
     btn.classList.toggle('active', document.queryCommandState(cmd));
   });
+}
+    
+    function handleStrategyModalClick(e) {
+  if (e.target === document.getElementById('strategyModal')) closeStrategyModal();
 }
   </script>
   <div class="img-lightbox" id="imgLightbox" onclick="closeLightbox()">
