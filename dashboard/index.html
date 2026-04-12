@@ -276,6 +276,8 @@
 .img-lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 300; align-items: center; justify-content: center; cursor: zoom-out; }
 .img-lightbox.active { display: flex; }
 .img-lightbox img { max-width: 90vw; max-height: 90vh; border-radius: 12px; object-fit: contain; }
+
+    .notion-tool.active { background: var(--border); color: var(--text); }
   </style>
 </head>
 <body id="body">
@@ -343,9 +345,9 @@
         </button>
         <div class="day-modal-section-title">Notes</div>
         <div class="notion-note-toolbar">
-          <button class="notion-tool" onclick="noteFormat('bold')"><b>B</b></button>
-          <button class="notion-tool" onclick="noteFormat('italic')"><i>I</i></button>
-          <button class="notion-tool" onclick="noteFormat('underline')"><u>U</u></button>
+          <button class="notion-tool" data-cmd="bold" onclick="noteFormat('bold')"><b>B</b></button>
+<button class="notion-tool" data-cmd="italic" onclick="noteFormat('italic')"><i>I</i></button>
+<button class="notion-tool" data-cmd="underline" onclick="noteFormat('underline')"><u>U</u></button>
           <div class="notion-tool-divider"></div>
           <button class="notion-tool" onclick="insertHR()">— Divider</button>
           <button class="notion-tool" onclick="document.getElementById('noteImgInput').click()">↑ Image</button>
@@ -1106,7 +1108,8 @@
       };
 
       editor.oninput = trigger;
-      editor.onkeyup = trigger;
+      editor.onkeyup = (e) => { trigger(); updateToolbarState(); };
+editor.onmouseup = updateToolbarState;
 
       editor.onkeydown = (e) => {
         if (e.key === 'Enter') {
@@ -1214,6 +1217,13 @@
 function closeLightbox() {
   document.getElementById('imgLightbox').classList.remove('active');
   document.getElementById('lightboxImg').src = '';
+}
+
+    function updateToolbarState() {
+  document.querySelectorAll('.notion-tool[data-cmd]').forEach(btn => {
+    const cmd = btn.getAttribute('data-cmd');
+    btn.classList.toggle('active', document.queryCommandState(cmd));
+  });
 }
   </script>
   <div class="img-lightbox" id="imgLightbox" onclick="closeLightbox()">
