@@ -389,6 +389,29 @@
     .calc-reset-btn:hover { border-color: var(--accent); color: var(--text); }
     @media (max-width: 768px) { .calc-input-grid { grid-template-columns: 1fr; } }
 
+    .notion-note img,
+.note-body-editor img {
+  max-width: min(100%, 560px) !important;
+  max-height: 420px;
+  width: auto !important;
+  height: auto !important;
+  object-fit: contain;
+  border-radius: 8px;
+  margin: 12px 0;
+  display: block;
+  cursor: zoom-in;
+  border: 1px solid var(--border);
+  background: var(--bg);
+}
+
+@media (max-width: 768px) {
+  .notion-note img,
+  .note-body-editor img {
+    max-width: 100% !important;
+    max-height: 320px;
+  }
+}
+
     #tradeDate::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
 
     * { scrollbar-width: thin; scrollbar-color: var(--border) var(--bg2); }
@@ -1601,7 +1624,7 @@ async function loadDayNote() {
       const reader = new FileReader();
       reader.onload = (ev) => {
         document.getElementById('noteEditor').focus();
-        document.execCommand('insertHTML', false, `<img src="${ev.target.result}" style="max-width:100%;border-radius:8px;margin:8px 0;display:block;cursor:zoom-in;" ondblclick="openLightbox(this)"/>`);
+        document.execCommand('insertHTML', false, `<img src="${ev.target.result}" ondblclick="openLightbox(this)"/>`);
       };
       reader.readAsDataURL(file);
       e.target.value = '';
@@ -2027,7 +2050,7 @@ async function loadDayNote() {
       const reader = new FileReader();
       reader.onload = (ev) => {
         document.getElementById('noteBodyEditor').focus();
-        document.execCommand('insertHTML', false, `<img src="${ev.target.result}" style="max-width:100%;border-radius:8px;margin:8px 0;display:block;cursor:zoom-in;" ondblclick="openLightbox(this)"/>`);
+        document.execCommand('insertHTML', false, `<img src="${ev.target.result}" ondblclick="openLightbox(this)"/>`);
         scheduleNoteSave();
       };
       reader.readAsDataURL(file);
