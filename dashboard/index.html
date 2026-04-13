@@ -242,6 +242,10 @@
     .trade-feed-pnl { font-size: 16px; font-weight: 700; white-space: nowrap; }
     .trade-feed-pnl.green { color: var(--success); }
     .trade-feed-pnl.red { color: var(--danger); }
+    .trade-feed-actions { display: flex; align-items: center; gap: 4px; }
+    .trade-feed-edit { background: none; border: none; color: var(--text2); cursor: pointer; padding: 4px; border-radius: 4px; transition: color 0.2s; }
+    .trade-feed-edit:hover { color: var(--accent); }
+    .trade-feed-edit svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     .trade-feed-delete { background: none; border: none; color: var(--text2); cursor: pointer; padding: 4px; border-radius: 4px; transition: color 0.2s; }
     .trade-feed-delete:hover { color: var(--danger); }
     .trade-feed-delete svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
@@ -265,6 +269,10 @@
     .confluence-check:last-child { border-bottom: none; }
     .confluence-check input { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
     .confluence-check label { font-size: 14px; color: var(--text); cursor: pointer; flex: 1; }
+    .time-input-row { display: flex; gap: 8px; }
+    .time-input-row input { flex: 1; padding: 10px 14px; font-size: 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); outline: none; transition: border-color 0.2s; font-family: inherit; }
+    .time-input-row input:focus { border-color: var(--accent); }
+    .time-input-row select { padding: 10px 14px; font-size: 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); outline: none; cursor: pointer; }
 
     /* Scrollbar */
     .day-modal-box::-webkit-scrollbar { width: 8px; }
@@ -282,9 +290,9 @@
     .trades-filters select { padding: 8px 14px; font-size: 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg2); color: var(--text); outline: none; cursor: pointer; transition: border-color 0.2s; }
     .trades-filters select:focus { border-color: var(--accent); }
     .trades-table { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-    .trades-table-header { display: grid; grid-template-columns: 100px 1fr 90px 100px 80px 80px 1fr 40px; padding: 12px 20px; border-bottom: 1px solid var(--border); gap: 12px; }
+    .trades-table-header { display: grid; grid-template-columns: 100px 1fr 90px 100px 70px 90px 120px 1fr 50px; padding: 12px 20px; border-bottom: 1px solid var(--border); gap: 12px; }
     .trades-table-header div { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; }
-    .trades-table-row { display: grid; grid-template-columns: 100px 1fr 90px 100px 80px 80px 1fr 40px; padding: 14px 20px; border-bottom: 1px solid var(--border); gap: 12px; align-items: center; transition: background 0.15s; }
+    .trades-table-row { display: grid; grid-template-columns: 100px 1fr 90px 100px 70px 90px 120px 1fr 50px; padding: 14px 20px; border-bottom: 1px solid var(--border); gap: 12px; align-items: center; transition: background 0.15s; }
     .trades-table-row:last-child { border-bottom: none; }
     .trades-table-row:hover { background: rgba(255,255,255,0.02); }
     .trades-table-cell { font-size: 14px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -298,6 +306,9 @@
     .trade-delete-btn { background: none; border: none; color: var(--text2); cursor: pointer; padding: 4px; border-radius: 4px; transition: color 0.2s; }
     .trade-delete-btn:hover { color: var(--danger); }
     .trade-delete-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
+    .trade-edit-btn { background: none; border: none; color: var(--text2); cursor: pointer; padding: 4px; border-radius: 4px; transition: color 0.2s; }
+    .trade-edit-btn:hover { color: var(--accent); }
+    .trade-edit-btn svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     @media (max-width: 768px) {
       .trades-table-header { display: none; }
       .trades-table-row { grid-template-columns: 1fr auto; grid-template-rows: auto auto; gap: 6px; padding: 14px 16px; }
@@ -464,6 +475,11 @@
         <div class="modal-title" id="logTradeTitle">Log Trade</div>
         <button class="modal-close" onclick="closeLogTrade()">×</button>
       </div>
+      <!-- Date field (only shown when logging from trades page) -->
+      <div class="form-field" id="tradeDateField" style="display:none;">
+        <label>Date</label>
+        <input type="date" id="tradeDate" style="width:100%;padding:10px 14px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;"/>
+      </div>
       <div class="form-field">
         <label>Strategy</label>
         <select id="tradeStrategy" style="width:100%;padding:10px 14px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;" onchange="loadStrategyConfluences()">
@@ -489,8 +505,17 @@
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-        <div class="form-field"><label>Planned R:R</label><input type="number" id="tradePlannedRR" placeholder="e.g. 2" step="0.1"/></div>
-        <div class="form-field"><label>Actual R:R</label><input type="number" id="tradeActualRR" placeholder="e.g. 1.5" step="0.1"/></div>
+        <div class="form-field">
+          <label>Time of Trade</label>
+          <div class="time-input-row">
+            <input type="text" id="tradeTime" placeholder="e.g. 9:36 or 936"/>
+            <select id="tradeAmPm" style="padding:10px 10px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;cursor:pointer;">
+              <option value="AM">AM</option>
+              <option value="PM">PM</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-field"><label>R:R</label><input type="number" id="tradeActualRR" placeholder="e.g. 2.5" step="0.1"/></div>
       </div>
       <div class="form-field">
         <label>Did you follow your rules?</label>
@@ -505,7 +530,7 @@
       </div>
       <div class="modal-footer">
         <button class="btn-secondary" onclick="closeLogTrade()">Cancel</button>
-        <button class="btn-primary" onclick="saveTrade()">Save Trade</button>
+        <button class="btn-primary" id="saveTradeBtn" onclick="saveTrade()">Save Trade</button>
       </div>
       <div class="modal-msg" id="tradeMsg"></div>
     </div>
@@ -632,6 +657,10 @@
     <div class="page" id="page-trades">
       <div class="page-header">
         <div><h1>Trades</h1><p>Every trade you've logged.</p></div>
+        <button class="btn-primary" onclick="openLogTradeFromPage()">
+          <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Log Trade
+        </button>
       </div>
       <div class="stats-grid" id="tradesStatsGrid" style="margin-bottom:24px;"></div>
       <div class="trades-filters">
@@ -844,8 +873,9 @@
     let allPageNotes = [];
     let currentNoteId = null;
     let noteSaveTimer = null;
+    let editingTradeId = null;
+    let logFromPage = false;
 
-    // Tick specs per ticker
     const TICK_SPECS = {
       MNQ: { tickSize: 0.25, tickValue: 0.50 },
       NQ:  { tickSize: 0.25, tickValue: 5.00 },
@@ -862,6 +892,32 @@
     function formatPnlShort(pnl) {
       if (pnl >= 0) return `+$${Math.round(pnl)}`;
       return `-$${Math.round(Math.abs(pnl))}`;
+    }
+
+    function parseTradeTime(timeStr, ampm) {
+      if (!timeStr || !timeStr.trim()) return null;
+      let cleaned = timeStr.trim().replace(':', '');
+      if (!/^\d{3,4}$/.test(cleaned)) return null;
+      let hours, minutes;
+      if (cleaned.length === 3) {
+        hours = parseInt(cleaned[0]);
+        minutes = parseInt(cleaned.slice(1));
+      } else {
+        hours = parseInt(cleaned.slice(0, 2));
+        minutes = parseInt(cleaned.slice(2));
+      }
+      if (minutes > 59) return null;
+      if (ampm === 'PM' && hours !== 12) hours += 12;
+      if (ampm === 'AM' && hours === 12) hours = 0;
+      return `${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}`;
+    }
+
+    function formatDisplayTime(time24) {
+      if (!time24) return null;
+      const [h, m] = time24.split(':').map(Number);
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      const h12 = h % 12 || 12;
+      return `${h12}:${String(m).padStart(2,'0')} ${ampm}`;
     }
 
     async function loadProfile() {
@@ -1104,12 +1160,7 @@
       const entry = parseFloat(document.getElementById('calcEntry').value);
       const sl = parseFloat(document.getElementById('calcSL').value);
       const tp = parseFloat(document.getElementById('calcTP').value);
-
-      if (!contracts || isNaN(entry) || isNaN(sl) || isNaN(tp)) {
-        document.getElementById('calcResultsCard').style.display = 'none';
-        return;
-      }
-
+      if (!contracts || isNaN(entry) || isNaN(sl) || isNaN(tp)) { document.getElementById('calcResultsCard').style.display = 'none'; return; }
       const spec = TICK_SPECS[ticker];
       const slTicks = Math.abs(entry - sl) / spec.tickSize;
       const tpTicks = Math.abs(tp - entry) / spec.tickSize;
@@ -1117,7 +1168,6 @@
       const profit = tpTicks * spec.tickValue * contracts;
       const rr = risk > 0 ? (profit / risk) : 0;
       const winNeeded = rr > 0 ? Math.round((1 / (1 + rr)) * 100) : 0;
-
       document.getElementById('calcRisk').textContent = `-$${risk.toFixed(2)}`;
       document.getElementById('calcProfit').textContent = `+$${profit.toFixed(2)}`;
       document.getElementById('calcRR').textContent = `${rr.toFixed(2)}R`;
@@ -1146,19 +1196,15 @@
       weekStart.setDate(weekStart.getDate() - weekStart.getDay());
       const weekEnd = new Date(lastDayOfMonth);
       weekEnd.setDate(weekEnd.getDate() + (6 - weekEnd.getDay()));
-
       const [tradesRes, notesRes] = await Promise.all([
         fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}&date=gte.${weekStart.toISOString().split('T')[0]}&date=lte.${weekEnd.toISOString().split('T')[0]}&select=*`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } }),
         fetch(`${SUPABASE_URL}/rest/v1/day_notes?user_id=eq.${user.id}&date=gte.${weekStart.toISOString().split('T')[0]}&date=lte.${weekEnd.toISOString().split('T')[0]}&select=*`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } })
       ]);
-
       calTradesCache = await tradesRes.json();
       calNotesCache = await notesRes.json();
-
       const monthFirstDay = new Date(calYear, calMonth, 1).toISOString().split('T')[0];
       const monthLastDay = new Date(calYear, calMonth + 1, 0).toISOString().split('T')[0];
       const monthTrades = calTradesCache.filter(t => t.date >= monthFirstDay && t.date <= monthLastDay);
-
       renderCalendar(calTradesCache, calNotesCache);
       updateMonthlyStats(monthTrades);
       updateNavButtons();
@@ -1338,22 +1384,28 @@
       list.innerHTML = dayTrades.map(t => {
         const pnl = parseFloat(t.pnl) || 0;
         const pnlClass = pnl > 0 ? 'green' : pnl < 0 ? 'red' : '';
+        const timeDisplay = t.trade_time ? formatDisplayTime(t.trade_time) : null;
         return `
           <div class="trade-feed-item">
             <div class="trade-feed-left">
               <div class="trade-feed-strat">${t.strategies?.name || 'Unknown'} — <span style="color:${t.result==='win'?'var(--success)':t.result==='loss'?'var(--danger)':'var(--text2)'};text-transform:capitalize;">${t.result}</span></div>
               <div class="trade-feed-detail">
+                ${timeDisplay ? `${timeDisplay} · ` : ''}
                 ${t.confluences_used?.length ? `${t.confluences_used.length} confluences` : 'No confluences'}
-                ${t.planned_rr ? ` · Planned ${t.planned_rr}R` : ''}
-                ${t.actual_rr ? ` · Got ${t.actual_rr}R` : ''}
+                ${t.actual_rr ? ` · ${t.actual_rr}R` : ''}
                 ${!t.followed_rules ? ' · <span style="color:var(--danger);">Rules broken</span>' : ''}
               </div>
               ${t.notes ? `<div class="trade-feed-detail" style="margin-top:3px;font-style:italic;">"${t.notes}"</div>` : ''}
             </div>
             <div class="trade-feed-pnl ${pnlClass}">${formatPnl(pnl)}</div>
-            <button class="trade-feed-delete" onclick="deleteTrade('${t.id}')">
-              <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
-            </button>
+            <div class="trade-feed-actions">
+              <button class="trade-feed-edit" onclick="openEditTrade('${t.id}')">
+                <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </button>
+              <button class="trade-feed-delete" onclick="deleteTrade('${t.id}')">
+                <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+              </button>
+            </div>
           </div>
         `;
       }).join('');
@@ -1421,6 +1473,8 @@
     }
 
     async function openLogTrade() {
+      logFromPage = false;
+      editingTradeId = null;
       const res = await fetch(`${SUPABASE_URL}/rest/v1/strategies?user_id=eq.${user.id}&select=*`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } });
       allStrategies = await res.json();
       document.getElementById('tradeStrategy').innerHTML = '<option value="">Select a strategy...</option>' + allStrategies.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
@@ -1428,16 +1482,88 @@
       document.getElementById('confluenceChecklist').innerHTML = '';
       document.getElementById('tradePnl').value = '';
       document.getElementById('tradeNotes').value = '';
-      document.getElementById('tradePlannedRR').value = '';
+      document.getElementById('tradeTime').value = '';
+      document.getElementById('tradeAmPm').value = 'AM';
       document.getElementById('tradeActualRR').value = '';
       document.getElementById('tradeResult').value = 'win';
+      document.getElementById('tradeDateField').style.display = 'none';
       document.querySelector('input[name="followedRules"][value="true"]').checked = true;
       document.getElementById('tradeMsg').textContent = '';
+      document.getElementById('saveTradeBtn').textContent = 'Save Trade';
       document.getElementById('logTradeTitle').textContent = `Log Trade — ${document.getElementById('dayModalTitle').textContent}`;
       document.getElementById('logTradeModal').classList.add('active');
     }
 
-    function closeLogTrade() { document.getElementById('logTradeModal').classList.remove('active'); }
+    async function openLogTradeFromPage() {
+      logFromPage = true;
+      editingTradeId = null;
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/strategies?user_id=eq.${user.id}&select=*`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } });
+      allStrategies = await res.json();
+      document.getElementById('tradeStrategy').innerHTML = '<option value="">Select a strategy...</option>' + allStrategies.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+      document.getElementById('confluenceSection').style.display = 'none';
+      document.getElementById('confluenceChecklist').innerHTML = '';
+      document.getElementById('tradePnl').value = '';
+      document.getElementById('tradeNotes').value = '';
+      document.getElementById('tradeTime').value = '';
+      document.getElementById('tradeAmPm').value = 'AM';
+      document.getElementById('tradeActualRR').value = '';
+      document.getElementById('tradeResult').value = 'win';
+      document.getElementById('tradeDateField').style.display = 'block';
+      document.getElementById('tradeDate').value = new Date().toISOString().split('T')[0];
+      document.querySelector('input[name="followedRules"][value="true"]').checked = true;
+      document.getElementById('tradeMsg').textContent = '';
+      document.getElementById('saveTradeBtn').textContent = 'Save Trade';
+      document.getElementById('logTradeTitle').textContent = 'Log Trade';
+      document.getElementById('logTradeModal').classList.add('active');
+    }
+
+    async function openEditTrade(id) {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/trades?id=eq.${id}&select=*,strategies(name)`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } });
+      const data = await res.json();
+      if (!data || !data[0]) return;
+      const t = data[0];
+      editingTradeId = id;
+
+      const stratRes = await fetch(`${SUPABASE_URL}/rest/v1/strategies?user_id=eq.${user.id}&select=*`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } });
+      allStrategies = await stratRes.json();
+      document.getElementById('tradeStrategy').innerHTML = '<option value="">Select a strategy...</option>' + allStrategies.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+      document.getElementById('tradeStrategy').value = t.strategy_id || '';
+      loadStrategyConfluences();
+      setTimeout(() => {
+        const checks = document.querySelectorAll('#confluenceChecklist input');
+        checks.forEach(cb => { cb.checked = t.confluences_used?.includes(cb.value) || false; });
+      }, 50);
+
+      document.getElementById('tradeResult').value = t.result || 'win';
+      document.getElementById('tradePnl').value = t.pnl || '';
+      document.getElementById('tradeActualRR').value = t.actual_rr || '';
+      document.getElementById('tradeNotes').value = t.notes || '';
+      document.getElementById('tradeDateField').style.display = logFromPage ? 'block' : 'none';
+      if (logFromPage) document.getElementById('tradeDate').value = t.date || '';
+
+      if (t.trade_time) {
+        const [h, m] = t.trade_time.split(':').map(Number);
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        const h12 = h % 12 || 12;
+        document.getElementById('tradeTime').value = `${h12}:${String(m).padStart(2,'0')}`;
+        document.getElementById('tradeAmPm').value = ampm;
+      } else {
+        document.getElementById('tradeTime').value = '';
+        document.getElementById('tradeAmPm').value = 'AM';
+      }
+
+      document.querySelector(`input[name="followedRules"][value="${t.followed_rules ? 'true' : 'false'}"]`).checked = true;
+      document.getElementById('tradeMsg').textContent = '';
+      document.getElementById('saveTradeBtn').textContent = 'Update Trade';
+      document.getElementById('logTradeTitle').textContent = 'Edit Trade';
+      document.getElementById('logTradeModal').classList.add('active');
+    }
+
+    function closeLogTrade() {
+      document.getElementById('logTradeModal').classList.remove('active');
+      editingTradeId = null;
+      logFromPage = false;
+    }
 
     function handleResultChange() {
       const result = document.getElementById('tradeResult').value;
@@ -1462,20 +1588,41 @@
       let pnl = parseFloat(document.getElementById('tradePnl').value) || 0;
       if (result === 'loss' && pnl > 0) pnl = -pnl;
       if (result === 'win' && pnl < 0) pnl = Math.abs(pnl);
-      const plannedRR = parseFloat(document.getElementById('tradePlannedRR').value) || null;
       const actualRR = parseFloat(document.getElementById('tradeActualRR').value) || null;
       const notes = document.getElementById('tradeNotes').value.trim();
       const followedRules = document.querySelector('input[name="followedRules"]:checked').value === 'true';
       const msg = document.getElementById('tradeMsg');
       const confluencesUsed = Array.from(document.querySelectorAll('#confluenceChecklist input:checked')).map(cb => cb.value);
+      const tradeTime = parseTradeTime(document.getElementById('tradeTime').value, document.getElementById('tradeAmPm').value);
       if (!strategyId) { msg.textContent = 'Please select a strategy.'; msg.className = 'modal-msg error'; return; }
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/trades`, {
-        method: 'POST',
-        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-        body: JSON.stringify({ user_id: user.id, strategy_id: strategyId, date: selectedDate, result, pnl, planned_rr: plannedRR, actual_rr: actualRR, notes, followed_rules: followedRules, confluences_used: confluencesUsed })
-      });
-      if (res.ok) { closeLogTrade(); await loadDayTrades(); }
-      else { msg.textContent = 'Could not save trade.'; msg.className = 'modal-msg error'; }
+
+      const tradeDate = logFromPage ? document.getElementById('tradeDate').value : selectedDate;
+      if (!tradeDate) { msg.textContent = 'Please select a date.'; msg.className = 'modal-msg error'; return; }
+
+      const payload = { user_id: user.id, strategy_id: strategyId, date: tradeDate, result, pnl, actual_rr: actualRR, notes, followed_rules: followedRules, confluences_used: confluencesUsed, trade_time: tradeTime };
+
+      let res;
+      if (editingTradeId) {
+        res = await fetch(`${SUPABASE_URL}/rest/v1/trades?id=eq.${editingTradeId}`, {
+          method: 'PATCH',
+          headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+          body: JSON.stringify(payload)
+        });
+      } else {
+        res = await fetch(`${SUPABASE_URL}/rest/v1/trades`, {
+          method: 'POST',
+          headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+          body: JSON.stringify(payload)
+        });
+      }
+
+      if (res.ok) {
+        closeLogTrade();
+        if (logFromPage) { loadTrades(); }
+        else { await loadDayTrades(); }
+      } else {
+        msg.textContent = 'Could not save trade.'; msg.className = 'modal-msg error';
+      }
     }
 
     function changeMonth(dir) {
@@ -1562,7 +1709,8 @@
         const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
         const confluences = t.confluences_used?.length ? `${t.confluences_used.length} confluences` : '—';
         const rr = t.actual_rr ? `${t.actual_rr}R` : '—';
-        const followed = t.followed_rules ? '' : '<span style="color:var(--danger);font-size:11px;">Rules broken</span>';
+        const timeStr = t.trade_time ? formatDisplayTime(t.trade_time) : '—';
+        const followed = t.followed_rules ? '' : '<span style="color:var(--danger);font-size:11px;">✗</span>';
         return `
           <div class="trades-table-row">
             <div class="trades-table-cell muted">${dateStr}</div>
@@ -1570,9 +1718,13 @@
             <div class="trades-table-cell"><span class="trades-badge ${t.result}">${t.result}</span></div>
             <div class="trades-table-cell" style="color:${pnlColor};font-weight:700;">${formatPnl(pnl)}</div>
             <div class="trades-table-cell muted">${rr}</div>
+            <div class="trades-table-cell muted">${timeStr}</div>
             <div class="trades-table-cell muted">${confluences}</div>
             <div class="trades-table-cell muted">${t.notes ? `"${t.notes}"` : followed || '—'}</div>
-            <div class="trades-table-cell">
+            <div class="trades-table-cell" style="display:flex;gap:4px;align-items:center;">
+              <button class="trade-edit-btn" onclick="openEditTradeFromList('${t.id}')">
+                <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </button>
               <button class="trade-delete-btn" onclick="deleteTradeFromList('${t.id}')">
                 <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
               </button>
@@ -1583,11 +1735,16 @@
       container.innerHTML = `
         <div class="trades-table">
           <div class="trades-table-header">
-            <div>Date</div><div>Strategy</div><div>Result</div><div>PNL</div><div>R:R</div><div>Confluences</div><div>Notes</div><div></div>
+            <div>Date</div><div>Strategy</div><div>Result</div><div>PNL</div><div>R:R</div><div>Time</div><div>Confluences</div><div>Notes</div><div></div>
           </div>
           ${rows}
         </div>
       `;
+    }
+
+    async function openEditTradeFromList(id) {
+      logFromPage = true;
+      await openEditTrade(id);
     }
 
     async function deleteTradeFromList(id) {
@@ -1718,22 +1875,9 @@
       closeNoteEditor();
     }
 
-    function notesFormat(cmd) {
-      document.getElementById('noteBodyEditor').focus();
-      document.execCommand(cmd, false, null);
-      updateNotesToolbarState();
-    }
-
-    function notesFormatH1() {
-      document.getElementById('noteBodyEditor').focus();
-      document.execCommand('formatBlock', false, 'H1');
-      updateNotesToolbarState();
-    }
-
-    function notesInsertHR() {
-      document.getElementById('noteBodyEditor').focus();
-      document.execCommand('insertHTML', false, '<hr/><br/>');
-    }
+    function notesFormat(cmd) { document.getElementById('noteBodyEditor').focus(); document.execCommand(cmd, false, null); updateNotesToolbarState(); }
+    function notesFormatH1() { document.getElementById('noteBodyEditor').focus(); document.execCommand('formatBlock', false, 'H1'); updateNotesToolbarState(); }
+    function notesInsertHR() { document.getElementById('noteBodyEditor').focus(); document.execCommand('insertHTML', false, '<hr/><br/>'); }
 
     function notesInsertImage(e) {
       const file = e.target.files[0]; if (!file) return;
@@ -1782,23 +1926,15 @@
     });
 
     // ─── SHARED UTILS ────────────────────────────────────────────
-    function openLightbox(img) {
-      document.getElementById('lightboxImg').src = img.src;
-      document.getElementById('imgLightbox').classList.add('active');
-    }
-    function closeLightbox() {
-      document.getElementById('imgLightbox').classList.remove('active');
-      document.getElementById('lightboxImg').src = '';
-    }
+    function openLightbox(img) { document.getElementById('lightboxImg').src = img.src; document.getElementById('imgLightbox').classList.add('active'); }
+    function closeLightbox() { document.getElementById('imgLightbox').classList.remove('active'); document.getElementById('lightboxImg').src = ''; }
     function updateToolbarState() {
       document.querySelectorAll('.notion-tool[data-cmd]').forEach(btn => {
         const cmd = btn.getAttribute('data-cmd');
         btn.classList.toggle('active', document.queryCommandState(cmd));
       });
     }
-    function handleStrategyModalClick(e) {
-      if (e.target === document.getElementById('strategyModal')) closeStrategyModal();
-    }
+    function handleStrategyModalClick(e) { if (e.target === document.getElementById('strategyModal')) closeStrategyModal(); }
   </script>
 </body>
 </html>
