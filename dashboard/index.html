@@ -875,6 +875,7 @@
     let allStrategies = [];
     let calTradesCache = [];
     let calNotesCache = [];
+    const calendarDataCache = new Map();
     let noteAutosaveTimer = null;
     const MIN_DATE = new Date(2026, 0, 1);
 
@@ -985,12 +986,13 @@ const pageLoaded = {
 }, 300);
 
     async function loadStrategies() {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/strategies?user_id=eq.${user.id}&order=created_at.asc`, {
-        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
-      });
-      const data = await res.json();
-      renderStrategies(data);
-    }
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/strategies?user_id=eq.${user.id}&order=created_at.asc`, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
+  });
+  const data = await res.json();
+  allStrategies = data || [];
+  renderStrategies(allStrategies);
+}
 
     function renderStrategies(strategies) {
       const grid = document.getElementById('strategiesGrid');
@@ -1033,18 +1035,27 @@ const pageLoaded = {
     function closeStrategyModal() { document.getElementById('strategyModal').classList.remove('active'); editingStrategyId = null; confluences = []; }
 
     async function editStrategy(id) {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/strategies?id=eq.${id}&select=*`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } });
-      const data = await res.json();
-      if (!data || !data[0]) return;
-      const s = data[0];
-      editingStrategyId = id; confluences = s.confluences || [];
-      document.getElementById('strategyName').value = s.name;
-      document.getElementById('strategyDesc').value = s.description || '';
-      document.getElementById('modalTitle').textContent = 'Edit Strategy';
-      document.getElementById('strategyMsg').textContent = '';
-      renderConfluenceTags();
-      document.getElementById('strategyModal').classList.add('active');
-    }
+  let s = allStrategies.find(x => x.id === id);
+
+  if (!s) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/strategies?id=eq.${id}&select=*`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
+    });
+    const data = await res.json();
+    s = data?.[0];
+  }
+
+  if (!s) return;
+
+  editingStrategyId = id;
+  confluences = s.confluences || [];
+  document.getElementById('strategyName').value = s.name;
+  document.getElementById('strategyDesc').value = s.description || '';
+  document.getElementById('modalTitle').textContent = 'Edit Strategy';
+  document.getElementById('strategyMsg').textContent = '';
+  renderConfluenceTags();
+  document.getElementById('strategyModal').classList.add('active');
+}
 
     async function deleteStrategy(id) {
       if (!confirm('Delete this strategy?')) return;
@@ -1234,25 +1245,84 @@ async function showPage(name, el) {
     }
 
     async function loadCalendarData() {
-      const firstDayOfMonth = new Date(calYear, calMonth, 1);
-      const lastDayOfMonth = new Date(calYear, calMonth + 1, 0);
-      const weekStart = new Date(firstDayOfMonth);
-      weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-      const weekEnd = new Date(lastDayOfMonth);
-      weekEnd.setDate(weekEnd.getDate() + (6 - weekEnd.getDay()));
-      const [tradesRes, notesRes] = await Promise.all([
-        fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}&date=gte.${weekStart.toISOString().split('T')[0]}&date=lte.${weekEnd.toISOString().split('T')[0]}&select=*`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } }),
-        fetch(`${SUPABASE_URL}/rest/v1/day_notes?user_id=eq.${user.id}&date=gte.${weekStart.toISOString().split('T')[0]}&date=lte.${weekEnd.toISOString().split('T')[0]}&select=*`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } })
-      ]);
-      calTradesCache = await tradesRes.json();
-      calNotesCache = await notesRes.json();
-      const monthFirstDay = new Date(calYear, calMonth, 1).toISOString().split('T')[0];
-      const monthLastDay = new Date(calYear, calMonth + 1, 0).toISOString().split('T')[0];
-      const monthTrades = calTradesCache.filter(t => t.date >= monthFirstDay && t.date <= monthLastDay);
-      renderCalendar(calTradesCache, calNotesCache);
-      updateMonthlyStats(monthTrades);
-      updateNavButtons();
-    }
+  const cacheKey = `${calYear}-${calMonth}`;
+
+  if (calendarDataCache.has(cacheKey)) {
+    const cached = calendarDataCache.get(cacheKey);
+    calTradesCache = cached.trades;
+    calNotesCache = cached.notes;
+    renderCalendar(calTradesCache, calNotesCache);
+    updateMonthlyStats(cached.monthTrades);
+    updateNavButtons();
+    prefetchAdjacentCalendarMonths();
+    return;
+  }
+
+  const firstDayOfMonth = new Date(calYear, calMonth, 1);
+  const lastDayOfMonth = new Date(calYear, calMonth + 1, 0);
+  const weekStart = new Date(firstDayOfMonth);
+  weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+  const weekEnd = new Date(lastDayOfMonth);
+  weekEnd.setDate(weekEnd.getDate() + (6 - weekEnd.getDay()));
+
+  const [tradesRes, notesRes] = await Promise.all([
+    fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}&date=gte.${weekStart.toISOString().split('T')[0]}&date=lte.${weekEnd.toISOString().split('T')[0]}&select=*`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } }),
+    fetch(`${SUPABASE_URL}/rest/v1/day_notes?user_id=eq.${user.id}&date=gte.${weekStart.toISOString().split('T')[0]}&date=lte.${weekEnd.toISOString().split('T')[0]}&select=*`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } })
+  ]);
+
+  calTradesCache = await tradesRes.json();
+  calNotesCache = await notesRes.json();
+
+  const monthFirstDay = new Date(calYear, calMonth, 1).toISOString().split('T')[0];
+  const monthLastDay = new Date(calYear, calMonth + 1, 0).toISOString().split('T')[0];
+  const monthTrades = calTradesCache.filter(t => t.date >= monthFirstDay && t.date <= monthLastDay);
+
+  calendarDataCache.set(cacheKey, {
+    trades: calTradesCache,
+    notes: calNotesCache,
+    monthTrades
+  });
+
+  renderCalendar(calTradesCache, calNotesCache);
+  updateMonthlyStats(monthTrades);
+  updateNavButtons();
+  prefetchAdjacentCalendarMonths();
+}
+
+    async function prefetchCalendarMonth(year, month) {
+  const cacheKey = `${year}-${month}`;
+  if (calendarDataCache.has(cacheKey)) return;
+
+  const firstDayOfMonth = new Date(year, month, 1);
+  const lastDayOfMonth = new Date(year, month + 1, 0);
+  const weekStart = new Date(firstDayOfMonth);
+  weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+  const weekEnd = new Date(lastDayOfMonth);
+  weekEnd.setDate(weekEnd.getDate() + (6 - weekEnd.getDay()));
+
+  const [tradesRes, notesRes] = await Promise.all([
+    fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}&date=gte.${weekStart.toISOString().split('T')[0]}&date=lte.${weekEnd.toISOString().split('T')[0]}&select=*`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } }),
+    fetch(`${SUPABASE_URL}/rest/v1/day_notes?user_id=eq.${user.id}&date=gte.${weekStart.toISOString().split('T')[0]}&date=lte.${weekEnd.toISOString().split('T')[0]}&select=*`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } })
+  ]);
+
+  const trades = await tradesRes.json();
+  const notes = await notesRes.json();
+  const monthFirstDay = new Date(year, month, 1).toISOString().split('T')[0];
+  const monthLastDay = new Date(year, month + 1, 0).toISOString().split('T')[0];
+
+  calendarDataCache.set(cacheKey, {
+    trades,
+    notes,
+    monthTrades: trades.filter(t => t.date >= monthFirstDay && t.date <= monthLastDay)
+  });
+}
+
+function prefetchAdjacentCalendarMonths() {
+  const prev = new Date(calYear, calMonth - 1, 1);
+  const next = new Date(calYear, calMonth + 1, 1);
+  prefetchCalendarMonth(prev.getFullYear(), prev.getMonth());
+  prefetchCalendarMonth(next.getFullYear(), next.getMonth());
+}
 
     function updateNavButtons() {
       const prevBtn = document.querySelector('.cal-nav-btn');
@@ -1406,14 +1476,18 @@ async function showPage(name, el) {
     }
 
     async function closeDayModal() {
-      clearTimeout(noteAutosaveTimer);
-      const content = getNoteContent();
-      await saveDayNoteNow(selectedDate, content);
-      document.getElementById('dayModal').classList.remove('active');
-      selectedDate = null;
-      selectedNoteId = null;
-      loadCalendarData();
-    }
+  clearTimeout(noteAutosaveTimer);
+
+  const dateToSave = selectedDate;
+  const content = getNoteContent();
+
+  document.getElementById('dayModal').classList.remove('active');
+  selectedDate = null;
+  selectedNoteId = null;
+
+  await saveDayNoteNow(dateToSave, content);
+  loadCalendarData();
+}
 
     async function loadDayTrades() {
       const res = await fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}&date=eq.${selectedDate}&select=*,strategies(name)&order=created_at.asc`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } });
@@ -1556,27 +1630,28 @@ async function loadDayNote() {
     }
 
     async function openLogTradeFromPage() {
-      logFromPage = true;
-      editingTradeId = null;
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/strategies?user_id=eq.${user.id}&select=*`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } });
-      allStrategies = await res.json();
-      document.getElementById('tradeStrategy').innerHTML = '<option value="">Select a strategy...</option>' + allStrategies.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
-      document.getElementById('confluenceSection').style.display = 'none';
-      document.getElementById('confluenceChecklist').innerHTML = '';
-      document.getElementById('tradePnl').value = '';
-      document.getElementById('tradeNotes').value = '';
-      document.getElementById('tradeTime').value = '';
-      document.getElementById('tradeAmPm').value = 'AM';
-      document.getElementById('tradeActualRR').value = '';
-      document.getElementById('tradeResult').value = 'win';
-      document.getElementById('tradeDateField').style.display = 'block';
-      document.getElementById('tradeDate').value = new Date().toISOString().split('T')[0];
-      document.querySelector('input[name="followedRules"][value="true"]').checked = true;
-      document.getElementById('tradeMsg').textContent = '';
-      document.getElementById('saveTradeBtn').textContent = 'Save Trade';
-      document.getElementById('logTradeTitle').textContent = 'Log Trade';
-      document.getElementById('logTradeModal').classList.add('active');
-    }
+  logFromPage = true;
+  editingTradeId = null;
+
+  if (!allStrategies.length) await loadStrategies();
+
+  document.getElementById('tradeStrategy').innerHTML = '<option value="">Select a strategy...</option>' + allStrategies.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+  document.getElementById('confluenceSection').style.display = 'none';
+  document.getElementById('confluenceChecklist').innerHTML = '';
+  document.getElementById('tradePnl').value = '';
+  document.getElementById('tradeNotes').value = '';
+  document.getElementById('tradeTime').value = '';
+  document.getElementById('tradeAmPm').value = 'AM';
+  document.getElementById('tradeActualRR').value = '';
+  document.getElementById('tradeResult').value = 'win';
+  document.getElementById('tradeDateField').style.display = 'block';
+  document.getElementById('tradeDate').value = new Date().toISOString().split('T')[0];
+  document.querySelector('input[name="followedRules"][value="true"]').checked = true;
+  document.getElementById('tradeMsg').textContent = '';
+  document.getElementById('saveTradeBtn').textContent = 'Save Trade';
+  document.getElementById('logTradeTitle').textContent = 'Log Trade';
+  document.getElementById('logTradeModal').classList.add('active');
+}
 
     async function openEditTrade(id) {
       const res = await fetch(`${SUPABASE_URL}/rest/v1/trades?id=eq.${id}&select=*,strategies(name)`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } });
