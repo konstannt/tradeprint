@@ -880,7 +880,15 @@
     const token = localStorage.getItem('tp_token');
     const user = JSON.parse(localStorage.getItem('tp_user') || 'null');
     if (!token) { window.location.href = '/app'; }
-    if (user?.email !== 'dean.tsi.198@gmail.com') { window.location.href = '/app'; }
+    const allowedEmails = [
+  'dean.tsi.198@gmail.com',
+  'alexiosct@gmail.com',
+  'mateobarrios722@gmail.com'
+];
+
+if (!allowedEmails.includes(user?.email)) {
+  window.location.href = '/app';
+}
 
     if (localStorage.getItem('tp_theme') === 'light') {
       document.getElementById('body').classList.add('light');
