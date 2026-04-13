@@ -1629,22 +1629,22 @@ ${timeDisplay ? ` · ${timeDisplay}` : ''}
         });
       }
 
-      if (res.ok) {
-  const wasFromPage = logFromPage;
-  closeLogTrade();
-  logFromPage = false;
+            if (res.ok) {
+        const wasFromPage = logFromPage;
+        closeLogTrade();
+        logFromPage = false;
 
-  if (wasFromPage) {
-    await loadTrades();
-  } else {
-    await loadDayTrades();
-    await loadCalendarData();
-  }
-} else {
-  msg.textContent = 'Could not save trade.';
-  msg.className = 'modal-msg error';
-}
-
+        if (wasFromPage) {
+          await loadTrades();
+        } else {
+          await loadDayTrades();
+          await loadCalendarData();
+        }
+      } else {
+        msg.textContent = 'Could not save trade.';
+        msg.className = 'modal-msg error';
+      }
+    }
 
     function changeMonth(dir) {
       calMonth += dir;
