@@ -967,6 +967,13 @@
     }
     loadProfile();
 
+    setTimeout(() => {
+  loadStrategies();
+  loadCalendarData();
+  loadTrades();
+  initNotes();
+}, 300);
+
     async function loadStrategies() {
       const res = await fetch(`${SUPABASE_URL}/rest/v1/strategies?user_id=eq.${user.id}&order=created_at.asc`, {
         headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
