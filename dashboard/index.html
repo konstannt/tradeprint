@@ -879,10 +879,18 @@
     const MIN_DATE = new Date(2026, 0, 1);
 
     let allPageNotes = [];
-    let currentNoteId = null;
-    let noteSaveTimer = null;
-    let editingTradeId = null;
-    let logFromPage = false;
+let currentNoteId = null;
+let noteSaveTimer = null;
+let editingTradeId = null;
+let logFromPage = false;
+
+const pageLoaded = {
+  strategies: false,
+  calendar: false,
+  trades: false,
+  notes: false,
+  calculator: false
+};
 
     const TICK_SPECS = {
       MNQ: { tickSize: 0.25, tickValue: 0.50 },
@@ -967,11 +975,13 @@
     }
     loadProfile();
 
-    setTimeout(() => {
-  loadStrategies();
-  loadCalendarData();
-  loadTrades();
-  initNotes();
+    setTimeout(async () => {
+  await Promise.all([
+    loadStrategies().then(() => { pageLoaded.strategies = true; }),
+    loadCalendarData().then(() => { pageLoaded.calendar = true; }),
+    loadTrades().then(() => { pageLoaded.trades = true; }),
+    initNotes().then(() => { pageLoaded.notes = true; })
+  ]);
 }, 300);
 
     async function loadStrategies() {
@@ -1152,11 +1162,15 @@ async function showPage(name, el) {
 
   closeMobileSidebar();
 
-  if (name === 'strategies') await loadStrategies();
-  if (name === 'calendar') await initCalendar();
-  if (name === 'trades') await loadTrades();
-  if (name === 'notes') await initNotes();
-  if (name === 'calculator') initCalcPage();
+  if (!pageLoaded[name]) {
+    if (name === 'strategies') await loadStrategies();
+    if (name === 'calendar') await initCalendar();
+    if (name === 'trades') await loadTrades();
+    if (name === 'notes') await initNotes();
+    if (name === 'calculator') initCalcPage();
+
+    pageLoaded[name] = true;
+  }
 
   if (token !== pageSwitchToken) return;
 
@@ -1166,7 +1180,6 @@ async function showPage(name, el) {
   document.getElementById('page-' + name).classList.add('active');
   if (el) el.classList.add('active');
 }
-
 
     function toggleSidebar() { document.getElementById('sidebar').classList.toggle('collapsed'); }
     function openMobileSidebar() { document.getElementById('sidebar').classList.add('mobile-open'); document.getElementById('overlay').classList.add('active'); }
