@@ -388,6 +388,8 @@
     .calc-reset-btn { background: none; border: 1px solid var(--border); color: var(--text2); padding: 10px 20px; border-radius: 8px; font-size: 14px; cursor: pointer; transition: all 0.2s; margin-top: 4px; }
     .calc-reset-btn:hover { border-color: var(--accent); color: var(--text); }
     @media (max-width: 768px) { .calc-input-grid { grid-template-columns: 1fr; } }
+
+    #tradeDate::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
   </style>
 </head>
 <body id="body">
@@ -508,7 +510,7 @@
         <div class="form-field">
           <label>Time of Trade</label>
           <div class="time-input-row">
-            <input type="text" id="tradeTime" placeholder="e.g. 9:36 or 936"/>
+            <input type="text" id="tradeTime" placeholder="e.g. 10:02 or 14:10"/>
             <select id="tradeAmPm" style="padding:10px 10px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;cursor:pointer;">
               <option value="AM">AM</option>
               <option value="PM">PM</option>
@@ -894,23 +896,7 @@
       return `-$${Math.round(Math.abs(pnl))}`;
     }
 
-    function parseTradeTime(timeStr, ampm) {
-      if (!timeStr || !timeStr.trim()) return null;
-      let cleaned = timeStr.trim().replace(':', '');
-      if (!/^\d{3,4}$/.test(cleaned)) return null;
-      let hours, minutes;
-      if (cleaned.length === 3) {
-        hours = parseInt(cleaned[0]);
-        minutes = parseInt(cleaned.slice(1));
-      } else {
-        hours = parseInt(cleaned.slice(0, 2));
-        minutes = parseInt(cleaned.slice(2));
-      }
-      if (minutes > 59) return null;
-      if (ampm === 'PM' && hours !== 12) hours += 12;
-      if (ampm === 'AM' && hours === 12) hours = 0;
-      return `${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}`;
-    }
+    <input type="text" id="tradeTime" placeholder="e.g. 10:02 or 1430"/>
 
     function formatDisplayTime(time24) {
       if (!time24) return null;
