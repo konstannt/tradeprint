@@ -1327,16 +1327,19 @@
     function handleLogTradeModalClick(e) { if (e.target === document.getElementById('logTradeModal')) closeLogTrade(); }
 
     async function openDayModal(dateStr) {
-      selectedDate = dateStr;
-      const date = new Date(dateStr + 'T12:00:00');
-      const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-      document.getElementById('dayModalTitle').textContent = `${monthNames[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
-      document.getElementById('dayStats').innerHTML = '';
-      document.getElementById('dayTradesList').innerHTML = '';
-      document.getElementById('noteEditor').innerHTML = '';
-      document.getElementById('dayModal').classList.add('active');
-      await Promise.all([loadDayTrades(), loadDayNote()]);
-    }
+  selectedDate = dateStr;
+  const date = new Date(dateStr + 'T12:00:00');
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  document.getElementById('dayModalTitle').textContent = `${monthNames[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+  document.getElementById('dayStats').innerHTML = '';
+  document.getElementById('dayTradesList').innerHTML = '';
+  document.getElementById('noteEditor').innerHTML = '';
+
+  await Promise.all([loadDayTrades(), loadDayNote()]);
+
+  document.getElementById('dayModal').classList.add('active');
+}
 
     function getNoteContent() {
       const editor = document.getElementById('noteEditor');
