@@ -1138,18 +1138,28 @@
       msg.textContent = 'Defaults saved!'; msg.className = 'msg success';
     }
 
-    function showPage(name, el) {
-      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-      document.querySelectorAll('.nav-item, .settings-row').forEach(n => n.classList.remove('active'));
-      document.getElementById('page-' + name).classList.add('active');
-      if (el) el.classList.add('active');
-      if (name === 'strategies') loadStrategies();
-      if (name === 'calendar') initCalendar();
-      if (name === 'trades') loadTrades();
-      if (name === 'notes') initNotes();
-      if (name === 'calculator') initCalcPage();
-      closeMobileSidebar();
-    }
+    let pageSwitchToken = 0;
+
+async function showPage(name, el) {
+  const token = ++pageSwitchToken;
+
+  closeMobileSidebar();
+
+  if (name === 'strategies') await loadStrategies();
+  if (name === 'calendar') await initCalendar();
+  if (name === 'trades') await loadTrades();
+  if (name === 'notes') await initNotes();
+  if (name === 'calculator') initCalcPage();
+
+  if (token !== pageSwitchToken) return;
+
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item, .settings-row').forEach(n => n.classList.remove('active'));
+
+  document.getElementById('page-' + name).classList.add('active');
+  if (el) el.classList.add('active');
+}
+
 
     function toggleSidebar() { document.getElementById('sidebar').classList.toggle('collapsed'); }
     function openMobileSidebar() { document.getElementById('sidebar').classList.add('mobile-open'); document.getElementById('overlay').classList.add('active'); }
