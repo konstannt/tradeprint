@@ -274,8 +274,8 @@
     .trades-filters select { padding: 8px 14px; font-size: 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg2); color: var(--text); outline: none; cursor: pointer; transition: border-color 0.2s; }
     .trades-filters select:focus { border-color: var(--accent); }
     .trades-table { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-    .trades-table-header { display: grid; grid-template-columns: 100px 1fr 90px 100px 70px 90px 120px 1fr 50px; padding: 12px 20px; border-bottom: 1px solid var(--border); gap: 12px; }
-    .trades-table-header div { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; }
+    .trades-table-header { display: grid; grid-template-columns: 100px 1fr 90px 100px 70px 90px 120px 80px 1fr 50px; padding: 12px 20px; border-bottom: 1px solid var(--border); gap: 12px; }
+    .trades-table-row { display: grid; grid-template-columns: 100px 1fr 90px 100px 70px 90px 120px 80px 1fr 50px; padding: 14px 20px; border-bottom: 1px solid var(--border); gap: 12px; align-items: center; transition: background 0.2s; }
     .trades-table-row { display: grid; grid-template-columns: 100px 1fr 90px 100px 70px 90px 120px 1fr 50px; padding: 14px 20px; border-bottom: 1px solid var(--border); gap: 12px; align-items: center; transition: background 0.15s; }
     .trades-table-row:last-child { border-bottom: none; }
     .trades-table-row:hover { background: rgba(255,255,255,0.02); }
@@ -1820,34 +1820,64 @@ calNotesCache = await notesRes.json(); if (!Array.isArray(calNotesCache)) calNot
     }
 
     function renderTradesList() {
-      const container = document.getElementById('tradesListContainer');
-      if (!filteredTrades.length) { container.innerHTML = '<div class="trades-empty"><span>📋</span>No trades found.</div>'; return; }
-      const rows = filteredTrades.map(t => {
-        const pnl = parseFloat(t.pnl) || 0;
-        const pnlColor = pnl > 0 ? 'var(--success)' : pnl < 0 ? 'var(--danger)' : 'var(--text)';
-        const date = new Date(t.date + 'T12:00:00');
-        const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-        const confluences = t.confluences_used?.length ? `${t.confluences_used.length} confluences` : '—';
-        const rr = t.actual_rr ? `${t.actual_rr}R` : '—';
-        const timeStr = t.trade_time ? formatDisplayTime(t.trade_time) : '—';
-        const followed = t.followed_rules ? '' : '<span style="color:var(--danger);font-size:11px;">✗</span>';
-        return `<div class="trades-table-row">
-          <div class="trades-table-cell muted">${dateStr}</div>
-          <div class="trades-table-cell">${t.asset ? `<strong>${t.asset}</strong> · ` : ''}${t.strategies?.name || '—'}</div>
-          <div class="trades-table-cell"><span class="trades-badge ${t.result}">${t.result}</span></div>
-          <div class="trades-table-cell" style="color:${pnlColor};font-weight:700;">${formatPnl(pnl)}</div>
-          <div class="trades-table-cell muted">${rr}</div>
-          <div class="trades-table-cell muted">${confluences}</div>
-          <div class="trades-table-cell muted">${timeStr}</div>
-          <div class="trades-table-cell muted">${t.notes ? `"${t.notes}"` : followed || '—'}</div>
-          <div class="trades-table-cell" style="display:flex;gap:4px;align-items:center;">
-            <button class="trade-edit-btn" onclick="openEditTradeFromList('${t.id}')"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-            <button class="trade-delete-btn" onclick="deleteTradeFromList('${t.id}')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>
-          </div>
-        </div>`;
-      }).join('');
-      container.innerHTML = `<div class="trades-table"><div class="trades-table-header"><div>Date</div><div>Strategy</div><div>Result</div><div>PNL</div><div>R:R</div><div>Confluences</div><div>Time</div><div>Notes</div><div></div></div>${rows}</div>`;
-    }
+  const container = document.getElementById('tradesListContainer');
+
+  if (!filteredTrades.length) {
+    container.innerHTML = '<div class="trades-empty"><span>📋</span>No trades found.</div>';
+    return;
+  }
+
+  const rows = filteredTrades.map(t => {
+    const pnl = parseFloat(t.pnl) || 0;
+    const pnlColor = pnl > 0 ? 'var(--success)' : pnl < 0 ? 'var(--danger)' : 'var(--text)';
+    const date = new Date(t.date + 'T12:00:00');
+    const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const strategy = t.strategies?.name || '-';
+    const result = t.result || '-';
+    const rr = t.actual_rr ? `${t.actual_rr}R` : '—';
+    const confluences = t.confluences_used?.length ? `${t.confluences_used.length} confluences` : '—';
+    const timeStr = t.trade_time ? formatDisplayTime(t.trade_time) : '—';
+    const asset = t.asset || '—';
+    const followed = t.followed_rules ? '' : '<span style="color:var(--danger);font-size:11px;">✗</span>';
+    const notes = t.notes ? `"${t.notes}"` : followed || '—';
+
+    return `<div class="trades-table-row">
+      <div class="trades-table-cell muted">${dateStr}</div>
+      <div class="trades-table-cell">${strategy}</div>
+      <div class="trades-table-cell"><span class="trades-badge ${result}">${result}</span></div>
+      <div class="trades-table-cell" style="color:${pnlColor};font-weight:700;">${formatPnl(pnl)}</div>
+      <div class="trades-table-cell muted">${rr}</div>
+      <div class="trades-table-cell muted">${confluences}</div>
+      <div class="trades-table-cell muted">${timeStr}</div>
+      <div class="trades-table-cell muted">${asset}</div>
+      <div class="trades-table-cell muted">${notes}</div>
+      <div class="trades-table-cell" style="display:flex;gap:4px;align-items:center;">
+        <button class="trade-edit-btn" onclick="openEditTradeFromList('${t.id}')">
+          <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="trade-delete-btn" onclick="deleteTradeFromList('${t.id}')">
+          <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+
+  container.innerHTML = `<div class="trades-table">
+    <div class="trades-table-header">
+      <div>Date</div>
+      <div>Strategy</div>
+      <div>Result</div>
+      <div>PNL</div>
+      <div>R:R</div>
+      <div>Confluences</div>
+      <div>Time</div>
+      <div>Asset</div>
+      <div>Notes</div>
+      <div></div>
+    </div>
+    ${rows}
+  </div>`;
+}
 
     async function openEditTradeFromList(id) { logFromPage = true; await openEditTrade(id); }
 
