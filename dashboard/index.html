@@ -423,6 +423,8 @@
 </head>
 <body id="body">
 
+  <div id="bootError" style="display:none;position:fixed;left:16px;right:16px;bottom:16px;z-index:9999;background:#2a0f12;border:1px solid #ef4444;color:#fff;padding:14px 16px;border-radius:8px;font:13px/1.4 'Segoe UI',sans-serif;white-space:pre-wrap;"></div>
+
   <div class="overlay" id="overlay" onclick="closeMobileSidebar()"></div>
 
   <!-- STRATEGY MODAL -->
@@ -879,6 +881,37 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
   <script>
+    window.addEventListener('error', (event) => {
+      const box = document.getElementById('bootError');
+      if (!box) return;
+      box.style.display = 'block';
+      box.textContent = `Dashboard error: ${event.message}\n${event.filename || ''}:${event.lineno || ''}:${event.colno || ''}`;
+    });
+
+    window.addEventListener('unhandledrejection', (event) => {
+      const box = document.getElementById('bootError');
+      if (!box) return;
+      box.style.display = 'block';
+      const reason = event.reason && event.reason.message ? event.reason.message : event.reason;
+      box.textContent = `Dashboard async error: ${reason}`;
+    });
+  </script>
+  <script>
+    window.addEventListener('error', (event) => {
+      const box = document.getElementById('bootError');
+      if (!box) return;
+      box.style.display = 'block';
+      box.textContent = `Dashboard error: ${event.message}\n${event.filename || ''}:${event.lineno || ''}:${event.colno || ''}`;
+    });
+
+    window.addEventListener('unhandledrejection', (event) => {
+      const box = document.getElementById('bootError');
+      if (!box) return;
+      box.style.display = 'block';
+      const reason = event.reason && event.reason.message ? event.reason.message : event.reason;
+      box.textContent = `Dashboard async error: ${reason}`;
+    });
+
     const SUPABASE_URL = 'https://fpdedufotkmvjsvxdcmk.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_1Q8yInISuuD3HDWI7mVesQ_A-DSkCM7';
     const token = localStorage.getItem('tp_token');
