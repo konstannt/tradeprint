@@ -213,10 +213,12 @@
       const data = await res.json();
 
       if (data.access_token) {
-        localStorage.setItem('tp_token', data.access_token);
-        localStorage.setItem('tp_user', JSON.stringify(data.user));
-        window.location.href = '/dashboard';
-      } else {
+  localStorage.setItem('tp_token', data.access_token);
+  localStorage.setItem('tp_refresh_token', data.refresh_token);
+  localStorage.setItem('tp_session', JSON.stringify(data));
+  localStorage.setItem('tp_user', JSON.stringify(data.user));
+  window.location.href = '/dashboard';
+} else {
         message.textContent = data.error_description || 'Invalid email or password.';
         message.className = 'message error';
         btn.disabled = false;
