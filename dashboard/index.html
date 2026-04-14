@@ -274,9 +274,8 @@
     .trades-filters select { padding: 8px 14px; font-size: 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg2); color: var(--text); outline: none; cursor: pointer; transition: border-color 0.2s; }
     .trades-filters select:focus { border-color: var(--accent); }
     .trades-table { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-    .trades-table-header { display: grid; grid-template-columns: 100px 1fr 90px 100px 70px 90px 120px 80px 1fr 50px; padding: 12px 20px; border-bottom: 1px solid var(--border); gap: 12px; }
-    .trades-table-row { display: grid; grid-template-columns: 100px 1fr 90px 100px 70px 90px 120px 80px 1fr 50px; padding: 14px 20px; border-bottom: 1px solid var(--border); gap: 12px; align-items: center; transition: background 0.2s; }
-    .trades-table-row { display: grid; grid-template-columns: 100px 1fr 90px 100px 70px 90px 120px 1fr 50px; padding: 14px 20px; border-bottom: 1px solid var(--border); gap: 12px; align-items: center; transition: background 0.15s; }
+    .trades-table-header { display: grid; grid-template-columns: 100px minmax(150px, 1.4fr) 70px 90px 60px 110px 80px 70px minmax(120px, 1fr) 52px; padding: 12px 20px; border-bottom: 1px solid var(--border); gap: 12px; align-items: center; }
+    .trades-table-row { display: grid; grid-template-columns: 100px minmax(150px, 1.4fr) 70px 90px 60px 110px 80px 70px minmax(120px, 1fr) 52px; padding: 14px 20px; border-bottom: 1px solid var(--border); gap: 12px; align-items: center; transition: background 0.2s; }
     .trades-table-row:last-child { border-bottom: none; }
     .trades-table-row:hover { background: rgba(255,255,255,0.02); }
     .trades-table-cell { font-size: 14px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
