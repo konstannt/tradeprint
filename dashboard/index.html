@@ -1832,7 +1832,7 @@ calNotesCache = await notesRes.json(); if (!Array.isArray(calNotesCache)) calNot
     const date = new Date(t.date + 'T12:00:00');
     const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     const strategy = t.strategies?.name || '-';
-    const result = t.result || '-';
+    const result = t.result === 'breakeven' ? 'be' : (t.result || '-');
     const rr = t.actual_rr ? `${t.actual_rr}R` : '—';
     const confluences = t.confluences_used?.length ? `${t.confluences_used.length} confluences` : '—';
     const timeStr = t.trade_time ? formatDisplayTime(t.trade_time) : '—';
@@ -1843,7 +1843,7 @@ calNotesCache = await notesRes.json(); if (!Array.isArray(calNotesCache)) calNot
     return `<div class="trades-table-row">
       <div class="trades-table-cell muted">${dateStr}</div>
       <div class="trades-table-cell">${strategy}</div>
-      <div class="trades-table-cell"><span class="trades-badge ${result}">${result}</span></div>
+      <div class="trades-table-cell"><span class="trades-badge ${t.result || '-'}">${result}</span></div>
       <div class="trades-table-cell" style="color:${pnlColor};font-weight:700;">${formatPnl(pnl)}</div>
       <div class="trades-table-cell muted">${rr}</div>
       <div class="trades-table-cell muted">${confluences}</div>
