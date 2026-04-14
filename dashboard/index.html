@@ -915,17 +915,16 @@
     const SUPABASE_URL = 'https://fpdedufotkmvjsvxdcmk.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_1Q8yInISuuD3HDWI7mVesQ_A-DSkCM7';
     const token = localStorage.getItem('tp_token');
-    function getStoredUser() {
-      try {
-        return JSON.parse(localStorage.getItem('tp_user') || 'null');
-      } catch (err) {
-        localStorage.removeItem('tp_user');
-        return null;
-      }
-    }
-    const user = getStoredUser();
-    if (!token || !user) { window.location.href = '/app'; }
-    const allowedEmails = [
+let user = null;
+
+try {
+  user = JSON.parse(localStorage.getItem('tp_user') || 'null');
+} catch (err) {
+  console.warn('Could not read saved user:', err);
+  user = null;
+}
+
+const allowedEmails = [
   'dean.tsi.198@gmail.com',
   'alexiosct@gmail.com',
   'mateobarrios722@gmail.com',
@@ -933,7 +932,7 @@
   'bashalexios@gmail.com'
 ];
 
-if (user && !allowedEmails.includes(user.email)) {
+if (!token || !user || !allowedEmails.includes(user.email)) {
   window.location.href = '/app';
 }
 
@@ -1065,17 +1064,11 @@ const pageLoaded = {
     }
     loadProfile();
 
-    setTimeout(async () => {
-  const preload = [
-    loadStrategies().then(() => { pageLoaded.strategies = true; }),
-    loadCalendarData().then(() => { pageLoaded.calendar = true; }),
-    loadTrades().then(() => { pageLoaded.trades = true; }),
-    initNotes().then(() => { pageLoaded.notes = true; })
-  ];
-  const results = await Promise.allSettled(preload);
-  results.forEach((result) => {
-    if (result.status === 'rejected') console.warn('Dashboard preload failed:', result.reason);
-  });
+    setTimeout(() => {
+  loadStrategies().then(() => { pageLoaded.strategies = true; }).catch(console.warn);
+  loadCalendarData().then(() => { pageLoaded.calendar = true; }).catch(console.warn);
+  loadTrades().then(() => { pageLoaded.trades = true; }).catch(console.warn);
+  initNotes().then(() => { pageLoaded.notes = true; }).catch(console.warn);
 }, 300);
 
     async function loadStrategies() {
