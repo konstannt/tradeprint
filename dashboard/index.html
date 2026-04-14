@@ -517,6 +517,10 @@
           <option value="">Select a strategy...</option>
         </select>
       </div>
+      <div class="form-field">
+        <label>Asset</label>
+        <input type="text" id="tradeAsset" placeholder="e.g. NQ, ES, BTC, AAPL" />
+      </div>
       <div class="form-field" id="confluenceSection" style="display:none;">
         <label>Confluences Present</label>
         <div id="confluenceChecklist"></div>
@@ -916,6 +920,7 @@ if (!allowedEmails.includes(user?.email)) {
 let currentNoteId = null;
 let noteSaveTimer = null;
 let editingTradeId = null;
+let editingTradeOriginalDate = null;
 let logFromPage = false;
 
 const pageLoaded = {
@@ -1277,6 +1282,12 @@ async function showPage(name, el) {
       await loadCalendarData();
     }
 
+    function invalidateCalendarCacheForDate(dateStr) {
+      if (!dateStr) return;
+      const date = new Date(dateStr + 'T12:00:00');
+      calendarDataCache.delete(`${date.getFullYear()}-${date.getMonth()}`);
+    }
+
     async function loadCalendarData() {
   const cacheKey = `${calYear}-${calMonth}`;
 
@@ -1299,7 +1310,7 @@ async function showPage(name, el) {
   weekEnd.setDate(weekEnd.getDate() + (6 - weekEnd.getDay()));
 
   const [tradesRes, notesRes] = await Promise.all([
-    fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}&date=gte.${weekStart.toISOString().split('T')[0]}&date=lte.${weekEnd.toISOString().split('T')[0]}&select=*`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } }),
+    fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}&date=gte.${weekStart.toISOString().split('T')[0]}&date=lte.${weekEnd.toISOString().split('T')[0]}&select=*,strategies(name)`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } }),
     fetch(`${SUPABASE_URL}/rest/v1/day_notes?user_id=eq.${user.id}&date=gte.${weekStart.toISOString().split('T')[0]}&date=lte.${weekEnd.toISOString().split('T')[0]}&select=*`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } })
   ]);
 
@@ -1334,7 +1345,7 @@ async function showPage(name, el) {
   weekEnd.setDate(weekEnd.getDate() + (6 - weekEnd.getDay()));
 
   const [tradesRes, notesRes] = await Promise.all([
-    fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}&date=gte.${weekStart.toISOString().split('T')[0]}&date=lte.${weekEnd.toISOString().split('T')[0]}&select=*`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } }),
+    fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}&date=gte.${weekStart.toISOString().split('T')[0]}&date=lte.${weekEnd.toISOString().split('T')[0]}&select=*,strategies(name)`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } }),
     fetch(`${SUPABASE_URL}/rest/v1/day_notes?user_id=eq.${user.id}&date=gte.${weekStart.toISOString().split('T')[0]}&date=lte.${weekEnd.toISOString().split('T')[0]}&select=*`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } })
   ]);
 
@@ -1519,6 +1530,7 @@ function prefetchAdjacentCalendarMonths() {
   selectedNoteId = null;
 
   await saveDayNoteNow(dateToSave, content);
+  invalidateCalendarCacheForDate(dateToSave);
   loadCalendarData();
 }
 
@@ -1551,7 +1563,7 @@ function prefetchAdjacentCalendarMonths() {
         return `
           <div class="trade-feed-item">
             <div class="trade-feed-left">
-              <div class="trade-feed-strat">${t.strategies?.name || 'Unknown'} — <span style="color:${t.result==='win'?'var(--success)':t.result==='loss'?'var(--danger)':'var(--text2)'};text-transform:capitalize;">${t.result}</span></div>
+              <div class="trade-feed-strat">${t.asset ? `${t.asset} - ` : ''}${t.strategies?.name || 'Unknown'} — <span style="color:${t.result==='win'?'var(--success)':t.result==='loss'?'var(--danger)':'var(--text2)'};text-transform:capitalize;">${t.result}</span></div>
               <div class="trade-feed-detail">
                 ${t.confluences_used?.length ? `${t.confluences_used.length} confluences` : 'No confluences'}
 ${t.actual_rr ? ` · ${t.actual_rr}R` : ''}
@@ -1576,8 +1588,11 @@ ${timeDisplay ? ` · ${timeDisplay}` : ''}
 
     async function deleteTrade(id) {
       if (!confirm('Delete this trade?')) return;
+      const dateToRefresh = selectedDate;
       await fetch(`${SUPABASE_URL}/rest/v1/trades?id=eq.${id}`, { method: 'DELETE', headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } });
+      invalidateCalendarCacheForDate(dateToRefresh);
       await loadDayTrades();
+      await loadCalendarData();
     }
 
     function applyDayNote(note) {
@@ -1642,12 +1657,14 @@ async function loadDayNote() {
 
     async function openLogTrade() {
       logFromPage = false;
-      editingTradeId = null;
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/strategies?user_id=eq.${user.id}&select=*`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } });
-      allStrategies = await res.json();
+editingTradeId = null;
+editingTradeOriginalDate = null;
+
+if (!allStrategies.length) await loadStrategies();
       document.getElementById('tradeStrategy').innerHTML = '<option value="">Select a strategy...</option>' + allStrategies.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
       document.getElementById('confluenceSection').style.display = 'none';
       document.getElementById('confluenceChecklist').innerHTML = '';
+      document.getElementById('tradeAsset').value = '';
       document.getElementById('tradePnl').value = '';
       document.getElementById('tradeNotes').value = '';
       document.getElementById('tradeTime').value = '';
@@ -1662,15 +1679,17 @@ async function loadDayNote() {
       document.getElementById('logTradeModal').classList.add('active');
     }
 
-    async function openLogTradeFromPage() {
+async function openLogTradeFromPage() {
   logFromPage = true;
   editingTradeId = null;
+  editingTradeOriginalDate = null;
 
   if (!allStrategies.length) await loadStrategies();
 
   document.getElementById('tradeStrategy').innerHTML = '<option value="">Select a strategy...</option>' + allStrategies.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
   document.getElementById('confluenceSection').style.display = 'none';
   document.getElementById('confluenceChecklist').innerHTML = '';
+  document.getElementById('tradeAsset').value = '';
   document.getElementById('tradePnl').value = '';
   document.getElementById('tradeNotes').value = '';
   document.getElementById('tradeTime').value = '';
@@ -1692,6 +1711,7 @@ async function loadDayNote() {
       if (!data || !data[0]) return;
       const t = data[0];
       editingTradeId = id;
+      editingTradeOriginalDate = t.date || null;
 
       const stratRes = await fetch(`${SUPABASE_URL}/rest/v1/strategies?user_id=eq.${user.id}&select=*`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } });
       allStrategies = await stratRes.json();
@@ -1704,6 +1724,7 @@ async function loadDayNote() {
       }, 50);
 
       document.getElementById('tradeResult').value = t.result || 'win';
+      document.getElementById('tradeAsset').value = t.asset || '';
       document.getElementById('tradePnl').value = t.pnl || '';
       document.getElementById('tradeActualRR').value = t.actual_rr || '';
       document.getElementById('tradeNotes').value = t.notes || '';
@@ -1728,9 +1749,10 @@ async function loadDayNote() {
       document.getElementById('logTradeModal').classList.add('active');
     }
 
-    function closeLogTrade() {
+function closeLogTrade() {
   document.getElementById('logTradeModal').classList.remove('active');
   editingTradeId = null;
+  editingTradeOriginalDate = null;
 }
 
     function handleResultChange() {
@@ -1756,6 +1778,7 @@ async function loadDayNote() {
       let pnl = parseFloat(document.getElementById('tradePnl').value) || 0;
       if (result === 'loss' && pnl > 0) pnl = -pnl;
       if (result === 'win' && pnl < 0) pnl = Math.abs(pnl);
+      const asset = document.getElementById('tradeAsset').value.trim().toUpperCase();
       const actualRR = parseFloat(document.getElementById('tradeActualRR').value) || null;
       const notes = document.getElementById('tradeNotes').value.trim();
       const followedRules = document.querySelector('input[name="followedRules"]:checked').value === 'true';
@@ -1767,7 +1790,7 @@ async function loadDayNote() {
       const tradeDate = logFromPage ? document.getElementById('tradeDate').value : selectedDate;
       if (!tradeDate) { msg.textContent = 'Please select a date.'; msg.className = 'modal-msg error'; return; }
 
-      const payload = { user_id: user.id, strategy_id: strategyId, date: tradeDate, result, pnl, actual_rr: actualRR, notes, followed_rules: followedRules, confluences_used: confluencesUsed, trade_time: tradeTime };
+      const payload = { user_id: user.id, strategy_id: strategyId, date: tradeDate, result, pnl, asset, actual_rr: actualRR, notes, followed_rules: followedRules, confluences_used: confluencesUsed, trade_time: tradeTime };
 
       let res;
       if (editingTradeId) {
@@ -1785,17 +1808,24 @@ async function loadDayNote() {
       }
 
             if (res.ok) {
-        const wasFromPage = logFromPage;
-        closeLogTrade();
-        logFromPage = false;
+  const wasFromPage = logFromPage;
+  const savedDate = tradeDate;
+  const oldDate = editingTradeOriginalDate;
 
-        if (wasFromPage) {
-          await loadTrades();
-        } else {
-          await loadDayTrades();
-          await loadCalendarData();
-        }
-      } else {
+  closeLogTrade();
+  logFromPage = false;
+
+  invalidateCalendarCacheForDate(savedDate);
+  invalidateCalendarCacheForDate(oldDate);
+
+  if (wasFromPage) {
+    await loadTrades();
+    await loadCalendarData();
+  } else {
+    await loadDayTrades();
+    await loadCalendarData();
+  }
+} else {
         msg.textContent = 'Could not save trade.';
         msg.className = 'modal-msg error';
       }
@@ -1890,7 +1920,7 @@ async function loadDayNote() {
         return `
           <div class="trades-table-row">
             <div class="trades-table-cell muted">${dateStr}</div>
-            <div class="trades-table-cell">${t.strategies?.name || '—'}</div>
+            <div class="trades-table-cell">${t.asset ? `<strong>${t.asset}</strong> - ` : ''}${t.strategies?.name || '—'}</div>
             <div class="trades-table-cell"><span class="trades-badge ${t.result}">${t.result}</span></div>
             <div class="trades-table-cell" style="color:${pnlColor};font-weight:700;">${formatPnl(pnl)}</div>
             <div class="trades-table-cell muted">${rr}</div>
@@ -1925,9 +1955,12 @@ async function loadDayNote() {
 
     async function deleteTradeFromList(id) {
       if (!confirm('Delete this trade?')) return;
+      const trade = allTrades.find(t => t.id === id);
       await fetch(`${SUPABASE_URL}/rest/v1/trades?id=eq.${id}`, { method: 'DELETE', headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } });
+      invalidateCalendarCacheForDate(trade?.date);
       allTrades = allTrades.filter(t => t.id !== id);
       filterTrades();
+      await loadCalendarData();
     }
 
     // ─── NOTES PAGE ─────────────────────────────────────────────
