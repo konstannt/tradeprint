@@ -1202,24 +1202,34 @@ calNotesCache = await notesRes.json(); if (!Array.isArray(calNotesCache)) calNot
     }
 
     async function prefetchCalendarMonth(year, month) {
-      const cacheKey = `${year}-${month}`;
-      if (calendarDataCache.has(cacheKey)) return;
-      const firstDayOfMonth = new Date(year, month, 1);
-      const lastDayOfMonth = new Date(year, month + 1, 0);
-      const weekStart = new Date(firstDayOfMonth);
-      weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-      const weekEnd = new Date(lastDayOfMonth);
-      weekEnd.setDate(weekEnd.getDate() + (6 - weekEnd.getDay()));
-      const [tradesRes, notesRes] = await Promise.all([
-        fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}&date=gte.${weekStart.toISOString().split('T')[0]}&date=lte.${weekEnd.toISOString().split('T')[0]}&select=*,strategies(name)`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } }),
-        fetch(`${SUPABASE_URL}/rest/v1/day_notes?user_id=eq.${user.id}&date=gte.${weekStart.toISOString().split('T')[0]}&date=lte.${weekEnd.toISOString().split('T')[0]}&select=*`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } })
-      ]);
-      calTradesCache = await tradesRes.json(); if (!Array.isArray(calTradesCache)) calTradesCache = [];
-calNotesCache = await notesRes.json(); if (!Array.isArray(calNotesCache)) calNotesCache = [];
-      const monthFirstDay = new Date(year, month, 1).toISOString().split('T')[0];
-      const monthLastDay = new Date(year, month + 1, 0).toISOString().split('T')[0];
-      calendarDataCache.set(cacheKey, { trades, notes, monthTrades: trades.filter(t => t.date >= monthFirstDay && t.date <= monthLastDay) });
-    }
+  const cacheKey = `${year}-${month}`;
+  if (calendarDataCache.has(cacheKey)) return;
+
+  const firstDayOfMonth = new Date(year, month, 1);
+  const lastDayOfMonth = new Date(year, month + 1, 0);
+  const weekStart = new Date(firstDayOfMonth);
+  weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+  const weekEnd = new Date(lastDayOfMonth);
+  weekEnd.setDate(weekEnd.getDate() + (6 - weekEnd.getDay()));
+
+  const [tradesRes, notesRes] = await Promise.all([
+    fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}&date=gte.${weekStart.toISOString().split('T')[0]}&date=lte.${weekEnd.toISOString().split('T')[0]}&select=*,strategies(name)`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } }),
+    fetch(`${SUPABASE_URL}/rest/v1/day_notes?user_id=eq.${user.id}&date=gte.${weekStart.toISOString().split('T')[0]}&date=lte.${weekEnd.toISOString().split('T')[0]}&select=*`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } })
+  ]);
+
+  const trades = await tradesRes.json();
+  const notes = await notesRes.json();
+  if (!Array.isArray(trades) || !Array.isArray(notes)) return;
+
+  const monthFirstDay = new Date(year, month, 1).toISOString().split('T')[0];
+  const monthLastDay = new Date(year, month + 1, 0).toISOString().split('T')[0];
+
+  calendarDataCache.set(cacheKey, {
+    trades,
+    notes,
+    monthTrades: trades.filter(t => t.date >= monthFirstDay && t.date <= monthLastDay)
+  });
+}
 
     function prefetchAdjacentCalendarMonths() {
       const prev = new Date(calYear, calMonth - 1, 1);
