@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+  <meta name="theme-color" content="#0a0a0a"/>
+  <title>Tradeprint — Reset Password</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background-color: #0a0a0a; color: #ffffff; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; }
+    .logo { font-size: 28px; font-weight: 800; letter-spacing: -1px; margin-bottom: 40px; text-decoration: none; color: #fff; }
+    .logo span { color: #6366f1; }
+    .card { background: #111; border: 1px solid #222; border-radius: 12px; padding: 40px; width: 100%; max-width: 400px; }
+    .card-title { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+    .card-sub { font-size: 14px; color: #555; margin-bottom: 32px; }
+    .form-group { margin-bottom: 20px; }
+    label { display: block; font-size: 13px; color: #888; margin-bottom: 8px; }
+    .pw-wrap { position: relative; }
+    .pw-wrap input { padding-right: 44px; }
+    input { width: 100%; padding: 12px 16px; font-size: 15px; border-radius: 8px; border: 1px solid #333; background: #0a0a0a; color: #fff; outline: none; transition: border-color 0.2s; }
+    input:focus { border-color: #6366f1; }
+    .pw-eye { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #555; padding: 4px; display: flex; align-items: center; justify-content: center; transition: color 0.2s; }
+    .pw-eye:hover { color: #aaa; }
+    .pw-eye svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .btn { width: 100%; background-color: #6366f1; color: white; border: none; padding: 14px; font-size: 16px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: background 0.2s; margin-top: 8px; }
+    .btn:hover { background-color: #4f46e5; }
+    .btn:disabled { background-color: #444; cursor: not-allowed; }
+    .message { font-size: 13px; margin-top: 16px; text-align: center; min-height: 20px; }
+    .message.success { color: #6366f1; }
+    .message.error { color: #ef4444; }
+  </style>
+</head>
+<body>
+  <a href="/" class="logo">trade<span>print</span></a>
+  <div class="card">
+    <div class="card-title">Reset Password</div>
+    <div class="card-sub">Enter your new password below.</div>
+    <div class="form-group">
+      <label>New Password</label>
+      <div class="pw-wrap">
+        <input type="password" id="newPassword" placeholder="••••••••" />
+        <button class="pw-eye" onclick="togglePw('newPassword', this)" tabindex="-1">
+          <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Confirm New Password</label>
+      <div class="pw-wrap">
+        <input type="password" id="confirmPassword" placeholder="••••••••" />
+        <button class="pw-eye" onclick="togglePw('confirmPassword', this)" tabindex="-1">
+          <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+    </div>
+    <button class="btn" id="resetBtn" onclick="resetPassword()">Update Password</button>
+    <div class="message" id="resetMessage"></div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://fpdedufotkmvjsvxdcmk.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_1Q8yInISuuD3HDWI7mVesQ_A-DSkCM7';
+
+    // Extract access token from URL hash — Supabase puts it there after redirect
+    function getTokenFromHash() {
+      const hash = window.location.hash.substring(1);
+      const params = new URLSearchParams(hash);
+      return {
+        access_token: params.get('access_token'),
+        refresh_token: params.get('refresh_token'),
+        type: params.get('type')
+      };
+    }
+
+    const { access_token, type } = getTokenFromHash();
+
+    if (!access_token || type !== 'recovery') {
+      document.getElementById('resetMessage').textContent = 'Invalid or expired reset link. Please request a new one.';
+      document.getElementById('resetMessage').className = 'message error';
+      document.getElementById('resetBtn').disabled = true;
+    }
+
+    function togglePw(inputId, btn) {
+      const input = document.getElementById(inputId);
+      const isHidden = input.type === 'password';
+      input.type = isHidden ? 'text' : 'password';
+      btn.querySelector('svg').innerHTML = isHidden
+        ? `<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>`
+        : `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`;
+    }
+
+    async function resetPassword() {
+      const newPassword = document.getElementById('newPassword').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      const btn = document.getElementById('resetBtn');
+      const message = document.getElementById('resetMessage');
+
+      if (!newPassword || !confirmPassword) { message.textContent = 'Please fill in all fields.'; message.className = 'message error'; return; }
+      if (newPassword !== confirmPassword) { message.textContent = 'Passwords do not match.'; message.className = 'message error'; return; }
+      if (newPassword.length < 8) { message.textContent = 'Password must be at least 8 characters.'; message.className = 'message error'; return; }
+      if (!/[A-Z]/.test(newPassword)) { message.textContent = 'Must contain at least 1 uppercase letter.'; message.className = 'message error'; return; }
+      if (!/[a-z]/.test(newPassword)) { message.textContent = 'Must contain at least 1 lowercase letter.'; message.className = 'message error'; return; }
+      if (!/[0-9]/.test(newPassword)) { message.textContent = 'Must contain at least 1 number.'; message.className = 'message error'; return; }
+
+      btn.disabled = true; btn.textContent = 'Updating...';
+
+      const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${access_token}`
+        },
+        body: JSON.stringify({ password: newPassword })
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        message.textContent = 'Password updated! Redirecting to login...';
+        message.className = 'message success';
+        btn.textContent = 'Done!';
+        setTimeout(() => { window.location.href = '/app'; }, 2000);
+      } else {
+        message.textContent = data.msg || data.error_description || 'Something went wrong. Try requesting a new reset link.';
+        message.className = 'message error';
+        btn.disabled = false; btn.textContent = 'Update Password';
+      }
+    }
+  </script>
+</body>
+</html>
