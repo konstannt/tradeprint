@@ -1484,31 +1484,79 @@ calNotesCache = await notesRes.json(); if (!Array.isArray(calNotesCache)) calNot
       return empty ? '' : raw;
     }
 
-    async function saveDayNoteNow(dateStr, content) {
-      if (!dateStr) return;
-      const payload = { user_id: user.id, date: dateStr, content };
-      if (selectedNoteId) {
-        if (!content) { await fetch(`${SUPABASE_URL}/rest/v1/day_notes?id=eq.${selectedNoteId}`, { method: 'DELETE', headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } }); selectedNoteId = null; }
-        else { await fetch(`${SUPABASE_URL}/rest/v1/day_notes?id=eq.${selectedNoteId}`, { method: 'PATCH', headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' }, body: JSON.stringify(payload) }); }
-        return;
-      }
-      if (!content) return;
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/day_notes`, { method: 'POST', headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' }, body: JSON.stringify(payload) });
-      const data = await res.json();
-      if (data && data[0]?.id) selectedNoteId = data[0].id;
+    async function saveDayNoteNow(dateStr, content, noteId = selectedNoteId) {
+  if (!dateStr) return null;
+
+  const payload = { user_id: user.id, date: dateStr, content };
+
+  if (noteId) {
+    if (!content) {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/day_notes?id=eq.${noteId}`, {
+        method: 'DELETE',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (res.ok && selectedNoteId === noteId) selectedNoteId = null;
+      return null;
     }
 
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/day_notes?id=eq.${noteId}`, {
+      method: 'PATCH',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    return res.ok ? noteId : null;
+  }
+
+  if (!content) return null;
+
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/day_notes?on_conflict=user_id,date`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'resolution=merge-duplicates,return=representation'
+    },
+    body: JSON.stringify(payload)
+  });
+
+  const data = await res.json();
+
+  if (data && data[0]?.id) {
+    selectedNoteId = data[0].id;
+    return data[0].id;
+  }
+
+  return null;
+}
+
     async function closeDayModal() {
-      clearTimeout(noteAutosaveTimer);
-      const dateToSave = selectedDate;
-      const content = getNoteContent();
-      document.getElementById('dayModal').classList.remove('active');
-      selectedDate = null;
-      selectedNoteId = null;
-      await saveDayNoteNow(dateToSave, content);
-      invalidateCalendarCacheForDate(dateToSave);
-      loadCalendarData();
-    }
+  clearTimeout(noteAutosaveTimer);
+
+  const dateToSave = selectedDate;
+  const noteIdToSave = selectedNoteId;
+  const content = getNoteContent();
+
+  document.getElementById('dayModal').classList.remove('active');
+
+  await saveDayNoteNow(dateToSave, content, noteIdToSave);
+
+  selectedDate = null;
+  selectedNoteId = null;
+
+  invalidateCalendarCacheForDate(dateToSave);
+  await loadCalendarData();
+}
 
     async function loadDayTrades() {
       const res = await fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}&date=eq.${selectedDate}&select=*,strategies(name)&order=created_at.asc`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } });
@@ -1535,7 +1583,7 @@ calNotesCache = await notesRes.json(); if (!Array.isArray(calNotesCache)) calNot
         const timeDisplay = t.trade_time ? formatDisplayTime(t.trade_time) : null;
         return `<div class="trade-feed-item">
           <div class="trade-feed-left">
-            <div class="trade-feed-strat">${t.asset ? `${t.asset} · ` : ''}${t.strategies?.name || 'Unknown'} — <span style="color:${t.result==='win'?'var(--success)':t.result==='loss'?'var(--danger)':'var(--text2)'};text-transform:capitalize;">${t.result}</span></div>
+            <div class="trade-feed-strat">${t.strategies?.name || 'Unknown'}${t.asset ? ` · ${t.asset}` : ''} — <span style="color:${t.result==='win'?'var(--success)':t.result==='loss'?'var(--danger)':'var(--text2)'};text-transform:capitalize;">${t.result}</span></div>
             <div class="trade-feed-detail">
               ${t.confluences_used?.length ? `${t.confluences_used.length} confluences` : 'No confluences'}${t.actual_rr ? ` · ${t.actual_rr}R` : ''}${timeDisplay ? ` · ${timeDisplay}` : ''}${!t.followed_rules ? ' · <span style="color:var(--danger);">Rules broken</span>' : ''}
             </div>
