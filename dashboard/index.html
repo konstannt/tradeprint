@@ -4180,8 +4180,17 @@ function startNotePointer(e) {
   noteDrag.moved = false;
   noteDrag.startX = e.clientX;
   noteDrag.startY = e.clientY;
+  noteDrag.pointerType = e.pointerType;
 
   if (isTouch && !isHandleZone) {
+    return;
+  }
+
+  if (!isTouch) {
+    noteDrag.active = true;
+    item.classList.add('dragging');
+    item.setPointerCapture?.(e.pointerId);
+    e.preventDefault();
     return;
   }
 
@@ -4190,20 +4199,21 @@ function startNotePointer(e) {
     item.classList.add('dragging');
     item.setPointerCapture?.(e.pointerId);
 
-    if (navigator.vibrate && isTouch) {
+    if (navigator.vibrate) {
       navigator.vibrate(12);
     }
-  }, isTouch ? 360 : 180);
+  }, 360);
 }
 
 function moveNotePointer(e) {
   if (!noteDrag.started) return;
 
+  const isTouch = noteDrag.pointerType === 'touch';
   const dx = Math.abs(e.clientX - (noteDrag.startX || e.clientX));
   const dy = Math.abs(e.clientY - (noteDrag.startY || e.clientY));
 
   if (!noteDrag.active) {
-    if (dy > 12 || dx > 12) {
+    if (isTouch && (dy > 12 || dx > 12)) {
       clearTimeout(noteDrag.timer);
       noteDrag.started = false;
     }
@@ -4245,9 +4255,10 @@ async function endNotePointer() {
 
     noteDrag.active = false;
   noteDrag.started = false;
-  noteDrag.pointerId = null;
+    noteDrag.pointerId = null;
   noteDrag.startX = null;
   noteDrag.startY = null;
+  noteDrag.pointerType = null;
 
   if (wasDragging) {
     applyNoteDomOrder();
