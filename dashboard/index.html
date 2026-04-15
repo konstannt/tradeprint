@@ -798,7 +798,17 @@
     .notes-delete-btn:hover { color: var(--danger); }
     .note-title-input { width: 100%; background: none; border: none; outline: none; font-size: 32px; font-weight: 800; color: var(--text); font-family: inherit; padding: 28px 36px 12px; letter-spacing: -0.5px; }
     .note-title-input::placeholder { color: var(--text2); }
-    .note-body-editor { flex: 1; overflow-y: auto; padding: 4px 36px 40px; font-size: 16px; line-height: 1.8; color: var(--text); outline: none; cursor: text; }
+    .note-body-editor {
+  flex: 0 0 auto;
+  min-height: calc(100vh - 260px);
+  overflow: visible;
+  padding: 4px 36px 40px;
+  font-size: 16px;
+  line-height: 1.8;
+  color: var(--text);
+  outline: none;
+  cursor: text;
+}
     .note-body-editor:empty:before { content: attr(placeholder); color: var(--text2); pointer-events: none; }
     .note-body-editor hr { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
     .note-body-editor img { max-width: 100%; border-radius: 8px; margin: 8px 0; display: block; cursor: zoom-in; }
@@ -1663,7 +1673,7 @@
             <span>📝</span>
             Select a note or create a new one
           </div>
-          <div id="notesEditorInner" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
+          <div id="notesEditorInner" style="display:none;flex-direction:column;flex:1;min-height:0;overflow-y:auto;">
             <div class="notes-top-bar">
               <button class="notes-format-btn" data-ncmd="bold" onclick="notesFormat('bold')"><b>B</b></button>
               <button class="notes-format-btn" data-ncmd="italic" onclick="notesFormat('italic')"><i>I</i></button>
