@@ -1096,103 +1096,102 @@
     </div>
   </div>
 
-  <!-- MAIN -->
+    <!-- MAIN -->
   <div class="main">
     <div class="page active" id="page-dashboard">
-  <div class="page-header">
-  <div><h1>Trades</h1><p>Every trade you've logged.</p></div>
-  <div class="page-header-actions">
-    <div id="tradesAccountControls"></div>
-    <button class="btn-primary" onclick="openLogTradeFromPage()">
-      <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      Log Trade
-    </button>
-  </div>
-</div>
-      <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      Log Trade
-    </button>
-  </div>
-
-  <div class="stats-grid" id="dashboardStatsGrid">
-    <div class="stat-card"><div class="stat-label">Total Trades</div><div class="stat-value">—</div></div>
-    <div class="stat-card"><div class="stat-label">Win Rate</div><div class="stat-value">—</div></div>
-    <div class="stat-card"><div class="stat-label">Total PNL</div><div class="stat-value">—</div></div>
-    <div class="stat-card"><div class="stat-label">Avg R:R</div><div class="stat-value">—</div></div>
-  </div>
-
-  <div class="dashboard-layout">
-    <div class="dashboard-top-row">
-      <div class="dashboard-panel">
-        <div class="dashboard-panel-title">Current Focus</div>
-        <div class="dashboard-focus">
-          <div class="dashboard-focus-item">
-            <div class="dashboard-focus-label">Today</div>
-            <div class="dashboard-focus-value" id="dashTodayPnl">—</div>
-            <div class="dashboard-focus-sub" id="dashTodayTrades">No trades today</div>
-          </div>
-          <div class="dashboard-focus-item">
-            <div class="dashboard-focus-label">This Week</div>
-            <div class="dashboard-focus-value" id="dashWeekPnl">—</div>
-            <div class="dashboard-focus-sub" id="dashWeekStats">No trades this week</div>
-          </div>
-          <div class="dashboard-focus-item">
-            <div class="dashboard-focus-label">This Month</div>
-            <div class="dashboard-focus-value" id="dashMonthPnl">—</div>
-            <div class="dashboard-focus-sub" id="dashMonthStats">No trades this month</div>
-          </div>
+      <div class="page-header">
+        <div>
+          <h1>Dashboard</h1>
+          <p>Your trading snapshot, updated from every logged trade.</p>
+        </div>
+        <div class="page-header-actions">
+          <div id="dashboardAccountControls"></div>
+          <button class="btn-primary" onclick="openLogTradeFromPage()">
+            <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Log Trade
+          </button>
         </div>
       </div>
 
-      <div class="dashboard-panel">
-        <div class="dashboard-panel-title">Rule Discipline</div>
-        <div class="dashboard-focus-value" id="dashRuleRate">—</div>
-        <div class="dashboard-rule-meter"><div class="dashboard-rule-fill" id="dashRuleFill"></div></div>
-        <div class="dashboard-focus-sub" id="dashRuleSub">No rule data yet</div>
-      </div>
-    </div>
-
-    <div class="dashboard-panel">
-      <div class="dashboard-panel-title">Last 14 Days PNL</div>
-      <div class="dashboard-bars" id="dashboardBars"></div>
-      <div class="dashboard-bar-labels"><span>14 days ago</span><span>Today</span></div>
-    </div>
-
-    <div class="dashboard-grid-2">
-      <div class="dashboard-panel">
-        <div class="dashboard-panel-title">Top Strategies</div>
-        <div class="dashboard-list" id="dashboardStrategies"></div>
+      <div class="stats-grid" id="dashboardStatsGrid">
+        <div class="stat-card"><div class="stat-label">Total Trades</div><div class="stat-value">—</div></div>
+        <div class="stat-card"><div class="stat-label">Win Rate</div><div class="stat-value">—</div></div>
+        <div class="stat-card"><div class="stat-label">Total PNL</div><div class="stat-value">—</div></div>
+        <div class="stat-card"><div class="stat-label">Avg R:R</div><div class="stat-value">—</div></div>
       </div>
 
-      <div class="dashboard-panel">
-        <div class="dashboard-panel-title">Recent Trades</div>
-        <div class="dashboard-list" id="dashboardRecentTrades"></div>
-      </div>
-    </div>
+      <div class="dashboard-layout">
+        <div class="dashboard-top-row">
+          <div class="dashboard-panel">
+            <div class="dashboard-panel-title">Current Focus</div>
+            <div class="dashboard-focus">
+              <div class="dashboard-focus-item">
+                <div class="dashboard-focus-label">Today</div>
+                <div class="dashboard-focus-value" id="dashTodayPnl">—</div>
+                <div class="dashboard-focus-sub" id="dashTodayTrades">No trades today</div>
+              </div>
+              <div class="dashboard-focus-item">
+                <div class="dashboard-focus-label">This Week</div>
+                <div class="dashboard-focus-value" id="dashWeekPnl">—</div>
+                <div class="dashboard-focus-sub" id="dashWeekStats">No trades this week</div>
+              </div>
+              <div class="dashboard-focus-item">
+                <div class="dashboard-focus-label">This Month</div>
+                <div class="dashboard-focus-value" id="dashMonthPnl">—</div>
+                <div class="dashboard-focus-sub" id="dashMonthStats">No trades this month</div>
+              </div>
+            </div>
+          </div>
 
-    <div class="dashboard-panel">
-      <div class="dashboard-panel-title">Quick Actions</div>
-      <div class="dashboard-actions">
-        <button class="dashboard-action" onclick="openLogTradeFromPage()">
-          <div class="dashboard-action-title">Log Trade</div>
-          <div class="dashboard-action-sub">Add a trade from anywhere.</div>
-        </button>
-        <button class="dashboard-action" onclick="showPage('calendar', document.querySelectorAll('.nav-item')[2])">
-          <div class="dashboard-action-title">Open Calendar</div>
-          <div class="dashboard-action-sub">Review daily and weekly performance.</div>
-        </button>
-        <button class="dashboard-action" onclick="showPage('trades', document.querySelectorAll('.nav-item')[3])">
-          <div class="dashboard-action-title">View Trades</div>
-          <div class="dashboard-action-sub">Filter, edit, and review your log.</div>
-        </button>
-        <button class="dashboard-action" onclick="showPage('notes', document.querySelectorAll('.nav-item')[4])">
-          <div class="dashboard-action-title">Open Notes</div>
-          <div class="dashboard-action-sub">Write reviews and insert trade cards.</div>
-        </button>
+          <div class="dashboard-panel">
+            <div class="dashboard-panel-title">Rule Discipline</div>
+            <div class="dashboard-focus-value" id="dashRuleRate">—</div>
+            <div class="dashboard-rule-meter"><div class="dashboard-rule-fill" id="dashRuleFill"></div></div>
+            <div class="dashboard-focus-sub" id="dashRuleSub">No rule data yet</div>
+          </div>
+        </div>
+
+        <div class="dashboard-panel">
+          <div class="dashboard-panel-title">Last 14 Days PNL</div>
+          <div class="dashboard-bars" id="dashboardBars"></div>
+          <div class="dashboard-bar-labels"><span>14 days ago</span><span>Today</span></div>
+        </div>
+
+        <div class="dashboard-grid-2">
+          <div class="dashboard-panel">
+            <div class="dashboard-panel-title">Top Strategies</div>
+            <div class="dashboard-list" id="dashboardStrategies"></div>
+          </div>
+
+          <div class="dashboard-panel">
+            <div class="dashboard-panel-title">Recent Trades</div>
+            <div class="dashboard-list" id="dashboardRecentTrades"></div>
+          </div>
+        </div>
+
+        <div class="dashboard-panel">
+          <div class="dashboard-panel-title">Quick Actions</div>
+          <div class="dashboard-actions">
+            <button class="dashboard-action" onclick="openLogTradeFromPage()">
+              <div class="dashboard-action-title">Log Trade</div>
+              <div class="dashboard-action-sub">Add a trade from anywhere.</div>
+            </button>
+            <button class="dashboard-action" onclick="showPage('calendar', document.querySelectorAll('.nav-item')[2])">
+              <div class="dashboard-action-title">Open Calendar</div>
+              <div class="dashboard-action-sub">Review daily and weekly performance.</div>
+            </button>
+            <button class="dashboard-action" onclick="showPage('trades', document.querySelectorAll('.nav-item')[3])">
+              <div class="dashboard-action-title">View Trades</div>
+              <div class="dashboard-action-sub">Filter, edit, and review your log.</div>
+            </button>
+            <button class="dashboard-action" onclick="showPage('notes', document.querySelectorAll('.nav-item')[4])">
+              <div class="dashboard-action-title">Open Notes</div>
+              <div class="dashboard-action-sub">Write reviews and insert trade cards.</div>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-</div>
 
     <div class="page" id="page-strategies">
       <div class="page-header">
@@ -1207,21 +1206,24 @@
       </div>
     </div>
 
-    <div class="page" id="page-calendar">
+        <div class="page" id="page-calendar">
       <div class="cal-header">
         <div class="cal-nav">
           <button class="cal-nav-btn" onclick="changeMonth(-1)"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
           <div class="cal-month-label" id="calMonthLabel">April 2026</div>
           <button class="cal-nav-btn" onclick="changeMonth(1)" id="calNextBtn"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
         </div>
+
         <div class="cal-header-right">
-  <div id="calendarAccountControls"></div>
-  <div class="cal-monthly-stats">
-    <div class="cal-stat"><div class="cal-stat-label">Monthly PNL</div><div class="cal-stat-value" id="calMonthlyPnl">—</div></div>
-    <div class="cal-stat"><div class="cal-stat-label">Trades</div><div class="cal-stat-value" id="calMonthlyTrades">—</div></div>
-    <div class="cal-stat"><div class="cal-stat-label">Win Rate</div><div class="cal-stat-value" id="calMonthlyWinRate">—</div></div>
-  </div>
-</div>
+          <div id="calendarAccountControls"></div>
+          <div class="cal-monthly-stats">
+            <div class="cal-stat"><div class="cal-stat-label">Monthly PNL</div><div class="cal-stat-value" id="calMonthlyPnl">—</div></div>
+            <div class="cal-stat"><div class="cal-stat-label">Trades</div><div class="cal-stat-value" id="calMonthlyTrades">—</div></div>
+            <div class="cal-stat"><div class="cal-stat-label">Win Rate</div><div class="cal-stat-value" id="calMonthlyWinRate">—</div></div>
+          </div>
+        </div>
+      </div>
+
       <div class="cal-grid-wrapper">
         <div class="cal-day-headers">
           <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div class="cal-week-header">Week</div>
@@ -1231,12 +1233,15 @@
     </div>
 
     <div class="page" id="page-trades">
-      <div class="page-header">
+            <div class="page-header">
         <div><h1>Trades</h1><p>Every trade you've logged.</p></div>
-        <button class="btn-primary" onclick="openLogTradeFromPage()">
-          <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Log Trade
-        </button>
+        <div class="page-header-actions">
+          <div id="tradesAccountControls"></div>
+          <button class="btn-primary" onclick="openLogTradeFromPage()">
+            <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Log Trade
+          </button>
+        </div>
       </div>
       <div class="stats-grid" id="tradesStatsGrid" style="margin-bottom:24px;"></div>
       <div class="trades-filters">
