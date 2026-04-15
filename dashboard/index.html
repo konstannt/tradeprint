@@ -772,6 +772,10 @@
   border-top: 2px solid var(--accent);
 }
 
+.note-drag-handle {
+  display: none;
+}
+    
 .notes-sort-hint {
   padding: 8px 16px;
   font-size: 11px;
@@ -973,6 +977,29 @@
   .note-list-item.dragging .note-drag-handle {
     cursor: grabbing;
   }
+
+  .note-drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  right: 8px;
+  top: 0;
+  bottom: 0;
+  width: 44px;
+  color: var(--text2);
+  font-size: 18px;
+  line-height: 1;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.note-list-item.dragging .note-drag-handle {
+  cursor: grabbing;
+}
 }
       
       .notes-list {
