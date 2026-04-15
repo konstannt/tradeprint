@@ -1902,13 +1902,39 @@ function handleDayModalClick(e) {
     }
 
     async function deleteTrade(id) {
-      if (!confirm('Delete this trade?')) return;
-      const dateToRefresh = selectedDate;
-      await fetch(`${SUPABASE_URL}/rest/v1/trades?id=eq.${id}`, { method: 'DELETE', headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } });
-      invalidateCalendarCacheForDate(dateToRefresh);
-      await loadDayTrades();
-      await loadCalendarData();
+  if (!confirm('Delete this trade?')) return;
+
+  const dateToRefresh = selectedDate;
+
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/trades?id=eq.${id}`, {
+    method: 'DELETE',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`
     }
+  });
+
+  if (!res.ok) return;
+
+  invalidateCalendarCacheForDate(dateToRefresh);
+
+  allTrades = allTrades.filter(t => t.id !== id);
+  filterTrades();
+
+  const insertTradeModal = document.getElementById('insertTradeModal');
+  if (insertTradeModal?.classList.contains('active')) {
+    populateInsertTradeFilters();
+    renderInsertTradeList();
+  }
+
+  await Promise.all([
+    loadDayTrades(),
+    loadCalendarData(),
+    loadTrades()
+  ]);
+
+  pageLoaded.trades = true;
+}
 
     function applyDayNote(note) {
       const editor = document.getElementById('noteEditor');
@@ -2066,29 +2092,87 @@ function handleDayModalClick(e) {
     }
 
     async function saveTrade() {
-      const strategyId = document.getElementById('tradeStrategy').value;
-      const result = document.getElementById('tradeResult').value;
-      let pnl = parseFloat(document.getElementById('tradePnl').value) || 0;
-      if (result === 'loss' && pnl > 0) pnl = -pnl;
-      if (result === 'win' && pnl < 0) pnl = Math.abs(pnl);
-      const asset = document.getElementById('tradeAsset').value.trim().toUpperCase();
-      const actualRR = parseFloat(document.getElementById('tradeActualRR').value) || null;
-      const notes = document.getElementById('tradeNotes').value.trim();
-      const followedRules = document.querySelector('input[name="followedRules"]:checked').value === 'true';
-      const msg = document.getElementById('tradeMsg');
-      const confluencesUsed = Array.from(document.querySelectorAll('#confluenceChecklist input:checked')).map(cb => cb.value);
-      const tradeTime = parseTradeTime(document.getElementById('tradeTime').value, document.getElementById('tradeAmPm').value);
-      if (!strategyId) { msg.textContent = 'Please select a strategy.'; msg.className = 'modal-msg error'; return; }
-      const tradeDate = logFromPage ? document.getElementById('tradeDate').value : selectedDate;
-      if (!tradeDate) { msg.textContent = 'Please select a date.'; msg.className = 'modal-msg error'; return; }
-      const payload = { user_id: user.id, strategy_id: strategyId, date: tradeDate, result, pnl, asset, actual_rr: actualRR, notes, followed_rules: followedRules, confluences_used: confluencesUsed, trade_time: tradeTime };
-      let res;
-      if (editingTradeId) {
-        res = await fetch(`${SUPABASE_URL}/rest/v1/trades?id=eq.${editingTradeId}`, { method: 'PATCH', headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' }, body: JSON.stringify(payload) });
-      } else {
-        res = await fetch(`${SUPABASE_URL}/rest/v1/trades`, { method: 'POST', headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' }, body: JSON.stringify(payload) });
-      }
-      if (res.ok) {
+  const strategyId = document.getElementById('tradeStrategy').value;
+  const result = document.getElementById('tradeResult').value;
+  let pnl = parseFloat(document.getElementById('tradePnl').value) || 0;
+
+  if (result === 'loss' && pnl > 0) pnl = -pnl;
+  if (result === 'win' && pnl < 0) pnl = Math.abs(pnl);
+
+  const asset = document.getElementById('tradeAsset').value.trim().toUpperCase();
+  const actualRR = parseFloat(document.getElementById('tradeActualRR').value) || null;
+  const notes = document.getElementById('tradeNotes').value.trim();
+  const followedRules = document.querySelector('input[name="followedRules"]:checked').value === 'true';
+  const msg = document.getElementById('tradeMsg');
+  const saveBtn = document.getElementById('saveTradeBtn');
+  const confluencesUsed = Array.from(document.querySelectorAll('#confluenceChecklist input:checked')).map(cb => cb.value);
+  const tradeTime = parseTradeTime(document.getElementById('tradeTime').value, document.getElementById('tradeAmPm').value);
+
+  if (!strategyId) {
+    msg.textContent = 'Please select a strategy.';
+    msg.className = 'modal-msg error';
+    return;
+  }
+
+  const tradeDate = logFromPage ? document.getElementById('tradeDate').value : selectedDate;
+
+  if (!tradeDate) {
+    msg.textContent = 'Please select a date.';
+    msg.className = 'modal-msg error';
+    return;
+  }
+
+  saveBtn.disabled = true;
+  saveBtn.textContent = editingTradeId ? 'Updating...' : 'Saving...';
+
+  const payload = {
+    user_id: user.id,
+    strategy_id: strategyId,
+    date: tradeDate,
+    result,
+    pnl,
+    asset,
+    actual_rr: actualRR,
+    notes,
+    followed_rules: followedRules,
+    confluences_used: confluencesUsed,
+    trade_time: tradeTime
+  };
+
+  let res;
+
+  if (editingTradeId) {
+    res = await fetch(`${SUPABASE_URL}/rest/v1/trades?id=eq.${editingTradeId}`, {
+      method: 'PATCH',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify(payload)
+    });
+  } else {
+    res = await fetch(`${SUPABASE_URL}/rest/v1/trades`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify(payload)
+    });
+  }
+
+  if (!res.ok) {
+    msg.textContent = 'Could not save trade.';
+    msg.className = 'modal-msg error';
+    saveBtn.disabled = false;
+    saveBtn.textContent = editingTradeId ? 'Update Trade' : 'Save Trade';
+    return;
+  }
+
   const wasFromPage = logFromPage;
   const savedDate = tradeDate;
   const oldDate = editingTradeOriginalDate;
@@ -2099,21 +2183,27 @@ function handleDayModalClick(e) {
   invalidateCalendarCacheForDate(savedDate);
   invalidateCalendarCacheForDate(oldDate);
 
-  // Any trade save can affect the Trades page, so refresh that data too.
-  await loadTrades();
+  if (wasFromPage) {
+    await Promise.all([
+      loadTrades(),
+      loadCalendarData()
+    ]);
+  } else {
+    await Promise.all([
+      loadTrades(),
+      loadDayTrades(),
+      loadCalendarData()
+    ]);
+  }
+
   pageLoaded.trades = true;
 
-  if (wasFromPage) {
-    await loadCalendarData();
-  } else {
-    await loadDayTrades();
-    await loadCalendarData();
+  const insertTradeModal = document.getElementById('insertTradeModal');
+  if (insertTradeModal?.classList.contains('active')) {
+    populateInsertTradeFilters();
+    renderInsertTradeList();
   }
-} else {
-  msg.textContent = 'Could not save trade.';
-  msg.className = 'modal-msg error';
 }
-    }
 
     function changeMonth(dir) {
       calMonth += dir;
@@ -2251,8 +2341,16 @@ function handleDayModalClick(e) {
       await fetch(`${SUPABASE_URL}/rest/v1/trades?id=eq.${id}`, { method: 'DELETE', headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } });
       invalidateCalendarCacheForDate(trade?.date);
       allTrades = allTrades.filter(t => t.id !== id);
-      filterTrades();
-      await loadCalendarData();
+filterTrades();
+
+const insertTradeModal = document.getElementById('insertTradeModal');
+if (insertTradeModal?.classList.contains('active')) {
+  populateInsertTradeFilters();
+  renderInsertTradeList();
+}
+
+await loadCalendarData();
+
     }
 
 let savedNotesRange = null;
