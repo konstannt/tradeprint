@@ -181,22 +181,96 @@
 
 @media (max-width: 768px) {
   .page-header {
-    align-items: flex-start;
-    gap: 16px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 14px;
   }
 
-  .page-header-actions,
-  .cal-header-right,
-  .account-controls {
+  .page-header h1 {
+    line-height: 1.05;
+  }
+
+  .page-header p {
+    max-width: 180px;
+    line-height: 1.35;
+  }
+
+  .page-header-actions {
+    width: auto;
+    max-width: calc(100vw - 190px);
+    margin-left: auto;
+    justify-content: flex-end;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .page-header-actions > .btn-primary {
+    margin-left: auto;
+  }
+
+  #dashboardAccountControls,
+  #tradesAccountControls {
+    width: 100%;
+  }
+
+  #dashboardAccountControls .account-controls,
+  #tradesAccountControls .account-controls {
+    width: 100%;
+    justify-content: flex-end;
+    flex-wrap: nowrap;
+  }
+
+  .account-select {
+    width: clamp(150px, 43vw, 220px);
+    min-width: 0;
+    max-width: 100%;
+    padding-left: 12px;
+    padding-right: 28px;
+    text-overflow: ellipsis;
+  }
+
+  .account-manage-btn {
+    flex: 0 0 auto;
+  }
+
+  .cal-header-right {
     width: 100%;
     justify-content: flex-start;
   }
 
-  .account-select {
-    flex: 1;
-    min-width: 0;
+  .cal-header-right .account-controls {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
   }
 }
+
+@media (max-width: 390px) {
+  .page-header {
+    grid-template-columns: 1fr;
+  }
+
+  .page-header p {
+    max-width: none;
+  }
+
+  .page-header-actions {
+    width: 100%;
+    max-width: none;
+    justify-content: flex-end;
+  }
+
+  #dashboardAccountControls .account-controls,
+  #tradesAccountControls .account-controls {
+    justify-content: flex-end;
+  }
+
+  .account-select {
+    width: clamp(145px, 52vw, 210px);
+  }
+}
+    
     .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; margin-bottom: 32px; }
     .stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
     .stat-label { font-size: 11px; color: var(--text2); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
