@@ -1033,7 +1033,7 @@ applyAuthRedirectIfPresent();
     let user = null;
     try { user = JSON.parse(localStorage.getItem('tp_user') || 'null'); } catch(e) { user = null; }
 
-    const allowedEmails = ['dean.tsi.198@gmail.com','alexiosct@gmail.com','mateobarrios722@gmail.com','konstant.791@gmail.com','bashalexios@gmail.com','tooslow764@gmail.com','Ethanlampson@gmail.com'];
+    const allowedEmails = ['dean.tsi.198@gmail.com','alexiosct@gmail.com','mateobarrios722@gmail.com','ktsiomplikas@gmail.com','bashalexios@gmail.com','tooslow764@gmail.com','Ethanlampson@gmail.com'];
     if (!token || !user || !allowedEmails.includes(user.email)) { window.location.href = '/app'; }
 
     if (localStorage.getItem('tp_theme') === 'light') {
