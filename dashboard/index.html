@@ -931,10 +931,61 @@
     .float-btn:hover { background: var(--border); color: var(--text); }
     .float-btn.active { background: var(--accent); color: #fff; }
     @media (max-width: 768px) {
-      .notes-layout { flex-direction: column; height: auto; min-height: calc(100vh - 100px); }
-      .notes-sidebar { width: 100%; height: 200px; border-right: none; border-bottom: 1px solid var(--border); }
-      .note-title-input { padding: 16px 16px 8px; font-size: 24px; }
-      .note-body-editor { padding: 4px 16px 24px; }
+      .notes-layout {
+        flex-direction: column;
+        height: calc(100vh - 100px);
+        min-height: calc(100vh - 100px);
+      }
+
+      .notes-sidebar {
+        width: 100%;
+        height: 220px;
+        min-height: 220px;
+        max-height: 220px;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .notes-list {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+      }
+
+      .note-list-item {
+        position: relative;
+        padding-right: 48px;
+        touch-action: pan-y;
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-touch-callout: none;
+      }
+
+      .note-list-item::after {
+        content: '≡';
+        position: absolute;
+        right: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text2);
+        font-size: 18px;
+        line-height: 1;
+      }
+
+      .note-list-item.dragging {
+        touch-action: none;
+      }
+
+      .note-title-input {
+        padding: 16px 16px 8px;
+        font-size: 24px;
+      }
+
+      .note-body-editor {
+        padding: 4px 16px 24px;
+      }
     }
     .calc-layout {
   width: 100%;
@@ -4118,25 +4169,44 @@ function attachNoteDragHandlers() {
 function startNotePointer(e) {
   const item = e.currentTarget;
   const noteId = item.dataset.noteId;
+  const rect = item.getBoundingClientRect();
+  const isTouch = e.pointerType === 'touch';
+  const isHandleZone = e.clientX >= rect.right - 56;
 
   noteDrag.active = false;
   noteDrag.started = true;
   noteDrag.noteId = noteId;
   noteDrag.pointerId = e.pointerId;
   noteDrag.moved = false;
+  noteDrag.startX = e.clientX;
+  noteDrag.startY = e.clientY;
+
+  if (isTouch && !isHandleZone) {
+    return;
+  }
 
   noteDrag.timer = setTimeout(() => {
     noteDrag.active = true;
     item.classList.add('dragging');
     item.setPointerCapture?.(e.pointerId);
-  }, 220);
+
+    if (navigator.vibrate && isTouch) {
+      navigator.vibrate(12);
+    }
+  }, isTouch ? 360 : 180);
 }
 
 function moveNotePointer(e) {
   if (!noteDrag.started) return;
 
+  const dx = Math.abs(e.clientX - (noteDrag.startX || e.clientX));
+  const dy = Math.abs(e.clientY - (noteDrag.startY || e.clientY));
+
   if (!noteDrag.active) {
-    noteDrag.moved = true;
+    if (dy > 12 || dx > 12) {
+      clearTimeout(noteDrag.timer);
+      noteDrag.started = false;
+    }
     return;
   }
 
@@ -4173,9 +4243,11 @@ async function endNotePointer() {
     el.classList.remove('dragging', 'drag-over');
   });
 
-  noteDrag.active = false;
+    noteDrag.active = false;
   noteDrag.started = false;
   noteDrag.pointerId = null;
+  noteDrag.startX = null;
+  noteDrag.startY = null;
 
   if (wasDragging) {
     applyNoteDomOrder();
