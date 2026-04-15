@@ -1100,7 +1100,6 @@ applyAuthRedirectIfPresent();
     }
 
     async function loadProfile() {
-      async function loadProfile() {
   if (!user) return;
 
   try {
@@ -1129,34 +1128,50 @@ applyAuthRedirectIfPresent();
   }
 
   const fallbackDisplay = user.email?.split('@')[0] || '?';
-      document.getElementById('sidebarUsername').textContent = fallbackDisplay;
-      document.getElementById('sidebarAvatar').textContent = fallbackDisplay[0].toUpperCase();
-      document.getElementById('settingsAvatar').textContent = fallbackDisplay[0].toUpperCase();
-      document.getElementById('emailInput').value = user.email || '';
-      let data = [];
-      try {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${user.id}&select=*`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } });
-        data = await res.json();
-      } catch(err) { data = []; }
-      if (data && data[0]) {
-        const p = data[0];
-        const display = p.username || user.email?.split('@')[0] || '?';
-        document.getElementById('sidebarUsername').textContent = display;
-        document.getElementById('usernameInput').value = p.username || '';
-        if (p.avatar_url) {
-          const imgTag = `<img src="${p.avatar_url}" alt="avatar"/>`;
-          document.getElementById('sidebarAvatar').innerHTML = imgTag;
-          document.getElementById('settingsAvatar').innerHTML = imgTag;
-        } else {
-          document.getElementById('sidebarAvatar').textContent = display[0].toUpperCase();
-          document.getElementById('settingsAvatar').textContent = display[0].toUpperCase();
-        }
+
+  document.getElementById('sidebarUsername').textContent = fallbackDisplay;
+  document.getElementById('sidebarAvatar').textContent = fallbackDisplay[0].toUpperCase();
+  document.getElementById('settingsAvatar').textContent = fallbackDisplay[0].toUpperCase();
+  document.getElementById('emailInput').value = user.email || '';
+
+  let data = [];
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${user.id}&select=*`, {
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${token}`
       }
-      document.getElementById('defaultTicker').value = localStorage.getItem('tp_ticker') || 'MNQ';
-      document.getElementById('defaultContracts').value = localStorage.getItem('tp_contracts') || '';
-      document.getElementById('defaultRR').value = localStorage.getItem('tp_rr') || '';
+    });
+
+    data = await res.json();
+  } catch (err) {
+    data = [];
+  }
+
+  if (data && data[0]) {
+    const p = data[0];
+    const display = p.username || user.email?.split('@')[0] || '?';
+
+    document.getElementById('sidebarUsername').textContent = display;
+    document.getElementById('usernameInput').value = p.username || '';
+
+    if (p.avatar_url) {
+      const imgTag = `<img src="${p.avatar_url}" alt="avatar"/>`;
+      document.getElementById('sidebarAvatar').innerHTML = imgTag;
+      document.getElementById('settingsAvatar').innerHTML = imgTag;
+    } else {
+      document.getElementById('sidebarAvatar').textContent = display[0].toUpperCase();
+      document.getElementById('settingsAvatar').textContent = display[0].toUpperCase();
     }
-    loadProfile();
+  }
+
+  document.getElementById('defaultTicker').value = localStorage.getItem('tp_ticker') || 'MNQ';
+  document.getElementById('defaultContracts').value = localStorage.getItem('tp_contracts') || '';
+  document.getElementById('defaultRR').value = localStorage.getItem('tp_rr') || '';
+}
+
+loadProfile();
 
     setTimeout(() => {
       loadStrategies().then(() => { pageLoaded.strategies = true; }).catch(console.warn);
