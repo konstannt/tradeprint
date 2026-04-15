@@ -121,6 +121,95 @@
     const SUPABASE_URL = 'https://fpdedufotkmvjsvxdcmk.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_1Q8yInISuuD3HDWI7mVesQ_A-DSkCM7';
 
+    function getAuthHashParams() {
+  const hash = window.location.hash.replace(/^#/, '');
+  return new URLSearchParams(hash);
+}
+
+function handlePasswordRecoveryRedirect() {
+  const params = getAuthHashParams();
+  const accessToken = params.get('access_token');
+  const refreshToken = params.get('refresh_token');
+  const type = params.get('type');
+
+  if (type !== 'recovery' || !accessToken) return false;
+
+  localStorage.setItem('tp_token', accessToken);
+  if (refreshToken) localStorage.setItem('tp_refresh_token', refreshToken);
+
+  window.history.replaceState({}, document.title, window.location.pathname);
+  showResetPasswordForm(accessToken);
+
+  return true;
+}
+
+    function showResetPasswordForm(accessToken) {
+  document.body.innerHTML = `
+    <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0a0a0a;color:#fff;font-family:'Segoe UI',sans-serif;padding:20px;">
+      <div style="width:100%;max-width:420px;background:#111;border:1px solid #1e1e1e;border-radius:12px;padding:28px;">
+        <h1 style="font-size:22px;margin-bottom:8px;">Reset Password</h1>
+        <p style="font-size:14px;color:#888;margin-bottom:24px;">Enter your new password below.</p>
+
+        <label style="display:block;font-size:12px;color:#888;margin-bottom:8px;text-transform:uppercase;">New Password</label>
+        <input id="resetPasswordInput" type="password" placeholder="New password" style="width:100%;padding:12px 14px;border-radius:8px;border:1px solid #1e1e1e;background:#0a0a0a;color:#fff;margin-bottom:14px;outline:none;"/>
+
+        <label style="display:block;font-size:12px;color:#888;margin-bottom:8px;text-transform:uppercase;">Confirm Password</label>
+        <input id="resetPasswordConfirmInput" type="password" placeholder="Confirm password" style="width:100%;padding:12px 14px;border-radius:8px;border:1px solid #1e1e1e;background:#0a0a0a;color:#fff;margin-bottom:18px;outline:none;"/>
+
+        <button onclick="finishPasswordReset('${accessToken}')" style="width:100%;padding:12px 16px;border:none;border-radius:8px;background:#6366f1;color:#fff;font-weight:700;cursor:pointer;">Update Password</button>
+
+        <div id="resetPasswordMsg" style="font-size:13px;margin-top:14px;min-height:18px;"></div>
+      </div>
+    </div>
+  `;
+}
+
+    async function finishPasswordReset(accessToken) {
+  const password = document.getElementById('resetPasswordInput').value;
+  const confirm = document.getElementById('resetPasswordConfirmInput').value;
+  const msg = document.getElementById('resetPasswordMsg');
+
+  if (password !== confirm) {
+    msg.textContent = 'Passwords do not match.';
+    msg.style.color = '#ef4444';
+    return;
+  }
+
+  if (password.length < 6) {
+    msg.textContent = 'Password must be at least 6 characters.';
+    msg.style.color = '#ef4444';
+    return;
+  }
+
+  const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+    method: 'PUT',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ password })
+  });
+
+  if (res.ok) {
+    msg.textContent = 'Password updated. Redirecting...';
+    msg.style.color = '#22c55e';
+
+    setTimeout(() => {
+      window.location.href = '/dashboard';
+    }, 900);
+  } else {
+    msg.textContent = 'Could not update password.';
+    msg.style.color = '#ef4444';
+  }
+}
+
+    const isPasswordRecovery = handlePasswordRecoveryRedirect();
+
+if (!isPasswordRecovery) {
+  // your normal login/signup page startup code continues here
+}
+
     function switchTab(tab) {
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
@@ -212,11 +301,16 @@
       const message = document.getElementById('forgotMessage');
       if (!email) { message.textContent = 'Please enter your email.'; message.className = 'message error'; return; }
       btn.disabled = true; btn.textContent = 'Sending...';
-      const res = await fetch(`${SUPABASE_URL}/auth/v1/recover`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
-        body: JSON.stringify({ email })
-      });
+      const redirectTo = `${window.location.origin}/app`;
+
+const res = await fetch(`${SUPABASE_URL}/auth/v1/recover?redirect_to=${encodeURIComponent(redirectTo)}`, {
+  method: 'POST',
+  headers: {
+    'apikey': SUPABASE_KEY,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({ email })
+});
       message.textContent = "If an account exists for that email, a reset link is on its way.";
       message.className = 'message success';
       btn.textContent = 'Sent!';
