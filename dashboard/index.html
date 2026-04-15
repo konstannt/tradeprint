@@ -228,13 +228,25 @@
     flex-wrap: nowrap;
   }
 
-  .account-select {
-    width: clamp(150px, 43vw, 220px);
+    .account-select {
+    width: clamp(170px, 44vw, 230px);
     min-width: 0;
     max-width: 100%;
-    padding-left: 12px;
-    padding-right: 28px;
+    min-height: 56px;
+    height: 56px;
+    padding: 0 44px 0 18px;
+    font-size: 20px;
+    line-height: 1;
     text-overflow: ellipsis;
+  }
+
+  .account-manage-btn {
+    flex: 0 0 auto;
+    min-height: 56px;
+    height: 56px;
+    padding: 0 22px;
+    font-size: 20px;
+    line-height: 1;
   }
 
   .account-manage-btn {
@@ -273,10 +285,16 @@
     justify-content: flex-end;
   }
 
-  .account-select {
-    width: clamp(145px, 52vw, 210px);
+    .account-select {
+    width: clamp(170px, 52vw, 230px);
+    min-height: 56px;
+    height: 56px;
   }
-}
+
+  .account-manage-btn {
+    min-height: 56px;
+    height: 56px;
+  }
     
     .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; margin-bottom: 32px; }
     .stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
