@@ -946,6 +946,35 @@
         border-bottom: 1px solid var(--border);
       }
 
+.note-drag-handle {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .note-drag-handle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    right: 8px;
+    top: 0;
+    bottom: 0;
+    width: 44px;
+    color: var(--text2);
+    font-size: 18px;
+    line-height: 1;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  .note-list-item.dragging .note-drag-handle {
+    cursor: grabbing;
+  }
+}
+      
       .notes-list {
         flex: 1;
         min-height: 0;
@@ -961,17 +990,6 @@
         user-select: none;
         -webkit-user-select: none;
         -webkit-touch-callout: none;
-      }
-
-      .note-list-item::after {
-        content: '≡';
-        position: absolute;
-        right: 16px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: var(--text2);
-        font-size: 18px;
-        line-height: 1;
       }
 
       .note-list-item.dragging {
@@ -4128,11 +4146,12 @@ function insertTradeIntoNote(tradeId) {
           });
 
           return `
-            <div class="note-list-item${n.id === currentNoteId ? ' active' : ''}" data-note-id="${n.id}" onclick="handleNoteListClick('${n.id}')">
-              <div class="note-list-title">${escapeHtml(n.title || 'Untitled')}</div>
-              <div class="note-list-date">${date}</div>
-            </div>
-          `;
+  <div class="note-list-item${n.id === currentNoteId ? ' active' : ''}" data-note-id="${n.id}" onclick="handleNoteListClick('${n.id}')">
+    <div class="note-list-title">${escapeHtml(n.title || 'Untitled')}</div>
+    <div class="note-list-date">${date}</div>
+    <span class="note-drag-handle" aria-hidden="true">≡</span>
+  </div>
+`;
         }).join('')}
       `;
 
@@ -4169,9 +4188,8 @@ function attachNoteDragHandlers() {
 function startNotePointer(e) {
   const item = e.currentTarget;
   const noteId = item.dataset.noteId;
-  const rect = item.getBoundingClientRect();
   const isTouch = e.pointerType === 'touch';
-  const isHandleZone = e.clientX >= rect.right - 56;
+  const isHandle = !!e.target.closest('.note-drag-handle');
 
   noteDrag.active = false;
   noteDrag.started = true;
@@ -4182,27 +4200,30 @@ function startNotePointer(e) {
   noteDrag.startY = e.clientY;
   noteDrag.pointerType = e.pointerType;
 
-  if (isTouch && !isHandleZone) {
+  if (isTouch && !isHandle) {
     return;
   }
 
-  if (!isTouch) {
-    noteDrag.active = true;
-    item.classList.add('dragging');
-    item.setPointerCapture?.(e.pointerId);
+  if (isTouch) {
     e.preventDefault();
+    item.setPointerCapture?.(e.pointerId);
+
+    noteDrag.timer = setTimeout(() => {
+      noteDrag.active = true;
+      item.classList.add('dragging');
+
+      if (navigator.vibrate) {
+        navigator.vibrate(12);
+      }
+    }, 260);
+
     return;
   }
 
-  noteDrag.timer = setTimeout(() => {
-    noteDrag.active = true;
-    item.classList.add('dragging');
-    item.setPointerCapture?.(e.pointerId);
-
-    if (navigator.vibrate) {
-      navigator.vibrate(12);
-    }
-  }, 360);
+  noteDrag.active = true;
+  item.classList.add('dragging');
+  item.setPointerCapture?.(e.pointerId);
+  e.preventDefault();
 }
 
 function moveNotePointer(e) {
@@ -4255,7 +4276,7 @@ async function endNotePointer() {
 
     noteDrag.active = false;
   noteDrag.started = false;
-    noteDrag.pointerId = null;
+  noteDrag.pointerId = null;
   noteDrag.startX = null;
   noteDrag.startY = null;
   noteDrag.pointerType = null;
