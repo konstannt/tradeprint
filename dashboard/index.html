@@ -285,12 +285,145 @@
 .dashboard-focus-value { font-size: 22px; font-weight: 800; color: var(--text); }
 .dashboard-focus-sub { font-size: 12px; color: var(--text2); margin-top: 5px; }
 .dashboard-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-.dashboard-bars { display: flex; align-items: flex-end; gap: 7px; height: 150px; padding-top: 12px; border-bottom: 1px solid var(--border); }
-.dashboard-bar-wrap { flex: 1; height: 100%; display: flex; align-items: flex-end; justify-content: center; position: relative; }
-.dashboard-bar { width: 100%; max-width: 18px; min-height: 3px; border-radius: 4px 4px 0 0; background: var(--text2); opacity: 0.8; }
-.dashboard-bar.green { background: var(--success); }
-.dashboard-bar.red { background: var(--danger); }
-.dashboard-bar-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--text2); margin-top: 10px; }
+.dashboard-chart-summary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.dashboard-chart-date {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.dashboard-chart-pnl {
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.dashboard-chart-pnl.green { color: var(--success); }
+.dashboard-chart-pnl.red { color: var(--danger); }
+.dashboard-chart-pnl.flat { color: var(--text2); }
+
+.dashboard-bars {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  gap: 7px;
+  height: 190px;
+  padding: 16px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  touch-action: none;
+  user-select: none;
+}
+
+.dashboard-bars::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: var(--border);
+  z-index: 0;
+}
+
+.dashboard-bar-wrap {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+  cursor: crosshair;
+}
+
+.dashboard-bar-wrap.active::before {
+  content: '';
+  position: absolute;
+  top: -16px;
+  bottom: -16px;
+  width: 1px;
+  background: var(--text2);
+  opacity: 0.75;
+}
+
+.dashboard-bar {
+  width: 100%;
+  max-width: 18px;
+  min-height: 3px;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--text2);
+  opacity: 0.85;
+}
+
+.dashboard-bar.green {
+  bottom: 50%;
+  border-radius: 4px 4px 0 0;
+  background: var(--success);
+}
+
+.dashboard-bar.red {
+  top: 50%;
+  border-radius: 0 0 4px 4px;
+  background: var(--danger);
+}
+
+.dashboard-bar.flat {
+  top: calc(50% - 1.5px);
+  border-radius: 4px;
+  background: var(--text2);
+}
+
+.dashboard-bar-day {
+  position: absolute;
+  bottom: -34px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  color: var(--text2);
+  white-space: nowrap;
+}
+
+.dashboard-bar-wrap.active .dashboard-bar-day {
+  color: var(--text);
+  font-weight: 800;
+}
+
+.dashboard-bar-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text2);
+  margin-top: 36px;
+}
+
+@media (max-width: 768px) {
+  .dashboard-bars {
+    gap: 5px;
+    height: 170px;
+  }
+
+  .dashboard-bar {
+    max-width: 14px;
+  }
+
+  .dashboard-chart-summary {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .dashboard-bar-day {
+    font-size: 9px;
+  }
+}
 .dashboard-list { display: flex; flex-direction: column; gap: 10px; }
 .dashboard-list-item { display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
 .dashboard-list-item:last-child { border-bottom: none; }
@@ -565,9 +698,37 @@
     .notes-list::-webkit-scrollbar { width: 4px; }
     .notes-list::-webkit-scrollbar-track { background: transparent; }
     .notes-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-    .note-list-item { padding: 10px 16px; cursor: pointer; border-left: 2px solid transparent; transition: all 0.15s; }
-    .note-list-item:hover { background: rgba(255,255,255,0.03); }
-    .note-list-item.active { border-left-color: var(--accent); background: rgba(99,102,241,0.08); }
+    .note-list-item {
+  padding: 10px 16px;
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  transition: background 0.15s, border-color 0.15s, opacity 0.15s, transform 0.15s;
+  touch-action: none;
+  user-select: none;
+}
+
+.note-list-item:hover { background: rgba(255,255,255,0.03); }
+
+.note-list-item.active {
+  border-left-color: var(--accent);
+  background: rgba(99,102,241,0.08);
+}
+
+.note-list-item.dragging {
+  opacity: 0.45;
+  background: rgba(99,102,241,0.14);
+}
+
+.note-list-item.drag-over {
+  border-top: 2px solid var(--accent);
+}
+
+.notes-sort-hint {
+  padding: 8px 16px;
+  font-size: 11px;
+  color: var(--text2);
+  border-bottom: 1px solid var(--border);
+}
     .note-list-title { font-size: 14px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px; }
     .note-list-date { font-size: 11px; color: var(--text2); }
     .note-list-empty { padding: 32px 16px; text-align: center; color: var(--text2); font-size: 13px; }
@@ -1225,8 +1386,12 @@
           </div>
         </div>
 
-        <div class="dashboard-panel">
+                <div class="dashboard-panel">
           <div class="dashboard-panel-title">Last 14 Days PNL</div>
+          <div class="dashboard-chart-summary">
+            <div class="dashboard-chart-date" id="dashboardChartDate">Today</div>
+            <div class="dashboard-chart-pnl flat" id="dashboardChartPnl">$0.00</div>
+          </div>
           <div class="dashboard-bars" id="dashboardBars"></div>
           <div class="dashboard-bar-labels"><span>14 days ago</span><span>Today</span></div>
         </div>
@@ -1819,8 +1984,10 @@ applyAuthRedirectIfPresent();
     let editingTradeId = null;
     let editingTradeOriginalDate = null;
     let logFromPage = false;
-    let allAccounts = [];
+        let allAccounts = [];
 let activeAccountId = localStorage.getItem('tp_active_account') || 'all';
+let allLoadedTrades = [];
+let accountSwitchTimer = null;
 
     const pageLoaded = { dashboard: false, strategies: false, calendar: false, trades: false, notes: false, calculator: false };
 
@@ -1945,6 +2112,11 @@ loadProfile().then(loadAccounts).catch(console.warn);
   return activeAccountId && activeAccountId !== 'all' ? `&account_id=eq.${activeAccountId}` : '';
 }
 
+function getActiveAccountTrades() {
+  if (activeAccountId === 'all') return allLoadedTrades;
+  return allLoadedTrades.filter(t => t.account_id === activeAccountId);
+}
+
 function getAccountName(accountId) {
   if (!accountId) return 'No account';
   return allAccounts.find(a => a.id === accountId)?.name || 'Unknown account';
@@ -2049,10 +2221,17 @@ async function setActiveAccount(accountId) {
   renderAccountControls();
   populateTradeAccountSelect();
 
-  await Promise.all([
-    loadTrades(),
-    loadCalendarData()
-  ]);
+  allTrades = getActiveAccountTrades();
+  filterTrades();
+  renderDashboard();
+
+  clearTimeout(accountSwitchTimer);
+  accountSwitchTimer = setTimeout(async () => {
+    await Promise.all([
+      loadTrades(),
+      loadCalendarData()
+    ]);
+  }, 50);
 }
 
 function openAccountModal() {
@@ -3291,6 +3470,54 @@ function renderDashboard() {
   renderDashboardRecentTrades(trades);
 }
 
+let dashboardDailyBars = [];
+
+function formatChartDate(dateStr) {
+  const date = new Date(dateStr + 'T12:00:00');
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  });
+}
+
+function formatChartDay(dateStr) {
+  const date = new Date(dateStr + 'T12:00:00');
+  return date.toLocaleDateString('en-US', {
+    month: 'numeric',
+    day: 'numeric'
+  });
+}
+
+function setDashboardChartActive(index) {
+  if (!dashboardDailyBars.length) return;
+
+  const safeIndex = Math.max(0, Math.min(index, dashboardDailyBars.length - 1));
+  const item = dashboardDailyBars[safeIndex];
+  const dateEl = document.getElementById('dashboardChartDate');
+  const pnlEl = document.getElementById('dashboardChartPnl');
+
+  if (dateEl) dateEl.textContent = formatChartDate(item.key);
+
+  if (pnlEl) {
+    pnlEl.textContent = formatPnl(item.pnl);
+    pnlEl.className = `dashboard-chart-pnl ${item.pnl > 0 ? 'green' : item.pnl < 0 ? 'red' : 'flat'}`;
+  }
+
+  document.querySelectorAll('.dashboard-bar-wrap').forEach((el, i) => {
+    el.classList.toggle('active', i === safeIndex);
+  });
+}
+
+function getDashboardBarIndexFromPoint(clientX) {
+  const bars = document.getElementById('dashboardBars');
+  if (!bars || !dashboardDailyBars.length) return 0;
+
+  const rect = bars.getBoundingClientRect();
+  const ratio = (clientX - rect.left) / rect.width;
+  return Math.max(0, Math.min(dashboardDailyBars.length - 1, Math.floor(ratio * dashboardDailyBars.length)));
+}
+
 function renderDashboardBars(trades) {
   const bars = document.getElementById('dashboardBars');
   const today = new Date();
@@ -3300,17 +3527,44 @@ function renderDashboardBars(trades) {
     const d = new Date(today);
     d.setDate(today.getDate() - i);
     const key = getDateKey(d);
-    const pnl = trades.filter(t => t.date === key).reduce((sum, t) => sum + (parseFloat(t.pnl) || 0), 0);
+    const pnl = trades
+      .filter(t => t.date === key)
+      .reduce((sum, t) => sum + (parseFloat(t.pnl) || 0), 0);
+
     daily.push({ key, pnl });
   }
 
+  dashboardDailyBars = daily;
+
   const maxAbs = Math.max(...daily.map(d => Math.abs(d.pnl)), 1);
 
-  bars.innerHTML = daily.map(d => {
-    const height = d.pnl === 0 ? 3 : Math.max(8, Math.round((Math.abs(d.pnl) / maxAbs) * 140));
-    const cls = d.pnl > 0 ? 'green' : d.pnl < 0 ? 'red' : '';
-    return `<div class="dashboard-bar-wrap" title="${d.key}: ${formatPnl(d.pnl)}"><div class="dashboard-bar ${cls}" style="height:${height}px;"></div></div>`;
+  bars.innerHTML = daily.map((d, index) => {
+    const height = d.pnl === 0 ? 3 : Math.max(8, Math.round((Math.abs(d.pnl) / maxAbs) * 78));
+    const cls = d.pnl > 0 ? 'green' : d.pnl < 0 ? 'red' : 'flat';
+
+    return `
+      <div class="dashboard-bar-wrap" data-index="${index}">
+        <div class="dashboard-bar ${cls}" style="height:${height}px;"></div>
+        <div class="dashboard-bar-day">${formatChartDay(d.key)}</div>
+      </div>
+    `;
   }).join('');
+
+  bars.onpointermove = (e) => {
+    setDashboardChartActive(getDashboardBarIndexFromPoint(e.clientX));
+  };
+
+  bars.onpointerdown = (e) => {
+    bars.setPointerCapture?.(e.pointerId);
+    setDashboardChartActive(getDashboardBarIndexFromPoint(e.clientX));
+  };
+
+  bars.querySelectorAll('.dashboard-bar-wrap').forEach((el, index) => {
+    el.onmouseenter = () => setDashboardChartActive(index);
+    el.onclick = () => setDashboardChartActive(index);
+  });
+
+  setDashboardChartActive(daily.length - 1);
 }
 
 function renderDashboardStrategies(trades) {
@@ -3379,17 +3633,17 @@ const displayStrategy = activeAccountId === 'all' ? `${accountName} · ${strateg
     let filteredTrades = [];
 
     async function loadTrades() {
-  const accountFilter = getAccountFilterParam();
-
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}${accountFilter}&select=*,strategies(name),broker_accounts(name)&order=date.desc,created_at.desc`, {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}&select=*,strategies(name),broker_accounts(name)&order=date.desc,created_at.desc`, {
     headers: {
       'apikey': SUPABASE_KEY,
       'Authorization': `Bearer ${token}`
     }
   });
 
-  allTrades = await res.json();
-  if (!Array.isArray(allTrades)) allTrades = [];
+  allLoadedTrades = await res.json();
+  if (!Array.isArray(allLoadedTrades)) allLoadedTrades = [];
+
+  allTrades = getActiveAccountTrades();
 
   const strategies = [...new Set(allTrades.map(t => t.strategies?.name).filter(Boolean))];
   const filterSelect = document.getElementById('filterStrategy');
@@ -3717,21 +3971,206 @@ function insertTradeIntoNote(tradeId) {
 }
     
     // ─── NOTES PAGE ─────────────────────────────────────────────
-    async function initNotes() {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/notes?user_id=eq.${user.id}&order=updated_at.desc`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } });
+        async function initNotes() {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/notes?user_id=eq.${user.id}&order=sort_order.asc.nullslast,updated_at.desc`, {
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
       allPageNotes = await res.json();
+      if (!Array.isArray(allPageNotes)) allPageNotes = [];
+
+      let needsOrderSave = false;
+
+      allPageNotes = allPageNotes.map((note, index) => {
+        if (note.sort_order === null || note.sort_order === undefined) {
+          needsOrderSave = true;
+          return { ...note, sort_order: index };
+        }
+
+        return note;
+      });
+
       renderNotesList();
-      if (currentNoteId) { const still = allPageNotes.find(n => n.id === currentNoteId); if (still) openNote(still.id); else closeNoteEditor(); }
+
+      if (needsOrderSave) {
+        saveNoteOrder().catch(console.warn);
+      }
+
+      if (currentNoteId) {
+        const still = allPageNotes.find(n => n.id === currentNoteId);
+        if (still) openNote(still.id);
+        else closeNoteEditor();
+      }
     }
 
-    function renderNotesList() {
+        function renderNotesList() {
       const list = document.getElementById('notesList');
-      if (!allPageNotes.length) { list.innerHTML = '<div class="note-list-empty">No notes yet. Hit + to create one.</div>'; return; }
-      list.innerHTML = allPageNotes.map(n => {
-        const date = new Date(n.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-        return `<div class="note-list-item${n.id === currentNoteId ? ' active' : ''}" onclick="openNote('${n.id}')"><div class="note-list-title">${n.title || 'Untitled'}</div><div class="note-list-date">${date}</div></div>`;
-      }).join('');
+
+      if (!allPageNotes.length) {
+        list.innerHTML = '<div class="note-list-empty">No notes yet. Hit + to create one.</div>';
+        return;
+      }
+
+      list.innerHTML = `
+        <div class="notes-sort-hint">Press and hold a note to rearrange.</div>
+        ${allPageNotes.map(n => {
+          const date = new Date(n.updated_at).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+          });
+
+          return `
+            <div class="note-list-item${n.id === currentNoteId ? ' active' : ''}" data-note-id="${n.id}" onclick="handleNoteListClick('${n.id}')">
+              <div class="note-list-title">${escapeHtml(n.title || 'Untitled')}</div>
+              <div class="note-list-date">${date}</div>
+            </div>
+          `;
+        }).join('')}
+      `;
+
+      attachNoteDragHandlers();
     }
+
+    let noteDrag = {
+  active: false,
+  started: false,
+  noteId: null,
+  pointerId: null,
+  timer: null,
+  moved: false
+};
+
+function handleNoteListClick(id) {
+  if (noteDrag.moved) {
+    noteDrag.moved = false;
+    return;
+  }
+
+  openNote(id);
+}
+
+function attachNoteDragHandlers() {
+  document.querySelectorAll('.note-list-item[data-note-id]').forEach(item => {
+    item.onpointerdown = startNotePointer;
+    item.onpointermove = moveNotePointer;
+    item.onpointerup = endNotePointer;
+    item.onpointercancel = cancelNotePointer;
+  });
+}
+
+function startNotePointer(e) {
+  const item = e.currentTarget;
+  const noteId = item.dataset.noteId;
+
+  noteDrag.active = false;
+  noteDrag.started = true;
+  noteDrag.noteId = noteId;
+  noteDrag.pointerId = e.pointerId;
+  noteDrag.moved = false;
+
+  noteDrag.timer = setTimeout(() => {
+    noteDrag.active = true;
+    item.classList.add('dragging');
+    item.setPointerCapture?.(e.pointerId);
+  }, 220);
+}
+
+function moveNotePointer(e) {
+  if (!noteDrag.started) return;
+
+  if (!noteDrag.active) {
+    noteDrag.moved = true;
+    return;
+  }
+
+  e.preventDefault();
+
+  const list = document.getElementById('notesList');
+  const dragging = list.querySelector(`.note-list-item[data-note-id="${noteDrag.noteId}"]`);
+  const target = document.elementFromPoint(e.clientX, e.clientY)?.closest('.note-list-item[data-note-id]');
+
+  if (!dragging || !target || dragging === target) return;
+
+  document.querySelectorAll('.note-list-item.drag-over').forEach(el => el.classList.remove('drag-over'));
+
+  const targetRect = target.getBoundingClientRect();
+  const insertAfter = e.clientY > targetRect.top + targetRect.height / 2;
+
+  target.classList.add('drag-over');
+
+  if (insertAfter) {
+    target.after(dragging);
+  } else {
+    target.before(dragging);
+  }
+
+  noteDrag.moved = true;
+}
+
+async function endNotePointer() {
+  clearTimeout(noteDrag.timer);
+
+  const wasDragging = noteDrag.active;
+
+  document.querySelectorAll('.note-list-item.dragging, .note-list-item.drag-over').forEach(el => {
+    el.classList.remove('dragging', 'drag-over');
+  });
+
+  noteDrag.active = false;
+  noteDrag.started = false;
+  noteDrag.pointerId = null;
+
+  if (wasDragging) {
+    applyNoteDomOrder();
+    await saveNoteOrder();
+    renderNotesList();
+  }
+}
+
+function cancelNotePointer() {
+  clearTimeout(noteDrag.timer);
+
+  document.querySelectorAll('.note-list-item.dragging, .note-list-item.drag-over').forEach(el => {
+    el.classList.remove('dragging', 'drag-over');
+  });
+
+  noteDrag.active = false;
+  noteDrag.started = false;
+  noteDrag.noteId = null;
+  noteDrag.pointerId = null;
+}
+
+function applyNoteDomOrder() {
+  const ids = Array.from(document.querySelectorAll('.note-list-item[data-note-id]')).map(el => el.dataset.noteId);
+
+  allPageNotes = ids
+    .map((id, index) => {
+      const note = allPageNotes.find(n => n.id === id);
+      return note ? { ...note, sort_order: index } : null;
+    })
+    .filter(Boolean);
+}
+
+async function saveNoteOrder() {
+  await Promise.all(allPageNotes.map((note, index) => {
+    note.sort_order = index;
+
+    return fetch(`${SUPABASE_URL}/rest/v1/notes?id=eq.${note.id}`, {
+      method: 'PATCH',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ sort_order: index })
+    });
+  }));
+}
 
     function openNote(id) {
       clearTimeout(noteSaveTimer);
@@ -3793,10 +4232,37 @@ function insertTradeIntoNote(tradeId) {
       renderNotesList();
     }
 
-    async function createNote() {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/notes`, { method: 'POST', headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' }, body: JSON.stringify({ user_id: user.id, title: 'Untitled', content: '' }) });
+        async function createNote() {
+      allPageNotes = allPageNotes.map(n => ({
+        ...n,
+        sort_order: (parseInt(n.sort_order, 10) || 0) + 1
+      }));
+
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/notes`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation'
+        },
+        body: JSON.stringify({
+          user_id: user.id,
+          title: 'Untitled',
+          content: '',
+          sort_order: 0
+        })
+      });
+
       const data = await res.json();
-      if (data && data[0]) { allPageNotes.unshift(data[0]); renderNotesList(); openNote(data[0].id); setTimeout(() => document.getElementById('noteTitleInput').focus(), 50); }
+
+      if (data && data[0]) {
+        allPageNotes.unshift(data[0]);
+        renderNotesList();
+        openNote(data[0].id);
+        saveNoteOrder().catch(console.warn);
+        setTimeout(() => document.getElementById('noteTitleInput').focus(), 50);
+      }
     }
 
     async function deleteCurrentNote() {
