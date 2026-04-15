@@ -1210,12 +1210,28 @@ allStrategies = Array.isArray(data) ? data : [];
     }
 
     async function saveEmail() {
-      const email = document.getElementById('emailInput').value.trim();
-      const msg = document.getElementById('emailMsg');
-      const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, { method: 'PUT', headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
-      if (res.ok) { msg.textContent = 'Check your new email to confirm.'; msg.className = 'msg success'; }
-      else { msg.textContent = 'Could not update email.'; msg.className = 'msg error'; }
-    }
+  const email = document.getElementById('emailInput').value.trim();
+  const msg = document.getElementById('emailMsg');
+  const redirectTo = `${window.location.origin}/dashboard`;
+
+  const res = await fetch(`${SUPABASE_URL}/auth/v1/user?redirect_to=${encodeURIComponent(redirectTo)}`, {
+    method: 'PUT',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ email })
+  });
+
+  if (res.ok) {
+    msg.textContent = 'Check your new email to confirm.';
+    msg.className = 'msg success';
+  } else {
+    msg.textContent = 'Could not update email.';
+    msg.className = 'msg error';
+  }
+}
 
     async function savePassword() {
       const pw = document.getElementById('newPassword').value;
