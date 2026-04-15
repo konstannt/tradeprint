@@ -766,8 +766,24 @@
         <button class="save-btn" onclick="saveEmail()">Update Email</button>
         <div class="msg" id="emailMsg"></div>
         <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border);">
-          <div class="settings-field"><label>New Password</label><input type="password" id="newPassword" placeholder="••••••••" /></div>
-          <div class="settings-field"><label>Confirm New Password</label><input type="password" id="confirmPassword" placeholder="••••••••" /></div>
+          <div class="settings-field">
+  <label>New Password</label>
+  <div style="position:relative;">
+    <input type="password" id="newPassword" placeholder="••••••••" style="padding-right:44px;"/>
+    <button onclick="toggleSettingsPw('newPassword', this)" tabindex="-1" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text2);padding:4px;display:flex;align-items:center;">
+      <svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+    </button>
+  </div>
+</div>
+<div class="settings-field">
+  <label>Confirm New Password</label>
+  <div style="position:relative;">
+    <input type="password" id="confirmPassword" placeholder="••••••••" style="padding-right:44px;"/>
+    <button onclick="toggleSettingsPw('confirmPassword', this)" tabindex="-1" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text2);padding:4px;display:flex;align-items:center;">
+      <svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+    </button>
+  </div>
+</div>
           <button class="save-btn" onclick="savePassword()">Update Password</button>
           <div class="msg" id="passwordMsg"></div>
         </div>
@@ -2099,6 +2115,16 @@ function handleDayModalClick(e) {
       document.querySelectorAll('.notion-tool[data-cmd]').forEach(btn => { btn.classList.toggle('active', document.queryCommandState(btn.getAttribute('data-cmd'))); });
     }
     function handleStrategyModalClick(e) { if (e.target === document.getElementById('strategyModal')) closeStrategyModal(); }
+
+    function toggleSettingsPw(inputId, btn) {
+  const input = document.getElementById(inputId);
+  const isHidden = input.type === 'password';
+  input.type = isHidden ? 'text' : 'password';
+  btn.querySelector('svg').innerHTML = isHidden
+    ? `<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>`
+    : `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`;
+}
+    
   </script>
 </body>
 </html>
