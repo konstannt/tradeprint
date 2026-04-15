@@ -738,7 +738,15 @@
     }
     .notes-layout { display: flex; height: calc(100vh - 80px); gap: 0; background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
     .notes-sidebar { width: 260px; flex-shrink: 0; border-right: 1px solid var(--border); display: flex; flex-direction: column; }
-    .notes-sidebar-header { padding: 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .notes-sidebar-header {
+  height: 61px;
+  min-height: 61px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
     .notes-sidebar-title { font-size: 13px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; }
     .new-note-btn { background: var(--accent); color: #fff; border: none; width: 28px; height: 28px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; flex-shrink: 0; }
     .new-note-btn:hover { background: var(--accent-hover); }
@@ -788,7 +796,20 @@
     .notes-editor-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
     .notes-editor-empty { flex: 1; display: flex; align-items: center; justify-content: center; color: var(--text2); font-size: 15px; flex-direction: column; gap: 12px; }
     .notes-editor-empty span { font-size: 36px; }
-    .notes-top-bar { padding: 12px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .notes-top-bar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  height: 61px;
+  min-height: 61px;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
     .notes-format-btn { background: none; border: none; color: var(--text2); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.15s; }
     .notes-format-btn:hover { background: var(--border); color: var(--text); }
     .notes-format-btn.active { background: var(--border); color: var(--text); }
@@ -4114,6 +4135,7 @@ const displayStrategy = activeAccountId === 'all' ? `${accountName} · ${strateg
 function insertTradeIntoNote(tradeId) {
   const trade = allTrades.find(t => t.id === tradeId);
   const msg = document.getElementById('insertTradeMsg');
+  const editorWrap = document.getElementById('notesEditorInner');
 
   if (!trade) {
     msg.textContent = 'Could not find that trade.';
@@ -4121,12 +4143,22 @@ function insertTradeIntoNote(tradeId) {
     return;
   }
 
+  const scrollTop = editorWrap ? editorWrap.scrollTop : 0;
+
   restoreNotesCursor();
 
   document.execCommand('insertHTML', false, buildNoteTradeCardHtml(trade));
 
   closeInsertTradeModal();
   scheduleNoteSave();
+
+  requestAnimationFrame(() => {
+    if (editorWrap) {
+      editorWrap.scrollTop = scrollTop;
+    }
+
+    saveNotesCursor();
+  });
 }
     
     // ─── NOTES PAGE ─────────────────────────────────────────────
