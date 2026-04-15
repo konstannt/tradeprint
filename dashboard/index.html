@@ -1047,11 +1047,85 @@
     </div>
 
     <div class="calc-card">
-      <div class="calc-card-title">Options P&L Calculator</div>
-      <div style="font-size:14px;color:var(--text2);line-height:1.6;">
-        A basic options calculator can use entry premium, exit premium, and contracts. A Robinhood-style simulator needs strike, expiration, option type, underlying price, implied volatility, and time decay. That can be added next as a proper options simulator.
-      </div>
+  <div class="calc-card-title">Options Greeks P&L Estimator</div>
+  <div class="calc-input-grid">
+    <div class="calc-field">
+      <label>Contracts</label>
+      <input type="number" id="optionsContracts" placeholder="1" min="1" oninput="runOptionsGreeksCalc()"/>
     </div>
+
+    <div class="calc-field">
+      <label>Entry Premium</label>
+      <input type="number" id="optionsEntryPremium" placeholder="e.g. 2.50" step="0.01" oninput="runOptionsGreeksCalc()"/>
+    </div>
+
+    <div class="calc-field">
+      <label>Underlying Move ($)</label>
+      <input type="number" id="optionsUnderlyingMove" placeholder="e.g. -2 or 3.5" step="0.01" oninput="runOptionsGreeksCalc()"/>
+    </div>
+
+    <div class="calc-field">
+      <label>Days Held</label>
+      <input type="number" id="optionsDaysHeld" placeholder="e.g. 1" min="0" step="0.25" oninput="runOptionsGreeksCalc()"/>
+    </div>
+
+    <div class="calc-field">
+      <label>IV Change (%)</label>
+      <input type="number" id="optionsIvChange" placeholder="e.g. 3 or -5" step="0.1" oninput="runOptionsGreeksCalc()"/>
+    </div>
+
+    <div class="calc-field">
+      <label>Delta</label>
+      <input type="number" id="optionsDelta" placeholder="e.g. 0.45 or -0.45" step="0.01" oninput="runOptionsGreeksCalc()"/>
+    </div>
+
+    <div class="calc-field">
+      <label>Gamma</label>
+      <input type="number" id="optionsGamma" placeholder="e.g. 0.04" step="0.001" oninput="runOptionsGreeksCalc()"/>
+    </div>
+
+    <div class="calc-field">
+      <label>Theta</label>
+      <input type="number" id="optionsTheta" placeholder="e.g. -0.12" step="0.01" oninput="runOptionsGreeksCalc()"/>
+    </div>
+
+    <div class="calc-field">
+      <label>Vega</label>
+      <input type="number" id="optionsVega" placeholder="e.g. 0.08" step="0.01" oninput="runOptionsGreeksCalc()"/>
+    </div>
+  </div>
+
+  <div style="font-size:12px;color:var(--text2);line-height:1.6;margin-top:14px;">
+    Use signed values. A move down is negative. Put deltas are usually negative. IV change is entered in percentage points, so IV from 40% to 43% is 3.
+  </div>
+
+  <button class="calc-reset-btn" onclick="resetOptionsGreeksCalc()">Clear</button>
+</div>
+
+<div class="calc-card" id="optionsGreeksResultsCard" style="display:none;">
+  <div class="calc-card-title">Results</div>
+  <div class="calc-results">
+    <div class="calc-result-card">
+      <div class="calc-result-label">Exit Premium</div>
+      <div class="calc-result-value accent" id="optionsExitPremium">—</div>
+    </div>
+
+    <div class="calc-result-card">
+      <div class="calc-result-label">Estimated P&L</div>
+      <div class="calc-result-value" id="optionsEstimatedPnl">—</div>
+    </div>
+
+    <div class="calc-result-card">
+      <div class="calc-result-label">Return</div>
+      <div class="calc-result-value" id="optionsReturnPct">—</div>
+    </div>
+
+    <div class="calc-result-card">
+      <div class="calc-result-label">Premium Change</div>
+      <div class="calc-result-value" id="optionsPremiumChange">—</div>
+    </div>
+  </div>
+</div>
   </div>
 </div>
 
@@ -1712,6 +1786,17 @@ function initCalcPage() {
   document.getElementById('pointsCalcSL').value = '';
   document.getElementById('pointsCalcTP').value = '';
   document.getElementById('pointsCalcResultsCard').style.display = 'none';
+
+  document.getElementById('optionsContracts').value = '';
+document.getElementById('optionsEntryPremium').value = '';
+document.getElementById('optionsUnderlyingMove').value = '';
+document.getElementById('optionsDaysHeld').value = '';
+document.getElementById('optionsIvChange').value = '';
+document.getElementById('optionsDelta').value = '';
+document.getElementById('optionsGamma').value = '';
+document.getElementById('optionsTheta').value = '';
+document.getElementById('optionsVega').value = '';
+document.getElementById('optionsGreeksResultsCard').style.display = 'none';
 }
 
 function runCalc() {
@@ -1776,6 +1861,64 @@ function resetPointsCalc() {
   document.getElementById('pointsCalcResultsCard').style.display = 'none';
 }
 
+function runOptionsGreeksCalc() {
+  const contracts = parseFloat(document.getElementById('optionsContracts').value) || 0;
+  const entryPremium = parseFloat(document.getElementById('optionsEntryPremium').value);
+  const underlyingMove = parseFloat(document.getElementById('optionsUnderlyingMove').value);
+  const daysHeld = parseFloat(document.getElementById('optionsDaysHeld').value) || 0;
+  const ivChange = parseFloat(document.getElementById('optionsIvChange').value) || 0;
+  const delta = parseFloat(document.getElementById('optionsDelta').value);
+  const gamma = parseFloat(document.getElementById('optionsGamma').value) || 0;
+  const theta = parseFloat(document.getElementById('optionsTheta').value) || 0;
+  const vega = parseFloat(document.getElementById('optionsVega').value) || 0;
+
+  if (!contracts || isNaN(entryPremium) || isNaN(underlyingMove) || isNaN(delta)) {
+    document.getElementById('optionsGreeksResultsCard').style.display = 'none';
+    return;
+  }
+
+  const deltaImpact = delta * underlyingMove;
+  const gammaImpact = 0.5 * gamma * Math.pow(underlyingMove, 2);
+  const thetaImpact = theta * daysHeld;
+  const vegaImpact = vega * ivChange;
+
+  const premiumChange = deltaImpact + gammaImpact + thetaImpact + vegaImpact;
+  const rawExitPremium = entryPremium + premiumChange;
+  const exitPremium = Math.max(rawExitPremium, 0);
+  const adjustedPremiumChange = exitPremium - entryPremium;
+  const estimatedPnl = adjustedPremiumChange * contracts * 100;
+  const costBasis = entryPremium * contracts * 100;
+  const returnPct = costBasis > 0 ? (estimatedPnl / costBasis) * 100 : 0;
+
+  const pnlEl = document.getElementById('optionsEstimatedPnl');
+  const returnEl = document.getElementById('optionsReturnPct');
+  const changeEl = document.getElementById('optionsPremiumChange');
+
+  document.getElementById('optionsExitPremium').textContent = `$${exitPremium.toFixed(2)}`;
+  pnlEl.textContent = estimatedPnl >= 0 ? `+$${estimatedPnl.toFixed(2)}` : `-$${Math.abs(estimatedPnl).toFixed(2)}`;
+  returnEl.textContent = `${returnPct >= 0 ? '+' : ''}${returnPct.toFixed(1)}%`;
+  changeEl.textContent = adjustedPremiumChange >= 0 ? `+$${adjustedPremiumChange.toFixed(2)}` : `-$${Math.abs(adjustedPremiumChange).toFixed(2)}`;
+
+  pnlEl.className = `calc-result-value ${estimatedPnl > 0 ? 'green' : estimatedPnl < 0 ? 'red' : ''}`;
+  returnEl.className = `calc-result-value ${returnPct > 0 ? 'green' : returnPct < 0 ? 'red' : ''}`;
+  changeEl.className = `calc-result-value ${adjustedPremiumChange > 0 ? 'green' : adjustedPremiumChange < 0 ? 'red' : ''}`;
+
+  document.getElementById('optionsGreeksResultsCard').style.display = 'block';
+}
+
+function resetOptionsGreeksCalc() {
+  document.getElementById('optionsContracts').value = '';
+  document.getElementById('optionsEntryPremium').value = '';
+  document.getElementById('optionsUnderlyingMove').value = '';
+  document.getElementById('optionsDaysHeld').value = '';
+  document.getElementById('optionsIvChange').value = '';
+  document.getElementById('optionsDelta').value = '';
+  document.getElementById('optionsGamma').value = '';
+  document.getElementById('optionsTheta').value = '';
+  document.getElementById('optionsVega').value = '';
+  document.getElementById('optionsGreeksResultsCard').style.display = 'none';
+}
+    
     // ─── CALENDAR ───────────────────────────────────────────────
     async function initCalendar() {
       document.getElementById('dayModal').classList.remove('active');
