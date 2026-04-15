@@ -91,6 +91,48 @@
     .stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
     .stat-label { font-size: 11px; color: var(--text2); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
     .stat-value { font-size: 28px; font-weight: 700; color: var(--text); }
+    .dashboard-layout { display: grid; gap: 20px; }
+.dashboard-top-row { display: grid; grid-template-columns: 1.3fr 0.7fr; gap: 20px; }
+.dashboard-panel { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 22px; }
+.dashboard-panel-title { font-size: 13px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; }
+.dashboard-focus { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.dashboard-focus-item { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+.dashboard-focus-label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+.dashboard-focus-value { font-size: 22px; font-weight: 800; color: var(--text); }
+.dashboard-focus-sub { font-size: 12px; color: var(--text2); margin-top: 5px; }
+.dashboard-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.dashboard-bars { display: flex; align-items: flex-end; gap: 7px; height: 150px; padding-top: 12px; border-bottom: 1px solid var(--border); }
+.dashboard-bar-wrap { flex: 1; height: 100%; display: flex; align-items: flex-end; justify-content: center; position: relative; }
+.dashboard-bar { width: 100%; max-width: 18px; min-height: 3px; border-radius: 4px 4px 0 0; background: var(--text2); opacity: 0.8; }
+.dashboard-bar.green { background: var(--success); }
+.dashboard-bar.red { background: var(--danger); }
+.dashboard-bar-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--text2); margin-top: 10px; }
+.dashboard-list { display: flex; flex-direction: column; gap: 10px; }
+.dashboard-list-item { display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.dashboard-list-item:last-child { border-bottom: none; }
+.dashboard-list-main { min-width: 0; }
+.dashboard-list-title { font-size: 14px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dashboard-list-sub { font-size: 12px; color: var(--text2); margin-top: 4px; }
+.dashboard-list-value { font-size: 14px; font-weight: 800; white-space: nowrap; }
+.dashboard-empty { color: var(--text2); font-size: 14px; padding: 18px 0; text-align: center; }
+.dashboard-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.dashboard-action { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 13px 14px; color: var(--text); cursor: pointer; text-align: left; transition: border-color 0.2s, background 0.2s; font-family: inherit; }
+.dashboard-action:hover { border-color: var(--accent); background: rgba(99,102,241,0.08); }
+.dashboard-action-title { font-size: 13px; font-weight: 700; }
+.dashboard-action-sub { font-size: 12px; color: var(--text2); margin-top: 3px; }
+.dashboard-rule-meter { height: 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin: 12px 0 10px; }
+.dashboard-rule-fill { height: 100%; width: 0%; background: var(--accent); border-radius: 8px; transition: width 0.2s; }
+
+@media (max-width: 900px) {
+  .dashboard-top-row, .dashboard-grid-2 { grid-template-columns: 1fr; }
+  .dashboard-focus { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+  .dashboard-actions { grid-template-columns: 1fr; }
+  .dashboard-panel { padding: 18px; }
+}
+
     .coming-soon { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 60px; text-align: center; color: var(--text2); font-size: 15px; }
     .coming-soon span { display: block; font-size: 32px; margin-bottom: 12px; }
     .strategies-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
@@ -756,16 +798,96 @@
   <!-- MAIN -->
   <div class="main">
     <div class="page active" id="page-dashboard">
-      <div class="page-title">Dashboard</div>
-      <div class="page-subtitle">Welcome back. Here's how you're doing.</div>
-      <div class="stats-grid">
-        <div class="stat-card"><div class="stat-label">Total Trades</div><div class="stat-value">0</div></div>
-        <div class="stat-card"><div class="stat-label">Win Rate</div><div class="stat-value">—</div></div>
-        <div class="stat-card"><div class="stat-label">Total PNL</div><div class="stat-value">—</div></div>
-        <div class="stat-card"><div class="stat-label">Avg R:R</div><div class="stat-value">—</div></div>
-      </div>
-      <div class="coming-soon"><span>📊</span>Your stats will appear here as you log trades.</div>
+  <div class="page-header">
+    <div>
+      <h1>Dashboard</h1>
+      <p>Your trading snapshot, updated from every logged trade.</p>
     </div>
+    <button class="btn-primary" onclick="openLogTradeFromPage()">
+      <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Log Trade
+    </button>
+  </div>
+
+  <div class="stats-grid" id="dashboardStatsGrid">
+    <div class="stat-card"><div class="stat-label">Total Trades</div><div class="stat-value">—</div></div>
+    <div class="stat-card"><div class="stat-label">Win Rate</div><div class="stat-value">—</div></div>
+    <div class="stat-card"><div class="stat-label">Total PNL</div><div class="stat-value">—</div></div>
+    <div class="stat-card"><div class="stat-label">Avg R:R</div><div class="stat-value">—</div></div>
+  </div>
+
+  <div class="dashboard-layout">
+    <div class="dashboard-top-row">
+      <div class="dashboard-panel">
+        <div class="dashboard-panel-title">Current Focus</div>
+        <div class="dashboard-focus">
+          <div class="dashboard-focus-item">
+            <div class="dashboard-focus-label">Today</div>
+            <div class="dashboard-focus-value" id="dashTodayPnl">—</div>
+            <div class="dashboard-focus-sub" id="dashTodayTrades">No trades today</div>
+          </div>
+          <div class="dashboard-focus-item">
+            <div class="dashboard-focus-label">This Week</div>
+            <div class="dashboard-focus-value" id="dashWeekPnl">—</div>
+            <div class="dashboard-focus-sub" id="dashWeekStats">No trades this week</div>
+          </div>
+          <div class="dashboard-focus-item">
+            <div class="dashboard-focus-label">This Month</div>
+            <div class="dashboard-focus-value" id="dashMonthPnl">—</div>
+            <div class="dashboard-focus-sub" id="dashMonthStats">No trades this month</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dashboard-panel">
+        <div class="dashboard-panel-title">Rule Discipline</div>
+        <div class="dashboard-focus-value" id="dashRuleRate">—</div>
+        <div class="dashboard-rule-meter"><div class="dashboard-rule-fill" id="dashRuleFill"></div></div>
+        <div class="dashboard-focus-sub" id="dashRuleSub">No rule data yet</div>
+      </div>
+    </div>
+
+    <div class="dashboard-panel">
+      <div class="dashboard-panel-title">Last 14 Days PNL</div>
+      <div class="dashboard-bars" id="dashboardBars"></div>
+      <div class="dashboard-bar-labels"><span>14 days ago</span><span>Today</span></div>
+    </div>
+
+    <div class="dashboard-grid-2">
+      <div class="dashboard-panel">
+        <div class="dashboard-panel-title">Top Strategies</div>
+        <div class="dashboard-list" id="dashboardStrategies"></div>
+      </div>
+
+      <div class="dashboard-panel">
+        <div class="dashboard-panel-title">Recent Trades</div>
+        <div class="dashboard-list" id="dashboardRecentTrades"></div>
+      </div>
+    </div>
+
+    <div class="dashboard-panel">
+      <div class="dashboard-panel-title">Quick Actions</div>
+      <div class="dashboard-actions">
+        <button class="dashboard-action" onclick="openLogTradeFromPage()">
+          <div class="dashboard-action-title">Log Trade</div>
+          <div class="dashboard-action-sub">Add a trade from anywhere.</div>
+        </button>
+        <button class="dashboard-action" onclick="showPage('calendar', document.querySelectorAll('.nav-item')[2])">
+          <div class="dashboard-action-title">Open Calendar</div>
+          <div class="dashboard-action-sub">Review daily and weekly performance.</div>
+        </button>
+        <button class="dashboard-action" onclick="showPage('trades', document.querySelectorAll('.nav-item')[3])">
+          <div class="dashboard-action-title">View Trades</div>
+          <div class="dashboard-action-sub">Filter, edit, and review your log.</div>
+        </button>
+        <button class="dashboard-action" onclick="showPage('notes', document.querySelectorAll('.nav-item')[4])">
+          <div class="dashboard-action-title">Open Notes</div>
+          <div class="dashboard-action-sub">Write reviews and insert trade cards.</div>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
     <div class="page" id="page-strategies">
       <div class="page-header">
@@ -1219,7 +1341,7 @@ applyAuthRedirectIfPresent();
     let editingTradeOriginalDate = null;
     let logFromPage = false;
 
-    const pageLoaded = { strategies: false, calendar: false, trades: false, notes: false, calculator: false };
+    const pageLoaded = { dashboard: false, strategies: false, calendar: false, trades: false, notes: false, calculator: false };
 
     const TICK_SPECS = {
       MNQ: { tickSize: 0.25, tickValue: 0.50 },
@@ -1519,13 +1641,14 @@ allStrategies = Array.isArray(data) ? data : [];
       const tok = ++pageSwitchToken;
       closeMobileSidebar();
       if (!pageLoaded[name]) {
-        if (name === 'strategies') await loadStrategies();
-        if (name === 'calendar') await initCalendar();
-        if (name === 'trades') await loadTrades();
-        if (name === 'notes') await initNotes();
-        if (name === 'calculator') initCalcPage();
-        pageLoaded[name] = true;
-      }
+  if (name === 'dashboard') await loadDashboard();
+  if (name === 'strategies') await loadStrategies();
+  if (name === 'calendar') await initCalendar();
+  if (name === 'trades') await loadTrades();
+  if (name === 'notes') await initNotes();
+  if (name === 'calculator') initCalcPage();
+  pageLoaded[name] = true;
+}
       if (tok !== pageSwitchToken) return;
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.querySelectorAll('.nav-item, .settings-row').forEach(n => n.classList.remove('active'));
@@ -2212,6 +2335,210 @@ function handleDayModalClick(e) {
       loadCalendarData();
     }
 
+// ─── DASHBOARD ───────────────────────────────────────────────
+async function loadDashboard() {
+  if (!allTrades.length) {
+    await loadTrades();
+    return;
+  }
+
+  renderDashboard();
+}
+
+function getTradeDate(t) {
+  return new Date(t.date + 'T12:00:00');
+}
+
+function getDateKey(date) {
+  return date.toISOString().split('T')[0];
+}
+
+function getStartOfWeek(date) {
+  const d = new Date(date);
+  d.setHours(12, 0, 0, 0);
+  d.setDate(d.getDate() - d.getDay());
+  return d;
+}
+
+function getTradeSummary(trades) {
+  const total = trades.length;
+  const wins = trades.filter(t => t.result === 'win').length;
+  const losses = trades.filter(t => t.result === 'loss').length;
+  const breakevens = trades.filter(t => t.result === 'breakeven').length;
+  const totalPnl = trades.reduce((sum, t) => sum + (parseFloat(t.pnl) || 0), 0);
+  const rrTrades = trades.filter(t => t.actual_rr);
+  const avgRR = rrTrades.length ? rrTrades.reduce((sum, t) => sum + (parseFloat(t.actual_rr) || 0), 0) / rrTrades.length : null;
+  const winRate = total ? Math.round((wins / total) * 100) : null;
+  const ruleTrades = trades.filter(t => typeof t.followed_rules === 'boolean');
+  const rulesFollowed = ruleTrades.filter(t => t.followed_rules).length;
+  const ruleRate = ruleTrades.length ? Math.round((rulesFollowed / ruleTrades.length) * 100) : null;
+
+  return { total, wins, losses, breakevens, totalPnl, avgRR, winRate, ruleTrades, rulesFollowed, ruleRate };
+}
+
+function setDashValue(id, value, pnl = null) {
+  const el = document.getElementById(id);
+  if (!el) return;
+
+  el.textContent = value;
+
+  if (pnl === null) {
+    el.style.color = 'var(--text)';
+  } else {
+    el.style.color = pnl > 0 ? 'var(--success)' : pnl < 0 ? 'var(--danger)' : 'var(--text)';
+  }
+}
+
+function renderDashboard() {
+  const statsGrid = document.getElementById('dashboardStatsGrid');
+  if (!statsGrid) return;
+
+  const trades = Array.isArray(allTrades) ? allTrades : [];
+  const summary = getTradeSummary(trades);
+
+  if (!trades.length) {
+    statsGrid.innerHTML = `
+      <div class="stat-card"><div class="stat-label">Total Trades</div><div class="stat-value">0</div></div>
+      <div class="stat-card"><div class="stat-label">Win Rate</div><div class="stat-value">—</div></div>
+      <div class="stat-card"><div class="stat-label">Total PNL</div><div class="stat-value">—</div></div>
+      <div class="stat-card"><div class="stat-label">Avg R:R</div><div class="stat-value">—</div></div>`;
+
+    setDashValue('dashTodayPnl', '—');
+    setDashValue('dashWeekPnl', '—');
+    setDashValue('dashMonthPnl', '—');
+    document.getElementById('dashTodayTrades').textContent = 'No trades today';
+    document.getElementById('dashWeekStats').textContent = 'No trades this week';
+    document.getElementById('dashMonthStats').textContent = 'No trades this month';
+    document.getElementById('dashRuleRate').textContent = '—';
+    document.getElementById('dashRuleFill').style.width = '0%';
+    document.getElementById('dashRuleSub').textContent = 'No rule data yet';
+    document.getElementById('dashboardBars').innerHTML = '<div class="dashboard-empty" style="width:100%;">Log trades to build your PNL trend.</div>';
+    document.getElementById('dashboardStrategies').innerHTML = '<div class="dashboard-empty">No strategy data yet.</div>';
+    document.getElementById('dashboardRecentTrades').innerHTML = '<div class="dashboard-empty">No recent trades yet.</div>';
+    return;
+  }
+
+  statsGrid.innerHTML = `
+    <div class="stat-card"><div class="stat-label">Total Trades</div><div class="stat-value">${summary.total}</div></div>
+    <div class="stat-card"><div class="stat-label">Win Rate</div><div class="stat-value">${summary.winRate ?? '—'}${summary.winRate !== null ? '%' : ''}</div></div>
+    <div class="stat-card"><div class="stat-label">Total PNL</div><div class="stat-value" style="color:${summary.totalPnl > 0 ? 'var(--success)' : summary.totalPnl < 0 ? 'var(--danger)' : 'var(--text)'}">${formatPnl(summary.totalPnl)}</div></div>
+    <div class="stat-card"><div class="stat-label">Avg R:R</div><div class="stat-value">${summary.avgRR !== null ? summary.avgRR.toFixed(2) : '—'}</div></div>`;
+
+  const today = new Date();
+  const todayKey = getDateKey(today);
+  const weekStart = getStartOfWeek(today);
+  const month = today.getMonth();
+  const year = today.getFullYear();
+
+  const todayTrades = trades.filter(t => t.date === todayKey);
+  const weekTrades = trades.filter(t => getTradeDate(t) >= weekStart && getTradeDate(t) <= today);
+  const monthTrades = trades.filter(t => {
+    const d = getTradeDate(t);
+    return d.getMonth() === month && d.getFullYear() === year;
+  });
+
+  const todaySummary = getTradeSummary(todayTrades);
+  const weekSummary = getTradeSummary(weekTrades);
+  const monthSummary = getTradeSummary(monthTrades);
+
+  setDashValue('dashTodayPnl', todayTrades.length ? formatPnl(todaySummary.totalPnl) : '—', todayTrades.length ? todaySummary.totalPnl : null);
+  setDashValue('dashWeekPnl', weekTrades.length ? formatPnl(weekSummary.totalPnl) : '—', weekTrades.length ? weekSummary.totalPnl : null);
+  setDashValue('dashMonthPnl', monthTrades.length ? formatPnl(monthSummary.totalPnl) : '—', monthTrades.length ? monthSummary.totalPnl : null);
+
+  document.getElementById('dashTodayTrades').textContent = todayTrades.length ? `${todayTrades.length} trade${todayTrades.length !== 1 ? 's' : ''} · ${todaySummary.winRate ?? 0}% WR` : 'No trades today';
+  document.getElementById('dashWeekStats').textContent = weekTrades.length ? `${weekTrades.length} trade${weekTrades.length !== 1 ? 's' : ''} · ${weekSummary.winRate ?? 0}% WR` : 'No trades this week';
+  document.getElementById('dashMonthStats').textContent = monthTrades.length ? `${monthTrades.length} trade${monthTrades.length !== 1 ? 's' : ''} · ${monthSummary.winRate ?? 0}% WR` : 'No trades this month';
+
+  document.getElementById('dashRuleRate').textContent = summary.ruleRate !== null ? `${summary.ruleRate}%` : '—';
+  document.getElementById('dashRuleFill').style.width = summary.ruleRate !== null ? `${summary.ruleRate}%` : '0%';
+  document.getElementById('dashRuleSub').textContent = summary.ruleRate !== null ? `${summary.rulesFollowed} of ${summary.ruleTrades.length} trades followed rules` : 'No rule data yet';
+
+  renderDashboardBars(trades);
+  renderDashboardStrategies(trades);
+  renderDashboardRecentTrades(trades);
+}
+
+function renderDashboardBars(trades) {
+  const bars = document.getElementById('dashboardBars');
+  const today = new Date();
+  const daily = [];
+
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    const key = getDateKey(d);
+    const pnl = trades.filter(t => t.date === key).reduce((sum, t) => sum + (parseFloat(t.pnl) || 0), 0);
+    daily.push({ key, pnl });
+  }
+
+  const maxAbs = Math.max(...daily.map(d => Math.abs(d.pnl)), 1);
+
+  bars.innerHTML = daily.map(d => {
+    const height = d.pnl === 0 ? 3 : Math.max(8, Math.round((Math.abs(d.pnl) / maxAbs) * 140));
+    const cls = d.pnl > 0 ? 'green' : d.pnl < 0 ? 'red' : '';
+    return `<div class="dashboard-bar-wrap" title="${d.key}: ${formatPnl(d.pnl)}"><div class="dashboard-bar ${cls}" style="height:${height}px;"></div></div>`;
+  }).join('');
+}
+
+function renderDashboardStrategies(trades) {
+  const container = document.getElementById('dashboardStrategies');
+  const byStrategy = {};
+
+  trades.forEach(t => {
+    const name = t.strategies?.name || 'Unknown';
+    if (!byStrategy[name]) byStrategy[name] = [];
+    byStrategy[name].push(t);
+  });
+
+  const rows = Object.entries(byStrategy).map(([name, items]) => {
+    const s = getTradeSummary(items);
+    return { name, trades: items.length, pnl: s.totalPnl, winRate: s.winRate ?? 0 };
+  }).sort((a, b) => b.pnl - a.pnl).slice(0, 5);
+
+  if (!rows.length) {
+    container.innerHTML = '<div class="dashboard-empty">No strategy data yet.</div>';
+    return;
+  }
+
+  container.innerHTML = rows.map(r => `
+    <div class="dashboard-list-item">
+      <div class="dashboard-list-main">
+        <div class="dashboard-list-title">${escapeHtml(r.name)}</div>
+        <div class="dashboard-list-sub">${r.trades} trade${r.trades !== 1 ? 's' : ''} · ${r.winRate}% WR</div>
+      </div>
+      <div class="dashboard-list-value" style="color:${r.pnl > 0 ? 'var(--success)' : r.pnl < 0 ? 'var(--danger)' : 'var(--text)'}">${formatPnl(r.pnl)}</div>
+    </div>
+  `).join('');
+}
+
+function renderDashboardRecentTrades(trades) {
+  const container = document.getElementById('dashboardRecentTrades');
+  const recent = [...trades].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
+
+  if (!recent.length) {
+    container.innerHTML = '<div class="dashboard-empty">No recent trades yet.</div>';
+    return;
+  }
+
+  container.innerHTML = recent.map(t => {
+    const pnl = parseFloat(t.pnl) || 0;
+    const date = new Date(t.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const strategy = t.strategies?.name || 'Unknown';
+    const asset = t.asset ? ` · ${t.asset}` : '';
+    const result = t.result === 'breakeven' ? 'be' : (t.result || '-');
+
+    return `
+      <div class="dashboard-list-item">
+        <div class="dashboard-list-main">
+          <div class="dashboard-list-title">${escapeHtml(strategy)}${escapeHtml(asset)} — ${escapeHtml(result)}</div>
+          <div class="dashboard-list-sub">${date}${t.actual_rr ? ` · ${t.actual_rr}R` : ''}${t.followed_rules ? '' : ' · Rules broken'}</div>
+        </div>
+        <div class="dashboard-list-value" style="color:${pnl > 0 ? 'var(--success)' : pnl < 0 ? 'var(--danger)' : 'var(--text)'}">${formatPnl(pnl)}</div>
+      </div>
+    `;
+  }).join('');
+}
+    
     // ─── TRADES PAGE ────────────────────────────────────────────
     let allTrades = [];
     let filteredTrades = [];
@@ -2223,6 +2550,8 @@ function handleDayModalClick(e) {
       const filterSelect = document.getElementById('filterStrategy');
       filterSelect.innerHTML = '<option value="">All Strategies</option>' + strategies.map(s => `<option value="${s}">${s}</option>`).join('');
       filterTrades();
+renderDashboard();
+pageLoaded.dashboard = true;
     }
 
     function filterTrades() {
