@@ -335,6 +335,129 @@
     .note-body-editor hr { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
     .note-body-editor img { max-width: 100%; border-radius: 8px; margin: 8px 0; display: block; cursor: zoom-in; }
     .note-body-editor h1 { font-size: 24px; font-weight: 700; margin: 16px 0 8px; }
+    .insert-trade-btn {
+  color: #fff;
+  background: var(--accent);
+  font-weight: 700;
+}
+
+.insert-trade-btn:hover {
+  background: var(--accent-hover);
+  color: #fff;
+}
+
+.insert-trade-modal-box {
+  max-width: 760px;
+}
+
+.insert-trade-filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.insert-trade-filters select {
+  padding: 9px 12px;
+  font-size: 13px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+  cursor: pointer;
+}
+
+.insert-trade-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 55vh;
+  overflow-y: auto;
+}
+
+.insert-trade-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.insert-trade-option:hover {
+  border-color: var(--accent);
+  background: rgba(99,102,241,0.08);
+}
+
+.insert-trade-option-main {
+  min-width: 0;
+}
+
+.insert-trade-option-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.insert-trade-option-detail {
+  font-size: 12px;
+  color: var(--text2);
+  margin-top: 3px;
+}
+
+.insert-trade-option-pnl {
+  font-size: 14px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.note-trade-card {
+  margin: 14px 0;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+  background: var(--bg);
+  line-height: 1.5;
+  cursor: default;
+}
+
+.note-trade-card-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.note-trade-card-pnl {
+  white-space: nowrap;
+  font-weight: 800;
+}
+
+.note-trade-card-detail {
+  font-size: 12px;
+  color: var(--text2);
+  margin-top: 4px;
+}
+
+.note-trade-card-notes {
+  font-size: 12px;
+  color: var(--text2);
+  margin-top: 5px;
+  font-style: italic;
+}
+
     .note-body-editor::-webkit-scrollbar { width: 6px; }
     .note-body-editor::-webkit-scrollbar-track { background: transparent; }
     .note-body-editor::-webkit-scrollbar-thumb { background: var(--border); border-radius: 6px; }
@@ -528,6 +651,39 @@
     </div>
   </div>
 
+<!-- INSERT TRADE MODAL -->
+<div class="modal" id="insertTradeModal" onclick="handleInsertTradeModalClick(event)">
+  <div class="modal-box insert-trade-modal-box" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">Insert Trade</div>
+      <button class="modal-close" onclick="closeInsertTradeModal()">×</button>
+    </div>
+
+    <div class="insert-trade-filters">
+      <select id="insertTradeStrategyFilter" onchange="renderInsertTradeList()">
+        <option value="">All Strategies</option>
+      </select>
+
+      <select id="insertTradeResultFilter" onchange="renderInsertTradeList()">
+        <option value="">All Results</option>
+        <option value="win">Win</option>
+        <option value="loss">Loss</option>
+        <option value="breakeven">Breakeven</option>
+      </select>
+
+      <select id="insertTradeSortFilter" onchange="renderInsertTradeList()">
+        <option value="date_desc">Newest First</option>
+        <option value="date_asc">Oldest First</option>
+        <option value="pnl_desc">Highest PNL</option>
+        <option value="pnl_asc">Lowest PNL</option>
+      </select>
+    </div>
+
+    <div class="insert-trade-list" id="insertTradeList"></div>
+    <div class="modal-msg" id="insertTradeMsg"></div>
+  </div>
+</div>
+  
   <!-- FLOATING TOOLBAR -->
   <div class="float-toolbar" id="floatToolbar">
     <button class="float-btn" data-ncmd="bold" onclick="notesFormat('bold')"><b>B</b></button>
@@ -696,9 +852,10 @@
               <button class="notes-format-btn" data-ncmd="underline" onclick="notesFormat('underline')"><u>U</u></button>
               <div class="notes-format-divider"></div>
               <button class="notes-format-btn" onclick="notesFormatH1()">H1</button>
-              <button class="notes-format-btn" onclick="notesInsertHR()">— Divider</button>
-              <button class="notes-format-btn" onclick="document.getElementById('notesImgInput').click()">↑ Image</button>
-              <input type="file" id="notesImgInput" accept="image/*" style="display:none" onchange="notesInsertImage(event)"/>
+<button class="notes-format-btn" onclick="notesInsertHR()">— Divider</button>
+<button class="notes-format-btn insert-trade-btn" onmousedown="saveNotesCursor()" onclick="openInsertTradeModal()">Insert Trade</button>
+<button class="notes-format-btn" onclick="document.getElementById('notesImgInput').click()">↑ Image</button>
+<input type="file" id="notesImgInput" accept="image/*" style="display:none" onchange="notesInsertImage(event)"/>
               <span class="notes-autosave" id="notesAutosaveStatus"></span>
               <button class="notes-delete-btn" onclick="deleteCurrentNote()" title="Delete note">🗑</button>
             </div>
@@ -2098,6 +2255,189 @@ function handleDayModalClick(e) {
       await loadCalendarData();
     }
 
+let savedNotesRange = null;
+
+function saveNotesCursor() {
+  const editor = document.getElementById('noteBodyEditor');
+  const sel = window.getSelection();
+
+  if (!editor || !sel || sel.rangeCount === 0) return;
+
+  const range = sel.getRangeAt(0);
+
+  if (editor.contains(range.commonAncestorContainer)) {
+    savedNotesRange = range.cloneRange();
+  }
+}
+
+function restoreNotesCursor() {
+  const editor = document.getElementById('noteBodyEditor');
+  const sel = window.getSelection();
+
+  editor.focus();
+
+  if (savedNotesRange) {
+    sel.removeAllRanges();
+    sel.addRange(savedNotesRange);
+  }
+}
+
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+async function openInsertTradeModal() {
+  saveNotesCursor();
+
+  const msg = document.getElementById('insertTradeMsg');
+
+  if (!currentNoteId) {
+    msg.textContent = 'Open or create a note first.';
+    msg.className = 'modal-msg error';
+    document.getElementById('insertTradeModal').classList.add('active');
+    return;
+  }
+
+  msg.textContent = '';
+  msg.className = 'modal-msg';
+
+  if (!allTrades.length) {
+    await loadTrades();
+  }
+
+  populateInsertTradeFilters();
+  renderInsertTradeList();
+  document.getElementById('insertTradeModal').classList.add('active');
+}
+
+function closeInsertTradeModal() {
+  document.getElementById('insertTradeModal').classList.remove('active');
+}
+
+function handleInsertTradeModalClick(e) {
+  if (e.target === document.getElementById('insertTradeModal')) {
+    closeInsertTradeModal();
+  }
+}
+
+function populateInsertTradeFilters() {
+  const strategyFilter = document.getElementById('insertTradeStrategyFilter');
+  const currentValue = strategyFilter.value;
+
+  const strategies = [...new Set(allTrades.map(t => t.strategies?.name).filter(Boolean))];
+
+  strategyFilter.innerHTML =
+    '<option value="">All Strategies</option>' +
+    strategies.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+
+  if (strategies.includes(currentValue)) {
+    strategyFilter.value = currentValue;
+  }
+}
+
+function getFilteredInsertTrades() {
+  const stratFilter = document.getElementById('insertTradeStrategyFilter').value;
+  const resultFilter = document.getElementById('insertTradeResultFilter').value;
+  const sort = document.getElementById('insertTradeSortFilter').value;
+
+  const trades = allTrades.filter(t => {
+    if (stratFilter && t.strategies?.name !== stratFilter) return false;
+    if (resultFilter && t.result !== resultFilter) return false;
+    return true;
+  });
+
+  trades.sort((a, b) => {
+    if (sort === 'date_desc') return new Date(b.date) - new Date(a.date);
+    if (sort === 'date_asc') return new Date(a.date) - new Date(b.date);
+    if (sort === 'pnl_desc') return (parseFloat(b.pnl) || 0) - (parseFloat(a.pnl) || 0);
+    if (sort === 'pnl_asc') return (parseFloat(a.pnl) || 0) - (parseFloat(b.pnl) || 0);
+    return 0;
+  });
+
+  return trades;
+}
+
+function renderInsertTradeList() {
+  const list = document.getElementById('insertTradeList');
+  const trades = getFilteredInsertTrades();
+
+  if (!trades.length) {
+    list.innerHTML = '<div class="trades-empty" style="padding:36px;">No trades found.</div>';
+    return;
+  }
+
+  list.innerHTML = trades.map(t => {
+    const pnl = parseFloat(t.pnl) || 0;
+    const pnlColor = pnl > 0 ? 'var(--success)' : pnl < 0 ? 'var(--danger)' : 'var(--text)';
+    const date = new Date(t.date + 'T12:00:00');
+    const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const strategy = t.strategies?.name || 'Unknown';
+    const asset = t.asset ? ` · ${t.asset}` : '';
+    const result = t.result === 'breakeven' ? 'be' : (t.result || '-');
+    const rr = t.actual_rr ? ` · ${t.actual_rr}R` : '';
+    const time = t.trade_time ? ` · ${formatDisplayTime(t.trade_time)}` : '';
+    const confluences = t.confluences_used?.length ? `${t.confluences_used.length} confluences` : 'No confluences';
+
+    return `
+      <div class="insert-trade-option" onclick="insertTradeIntoNote('${t.id}')">
+        <div class="insert-trade-option-main">
+          <div class="insert-trade-option-title">${escapeHtml(strategy)}${escapeHtml(asset)} — ${escapeHtml(result)}</div>
+          <div class="insert-trade-option-detail">${escapeHtml(dateStr)} · ${escapeHtml(confluences)}${escapeHtml(rr)}${escapeHtml(time)}</div>
+        </div>
+        <div class="insert-trade-option-pnl" style="color:${pnlColor};">${formatPnl(pnl)}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function buildNoteTradeCardHtml(t) {
+  const pnl = parseFloat(t.pnl) || 0;
+  const pnlColor = pnl > 0 ? 'var(--success)' : pnl < 0 ? 'var(--danger)' : 'var(--text)';
+  const date = new Date(t.date + 'T12:00:00');
+  const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  const strategy = t.strategies?.name || 'Unknown';
+  const asset = t.asset ? ` · ${t.asset}` : '';
+  const result = t.result === 'breakeven' ? 'be' : (t.result || '-');
+  const rr = t.actual_rr ? ` · ${t.actual_rr}R` : '';
+  const time = t.trade_time ? ` · ${formatDisplayTime(t.trade_time)}` : '';
+  const confluences = t.confluences_used?.length ? `${t.confluences_used.length} confluences` : 'No confluences';
+  const notes = t.notes ? `<div class="note-trade-card-notes">"${escapeHtml(t.notes)}"</div>` : '';
+
+  return `
+    <div class="note-trade-card" contenteditable="false" data-trade-id="${escapeHtml(t.id)}">
+      <div class="note-trade-card-title">
+        <span>${escapeHtml(strategy)}${escapeHtml(asset)} — ${escapeHtml(result)}</span>
+        <span class="note-trade-card-pnl" style="color:${pnlColor};">${formatPnl(pnl)}</span>
+      </div>
+      <div class="note-trade-card-detail">${escapeHtml(dateStr)} · ${escapeHtml(confluences)}${escapeHtml(rr)}${escapeHtml(time)}</div>
+      ${notes}
+    </div><br/>
+  `;
+}
+
+function insertTradeIntoNote(tradeId) {
+  const trade = allTrades.find(t => t.id === tradeId);
+  const msg = document.getElementById('insertTradeMsg');
+
+  if (!trade) {
+    msg.textContent = 'Could not find that trade.';
+    msg.className = 'modal-msg error';
+    return;
+  }
+
+  restoreNotesCursor();
+
+  document.execCommand('insertHTML', false, buildNoteTradeCardHtml(trade));
+
+  closeInsertTradeModal();
+  scheduleNoteSave();
+}
+    
     // ─── NOTES PAGE ─────────────────────────────────────────────
     async function initNotes() {
       const res = await fetch(`${SUPABASE_URL}/rest/v1/notes?user_id=eq.${user.id}&order=updated_at.desc`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } });
@@ -2128,9 +2468,9 @@ function handleDayModalClick(e) {
       document.getElementById('notesAutosaveStatus').textContent = '';
       renderNotesList();
       body.ondblclick = (e) => { if (e.target.tagName === 'IMG') openLightbox(e.target); };
-      body.oninput = scheduleNoteSave;
-      body.onmouseup = updateNotesToolbarState;
-      body.onkeyup = () => { scheduleNoteSave(); updateNotesToolbarState(); };
+      body.oninput = () => { saveNotesCursor(); scheduleNoteSave(); };
+      body.onmouseup = () => { saveNotesCursor(); updateNotesToolbarState(); };
+      body.onkeyup = () => { saveNotesCursor(); scheduleNoteSave(); updateNotesToolbarState(); };
       body.onkeydown = (e) => {
         if (e.key === 'Enter') {
           const sel = window.getSelection();
