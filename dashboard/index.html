@@ -514,7 +514,18 @@
       .note-title-input { padding: 16px 16px 8px; font-size: 24px; }
       .note-body-editor { padding: 4px 16px 24px; }
     }
-    .calc-layout { max-width: 640px; }
+    .calc-layout { max-width: 1320px; }
+
+.calc-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  align-items: start;
+}
+
+.calc-column {
+  min-width: 0;
+}
     .calc-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 28px; margin-bottom: 20px; }
     .calc-card-title { font-size: 13px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 20px; }
     .calc-input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
@@ -531,7 +542,13 @@
     .calc-result-value.accent { color: var(--accent); }
     .calc-reset-btn { background: none; border: 1px solid var(--border); color: var(--text2); padding: 10px 20px; border-radius: 8px; font-size: 14px; cursor: pointer; transition: all 0.2s; margin-top: 4px; }
     .calc-reset-btn:hover { border-color: var(--accent); color: var(--text); }
-    @media (max-width: 768px) { .calc-input-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 900px) {
+  .calc-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+  .calc-input-grid { grid-template-columns: 1fr; }
+}
     .notion-note img, .note-body-editor img { max-width: min(100%, 560px) !important; max-height: 420px; width: auto !important; height: auto !important; object-fit: contain; border-radius: 8px; margin: 12px 0; display: block; cursor: zoom-in; border: 1px solid var(--border); background: var(--bg); }
     @media (max-width: 768px) { .notion-note img, .note-body-editor img { max-width: 100% !important; max-height: 320px; } }
     #tradeDate::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
@@ -992,8 +1009,10 @@
   <div class="page-title">Calculator</div>
   <div class="page-subtitle">Calculate futures risk, reward, and position outcomes.</div>
 
-  <div class="calc-layout">
-    <div class="calc-card">
+    <div class="calc-layout">
+    <div class="calc-grid">
+      <div class="calc-column">
+        <div class="calc-card">
       <div class="calc-card-title">Futures P&L Calculator</div>
       <div class="calc-input-grid">
         <div class="calc-field"><label>Ticker</label>
@@ -1020,9 +1039,11 @@
       </div>
     </div>
 
-    <div class="calc-card">
-      <div class="calc-card-title">Futures Points Calculator</div>
-      <div class="calc-input-grid">
+          </div>
+
+      <div class="calc-column">
+        <div class="calc-card">
+          <div class="calc-card-title">Futures Points Calculator</div>
         <div class="calc-field"><label>Ticker</label>
           <select id="pointsCalcTicker" onchange="runPointsCalc()">
             <option value="MNQ">MNQ</option><option value="NQ">NQ</option>
@@ -1037,12 +1058,14 @@
       <button class="calc-reset-btn" onclick="resetPointsCalc()">Clear</button>
     </div>
 
-        <div class="calc-card" id="pointsCalcResultsCard" style="display:none;">
-      <div class="calc-card-title">Results</div>
-      <div class="calc-results">
-        <div class="calc-result-card"><div class="calc-result-label">Dollar Risk</div><div class="calc-result-value red" id="pointsCalcRisk">—</div></div>
-        <div class="calc-result-card"><div class="calc-result-label">Dollar Profit</div><div class="calc-result-value green" id="pointsCalcProfit">—</div></div>
-        <div class="calc-result-card"><div class="calc-result-label">R:R Ratio</div><div class="calc-result-value accent" id="pointsCalcRR">—</div></div>
+                <div class="calc-card" id="pointsCalcResultsCard" style="display:none;">
+          <div class="calc-card-title">Results</div>
+          <div class="calc-results">
+            <div class="calc-result-card"><div class="calc-result-label">Dollar Risk</div><div class="calc-result-value red" id="pointsCalcRisk">—</div></div>
+            <div class="calc-result-card"><div class="calc-result-label">Dollar Profit</div><div class="calc-result-value green" id="pointsCalcProfit">—</div></div>
+            <div class="calc-result-card"><div class="calc-result-label">R:R Ratio</div><div class="calc-result-value accent" id="pointsCalcRR">—</div></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
