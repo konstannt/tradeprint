@@ -87,6 +87,116 @@
     .page-header p { font-size: 14px; color: var(--text2); }
     .btn-primary { background: var(--accent); color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
     .btn-primary:hover { background: var(--accent-hover); }
+    .page-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.account-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.account-select {
+  min-width: 160px;
+  padding: 9px 12px;
+  font-size: 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg2);
+  color: var(--text);
+  outline: none;
+  cursor: pointer;
+}
+
+.account-select:focus {
+  border-color: var(--accent);
+}
+
+.account-manage-btn {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 9px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.account-manage-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.account-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.account-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+}
+
+.account-list-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.account-delete-btn {
+  background: none;
+  border: none;
+  color: var(--text2);
+  cursor: pointer;
+  padding: 5px 8px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.account-delete-btn:hover {
+  color: var(--danger);
+}
+
+.cal-header-right {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .page-header-actions,
+  .cal-header-right,
+  .account-controls {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .account-select {
+    flex: 1;
+    min-width: 0;
+  }
+}
     .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; margin-bottom: 32px; }
     .stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
     .stat-label { font-size: 11px; color: var(--text2); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -734,6 +844,30 @@
     </div>
   </div>
 
+  <!-- ACCOUNT MODAL -->
+<div class="modal" id="accountModal" onclick="handleAccountModalClick(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">Accounts</div>
+      <button class="modal-close" onclick="closeAccountModal()">×</button>
+    </div>
+
+    <div class="form-field">
+      <label>New Account Name</label>
+      <div class="confluence-input-row">
+        <input type="text" id="accountNameInput" placeholder="e.g. Robinhood, Topstep, Webull" onkeypress="if(event.key==='Enter')createBrokerAccount()"/>
+        <button class="add-confluence-btn" onclick="createBrokerAccount()">Add</button>
+      </div>
+      <div style="font-size:12px;color:var(--text2);">Create broker accounts, prop firm accounts, or separate funded accounts.</div>
+    </div>
+
+    <div class="day-modal-section-title" style="margin-top:24px;">Your Accounts</div>
+    <div class="account-list" id="accountList"></div>
+
+    <div class="modal-msg" id="accountMsg"></div>
+  </div>
+</div>
+
   <!-- CROP MODAL -->
   <div class="crop-modal" id="cropModal">
     <div class="crop-box">
@@ -787,6 +921,12 @@
         <label>Date</label>
         <input type="date" id="tradeDate" style="width:100%;padding:10px 14px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;"/>
       </div>
+      <div class="form-field">
+  <label>Account</label>
+  <select id="tradeAccount" style="width:100%;padding:10px 14px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;">
+    <option value="">Select an account...</option>
+  </select>
+</div>
       <div class="form-field">
         <label>Strategy</label>
         <select id="tradeStrategy" style="width:100%;padding:10px 14px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;" onchange="loadStrategyConfluences()">
@@ -960,11 +1100,15 @@
   <div class="main">
     <div class="page active" id="page-dashboard">
   <div class="page-header">
-    <div>
-      <h1>Dashboard</h1>
-      <p>Your trading snapshot, updated from every logged trade.</p>
-    </div>
+  <div><h1>Trades</h1><p>Every trade you've logged.</p></div>
+  <div class="page-header-actions">
+    <div id="tradesAccountControls"></div>
     <button class="btn-primary" onclick="openLogTradeFromPage()">
+      <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Log Trade
+    </button>
+  </div>
+</div>
       <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       Log Trade
     </button>
@@ -1070,12 +1214,14 @@
           <div class="cal-month-label" id="calMonthLabel">April 2026</div>
           <button class="cal-nav-btn" onclick="changeMonth(1)" id="calNextBtn"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
         </div>
-        <div class="cal-monthly-stats">
-          <div class="cal-stat"><div class="cal-stat-label">Monthly PNL</div><div class="cal-stat-value" id="calMonthlyPnl">—</div></div>
-          <div class="cal-stat"><div class="cal-stat-label">Trades</div><div class="cal-stat-value" id="calMonthlyTrades">—</div></div>
-          <div class="cal-stat"><div class="cal-stat-label">Win Rate</div><div class="cal-stat-value" id="calMonthlyWinRate">—</div></div>
-        </div>
-      </div>
+        <div class="cal-header-right">
+  <div id="calendarAccountControls"></div>
+  <div class="cal-monthly-stats">
+    <div class="cal-stat"><div class="cal-stat-label">Monthly PNL</div><div class="cal-stat-value" id="calMonthlyPnl">—</div></div>
+    <div class="cal-stat"><div class="cal-stat-label">Trades</div><div class="cal-stat-value" id="calMonthlyTrades">—</div></div>
+    <div class="cal-stat"><div class="cal-stat-label">Win Rate</div><div class="cal-stat-value" id="calMonthlyWinRate">—</div></div>
+  </div>
+</div>
       <div class="cal-grid-wrapper">
         <div class="cal-day-headers">
           <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div class="cal-week-header">Week</div>
@@ -1594,6 +1740,8 @@ applyAuthRedirectIfPresent();
     let editingTradeId = null;
     let editingTradeOriginalDate = null;
     let logFromPage = false;
+    let allAccounts = [];
+let activeAccountId = localStorage.getItem('tp_active_account') || 'all';
 
     const pageLoaded = { dashboard: false, strategies: false, calendar: false, trades: false, notes: false, calculator: false };
 
@@ -1704,14 +1852,248 @@ applyAuthRedirectIfPresent();
   document.getElementById('defaultRR').value = localStorage.getItem('tp_rr') || '';
 }
 
-loadProfile();
+loadProfile().then(loadAccounts).catch(console.warn);
 
     setTimeout(() => {
-      loadStrategies().then(() => { pageLoaded.strategies = true; }).catch(console.warn);
-      loadCalendarData().then(() => { pageLoaded.calendar = true; }).catch(console.warn);
-      loadTrades().then(() => { pageLoaded.trades = true; }).catch(console.warn);
-      initNotes().then(() => { pageLoaded.notes = true; }).catch(console.warn);
-    }, 300);
+  loadAccounts().catch(console.warn);
+  loadStrategies().then(() => { pageLoaded.strategies = true; }).catch(console.warn);
+  loadCalendarData().then(() => { pageLoaded.calendar = true; }).catch(console.warn);
+  loadTrades().then(() => { pageLoaded.trades = true; }).catch(console.warn);
+  initNotes().then(() => { pageLoaded.notes = true; }).catch(console.warn);
+}, 300);
+
+    function getAccountFilterParam() {
+  return activeAccountId && activeAccountId !== 'all' ? `&account_id=eq.${activeAccountId}` : '';
+}
+
+function getAccountName(accountId) {
+  if (!accountId) return 'No account';
+  return allAccounts.find(a => a.id === accountId)?.name || 'Unknown account';
+}
+
+function renderAccountControls() {
+  const html = `
+    <div class="account-controls">
+      <select class="account-select" onchange="setActiveAccount(this.value)">
+        <option value="all"${activeAccountId === 'all' ? ' selected' : ''}>All accounts</option>
+        ${allAccounts.map(a => `<option value="${a.id}"${activeAccountId === a.id ? ' selected' : ''}>${escapeHtml(a.name)}</option>`).join('')}
+      </select>
+      <button class="account-manage-btn" onclick="openAccountModal()">Manage</button>
+    </div>
+  `;
+
+  ['dashboardAccountControls', 'calendarAccountControls', 'tradesAccountControls'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = html;
+  });
+}
+
+function populateTradeAccountSelect() {
+  const select = document.getElementById('tradeAccount');
+  if (!select) return;
+
+  select.innerHTML = '<option value="">Select an account...</option>' +
+    allAccounts.map(a => `<option value="${a.id}">${escapeHtml(a.name)}</option>`).join('');
+
+  if (activeAccountId !== 'all') {
+    select.value = activeAccountId;
+  } else if (allAccounts[0]) {
+    select.value = allAccounts[0].id;
+  }
+}
+
+async function loadAccounts() {
+  if (!user) return;
+
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/broker_accounts?user_id=eq.${user.id}&order=created_at.asc`, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`
+    }
+  });
+
+  const data = await res.json();
+  allAccounts = Array.isArray(data) ? data : [];
+
+  if (!allAccounts.length) {
+    await createDefaultAccount();
+    return;
+  }
+
+  if (activeAccountId !== 'all' && !allAccounts.some(a => a.id === activeAccountId)) {
+    activeAccountId = 'all';
+    localStorage.setItem('tp_active_account', activeAccountId);
+  }
+
+  renderAccountControls();
+  populateTradeAccountSelect();
+}
+
+async function createDefaultAccount() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/broker_accounts`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    },
+    body: JSON.stringify({ user_id: user.id, name: 'Main Account' })
+  });
+
+  const data = await res.json();
+  allAccounts = data && data[0] ? [data[0]] : [];
+
+  if (allAccounts[0]) {
+    await fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}&account_id=is.null`, {
+      method: 'PATCH',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ account_id: allAccounts[0].id })
+    });
+  }
+
+  renderAccountControls();
+  populateTradeAccountSelect();
+}
+
+async function setActiveAccount(accountId) {
+  activeAccountId = accountId || 'all';
+  localStorage.setItem('tp_active_account', activeAccountId);
+
+  calendarDataCache.clear();
+
+  renderAccountControls();
+  populateTradeAccountSelect();
+
+  await Promise.all([
+    loadTrades(),
+    loadCalendarData()
+  ]);
+}
+
+function openAccountModal() {
+  document.getElementById('accountMsg').textContent = '';
+  document.getElementById('accountNameInput').value = '';
+  renderAccountList();
+  document.getElementById('accountModal').classList.add('active');
+}
+
+function closeAccountModal() {
+  document.getElementById('accountModal').classList.remove('active');
+}
+
+function handleAccountModalClick(e) {
+  if (e.target === document.getElementById('accountModal')) closeAccountModal();
+}
+
+function renderAccountList() {
+  const list = document.getElementById('accountList');
+
+  if (!allAccounts.length) {
+    list.innerHTML = '<div class="dashboard-empty">No accounts yet.</div>';
+    return;
+  }
+
+  list.innerHTML = allAccounts.map(a => `
+    <div class="account-list-item">
+      <div>
+        <div class="account-list-name">${escapeHtml(a.name)}</div>
+        <div class="dashboard-list-sub">${activeAccountId === a.id ? 'Currently selected' : 'Trading account'}</div>
+      </div>
+      <button class="account-delete-btn" onclick="deleteBrokerAccount('${a.id}')">Delete</button>
+    </div>
+  `).join('');
+}
+
+async function createBrokerAccount() {
+  const input = document.getElementById('accountNameInput');
+  const msg = document.getElementById('accountMsg');
+  const name = input.value.trim();
+
+  msg.textContent = '';
+  msg.className = 'modal-msg';
+
+  if (!name) {
+    msg.textContent = 'Enter an account name.';
+    msg.className = 'modal-msg error';
+    return;
+  }
+
+  const duplicate = allAccounts.some(a => a.name.toLowerCase() === name.toLowerCase());
+  if (duplicate) {
+    msg.textContent = 'That account already exists.';
+    msg.className = 'modal-msg error';
+    return;
+  }
+
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/broker_accounts`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    },
+    body: JSON.stringify({ user_id: user.id, name })
+  });
+
+  const data = await res.json();
+
+  if (!res.ok || !data?.[0]) {
+    msg.textContent = 'Could not create account.';
+    msg.className = 'modal-msg error';
+    return;
+  }
+
+  allAccounts.push(data[0]);
+  input.value = '';
+  msg.textContent = 'Account added.';
+  msg.className = 'modal-msg success';
+
+  renderAccountControls();
+  populateTradeAccountSelect();
+  renderAccountList();
+}
+
+async function deleteBrokerAccount(id) {
+  const account = allAccounts.find(a => a.id === id);
+  if (!account) return;
+
+  if (!confirm(`Delete ${account.name}? Trades from this account will stay saved, but they will move to No account.`)) return;
+
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/broker_accounts?id=eq.${id}`, {
+    method: 'DELETE',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`
+    }
+  });
+
+  if (!res.ok) return;
+
+  allAccounts = allAccounts.filter(a => a.id !== id);
+
+  if (activeAccountId === id) {
+    activeAccountId = 'all';
+    localStorage.setItem('tp_active_account', activeAccountId);
+  }
+
+  calendarDataCache.clear();
+
+  renderAccountControls();
+  populateTradeAccountSelect();
+  renderAccountList();
+
+  await Promise.all([
+    loadTrades(),
+    loadCalendarData()
+  ]);
+}
 
     async function loadStrategies() {
       const res = await fetch(`${SUPABASE_URL}/rest/v1/strategies?user_id=eq.${user.id}&order=created_at.asc`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } });
@@ -2010,7 +2392,7 @@ function resetPointsCalc() {
     }
 
     async function loadCalendarData() {
-      const cacheKey = `${calYear}-${calMonth}`;
+      const cacheKey = `${activeAccountId}-${calYear}-${calMonth}`;
       if (calendarDataCache.has(cacheKey)) {
         const cached = calendarDataCache.get(cacheKey);
         calTradesCache = cached.trades;
@@ -2027,8 +2409,9 @@ function resetPointsCalc() {
       weekStart.setDate(weekStart.getDate() - weekStart.getDay());
       const weekEnd = new Date(lastDayOfMonth);
       weekEnd.setDate(weekEnd.getDate() + (6 - weekEnd.getDay()));
+      const accountFilter = getAccountFilterParam();
       const [tradesRes, notesRes] = await Promise.all([
-        fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}&date=gte.${weekStart.toISOString().split('T')[0]}&date=lte.${weekEnd.toISOString().split('T')[0]}&select=*,strategies(name)`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } }),
+        fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}${accountFilter}&date=gte.${weekStart.toISOString().split('T')[0]}&date=lte.${weekEnd.toISOString().split('T')[0]}&select=*,strategies(name),broker_accounts(name)`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } }),
         fetch(`${SUPABASE_URL}/rest/v1/day_notes?user_id=eq.${user.id}&date=gte.${weekStart.toISOString().split('T')[0]}&date=lte.${weekEnd.toISOString().split('T')[0]}&select=*`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } })
       ]);
       calTradesCache = await tradesRes.json(); if (!Array.isArray(calTradesCache)) calTradesCache = [];
@@ -2044,7 +2427,7 @@ calNotesCache = await notesRes.json(); if (!Array.isArray(calNotesCache)) calNot
     }
 
     async function prefetchCalendarMonth(year, month) {
-  const cacheKey = `${year}-${month}`;
+  const cacheKey = `${activeAccountId}-${year}-${month}`;
   if (calendarDataCache.has(cacheKey)) return;
 
   const firstDayOfMonth = new Date(year, month, 1);
@@ -2053,9 +2436,11 @@ calNotesCache = await notesRes.json(); if (!Array.isArray(calNotesCache)) calNot
   weekStart.setDate(weekStart.getDate() - weekStart.getDay());
   const weekEnd = new Date(lastDayOfMonth);
   weekEnd.setDate(weekEnd.getDate() + (6 - weekEnd.getDay()));
+  
+  const accountFilter = getAccountFilterParam();
 
   const [tradesRes, notesRes] = await Promise.all([
-    fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}&date=gte.${weekStart.toISOString().split('T')[0]}&date=lte.${weekEnd.toISOString().split('T')[0]}&select=*,strategies(name)`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } }),
+    fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}${accountFilter}&date=gte.${weekStart.toISOString().split('T')[0]}&date=lte.${weekEnd.toISOString().split('T')[0]}&select=*,strategies(name),broker_accounts(name)`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } }),
     fetch(`${SUPABASE_URL}/rest/v1/day_notes?user_id=eq.${user.id}&date=gte.${weekStart.toISOString().split('T')[0]}&date=lte.${weekEnd.toISOString().split('T')[0]}&select=*`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } })
   ]);
 
@@ -2282,10 +2667,19 @@ function handleDayModalClick(e) {
 }
 
     async function loadDayTrades() {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}&date=eq.${selectedDate}&select=*,strategies(name)&order=created_at.asc`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } });
-      dayTrades = await res.json();
-      renderDayTrades();
+  const accountFilter = getAccountFilterParam();
+
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}${accountFilter}&date=eq.${selectedDate}&select=*,strategies(name),broker_accounts(name)&order=created_at.asc`, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`
     }
+  });
+
+  dayTrades = await res.json();
+  if (!Array.isArray(dayTrades)) dayTrades = [];
+  renderDayTrades();
+}
 
     function renderDayTrades() {
       const list = document.getElementById('dayTradesList');
@@ -2409,6 +2803,8 @@ function handleDayModalClick(e) {
       editingTradeId = null;
       editingTradeOriginalDate = null;
       if (!allStrategies.length) await loadStrategies();
+      if (!allAccounts.length) await loadAccounts();
+populateTradeAccountSelect();
       document.getElementById('tradeStrategy').innerHTML = '<option value="">Select a strategy...</option>' + allStrategies.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
       document.getElementById('confluenceSection').style.display = 'none';
       document.getElementById('confluenceChecklist').innerHTML = '';
@@ -2432,6 +2828,8 @@ function handleDayModalClick(e) {
       editingTradeId = null;
       editingTradeOriginalDate = null;
       if (!allStrategies.length) await loadStrategies();
+      if (!allAccounts.length) await loadAccounts();
+populateTradeAccountSelect();
       document.getElementById('tradeStrategy').innerHTML = '<option value="">Select a strategy...</option>' + allStrategies.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
       document.getElementById('confluenceSection').style.display = 'none';
       document.getElementById('confluenceChecklist').innerHTML = '';
@@ -2452,7 +2850,7 @@ function handleDayModalClick(e) {
     }
 
     async function openEditTrade(id) {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/trades?id=eq.${id}&select=*,strategies(name)`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } });
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/trades?id=eq.${id}&select=*,strategies(name),broker_accounts(name)`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } });
       const data = await res.json();
       if (!data || !data[0]) return;
       const t = data[0];
@@ -2462,6 +2860,9 @@ function handleDayModalClick(e) {
       allStrategies = await stratRes.json();
       document.getElementById('tradeStrategy').innerHTML = '<option value="">Select a strategy...</option>' + allStrategies.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
       document.getElementById('tradeStrategy').value = t.strategy_id || '';
+      if (!allAccounts.length) await loadAccounts();
+populateTradeAccountSelect();
+document.getElementById('tradeAccount').value = t.account_id || '';
       loadStrategyConfluences();
       setTimeout(() => {
         const checks = document.querySelectorAll('#confluenceChecklist input');
@@ -2520,6 +2921,7 @@ function handleDayModalClick(e) {
 
     async function saveTrade() {
   const strategyId = document.getElementById('tradeStrategy').value;
+      const accountId = document.getElementById('tradeAccount').value;
   const result = document.getElementById('tradeResult').value;
   let pnl = parseFloat(document.getElementById('tradePnl').value) || 0;
 
@@ -2546,6 +2948,12 @@ function handleDayModalClick(e) {
     return;
   }
 
+      if (!accountId) {
+  msg.textContent = 'Please select an account.';
+  msg.className = 'modal-msg error';
+  return;
+}
+
   const tradeDate = logFromPage ? document.getElementById('tradeDate').value : selectedDate;
 
   if (!tradeDate) {
@@ -2566,6 +2974,7 @@ function handleDayModalClick(e) {
 
   const payload = {
     user_id: user.id,
+    account_id: accountId,
     strategy_id: strategyId,
     date: tradeDate,
     result,
@@ -2869,13 +3278,15 @@ function renderDashboardRecentTrades(trades) {
     const pnl = parseFloat(t.pnl) || 0;
     const date = new Date(t.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     const strategy = t.strategies?.name || 'Unknown';
+    const accountName = t.broker_accounts?.name || getAccountName(t.account_id);
+const displayStrategy = activeAccountId === 'all' ? `${accountName} · ${strategy}` : strategy;
     const asset = t.asset ? ` · ${t.asset}` : '';
     const result = t.result === 'breakeven' ? 'be' : (t.result || '-');
 
     return `
       <div class="dashboard-list-item">
         <div class="dashboard-list-main">
-          <div class="dashboard-list-title">${escapeHtml(strategy)}${escapeHtml(asset)} — ${escapeHtml(result)}</div>
+          <div class="dashboard-list-title">${escapeHtml(displayStrategy)}${escapeHtml(asset)} — ${escapeHtml(result)}</div>
           <div class="dashboard-list-sub">${date}${t.actual_rr ? ` · ${t.actual_rr}R` : ''}${t.followed_rules ? '' : ' · Rules broken'}</div>
         </div>
         <div class="dashboard-list-value" style="color:${pnl > 0 ? 'var(--success)' : pnl < 0 ? 'var(--danger)' : 'var(--text)'}">${formatPnl(pnl)}</div>
@@ -2889,15 +3300,26 @@ function renderDashboardRecentTrades(trades) {
     let filteredTrades = [];
 
     async function loadTrades() {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}&select=*,strategies(name)&order=date.desc,created_at.desc`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } });
-      allTrades = await res.json(); if (!Array.isArray(allTrades)) allTrades = [];
-      const strategies = [...new Set(allTrades.map(t => t.strategies?.name).filter(Boolean))];
-      const filterSelect = document.getElementById('filterStrategy');
-      filterSelect.innerHTML = '<option value="">All Strategies</option>' + strategies.map(s => `<option value="${s}">${s}</option>`).join('');
-      filterTrades();
-renderDashboard();
-pageLoaded.dashboard = true;
+  const accountFilter = getAccountFilterParam();
+
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}${accountFilter}&select=*,strategies(name),broker_accounts(name)&order=date.desc,created_at.desc`, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`
     }
+  });
+
+  allTrades = await res.json();
+  if (!Array.isArray(allTrades)) allTrades = [];
+
+  const strategies = [...new Set(allTrades.map(t => t.strategies?.name).filter(Boolean))];
+  const filterSelect = document.getElementById('filterStrategy');
+  filterSelect.innerHTML = '<option value="">All Strategies</option>' + strategies.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+
+  filterTrades();
+  renderDashboard();
+  pageLoaded.dashboard = true;
+}
 
     function filterTrades() {
       const stratFilter = document.getElementById('filterStrategy').value;
@@ -2960,7 +3382,8 @@ pageLoaded.dashboard = true;
     const pnlColor = pnl > 0 ? 'var(--success)' : pnl < 0 ? 'var(--danger)' : 'var(--text)';
     const date = new Date(t.date + 'T12:00:00');
     const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    const strategy = t.strategies?.name || '-';
+    const accountName = t.broker_accounts?.name || getAccountName(t.account_id);
+const strategy = t.strategies?.name || '-';
     const result = t.result === 'breakeven' ? 'be' : (t.result || '-');
     const rr = t.actual_rr ? `${t.actual_rr}R` : '—';
     const confluences = t.confluences_used?.length ? `${t.confluences_used.length} confluences` : '—';
@@ -2971,7 +3394,7 @@ pageLoaded.dashboard = true;
 
     return `<div class="trades-table-row">
       <div class="trades-table-cell muted">${dateStr}</div>
-      <div class="trades-table-cell">${strategy}</div>
+      <div class="trades-table-cell">${escapeHtml(activeAccountId === 'all' ? `${accountName} · ${strategy}` : strategy)}</div>
       <div class="trades-table-cell"><span class="trades-badge ${t.result || '-'}">${result}</span></div>
       <div class="trades-table-cell" style="color:${pnlColor};font-weight:700;">${formatPnl(pnl)}</div>
       <div class="trades-table-cell muted">${rr}</div>
@@ -3149,6 +3572,8 @@ function renderInsertTradeList() {
     const date = new Date(t.date + 'T12:00:00');
     const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     const strategy = t.strategies?.name || 'Unknown';
+    const accountName = t.broker_accounts?.name || getAccountName(t.account_id);
+const displayStrategy = activeAccountId === 'all' ? `${accountName} · ${strategy}` : strategy;
     const asset = t.asset ? ` · ${t.asset}` : '';
     const result = t.result === 'breakeven' ? 'be' : (t.result || '-');
     const rr = t.actual_rr ? ` · ${t.actual_rr}R` : '';
@@ -3158,7 +3583,7 @@ function renderInsertTradeList() {
     return `
       <div class="insert-trade-option" onclick="insertTradeIntoNote('${t.id}')">
         <div class="insert-trade-option-main">
-          <div class="insert-trade-option-title">${escapeHtml(strategy)}${escapeHtml(asset)} — ${escapeHtml(result)}</div>
+          <div class="insert-trade-option-title">${escapeHtml(displayStrategy)}${escapeHtml(asset)} — ${escapeHtml(result)}</div>
           <div class="insert-trade-option-detail">${escapeHtml(dateStr)} · ${escapeHtml(confluences)}${escapeHtml(rr)}${escapeHtml(time)}</div>
         </div>
         <div class="insert-trade-option-pnl" style="color:${pnlColor};">${formatPnl(pnl)}</div>
@@ -3173,6 +3598,8 @@ function buildNoteTradeCardHtml(t) {
   const date = new Date(t.date + 'T12:00:00');
   const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   const strategy = t.strategies?.name || 'Unknown';
+  const accountName = t.broker_accounts?.name || getAccountName(t.account_id);
+const displayStrategy = activeAccountId === 'all' ? `${accountName} · ${strategy}` : strategy;
   const asset = t.asset ? ` · ${t.asset}` : '';
   const result = t.result === 'breakeven' ? 'be' : (t.result || '-');
   const rr = t.actual_rr ? ` · ${t.actual_rr}R` : '';
@@ -3183,7 +3610,7 @@ function buildNoteTradeCardHtml(t) {
   return `
     <div class="note-trade-card" contenteditable="false" data-trade-id="${escapeHtml(t.id)}">
       <div class="note-trade-card-title">
-        <span>${escapeHtml(strategy)}${escapeHtml(asset)} — ${escapeHtml(result)}</span>
+        <span>${escapeHtml(displayStrategy)}${escapeHtml(asset)} — ${escapeHtml(result)}</span>
         <span class="note-trade-card-pnl" style="color:${pnlColor};">${formatPnl(pnl)}</span>
       </div>
       <div class="note-trade-card-detail">${escapeHtml(dateStr)} · ${escapeHtml(confluences)}${escapeHtml(rr)}${escapeHtml(time)}</div>
