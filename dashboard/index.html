@@ -428,7 +428,7 @@
   </div>
 
   <!-- DAY MODAL -->
-  <div class="day-modal-overlay" id="dayModal" onclick="handleDayModalClick(event)">
+  <div class="day-modal-overlay" id="dayModal" onmousedown="handleDayModalPointerDown(event)" onclick="handleDayModalClick(event)">
     <div class="day-modal-box" onclick="event.stopPropagation()">
       <div class="day-modal-header">
         <div class="day-modal-date" id="dayModalTitle">April 14, 2026</div>
@@ -1457,7 +1457,22 @@ calNotesCache = await notesRes.json(); if (!Array.isArray(calNotesCache)) calNot
       }
     }
 
-    function handleDayModalClick(e) { if (e.target === document.getElementById('dayModal')) closeDayModal(); }
+    let dayModalPointerStartedInside = false;
+
+function handleDayModalPointerDown(e) {
+  dayModalPointerStartedInside = e.target !== document.getElementById('dayModal');
+}
+
+function handleDayModalClick(e) {
+  const clickedBackdrop = e.target === document.getElementById('dayModal');
+
+  if (clickedBackdrop && !dayModalPointerStartedInside) {
+    closeDayModal();
+  }
+
+  dayModalPointerStartedInside = false;
+}
+    
     function handleLogTradeModalClick(e) { if (e.target === document.getElementById('logTradeModal')) closeLogTrade(); }
 
     async function openDayModal(dateStr) {
