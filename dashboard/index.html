@@ -989,37 +989,71 @@
     </div>
 
     <div class="page" id="page-calculator">
-      <div class="page-title">Calculator</div>
-      <div class="page-subtitle">Plan your trade before you take it.</div>
-      <div class="calc-layout">
-        <div class="calc-card">
-          <div class="calc-card-title">Trade Setup</div>
-          <div class="calc-input-grid">
-            <div class="calc-field"><label>Ticker</label>
-              <select id="calcTicker" onchange="runCalc()">
-                <option value="MNQ">MNQ</option><option value="NQ">NQ</option>
-                <option value="MES">MES</option><option value="ES">ES</option>
-                <option value="MGC">MGC</option><option value="GC">GC</option>
-              </select>
-            </div>
-            <div class="calc-field"><label>Contracts</label><input type="number" id="calcContracts" placeholder="1" min="1" oninput="runCalc()"/></div>
-            <div class="calc-field"><label>Entry Price</label><input type="number" id="calcEntry" placeholder="e.g. 21000" step="0.01" oninput="runCalc()"/></div>
-            <div class="calc-field"><label>Stop Loss</label><input type="number" id="calcSL" placeholder="e.g. 20950" step="0.01" oninput="runCalc()"/></div>
-            <div class="calc-field"><label>Target</label><input type="number" id="calcTP" placeholder="e.g. 21100" step="0.01" oninput="runCalc()"/></div>
-          </div>
-          <button class="calc-reset-btn" onclick="resetCalc()">Clear</button>
+  <div class="page-title">Calculator</div>
+  <div class="page-subtitle">Plan your trade before you take it.</div>
+
+  <div class="calc-layout">
+    <div class="calc-card">
+      <div class="calc-card-title">Futures P&L Calculator</div>
+      <div class="calc-input-grid">
+        <div class="calc-field"><label>Ticker</label>
+          <select id="calcTicker" onchange="runCalc()">
+            <option value="MNQ">MNQ</option><option value="NQ">NQ</option>
+            <option value="MES">MES</option><option value="ES">ES</option>
+            <option value="MGC">MGC</option><option value="GC">GC</option>
+          </select>
         </div>
-        <div class="calc-card" id="calcResultsCard" style="display:none;">
-          <div class="calc-card-title">Results</div>
-          <div class="calc-results">
-            <div class="calc-result-card"><div class="calc-result-label">Dollar Risk</div><div class="calc-result-value red" id="calcRisk">—</div></div>
-            <div class="calc-result-card"><div class="calc-result-label">Dollar Profit</div><div class="calc-result-value green" id="calcProfit">—</div></div>
-            <div class="calc-result-card"><div class="calc-result-label">R:R Ratio</div><div class="calc-result-value accent" id="calcRR">—</div></div>
-            <div class="calc-result-card"><div class="calc-result-label">Win Rate Needed</div><div class="calc-result-value" id="calcWinNeeded">—</div></div>
-          </div>
-        </div>
+        <div class="calc-field"><label>Contracts</label><input type="number" id="calcContracts" placeholder="1" min="1" oninput="runCalc()"/></div>
+        <div class="calc-field"><label>Entry Price</label><input type="number" id="calcEntry" placeholder="e.g. 21000" step="0.01" oninput="runCalc()"/></div>
+        <div class="calc-field"><label>Stop Loss Price</label><input type="number" id="calcSL" placeholder="e.g. 20950" step="0.01" oninput="runCalc()"/></div>
+        <div class="calc-field"><label>Target Price</label><input type="number" id="calcTP" placeholder="e.g. 21100" step="0.01" oninput="runCalc()"/></div>
+      </div>
+      <button class="calc-reset-btn" onclick="resetCalc()">Clear</button>
+    </div>
+
+    <div class="calc-card" id="calcResultsCard" style="display:none;">
+      <div class="calc-card-title">Results</div>
+      <div class="calc-results">
+        <div class="calc-result-card"><div class="calc-result-label">Dollar Risk</div><div class="calc-result-value red" id="calcRisk">—</div></div>
+        <div class="calc-result-card"><div class="calc-result-label">Dollar Profit</div><div class="calc-result-value green" id="calcProfit">—</div></div>
+        <div class="calc-result-card"><div class="calc-result-label">R:R Ratio</div><div class="calc-result-value accent" id="calcRR">—</div></div>
       </div>
     </div>
+
+    <div class="calc-card">
+      <div class="calc-card-title">Futures Points Calculator</div>
+      <div class="calc-input-grid">
+        <div class="calc-field"><label>Ticker</label>
+          <select id="pointsCalcTicker" onchange="runPointsCalc()">
+            <option value="MNQ">MNQ</option><option value="NQ">NQ</option>
+            <option value="MES">MES</option><option value="ES">ES</option>
+            <option value="MGC">MGC</option><option value="GC">GC</option>
+          </select>
+        </div>
+        <div class="calc-field"><label>Contracts</label><input type="number" id="pointsCalcContracts" placeholder="1" min="1" oninput="runPointsCalc()"/></div>
+        <div class="calc-field"><label>Stop Loss Points</label><input type="number" id="pointsCalcSL" placeholder="e.g. 50" step="0.01" oninput="runPointsCalc()"/></div>
+        <div class="calc-field"><label>Target Points</label><input type="number" id="pointsCalcTP" placeholder="e.g. 100" step="0.01" oninput="runPointsCalc()"/></div>
+      </div>
+      <button class="calc-reset-btn" onclick="resetPointsCalc()">Clear</button>
+    </div>
+
+    <div class="calc-card" id="pointsCalcResultsCard" style="display:none;">
+      <div class="calc-card-title">Results</div>
+      <div class="calc-results">
+        <div class="calc-result-card"><div class="calc-result-label">Dollar Risk</div><div class="calc-result-value red" id="pointsCalcRisk">—</div></div>
+        <div class="calc-result-card"><div class="calc-result-label">Dollar Profit</div><div class="calc-result-value green" id="pointsCalcProfit">—</div></div>
+        <div class="calc-result-card"><div class="calc-result-label">R:R Ratio</div><div class="calc-result-value accent" id="pointsCalcRR">—</div></div>
+      </div>
+    </div>
+
+    <div class="calc-card">
+      <div class="calc-card-title">Options P&L Calculator</div>
+      <div style="font-size:14px;color:var(--text2);line-height:1.6;">
+        A basic options calculator can use entry premium, exit premium, and contracts. A Robinhood-style simulator needs strike, expiration, option type, underlying price, implied volatility, and time decay. That can be added next as a proper options simulator.
+      </div>
+    </div>
+  </div>
+</div>
 
     <div class="page" id="page-settings">
       <div class="page-title">Settings</div>
@@ -1662,42 +1696,85 @@ allStrategies = Array.isArray(data) ? data : [];
     function logout() { localStorage.removeItem('tp_token'); localStorage.removeItem('tp_user'); window.location.href = '/app'; }
 
     // ─── CALCULATOR ──────────────────────────────────────────────
-    function initCalcPage() {
-      document.getElementById('calcTicker').value = localStorage.getItem('tp_ticker') || 'MNQ';
-      document.getElementById('calcContracts').value = localStorage.getItem('tp_contracts') || '';
-      document.getElementById('calcEntry').value = '';
-      document.getElementById('calcSL').value = '';
-      document.getElementById('calcTP').value = '';
-      document.getElementById('calcResultsCard').style.display = 'none';
-    }
+function initCalcPage() {
+  const defaultTicker = localStorage.getItem('tp_ticker') || 'MNQ';
+  const defaultContracts = localStorage.getItem('tp_contracts') || '';
 
-    function runCalc() {
-      const ticker = document.getElementById('calcTicker').value;
-      const contracts = parseFloat(document.getElementById('calcContracts').value) || 0;
-      const entry = parseFloat(document.getElementById('calcEntry').value);
-      const sl = parseFloat(document.getElementById('calcSL').value);
-      const tp = parseFloat(document.getElementById('calcTP').value);
-      if (!contracts || isNaN(entry) || isNaN(sl) || isNaN(tp)) { document.getElementById('calcResultsCard').style.display = 'none'; return; }
-      const spec = TICK_SPECS[ticker];
-      const slTicks = Math.abs(entry - sl) / spec.tickSize;
-      const tpTicks = Math.abs(tp - entry) / spec.tickSize;
-      const risk = slTicks * spec.tickValue * contracts;
-      const profit = tpTicks * spec.tickValue * contracts;
-      const rr = risk > 0 ? (profit / risk) : 0;
-      const winNeeded = rr > 0 ? Math.round((1 / (1 + rr)) * 100) : 0;
-      document.getElementById('calcRisk').textContent = `-$${risk.toFixed(2)}`;
-      document.getElementById('calcProfit').textContent = `+$${profit.toFixed(2)}`;
-      document.getElementById('calcRR').textContent = `${rr.toFixed(2)}R`;
-      document.getElementById('calcWinNeeded').textContent = `${winNeeded}%`;
-      document.getElementById('calcResultsCard').style.display = 'block';
-    }
+  document.getElementById('calcTicker').value = defaultTicker;
+  document.getElementById('calcContracts').value = defaultContracts;
+  document.getElementById('calcEntry').value = '';
+  document.getElementById('calcSL').value = '';
+  document.getElementById('calcTP').value = '';
+  document.getElementById('calcResultsCard').style.display = 'none';
 
-    function resetCalc() {
-      document.getElementById('calcEntry').value = '';
-      document.getElementById('calcSL').value = '';
-      document.getElementById('calcTP').value = '';
-      document.getElementById('calcResultsCard').style.display = 'none';
-    }
+  document.getElementById('pointsCalcTicker').value = defaultTicker;
+  document.getElementById('pointsCalcContracts').value = defaultContracts;
+  document.getElementById('pointsCalcSL').value = '';
+  document.getElementById('pointsCalcTP').value = '';
+  document.getElementById('pointsCalcResultsCard').style.display = 'none';
+}
+
+function runCalc() {
+  const ticker = document.getElementById('calcTicker').value;
+  const contracts = parseFloat(document.getElementById('calcContracts').value) || 0;
+  const entry = parseFloat(document.getElementById('calcEntry').value);
+  const sl = parseFloat(document.getElementById('calcSL').value);
+  const tp = parseFloat(document.getElementById('calcTP').value);
+
+  if (!contracts || isNaN(entry) || isNaN(sl) || isNaN(tp)) {
+    document.getElementById('calcResultsCard').style.display = 'none';
+    return;
+  }
+
+  const spec = TICK_SPECS[ticker];
+  const slTicks = Math.abs(entry - sl) / spec.tickSize;
+  const tpTicks = Math.abs(tp - entry) / spec.tickSize;
+  const risk = slTicks * spec.tickValue * contracts;
+  const profit = tpTicks * spec.tickValue * contracts;
+  const rr = risk > 0 ? (profit / risk) : 0;
+
+  document.getElementById('calcRisk').textContent = `-$${risk.toFixed(2)}`;
+  document.getElementById('calcProfit').textContent = `+$${profit.toFixed(2)}`;
+  document.getElementById('calcRR').textContent = `${rr.toFixed(2)}R`;
+  document.getElementById('calcResultsCard').style.display = 'block';
+}
+
+function resetCalc() {
+  document.getElementById('calcEntry').value = '';
+  document.getElementById('calcSL').value = '';
+  document.getElementById('calcTP').value = '';
+  document.getElementById('calcResultsCard').style.display = 'none';
+}
+
+function runPointsCalc() {
+  const ticker = document.getElementById('pointsCalcTicker').value;
+  const contracts = parseFloat(document.getElementById('pointsCalcContracts').value) || 0;
+  const slPoints = parseFloat(document.getElementById('pointsCalcSL').value);
+  const tpPoints = parseFloat(document.getElementById('pointsCalcTP').value);
+
+  if (!contracts || isNaN(slPoints) || isNaN(tpPoints)) {
+    document.getElementById('pointsCalcResultsCard').style.display = 'none';
+    return;
+  }
+
+  const spec = TICK_SPECS[ticker];
+  const slTicks = Math.abs(slPoints) / spec.tickSize;
+  const tpTicks = Math.abs(tpPoints) / spec.tickSize;
+  const risk = slTicks * spec.tickValue * contracts;
+  const profit = tpTicks * spec.tickValue * contracts;
+  const rr = risk > 0 ? (profit / risk) : 0;
+
+  document.getElementById('pointsCalcRisk').textContent = `-$${risk.toFixed(2)}`;
+  document.getElementById('pointsCalcProfit').textContent = `+$${profit.toFixed(2)}`;
+  document.getElementById('pointsCalcRR').textContent = `${rr.toFixed(2)}R`;
+  document.getElementById('pointsCalcResultsCard').style.display = 'block';
+}
+
+function resetPointsCalc() {
+  document.getElementById('pointsCalcSL').value = '';
+  document.getElementById('pointsCalcTP').value = '';
+  document.getElementById('pointsCalcResultsCard').style.display = 'none';
+}
 
     // ─── CALENDAR ───────────────────────────────────────────────
     async function initCalendar() {
