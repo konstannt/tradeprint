@@ -2132,7 +2132,7 @@ applyAuthRedirectIfPresent();
     let user = null;
     try { user = JSON.parse(localStorage.getItem('tp_user') || 'null'); } catch(e) { user = null; }
 
-    const allowedEmails = ['dean.tsi.198@gmail.com','alexiosct@gmail.com','mateobarrios722@gmail.com','ktsiomplikas@gmail.com','bashalexios@gmail.com','tooslow764@gmail.com','Ethanlampson@gmail.com','abhagat2004@gmail.com','Dfyseros@icloud.com'];
+    const allowedEmails = ['dean.tsi.198@gmail.com','alexiosct@gmail.com','mateobarrios722@gmail.com','ktsiomplikas@gmail.com','bashalexios@gmail.com','tooslow764@gmail.com','Ethanlampson@gmail.com','abhagat2004@gmail.com','Dfyseros@icloud.com','arhamn7699@gmail.com'];
     if (!token || !user || !allowedEmails.includes(user.email)) { window.location.href = '/app'; }
 
     if (localStorage.getItem('tp_theme') === 'light') {
@@ -2820,10 +2820,17 @@ function resetPointsCalc() {
     }
 
     function invalidateCalendarCacheForDate(dateStr) {
-      if (!dateStr) return;
-      const date = new Date(dateStr + 'T12:00:00');
-      calendarDataCache.delete(`${date.getFullYear()}-${date.getMonth()}`);
+  if (!dateStr) return;
+
+  const date = new Date(dateStr + 'T12:00:00');
+  const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
+
+  Array.from(calendarDataCache.keys()).forEach(key => {
+    if (key.endsWith(`-${monthKey}`)) {
+      calendarDataCache.delete(key);
     }
+  });
+}
 
     async function loadCalendarData() {
       const cacheKey = `${activeAccountId}-${calYear}-${calMonth}`;
