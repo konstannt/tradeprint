@@ -321,6 +321,49 @@
   margin-bottom: 10px;
 }
 
+    .dashboard-panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.dashboard-panel-heading .dashboard-panel-title {
+  margin-bottom: 0;
+}
+
+.dashboard-range-select {
+  min-height: 34px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+}
+
+.dashboard-range-select:focus {
+  border-color: var(--accent);
+}
+
+.dashboard-bars.inactive .dashboard-bar-wrap.active::before {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .dashboard-panel-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .dashboard-range-select {
+    width: 100%;
+  }
+}
+
 .dashboard-chart-date {
   font-size: 13px;
   font-weight: 700;
@@ -1563,14 +1606,31 @@
         </div>
 
                 <div class="dashboard-panel">
-          <div class="dashboard-panel-title">Last 14 Days PNL</div>
-          <div class="dashboard-chart-summary">
-            <div class="dashboard-chart-date" id="dashboardChartDate">Today</div>
-            <div class="dashboard-chart-pnl flat" id="dashboardChartPnl">$0.00</div>
-          </div>
-          <div class="dashboard-bars" id="dashboardBars"></div>
-          <div class="dashboard-bar-labels"><span>14 days ago</span><span>Today</span></div>
-        </div>
+  <div class="dashboard-panel-heading">
+    <div class="dashboard-panel-title">PNL Trend</div>
+    <select class="dashboard-range-select" id="dashboardRangeSelect" onchange="setDashboardChartRange(this.value)">
+      <option value="7d">Last week</option>
+      <option value="14d" selected>Last 14 days</option>
+      <option value="30d">Last month</option>
+      <option value="90d">Last 3 months</option>
+      <option value="ytd">Year to date</option>
+      <option value="1y">Last 1 year</option>
+      <option value="all">All time</option>
+    </select>
+  </div>
+
+  <div class="dashboard-chart-summary">
+    <div class="dashboard-chart-date" id="dashboardChartDate">Last 14 days</div>
+    <div class="dashboard-chart-pnl flat" id="dashboardChartPnl">$0.00</div>
+  </div>
+
+  <div class="dashboard-bars" id="dashboardBars"></div>
+
+  <div class="dashboard-bar-labels">
+    <span id="dashboardRangeStartLabel">14 days ago</span>
+    <span id="dashboardRangeEndLabel">Today</span>
+  </div>
+</div>
 
         <div class="dashboard-grid-2">
           <div class="dashboard-panel">
@@ -3654,33 +3714,203 @@ function renderDashboard() {
 }
 
 let dashboardDailyBars = [];
+let dashboardChartSummary = { label: 'PNL Trend', pnl: 0 };
+let dashboardChartRange = localStorage.getItem('tp_dashboard_chart_range') || '14d';
 
-function formatChartDate(dateStr) {
-  const date = new Date(dateStr + 'T12:00:00');
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric'
-  });
+function setDashboardChartRange(value) {
+  dashboardChartRange = value || '14d';
+  localStorage.setItem('tp_dashboard_chart_range', dashboardChartRange);
+  renderDashboardBars(allTrades);
 }
 
-function formatChartDay(dateStr) {
-  const date = new Date(dateStr + 'T12:00:00');
-  return date.toLocaleDateString('en-US', {
-    month: 'numeric',
-    day: 'numeric'
+function makeLocalDate(year, month, day) {
+  const date = new Date(year, month, day);
+  date.setHours(12, 0, 0, 0);
+  return date;
+}
+
+function cloneDate(date) {
+  return makeLocalDate(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+function addDays(date, days) {
+  const next = cloneDate(date);
+  next.setDate(next.getDate() + days);
+  return next;
+}
+
+function formatDateShort(date) {
+  return date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' });
+}
+
+function formatDateFull(date) {
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function formatMonthLabel(date) {
+  return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+}
+
+function getMonday(date) {
+  const d = cloneDate(date);
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
+  return d;
+}
+
+function getLastDayOfMonth(date) {
+  return makeLocalDate(date.getFullYear(), date.getMonth() + 1, 0);
+}
+
+function getDashboardRangeLabel(range) {
+  if (range === '7d') return 'Last week';
+  if (range === '14d') return 'Last 14 days';
+  if (range === '30d') return 'Last month';
+  if (range === '90d') return 'Last 3 months';
+  if (range === 'ytd') return 'Year to date';
+  if (range === '1y') return 'Last 1 year';
+  if (range === 'all') return 'All time';
+  return 'Last 14 days';
+}
+
+function buildDailyDashboardBuckets(days) {
+  const today = cloneDate(new Date());
+  const start = addDays(today, -(days - 1));
+  const buckets = [];
+
+  for (let i = 0; i < days; i++) {
+    const date = addDays(start, i);
+
+    buckets.push({
+      start: date,
+      end: date,
+      label: formatDateFull(date),
+      shortLabel: formatDateShort(date),
+      type: 'day'
+    });
+  }
+
+  return buckets;
+}
+
+function buildWeeklyDashboardBuckets(range) {
+  const today = cloneDate(new Date());
+  const start = range === 'ytd'
+    ? makeLocalDate(today.getFullYear(), 0, 1)
+    : addDays(today, -364);
+
+  const buckets = [];
+  let cursor = getMonday(start);
+
+  while (cursor <= today) {
+    const weekStart = cursor < start ? cloneDate(start) : cloneDate(cursor);
+    const weekEnd = addDays(cursor, 4) > today ? cloneDate(today) : addDays(cursor, 4);
+
+    if (weekStart <= weekEnd) {
+      buckets.push({
+        start: weekStart,
+        end: weekEnd,
+        label: `${formatDateShort(weekStart)} - ${formatDateShort(weekEnd)}`,
+        shortLabel: formatDateShort(weekStart),
+        type: 'week'
+      });
+    }
+
+    cursor = addDays(cursor, 7);
+  }
+
+  return buckets;
+}
+
+function buildMonthlyDashboardBuckets(trades) {
+  const today = cloneDate(new Date());
+  const datedTrades = trades.filter(t => t.date);
+
+  if (!datedTrades.length) {
+    return [{
+      start: makeLocalDate(today.getFullYear(), today.getMonth(), 1),
+      end: today,
+      label: formatMonthLabel(today),
+      shortLabel: formatMonthLabel(today),
+      type: 'month'
+    }];
+  }
+
+  const earliest = datedTrades
+    .map(t => getTradeDate(t))
+    .sort((a, b) => a - b)[0];
+
+  const buckets = [];
+  let cursor = makeLocalDate(earliest.getFullYear(), earliest.getMonth(), 1);
+
+  while (cursor <= today) {
+    const monthStart = cloneDate(cursor);
+    const monthEnd = getLastDayOfMonth(cursor) > today ? cloneDate(today) : getLastDayOfMonth(cursor);
+
+    buckets.push({
+      start: monthStart,
+      end: monthEnd,
+      label: formatMonthLabel(monthStart),
+      shortLabel: monthStart.toLocaleDateString('en-US', { month: 'short' }),
+      type: 'month'
+    });
+
+    cursor = makeLocalDate(cursor.getFullYear(), cursor.getMonth() + 1, 1);
+  }
+
+  return buckets;
+}
+
+function buildDashboardBuckets(trades, range) {
+  if (range === '7d') return buildDailyDashboardBuckets(7);
+  if (range === '14d') return buildDailyDashboardBuckets(14);
+  if (range === '30d') return buildDailyDashboardBuckets(30);
+  if (range === '90d') return buildDailyDashboardBuckets(90);
+  if (range === 'ytd') return buildWeeklyDashboardBuckets('ytd');
+  if (range === '1y') return buildWeeklyDashboardBuckets('1y');
+  if (range === 'all') return buildMonthlyDashboardBuckets(trades);
+
+  return buildDailyDashboardBuckets(14);
+}
+
+function shouldShowDashboardBarLabel(index, total) {
+  if (total <= 14) return true;
+  if (total <= 31) return index === 0 || index === total - 1 || index % 5 === 0;
+  if (total <= 95) return index === 0 || index === total - 1 || index % 14 === 0;
+  return index === 0 || index === total - 1 || index % 8 === 0;
+}
+
+function setDashboardChartInactive() {
+  const dateEl = document.getElementById('dashboardChartDate');
+  const pnlEl = document.getElementById('dashboardChartPnl');
+  const bars = document.getElementById('dashboardBars');
+
+  document.querySelectorAll('.dashboard-bar-wrap').forEach(el => {
+    el.classList.remove('active');
   });
+
+  if (bars) bars.classList.add('inactive');
+
+  if (dateEl) dateEl.textContent = dashboardChartSummary.label;
+
+  if (pnlEl) {
+    pnlEl.textContent = formatPnl(dashboardChartSummary.pnl);
+    pnlEl.className = `dashboard-chart-pnl ${dashboardChartSummary.pnl > 0 ? 'green' : dashboardChartSummary.pnl < 0 ? 'red' : 'flat'}`;
+  }
 }
 
 function setDashboardChartActive(index) {
   if (!dashboardDailyBars.length) return;
 
+  const bars = document.getElementById('dashboardBars');
   const safeIndex = Math.max(0, Math.min(index, dashboardDailyBars.length - 1));
   const item = dashboardDailyBars[safeIndex];
   const dateEl = document.getElementById('dashboardChartDate');
   const pnlEl = document.getElementById('dashboardChartPnl');
 
-  if (dateEl) dateEl.textContent = formatChartDate(item.key);
+  if (bars) bars.classList.remove('inactive');
+  if (dateEl) dateEl.textContent = item.label;
 
   if (pnlEl) {
     pnlEl.textContent = formatPnl(item.pnl);
@@ -3703,32 +3933,52 @@ function getDashboardBarIndexFromPoint(clientX) {
 
 function renderDashboardBars(trades) {
   const bars = document.getElementById('dashboardBars');
-  const today = new Date();
-  const daily = [];
+  const rangeSelect = document.getElementById('dashboardRangeSelect');
+  const startLabel = document.getElementById('dashboardRangeStartLabel');
+  const endLabel = document.getElementById('dashboardRangeEndLabel');
 
-  for (let i = 13; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(today.getDate() - i);
-    const key = getDateKey(d);
+  if (!bars) return;
+
+  const range = rangeSelect?.value || dashboardChartRange || '14d';
+  dashboardChartRange = range;
+  localStorage.setItem('tp_dashboard_chart_range', range);
+
+  if (rangeSelect) rangeSelect.value = range;
+
+  const buckets = buildDashboardBuckets(trades, range).map(bucket => {
     const pnl = trades
-      .filter(t => t.date === key)
+      .filter(t => {
+        const tradeDate = getTradeDate(t);
+        return tradeDate >= bucket.start && tradeDate <= bucket.end;
+      })
       .reduce((sum, t) => sum + (parseFloat(t.pnl) || 0), 0);
 
-    daily.push({ key, pnl });
-  }
+    return { ...bucket, pnl };
+  });
 
-  dashboardDailyBars = daily;
+  dashboardDailyBars = buckets;
 
-  const maxAbs = Math.max(...daily.map(d => Math.abs(d.pnl)), 1);
+  const totalPnl = buckets.reduce((sum, bucket) => sum + bucket.pnl, 0);
+  dashboardChartSummary = {
+    label: getDashboardRangeLabel(range),
+    pnl: totalPnl
+  };
 
-  bars.innerHTML = daily.map((d, index) => {
+  if (startLabel && buckets[0]) startLabel.textContent = buckets[0].shortLabel;
+  if (endLabel && buckets[buckets.length - 1]) endLabel.textContent = buckets[buckets.length - 1].shortLabel;
+
+  const maxAbs = Math.max(...buckets.map(d => Math.abs(d.pnl)), 1);
+  const maxBarWidth = buckets.length > 70 ? 6 : buckets.length > 35 ? 10 : 18;
+
+  bars.innerHTML = buckets.map((d, index) => {
     const height = d.pnl === 0 ? 3 : Math.max(8, Math.round((Math.abs(d.pnl) / maxAbs) * 78));
     const cls = d.pnl > 0 ? 'green' : d.pnl < 0 ? 'red' : 'flat';
+    const label = shouldShowDashboardBarLabel(index, buckets.length) ? d.shortLabel : '';
 
     return `
       <div class="dashboard-bar-wrap" data-index="${index}">
-        <div class="dashboard-bar ${cls}" style="height:${height}px;"></div>
-        <div class="dashboard-bar-day">${formatChartDay(d.key)}</div>
+        <div class="dashboard-bar ${cls}" style="height:${height}px;max-width:${maxBarWidth}px;"></div>
+        <div class="dashboard-bar-day">${label}</div>
       </div>
     `;
   }).join('');
@@ -3742,12 +3992,16 @@ function renderDashboardBars(trades) {
     setDashboardChartActive(getDashboardBarIndexFromPoint(e.clientX));
   };
 
+  bars.onpointerleave = () => {
+    setDashboardChartInactive();
+  };
+
   bars.querySelectorAll('.dashboard-bar-wrap').forEach((el, index) => {
     el.onmouseenter = () => setDashboardChartActive(index);
     el.onclick = () => setDashboardChartActive(index);
   });
 
-  setDashboardChartActive(daily.length - 1);
+  setDashboardChartInactive();
 }
 
 function renderDashboardStrategies(trades) {
