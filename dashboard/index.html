@@ -538,6 +538,130 @@
     .confluence-list { display: flex; flex-wrap: wrap; gap: 6px; }
     .confluence-tag { background: var(--bg); border: 1px solid var(--border); border-radius: 20px; padding: 4px 10px; font-size: 12px; color: var(--text2); }
     .confluence-count { font-size: 12px; color: var(--text2); margin-top: 8px; }
+    .strategy-insights-section {
+  margin-bottom: 28px;
+}
+
+.strategy-insights-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.strategy-insights-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.strategy-insights-subtitle {
+  font-size: 13px;
+  color: var(--text2);
+  margin-top: 4px;
+}
+
+.strategy-insights-note {
+  font-size: 12px;
+  color: var(--text2);
+  text-align: right;
+}
+
+.strategy-insights-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.strategy-insight-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.strategy-insight-card-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.strategy-insight-card-sub {
+  font-size: 12px;
+  color: var(--text2);
+  margin-bottom: 16px;
+}
+
+.strategy-edge-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.strategy-edge-item {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.strategy-edge-label {
+  font-size: 10px;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.strategy-edge-main {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.strategy-edge-meta {
+  font-size: 12px;
+  color: var(--text2);
+  margin-top: 5px;
+  line-height: 1.5;
+}
+
+.strategy-edge-main.green,
+.strategy-edge-meta.green {
+  color: var(--success);
+}
+
+.strategy-edge-main.red,
+.strategy-edge-meta.red {
+  color: var(--danger);
+}
+
+.strategy-insights-empty {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 28px;
+  color: var(--text2);
+  font-size: 14px;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .strategy-insights-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .strategy-insights-note {
+    text-align: left;
+  }
+
+  .strategy-insights-grid {
+    grid-template-columns: 1fr;
+  }
+}
     .empty-strategies { grid-column: 1/-1; background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 60px; text-align: center; color: var(--text2); }
     .empty-strategies span { display: block; font-size: 32px; margin-bottom: 12px; }
     .form-field { margin-bottom: 20px; }
@@ -1678,9 +1802,22 @@
           New Strategy
         </button>
       </div>
-      <div class="strategies-grid" id="strategiesGrid">
-        <div class="empty-strategies"><span>⚡</span>No strategies yet. Hit "New Strategy" to get started.</div>
-      </div>
+      <div class="strategy-insights-section">
+  <div class="strategy-insights-header">
+    <div>
+      <div class="strategy-insights-title">Confluence Edge</div>
+      <div class="strategy-insights-subtitle">See which conditions actually help or hurt each strategy.</div>
+    </div>
+    <div class="strategy-insights-note">Stronger signals need more logged trades.</div>
+  </div>
+  <div class="strategy-insights-grid" id="strategyInsightsGrid">
+    <div class="strategy-insights-empty">Log trades with confluences to find your best and worst setups.</div>
+  </div>
+</div>
+
+<div class="strategies-grid" id="strategiesGrid">
+  <div class="empty-strategies"><span>⚡</span>No strategies yet. Hit "New Strategy" to get started.</div>
+</div>
     </div>
 
         <div class="page" id="page-calendar">
@@ -2455,6 +2592,8 @@ async function setActiveAccount(accountId) {
   localStorage.setItem('tp_active_account', activeAccountId);
 
   calendarDataCache.clear();
+  pageLoaded.strategies = false;
+strategyAnalyticsTradesLoaded = false;
 
   renderAccountControls();
   populateTradeAccountSelect();
@@ -2591,33 +2730,287 @@ async function deleteBrokerAccount(id) {
   ]);
 }
 
-    async function loadStrategies() {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/strategies?user_id=eq.${user.id}&order=created_at.asc`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } });
-      const data = await res.json();
-allStrategies = Array.isArray(data) ? data : [];
-      renderStrategies(allStrategies);
-    }
+    let strategyAnalyticsTradesLoaded = false;
 
-    function renderStrategies(strategies) {
-      const grid = document.getElementById('strategiesGrid');
-      if (!strategies || strategies.length === 0) { grid.innerHTML = `<div class="empty-strategies"><span>⚡</span>No strategies yet. Hit "New Strategy" to get started.</div>`; return; }
-      grid.innerHTML = strategies.map(s => `
-        <div class="strategy-card">
-          <div class="strategy-card-header">
-            <div class="strategy-name">${s.name}</div>
-            <div class="strategy-actions">
-              <button class="strategy-action-btn" onclick="editStrategy('${s.id}')"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-              <button class="strategy-action-btn delete" onclick="deleteStrategy('${s.id}')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
-            </div>
-          </div>
-          ${s.description ? `<div class="strategy-desc">${s.description}</div>` : ''}
-          <div class="confluence-list">
-            ${s.confluences && s.confluences.length > 0 ? s.confluences.slice(0,5).map(c => `<span class="confluence-tag">${c}</span>`).join('') : '<span style="font-size:12px;color:var(--text2);">No confluences added yet.</span>'}
-            ${s.confluences && s.confluences.length > 5 ? `<span class="confluence-tag">+${s.confluences.length-5} more</span>` : ''}
-          </div>
-          <div class="confluence-count">${s.confluences ? s.confluences.length : 0} confluence${s.confluences?.length !== 1 ? 's' : ''}</div>
-        </div>`).join('');
+async function loadStrategies() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/strategies?user_id=eq.${user.id}&order=created_at.asc`, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`
     }
+  });
+
+  const data = await res.json();
+  allStrategies = Array.isArray(data) ? data : [];
+
+  await loadStrategyAnalyticsTrades();
+
+  renderStrategies(allStrategies);
+  renderStrategyConfluenceAnalytics(allStrategies, getActiveAccountTrades());
+}
+
+async function loadStrategyAnalyticsTrades() {
+  if (strategyAnalyticsTradesLoaded) return;
+
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}&select=*,strategies(name),broker_accounts(name)&order=date.desc,created_at.desc`, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`
+    }
+  });
+
+  const data = await res.json();
+  allLoadedTrades = Array.isArray(data) ? data : [];
+  strategyAnalyticsTradesLoaded = true;
+}
+
+function renderStrategies(strategies) {
+  const grid = document.getElementById('strategiesGrid');
+
+  if (!strategies || strategies.length === 0) {
+    grid.innerHTML = `<div class="empty-strategies"><span>⚡</span>No strategies yet. Hit "New Strategy" to get started.</div>`;
+    renderStrategyConfluenceAnalytics([], []);
+    return;
+  }
+
+  grid.innerHTML = strategies.map(s => `
+    <div class="strategy-card">
+      <div class="strategy-card-header">
+        <div class="strategy-name">${escapeHtml(s.name)}</div>
+        <div class="strategy-actions">
+          <button class="strategy-action-btn" onclick="editStrategy('${s.id}')">
+            <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+          <button class="strategy-action-btn delete" onclick="deleteStrategy('${s.id}')">
+            <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          </button>
+        </div>
+      </div>
+
+      ${s.description ? `<div class="strategy-desc">${escapeHtml(s.description)}</div>` : ''}
+
+      <div class="confluence-list">
+        ${s.confluences && s.confluences.length > 0
+          ? s.confluences.slice(0, 5).map(c => `<span class="confluence-tag">${escapeHtml(c)}</span>`).join('')
+          : '<span style="font-size:12px;color:var(--text2);">No confluences added yet.</span>'}
+        ${s.confluences && s.confluences.length > 5 ? `<span class="confluence-tag">+${s.confluences.length - 5} more</span>` : ''}
+      </div>
+
+      <div class="confluence-count">${s.confluences ? s.confluences.length : 0} confluence${s.confluences?.length !== 1 ? 's' : ''}</div>
+    </div>
+  `).join('');
+}
+
+function renderStrategyConfluenceAnalytics(strategies, trades) {
+  const container = document.getElementById('strategyInsightsGrid');
+  if (!container) return;
+
+  if (!strategies.length) {
+    container.innerHTML = '<div class="strategy-insights-empty">Create strategies and log trades to find your confluence edge.</div>';
+    return;
+  }
+
+  const cards = strategies.map(strategy => {
+    const strategyTrades = trades.filter(t => t.strategy_id === strategy.id);
+    const insights = getStrategyConfluenceInsights(strategy, strategyTrades);
+
+    return `
+      <div class="strategy-insight-card">
+        <div class="strategy-insight-card-title">${escapeHtml(strategy.name)}</div>
+        <div class="strategy-insight-card-sub">${strategyTrades.length} logged trade${strategyTrades.length !== 1 ? 's' : ''}</div>
+
+        <div class="strategy-edge-grid">
+          ${renderStrategyEdgeItem('Best combo', insights.bestCombo, 'green')}
+          ${renderStrategyEdgeItem('Worst combo', insights.worstCombo, 'red')}
+          ${renderStrategyEdgeItem('Best confluence', insights.bestConfluence, 'green')}
+          ${renderStrategyEdgeItem('Worst confluence', insights.worstConfluence, 'red')}
+          ${renderStrategyEdgeItem('Costly when missing', insights.costlyMissing, 'red')}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  container.innerHTML = cards || '<div class="strategy-insights-empty">Log trades with confluences to find your best and worst setups.</div>';
+}
+
+function renderStrategyEdgeItem(label, insight, tone = '') {
+  if (!insight) {
+    return `
+      <div class="strategy-edge-item">
+        <div class="strategy-edge-label">${label}</div>
+        <div class="strategy-edge-main">Not enough data yet</div>
+        <div class="strategy-edge-meta">Log more trades with this strategy.</div>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="strategy-edge-item">
+      <div class="strategy-edge-label">${label}</div>
+      <div class="strategy-edge-main ${tone}">${escapeHtml(insight.name)}</div>
+      <div class="strategy-edge-meta ${tone}">
+        ${insight.trades} trade${insight.trades !== 1 ? 's' : ''} · ${insight.winRate}% WR · ${formatPnl(insight.pnl)}
+      </div>
+      ${insight.note ? `<div class="strategy-edge-meta">${escapeHtml(insight.note)}</div>` : ''}
+    </div>
+  `;
+}
+
+function getStrategyConfluenceInsights(strategy, trades) {
+  const definedConfluences = Array.isArray(strategy.confluences) ? strategy.confluences : [];
+  const tradesWithResult = trades.filter(t => t.result === 'win' || t.result === 'loss' || t.result === 'breakeven');
+
+  return {
+    bestCombo: getBestConfluenceCombo(tradesWithResult),
+    worstCombo: getWorstConfluenceCombo(tradesWithResult),
+    bestConfluence: getBestSingleConfluence(definedConfluences, tradesWithResult),
+    worstConfluence: getWorstSingleConfluence(definedConfluences, tradesWithResult),
+    costlyMissing: getMostCostlyMissingConfluence(definedConfluences, tradesWithResult)
+  };
+}
+
+function summarizeTradesForInsight(name, trades, note = '') {
+  if (!trades.length) return null;
+
+  const wins = trades.filter(t => t.result === 'win').length;
+  const totalPnl = trades.reduce((sum, t) => sum + (parseFloat(t.pnl) || 0), 0);
+
+  return {
+    name,
+    trades: trades.length,
+    winRate: Math.round((wins / trades.length) * 100),
+    pnl: totalPnl,
+    note
+  };
+}
+
+function getConfluenceKey(confluences) {
+  const cleaned = [...new Set((confluences || []).filter(Boolean).map(c => String(c).trim()).filter(Boolean))].sort();
+  return cleaned.length ? cleaned.join(' + ') : '';
+}
+
+function getComboGroups(trades) {
+  const groups = {};
+
+  trades.forEach(trade => {
+    const key = getConfluenceKey(trade.confluences_used);
+    if (!key) return;
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(trade);
+  });
+
+  return Object.entries(groups).map(([name, items]) => summarizeTradesForInsight(name, items)).filter(Boolean);
+}
+
+function getBestConfluenceCombo(trades) {
+  const combos = getComboGroups(trades);
+  if (!combos.length) return null;
+
+  return combos.sort((a, b) =>
+    b.winRate - a.winRate ||
+    b.pnl - a.pnl ||
+    b.trades - a.trades
+  )[0];
+}
+
+function getWorstConfluenceCombo(trades) {
+  const combos = getComboGroups(trades);
+  if (!combos.length) return null;
+
+  return combos.sort((a, b) =>
+    a.winRate - b.winRate ||
+    a.pnl - b.pnl ||
+    b.trades - a.trades
+  )[0];
+}
+
+function getBestSingleConfluence(confluences, trades) {
+  const candidates = confluences.map(conf => {
+    const withConf = trades.filter(t => (t.confluences_used || []).includes(conf));
+    const withoutConf = trades.filter(t => !(t.confluences_used || []).includes(conf));
+    const withSummary = summarizeTradesForInsight(conf, withConf);
+
+    if (!withSummary || !withoutConf.length) return withSummary;
+
+    const withoutWins = withoutConf.filter(t => t.result === 'win').length;
+    const withoutWinRate = Math.round((withoutWins / withoutConf.length) * 100);
+    const lift = withSummary.winRate - withoutWinRate;
+
+    return {
+      ...withSummary,
+      lift,
+      note: `Wins ${lift >= 0 ? '+' : ''}${lift}% more often when present.`
+    };
+  }).filter(Boolean);
+
+  if (!candidates.length) return null;
+
+  return candidates.sort((a, b) =>
+    (b.lift ?? 0) - (a.lift ?? 0) ||
+    b.winRate - a.winRate ||
+    b.pnl - a.pnl
+  )[0];
+}
+
+function getWorstSingleConfluence(confluences, trades) {
+  const candidates = confluences.map(conf => {
+    const withConf = trades.filter(t => (t.confluences_used || []).includes(conf));
+    const withoutConf = trades.filter(t => !(t.confluences_used || []).includes(conf));
+    const withSummary = summarizeTradesForInsight(conf, withConf);
+
+    if (!withSummary || !withoutConf.length) return withSummary;
+
+    const withoutWins = withoutConf.filter(t => t.result === 'win').length;
+    const withoutWinRate = Math.round((withoutWins / withoutConf.length) * 100);
+    const lift = withSummary.winRate - withoutWinRate;
+
+    return {
+      ...withSummary,
+      lift,
+      note: `Wins ${Math.abs(lift)}% ${lift < 0 ? 'less' : 'more'} often when present.`
+    };
+  }).filter(Boolean);
+
+  if (!candidates.length) return null;
+
+  return candidates.sort((a, b) =>
+    (a.lift ?? 0) - (b.lift ?? 0) ||
+    a.winRate - b.winRate ||
+    a.pnl - b.pnl
+  )[0];
+}
+
+function getMostCostlyMissingConfluence(confluences, trades) {
+  const candidates = confluences.map(conf => {
+    const presentTrades = trades.filter(t => (t.confluences_used || []).includes(conf));
+    const missingTrades = trades.filter(t => !(t.confluences_used || []).includes(conf));
+
+    if (!presentTrades.length || !missingTrades.length) return null;
+
+    const presentWins = presentTrades.filter(t => t.result === 'win').length;
+    const missingWins = missingTrades.filter(t => t.result === 'win').length;
+    const presentWinRate = Math.round((presentWins / presentTrades.length) * 100);
+    const missingSummary = summarizeTradesForInsight(conf, missingTrades);
+
+    if (!missingSummary) return null;
+
+    const drop = presentWinRate - missingSummary.winRate;
+
+    return {
+      ...missingSummary,
+      drop,
+      note: `Win rate drops ${drop}% when this is missing.`
+    };
+  }).filter(Boolean);
+
+  if (!candidates.length) return null;
+
+  return candidates.sort((a, b) =>
+    b.drop - a.drop ||
+    a.winRate - b.winRate ||
+    a.pnl - b.pnl
+  )[0];
+}
 
     function openStrategyModal(id = null) {
       editingStrategyId = id; confluences = [];
