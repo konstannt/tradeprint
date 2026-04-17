@@ -2797,12 +2797,6 @@ async function showPage(name, el) {
     el.classList.add('active');
   }
 }
-      if (tok !== pageSwitchToken) return;
-      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-      document.querySelectorAll('.nav-item, .settings-row').forEach(n => n.classList.remove('active'));
-      document.getElementById('page-' + name).classList.add('active');
-      if (el) el.classList.add('active');
-    }
 
     function toggleSidebar() { document.getElementById('sidebar').classList.toggle('collapsed'); }
     function openMobileSidebar() { document.getElementById('sidebar').classList.add('mobile-open'); document.getElementById('overlay').classList.add('active'); }
