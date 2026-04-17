@@ -539,14 +539,11 @@
     .confluence-tag { background: var(--bg); border: 1px solid var(--border); border-radius: 20px; padding: 4px 10px; font-size: 12px; color: var(--text2); }
     .confluence-count { font-size: 12px; color: var(--text2); margin-top: 8px; }
     .strategy-insights-section {
+  margin-top: 28px;
   margin-bottom: 28px;
 }
 
 .strategy-insights-header {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 16px;
   margin-bottom: 14px;
 }
 
@@ -560,12 +557,12 @@
   font-size: 13px;
   color: var(--text2);
   margin-top: 4px;
+  line-height: 1.5;
 }
 
 .strategy-insights-note {
-  font-size: 12px;
+  margin-left: 10px;
   color: var(--text2);
-  text-align: right;
 }
 
 .strategy-insights-grid {
@@ -616,13 +613,14 @@
 
 .strategy-edge-main {
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 500;
   color: var(--text);
   line-height: 1.4;
 }
 
 .strategy-edge-meta {
   font-size: 12px;
+  font-weight: 400;
   color: var(--text2);
   margin-top: 5px;
   line-height: 1.5;
@@ -652,10 +650,6 @@
   .strategy-insights-header {
     align-items: flex-start;
     flex-direction: column;
-  }
-
-  .strategy-insights-note {
-    text-align: left;
   }
 
   .strategy-insights-grid {
@@ -1802,23 +1796,24 @@
           New Strategy
         </button>
       </div>
-      <div class="strategy-insights-section">
+      <div class="strategies-grid" id="strategiesGrid">
+  <div class="empty-strategies"><span>⚡</span>No strategies yet. Hit "New Strategy" to get started.</div>
+</div>
+
+<div class="strategy-insights-section">
   <div class="strategy-insights-header">
     <div>
       <div class="strategy-insights-title">Confluence Edge</div>
-      <div class="strategy-insights-subtitle">See which conditions actually help or hurt each strategy.</div>
+      <div class="strategy-insights-subtitle">
+        See which conditions actually help or hurt each strategy.
+        <span class="strategy-insights-note">Stronger signals need more logged trades.</span>
+      </div>
     </div>
-    <div class="strategy-insights-note">Stronger signals need more logged trades.</div>
   </div>
   <div class="strategy-insights-grid" id="strategyInsightsGrid">
     <div class="strategy-insights-empty">Log trades with confluences to find your best and worst setups.</div>
   </div>
 </div>
-
-<div class="strategies-grid" id="strategiesGrid">
-  <div class="empty-strategies"><span>⚡</span>No strategies yet. Hit "New Strategy" to get started.</div>
-</div>
-    </div>
 
         <div class="page" id="page-calendar">
       <div class="cal-header">
