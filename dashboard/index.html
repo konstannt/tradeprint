@@ -1259,203 +1259,6 @@
     *::-webkit-scrollbar-track { background: var(--bg2); }
     *::-webkit-scrollbar-thumb { background: var(--border); border-radius: 8px; }
     *::-webkit-scrollbar-thumb:hover { background: var(--text2); }
-
-    .charts-layout {
-  width: 100%;
-  max-width: 1320px;
-}
-
-.charts-panel {
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 22px;
-}
-
-.charts-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-}
-
-.charts-panel-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text2);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 6px;
-}
-
-.charts-panel-subtitle {
-  font-size: 13px;
-  color: var(--text2);
-}
-
-.charts-controls {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-
-.charts-controls input,
-.charts-controls select {
-  min-height: 38px;
-  padding: 9px 12px;
-  font-size: 14px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--bg);
-  color: var(--text);
-  outline: none;
-  font-family: inherit;
-}
-
-.charts-controls input:focus,
-.charts-controls select:focus {
-  border-color: var(--accent);
-}
-
-.charts-symbol-input {
-  width: 190px;
-}
-
-.charts-load-btn {
-  min-height: 38px;
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  padding: 9px 16px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.charts-load-btn:hover {
-  background: var(--accent-hover);
-}
-
-.tradingview-chart-shell {
-  width: 100%;
-  height: 680px;
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--bg);
-}
-
-.tradingview-widget-container,
-.tradingview-widget-container__widget {
-  width: 100%;
-  height: 100%;
-}
-
-@media (max-width: 768px) {
-  .charts-panel {
-    padding: 18px;
-  }
-
-  .charts-header {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .charts-controls {
-    display: grid;
-    grid-template-columns: 1fr;
-    justify-content: stretch;
-  }
-
-  .charts-symbol-input {
-    width: 100%;
-  }
-
-  .tradingview-chart-shell {
-    height: 560px;
-  }
-}
-
-    function initChartsPage() {
-  const symbolInput = document.getElementById('tvSymbolInput');
-  const intervalSelect = document.getElementById('tvIntervalSelect');
-
-  if (symbolInput) {
-    symbolInput.value = localStorage.getItem('tp_tv_symbol') || 'CME_MINI:NQ1!';
-  }
-
-  if (intervalSelect) {
-    intervalSelect.value = localStorage.getItem('tp_tv_interval') || '5';
-  }
-
-  loadTradingViewChart();
-}
-
-function getTradingViewTheme() {
-  return document.getElementById('body').classList.contains('light') ? 'light' : 'dark';
-}
-
-function loadTradingViewChart() {
-  const container = document.getElementById('tradingViewChart');
-  const symbolInput = document.getElementById('tvSymbolInput');
-  const intervalSelect = document.getElementById('tvIntervalSelect');
-
-  if (!container || !symbolInput || !intervalSelect) return;
-
-  const symbol = symbolInput.value.trim() || 'CME_MINI:NQ1!';
-  const interval = intervalSelect.value || '5';
-
-  localStorage.setItem('tp_tv_symbol', symbol);
-  localStorage.setItem('tp_tv_interval', interval);
-
-  container.innerHTML = '';
-
-  const widget = document.createElement('div');
-  widget.className = 'tradingview-widget-container__widget';
-
-  const script = document.createElement('script');
-  script.type = 'text/javascript';
-  script.async = true;
-  script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
-  script.innerHTML = JSON.stringify({
-    autosize: true,
-    symbol,
-    interval,
-    timezone: 'America/New_York',
-    theme: getTradingViewTheme(),
-    style: '1',
-    locale: 'en',
-    allow_symbol_change: true,
-    calendar: false,
-    hide_side_toolbar: false,
-    support_host: 'https://www.tradingview.com'
-  });
-
-  container.appendChild(widget);
-  container.appendChild(script);
-}
-
-function applyTradingViewPreset(symbol) {
-  if (!symbol) return;
-
-  const symbolInput = document.getElementById('tvSymbolInput');
-  const presetSelect = document.getElementById('tvPresetSelect');
-
-  if (symbolInput) {
-    symbolInput.value = symbol;
-  }
-
-  if (presetSelect) {
-    presetSelect.value = '';
-  }
-
-  loadTradingViewChart();
-}
   
   </style>
 </head>
@@ -1734,13 +1537,6 @@ function applyTradingViewPreset(symbol) {
         <svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="12" y2="14"/></svg>
         <span class="nav-label">Calculator</span>
       </a>
-      <a class="nav-item" onclick="showPage('charts', this)">
-  <svg viewBox="0 0 24 24">
-    <polyline points="3 17 9 11 13 15 21 7"/>
-    <polyline points="14 7 21 7 21 14"/>
-  </svg>
-  <span class="nav-label">Charts</span>
-</a>
     </div>
     <div class="sidebar-bottom">
       <div class="settings-row" id="settings-nav" onclick="showPage('settings', this)">
@@ -2107,62 +1903,6 @@ function applyTradingViewPreset(symbol) {
   </div>
 </div>
 
-    <div class="page" id="page-charts">
-  <div class="page-title">Charts</div>
-  <div class="page-subtitle">Pull up live market charts and watch price action.</div>
-
-  <div class="charts-layout">
-    <div class="charts-panel">
-      <div class="charts-header">
-        <div>
-          <div class="charts-panel-title">TradingView Chart</div>
-          <div class="charts-panel-subtitle">Search a symbol or use a quick preset.</div>
-        </div>
-
-        <div class="charts-controls">
-          <input
-            class="charts-symbol-input"
-            type="text"
-            id="tvSymbolInput"
-            value="CME_MINI:NQ1!"
-            placeholder="e.g. CME_MINI:NQ1!"
-            onkeypress="if(event.key==='Enter')loadTradingViewChart()"
-          />
-
-          <select id="tvIntervalSelect" onchange="loadTradingViewChart()">
-            <option value="1">1m</option>
-            <option value="5" selected>5m</option>
-            <option value="15">15m</option>
-            <option value="60">1h</option>
-            <option value="240">4h</option>
-            <option value="D">1D</option>
-          </select>
-
-          <select id="tvPresetSelect" onchange="applyTradingViewPreset(this.value)">
-            <option value="">Quick symbols</option>
-            <option value="CME_MINI:NQ1!">NQ Futures</option>
-            <option value="CME_MINI:MNQ1!">MNQ Futures</option>
-            <option value="CME_MINI:ES1!">ES Futures</option>
-            <option value="CME_MINI:MES1!">MES Futures</option>
-            <option value="COMEX:GC1!">Gold Futures</option>
-            <option value="COMEX_MINI:MGC1!">Micro Gold Futures</option>
-            <option value="NASDAQ:AAPL">AAPL</option>
-            <option value="NASDAQ:TSLA">TSLA</option>
-            <option value="AMEX:SPY">SPY</option>
-            <option value="BINANCE:BTCUSDT">BTCUSDT</option>
-          </select>
-
-          <button class="charts-load-btn" onclick="loadTradingViewChart()">Load</button>
-        </div>
-      </div>
-
-      <div class="tradingview-chart-shell">
-        <div class="tradingview-widget-container" id="tradingViewChart"></div>
-      </div>
-    </div>
-  </div>
-</div>
-
     <div class="page" id="page-settings">
       <div class="page-title">Settings</div>
       <div class="page-subtitle">Manage your account and preferences.</div>
@@ -2487,7 +2227,7 @@ let activeAccountId = localStorage.getItem('tp_active_account') || 'all';
 let allLoadedTrades = [];
 let accountSwitchTimer = null;
 
-    const pageLoaded = { dashboard: false, strategies: false, calendar: false, trades: false, notes: false, calculator: false, charts: false };
+    const pageLoaded = { dashboard: false, strategies: false, calendar: false, trades: false, notes: false, calculator: false };
 
     const TICK_SPECS = {
       MNQ: { tickSize: 0.25, tickValue: 0.50 },
@@ -3018,10 +2758,6 @@ allStrategies = Array.isArray(data) ? data : [];
   const isLight = document.getElementById('themeToggle').checked;
   document.getElementById('body').classList.toggle('light', isLight);
   localStorage.setItem('tp_theme', isLight ? 'light' : 'dark');
-
-  if (document.getElementById('page-charts').classList.contains('active')) {
-    loadTradingViewChart();
-  }
 }
 
     function saveCalcDefaults() {
@@ -3033,18 +2769,33 @@ allStrategies = Array.isArray(data) ? data : [];
     }
 
     let pageSwitchToken = 0;
-    async function showPage(name, el) {
-      const tok = ++pageSwitchToken;
-      closeMobileSidebar();
-      if (!pageLoaded[name]) {
-  if (name === 'dashboard') await loadDashboard();
-  if (name === 'strategies') await loadStrategies();
-  if (name === 'calendar') await initCalendar();
-  if (name === 'trades') await loadTrades();
-  if (name === 'notes') await initNotes();
-  if (name === 'calculator') initCalcPage();
-if (name === 'charts') initChartsPage();
-pageLoaded[name] = true;
+
+async function showPage(name, el) {
+  const tok = ++pageSwitchToken;
+
+  closeMobileSidebar();
+
+  if (!pageLoaded[name]) {
+    if (name === 'dashboard') await loadDashboard();
+    if (name === 'strategies') await loadStrategies();
+    if (name === 'calendar') await initCalendar();
+    if (name === 'trades') await loadTrades();
+    if (name === 'notes') await initNotes();
+    if (name === 'calculator') initCalcPage();
+
+    pageLoaded[name] = true;
+  }
+
+  if (tok !== pageSwitchToken) return;
+
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item, .settings-row').forEach(n => n.classList.remove('active'));
+
+  document.getElementById('page-' + name).classList.add('active');
+
+  if (el) {
+    el.classList.add('active');
+  }
 }
       if (tok !== pageSwitchToken) return;
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
