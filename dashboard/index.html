@@ -11,7 +11,6 @@
   <meta name="theme-color" content="#0a0a0a"/>
   <title>Tradeprint — Dashboard</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css"/>
-
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
@@ -1259,128 +1258,6 @@
     *::-webkit-scrollbar-track { background: var(--bg2); }
     *::-webkit-scrollbar-thumb { background: var(--border); border-radius: 8px; }
     *::-webkit-scrollbar-thumb:hover { background: var(--text2); }
-
-    .charts-layout {
-  width: 100%;
-  max-width: 1320px;
-}
-
-.charts-panel {
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 22px;
-}
-
-.charts-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-}
-
-.charts-panel-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text2);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 6px;
-}
-
-.charts-panel-subtitle {
-  font-size: 13px;
-  color: var(--text2);
-}
-
-.charts-controls {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-
-.charts-controls input,
-.charts-controls select {
-  min-height: 38px;
-  padding: 9px 12px;
-  font-size: 14px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--bg);
-  color: var(--text);
-  outline: none;
-  font-family: inherit;
-}
-
-.charts-controls input:focus,
-.charts-controls select:focus {
-  border-color: var(--accent);
-}
-
-.charts-symbol-input {
-  width: 190px;
-}
-
-.charts-load-btn {
-  min-height: 38px;
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  padding: 9px 16px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.charts-load-btn:hover {
-  background: var(--accent-hover);
-}
-
-.tradingview-chart-shell {
-  width: 100%;
-  height: 680px;
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--bg);
-}
-
-.tradingview-widget-container,
-.tradingview-widget-container__widget {
-  width: 100%;
-  height: 100%;
-}
-
-@media (max-width: 768px) {
-  .charts-panel {
-    padding: 18px;
-  }
-
-  .charts-header {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .charts-controls {
-    display: grid;
-    grid-template-columns: 1fr;
-    justify-content: stretch;
-  }
-
-  .charts-symbol-input {
-    width: 100%;
-  }
-
-  .tradingview-chart-shell {
-    height: 560px;
-  }
-}
-  
   </style>
 </head>
 <body id="body">
@@ -1658,13 +1535,6 @@
         <svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="12" y2="14"/></svg>
         <span class="nav-label">Calculator</span>
       </a>
-      <a class="nav-item" onclick="showPage('charts', this)">
-  <svg viewBox="0 0 24 24">
-    <polyline points="3 17 9 11 13 15 21 7"/>
-    <polyline points="14 7 21 7 21 14"/>
-  </svg>
-  <span class="nav-label">Charts</span>
-</a>
     </div>
     <div class="sidebar-bottom">
       <div class="settings-row" id="settings-nav" onclick="showPage('settings', this)">
@@ -2031,62 +1901,6 @@
   </div>
 </div>
 
-    <div class="page" id="page-charts">
-  <div class="page-title">Charts</div>
-  <div class="page-subtitle">Pull up live market charts and watch price action.</div>
-
-  <div class="charts-layout">
-    <div class="charts-panel">
-      <div class="charts-header">
-        <div>
-          <div class="charts-panel-title">TradingView Chart</div>
-          <div class="charts-panel-subtitle">Search a symbol or use a quick preset.</div>
-        </div>
-
-        <div class="charts-controls">
-          <input
-            class="charts-symbol-input"
-            type="text"
-            id="tvSymbolInput"
-            value="CME_MINI:NQ1!"
-            placeholder="e.g. CME_MINI:NQ1!"
-            onkeypress="if(event.key==='Enter')loadTradingViewChart()"
-          />
-
-          <select id="tvIntervalSelect" onchange="loadTradingViewChart()">
-            <option value="1">1m</option>
-            <option value="5" selected>5m</option>
-            <option value="15">15m</option>
-            <option value="60">1h</option>
-            <option value="240">4h</option>
-            <option value="D">1D</option>
-          </select>
-
-          <select id="tvPresetSelect" onchange="applyTradingViewPreset(this.value)">
-            <option value="">Quick symbols</option>
-            <option value="CME_MINI:NQ1!">NQ Futures</option>
-            <option value="CME_MINI:MNQ1!">MNQ Futures</option>
-            <option value="CME_MINI:ES1!">ES Futures</option>
-            <option value="CME_MINI:MES1!">MES Futures</option>
-            <option value="COMEX:GC1!">Gold Futures</option>
-            <option value="COMEX_MINI:MGC1!">Micro Gold Futures</option>
-            <option value="NASDAQ:AAPL">AAPL</option>
-            <option value="NASDAQ:TSLA">TSLA</option>
-            <option value="AMEX:SPY">SPY</option>
-            <option value="BINANCE:BTCUSDT">BTCUSDT</option>
-          </select>
-
-          <button class="charts-load-btn" onclick="loadTradingViewChart()">Load</button>
-        </div>
-      </div>
-
-      <div class="tradingview-chart-shell">
-        <div class="tradingview-widget-container" id="tradingViewChart"></div>
-      </div>
-    </div>
-  </div>
-</div>
-
     <div class="page" id="page-settings">
       <div class="page-title">Settings</div>
       <div class="page-subtitle">Manage your account and preferences.</div>
@@ -2170,14 +1984,14 @@
       const box = document.getElementById('bootError');
       if (!box) return;
       box.style.display = 'block';
-      box.textContent = `Dashboard error: ${event.message}\n${event.filename || ''}:${event.lineno || ''}:${event.colno || ''}`;
+      box.textContent = Dashboard error: ${event.message}\n${event.filename || ''}:${event.lineno || ''}:${event.colno || ''};
     });
     window.addEventListener('unhandledrejection', (event) => {
       const box = document.getElementById('bootError');
       if (!box) return;
       box.style.display = 'block';
       const reason = event.reason && event.reason.message ? event.reason.message : event.reason;
-      box.textContent = `Dashboard async error: ${reason}`;
+      box.textContent = Dashboard async error: ${reason};
     });
 
     const SUPABASE_URL = 'https://fpdedufotkmvjsvxdcmk.supabase.co';
@@ -2244,7 +2058,7 @@ async function refreshAuthSession() {
     if (!refreshToken) return false;
   }
 
-  refreshPromise = nativeFetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`, {
+  refreshPromise = nativeFetch(${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token, {
     method: 'POST',
     headers: {
       apikey: SUPABASE_KEY,
@@ -2291,7 +2105,7 @@ window.fetch = async (input, init = {}) => {
   if (isSupabaseRequest && token) {
     const headers = new Headers(nextInit.headers || {});
     if (headers.has('Authorization')) {
-      headers.set('Authorization', `Bearer ${token}`);
+      headers.set('Authorization', Bearer ${token});
     }
     nextInit.headers = headers;
   }
@@ -2304,7 +2118,7 @@ window.fetch = async (input, init = {}) => {
     const retryHeaders = new Headers(retryInit.headers || {});
 
     if (retryHeaders.has('Authorization')) {
-      retryHeaders.set('Authorization', `Bearer ${token}`);
+      retryHeaders.set('Authorization', Bearer ${token});
     }
 
     retryInit.headers = retryHeaders;
@@ -2411,7 +2225,7 @@ let activeAccountId = localStorage.getItem('tp_active_account') || 'all';
 let allLoadedTrades = [];
 let accountSwitchTimer = null;
 
-    const pageLoaded = { dashboard: false, strategies: false, calendar: false, trades: false, notes: false, calculator: false, charts: false };
+    const pageLoaded = { dashboard: false, strategies: false, calendar: false, trades: false, notes: false, calculator: false };
 
     const TICK_SPECS = {
       MNQ: { tickSize: 0.25, tickValue: 0.50 },
@@ -2422,8 +2236,8 @@ let accountSwitchTimer = null;
       GC:  { tickSize: 0.10, tickValue: 10.00 },
     };
 
-    function formatPnl(pnl) { if (pnl >= 0) return `+$${pnl.toFixed(2)}`; return `-$${Math.abs(pnl).toFixed(2)}`; }
-    function formatPnlShort(pnl) { if (pnl >= 0) return `+$${Math.round(pnl)}`; return `-$${Math.round(Math.abs(pnl))}`; }
+    function formatPnl(pnl) { if (pnl >= 0) return +$${pnl.toFixed(2)}; return -$${Math.abs(pnl).toFixed(2)}; }
+    function formatPnlShort(pnl) { if (pnl >= 0) return +$${Math.round(pnl)}; return -$${Math.round(Math.abs(pnl))}; }
 
     function parseTradeTime(timeStr, ampm) {
       if (!timeStr || !timeStr.trim()) return null;
@@ -2434,10 +2248,10 @@ let accountSwitchTimer = null;
       else if (cleaned.length === 3) { hours = parseInt(cleaned[0]); minutes = parseInt(cleaned.slice(1)); }
       else { hours = parseInt(cleaned.slice(0, 2)); minutes = parseInt(cleaned.slice(2)); }
       if (minutes > 59 || hours > 23) return null;
-      if (hours >= 13 || (cleaned.length === 4 && hours === 0)) return `${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}`;
+      if (hours >= 13 || (cleaned.length === 4 && hours === 0)) return ${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')};
       if (ampm === 'PM' && hours !== 12) hours += 12;
       if (ampm === 'AM' && hours === 12) hours = 0;
-      return `${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}`;
+      return ${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')};
     }
 
     function formatDisplayTime(time24) {
@@ -2445,17 +2259,17 @@ let accountSwitchTimer = null;
       const [h, m] = time24.split(':').map(Number);
       const ampm = h >= 12 ? 'PM' : 'AM';
       const h12 = h % 12 || 12;
-      return `${h12}:${String(m).padStart(2,'0')} ${ampm}`;
+      return ${h12}:${String(m).padStart(2,'0')} ${ampm};
     }
 
     async function loadProfile() {
   if (!user) return;
 
   try {
-    const userRes = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+    const userRes = await fetch(${SUPABASE_URL}/auth/v1/user, {
       headers: {
         'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${token}`
+        'Authorization': Bearer ${token}
       }
     });
 
@@ -2486,10 +2300,10 @@ let accountSwitchTimer = null;
   let data = [];
 
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${user.id}&select=*`, {
+    const res = await fetch(${SUPABASE_URL}/rest/v1/profiles?id=eq.${user.id}&select=*, {
       headers: {
         'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${token}`
+        'Authorization': Bearer ${token}
       }
     });
 
@@ -2506,7 +2320,7 @@ let accountSwitchTimer = null;
     document.getElementById('usernameInput').value = p.username || '';
 
     if (p.avatar_url) {
-      const imgTag = `<img src="${p.avatar_url}" alt="avatar"/>`;
+      const imgTag = <img src="${p.avatar_url}" alt="avatar"/>;
       document.getElementById('sidebarAvatar').innerHTML = imgTag;
       document.getElementById('settingsAvatar').innerHTML = imgTag;
     } else {
@@ -2531,7 +2345,7 @@ loadProfile().then(loadAccounts).catch(console.warn);
 }, 300);
 
     function getAccountFilterParam() {
-  return activeAccountId && activeAccountId !== 'all' ? `&account_id=eq.${activeAccountId}` : '';
+  return activeAccountId && activeAccountId !== 'all' ? &account_id=eq.${activeAccountId} : '';
 }
 
 function getActiveAccountTrades() {
@@ -2545,15 +2359,15 @@ function getAccountName(accountId) {
 }
 
 function renderAccountControls() {
-  const html = `
+  const html = 
     <div class="account-controls">
       <select class="account-select" onchange="setActiveAccount(this.value)">
         <option value="all"${activeAccountId === 'all' ? ' selected' : ''}>All accounts</option>
-        ${allAccounts.map(a => `<option value="${a.id}"${activeAccountId === a.id ? ' selected' : ''}>${escapeHtml(a.name)}</option>`).join('')}
+        ${allAccounts.map(a => <option value="${a.id}"${activeAccountId === a.id ? ' selected' : ''}>${escapeHtml(a.name)}</option>).join('')}
       </select>
       <button class="account-manage-btn" onclick="openAccountModal()">Manage</button>
     </div>
-  `;
+  ;
 
   ['dashboardAccountControls', 'calendarAccountControls', 'tradesAccountControls'].forEach(id => {
     const el = document.getElementById(id);
@@ -2566,7 +2380,7 @@ function populateTradeAccountSelect() {
   if (!select) return;
 
   select.innerHTML = '<option value="">Select an account...</option>' +
-    allAccounts.map(a => `<option value="${a.id}">${escapeHtml(a.name)}</option>`).join('');
+    allAccounts.map(a => <option value="${a.id}">${escapeHtml(a.name)}</option>).join('');
 
   if (activeAccountId !== 'all') {
     select.value = activeAccountId;
@@ -2578,10 +2392,10 @@ function populateTradeAccountSelect() {
 async function loadAccounts() {
   if (!user) return;
 
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/broker_accounts?user_id=eq.${user.id}&order=created_at.asc`, {
+  const res = await fetch(${SUPABASE_URL}/rest/v1/broker_accounts?user_id=eq.${user.id}&order=created_at.asc, {
     headers: {
       'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${token}`
+      'Authorization': Bearer ${token}
     }
   });
 
@@ -2603,11 +2417,11 @@ async function loadAccounts() {
 }
 
 async function createDefaultAccount() {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/broker_accounts`, {
+  const res = await fetch(${SUPABASE_URL}/rest/v1/broker_accounts, {
     method: 'POST',
     headers: {
       'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${token}`,
+      'Authorization': Bearer ${token},
       'Content-Type': 'application/json',
       'Prefer': 'return=representation'
     },
@@ -2618,11 +2432,11 @@ async function createDefaultAccount() {
   allAccounts = data && data[0] ? [data[0]] : [];
 
   if (allAccounts[0]) {
-    await fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}&account_id=is.null`, {
+    await fetch(${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}&account_id=is.null, {
       method: 'PATCH',
       headers: {
         'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${token}`,
+        'Authorization': Bearer ${token},
         'Content-Type': 'application/json',
         'Prefer': 'return=minimal'
       },
@@ -2679,7 +2493,7 @@ function renderAccountList() {
     return;
   }
 
-  list.innerHTML = allAccounts.map(a => `
+  list.innerHTML = allAccounts.map(a => 
     <div class="account-list-item">
       <div>
         <div class="account-list-name">${escapeHtml(a.name)}</div>
@@ -2687,7 +2501,7 @@ function renderAccountList() {
       </div>
       <button class="account-delete-btn" onclick="deleteBrokerAccount('${a.id}')">Delete</button>
     </div>
-  `).join('');
+  ).join('');
 }
 
 async function createBrokerAccount() {
@@ -2711,11 +2525,11 @@ async function createBrokerAccount() {
     return;
   }
 
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/broker_accounts`, {
+  const res = await fetch(${SUPABASE_URL}/rest/v1/broker_accounts, {
     method: 'POST',
     headers: {
       'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${token}`,
+      'Authorization': Bearer ${token},
       'Content-Type': 'application/json',
       'Prefer': 'return=representation'
     },
@@ -2744,13 +2558,13 @@ async function deleteBrokerAccount(id) {
   const account = allAccounts.find(a => a.id === id);
   if (!account) return;
 
-  if (!confirm(`Delete ${account.name}? Trades from this account will stay saved, but they will move to No account.`)) return;
+  if (!confirm(Delete ${account.name}? Trades from this account will stay saved, but they will move to No account.)) return;
 
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/broker_accounts?id=eq.${id}`, {
+  const res = await fetch(${SUPABASE_URL}/rest/v1/broker_accounts?id=eq.${id}, {
     method: 'DELETE',
     headers: {
       'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${token}`
+      'Authorization': Bearer ${token}
     }
   });
 
@@ -2776,7 +2590,7 @@ async function deleteBrokerAccount(id) {
 }
 
     async function loadStrategies() {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/strategies?user_id=eq.${user.id}&order=created_at.asc`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } });
+      const res = await fetch(${SUPABASE_URL}/rest/v1/strategies?user_id=eq.${user.id}&order=created_at.asc, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': Bearer ${token} } });
       const data = await res.json();
 allStrategies = Array.isArray(data) ? data : [];
       renderStrategies(allStrategies);
@@ -2784,8 +2598,8 @@ allStrategies = Array.isArray(data) ? data : [];
 
     function renderStrategies(strategies) {
       const grid = document.getElementById('strategiesGrid');
-      if (!strategies || strategies.length === 0) { grid.innerHTML = `<div class="empty-strategies"><span>⚡</span>No strategies yet. Hit "New Strategy" to get started.</div>`; return; }
-      grid.innerHTML = strategies.map(s => `
+      if (!strategies || strategies.length === 0) { grid.innerHTML = <div class="empty-strategies"><span>⚡</span>No strategies yet. Hit "New Strategy" to get started.</div>; return; }
+      grid.innerHTML = strategies.map(s => 
         <div class="strategy-card">
           <div class="strategy-card-header">
             <div class="strategy-name">${s.name}</div>
@@ -2794,13 +2608,13 @@ allStrategies = Array.isArray(data) ? data : [];
               <button class="strategy-action-btn delete" onclick="deleteStrategy('${s.id}')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>
             </div>
           </div>
-          ${s.description ? `<div class="strategy-desc">${s.description}</div>` : ''}
+          ${s.description ? <div class="strategy-desc">${s.description}</div> : ''}
           <div class="confluence-list">
-            ${s.confluences && s.confluences.length > 0 ? s.confluences.slice(0,5).map(c => `<span class="confluence-tag">${c}</span>`).join('') : '<span style="font-size:12px;color:var(--text2);">No confluences added yet.</span>'}
-            ${s.confluences && s.confluences.length > 5 ? `<span class="confluence-tag">+${s.confluences.length-5} more</span>` : ''}
+            ${s.confluences && s.confluences.length > 0 ? s.confluences.slice(0,5).map(c => <span class="confluence-tag">${c}</span>).join('') : '<span style="font-size:12px;color:var(--text2);">No confluences added yet.</span>'}
+            ${s.confluences && s.confluences.length > 5 ? <span class="confluence-tag">+${s.confluences.length-5} more</span> : ''}
           </div>
           <div class="confluence-count">${s.confluences ? s.confluences.length : 0} confluence${s.confluences?.length !== 1 ? 's' : ''}</div>
-        </div>`).join('');
+        </div>).join('');
     }
 
     function openStrategyModal(id = null) {
@@ -2816,7 +2630,7 @@ allStrategies = Array.isArray(data) ? data : [];
 
     async function editStrategy(id) {
       let s = allStrategies.find(x => x.id === id);
-      if (!s) { const res = await fetch(`${SUPABASE_URL}/rest/v1/strategies?id=eq.${id}&select=*`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } }); const data = await res.json(); s = data?.[0]; }
+      if (!s) { const res = await fetch(${SUPABASE_URL}/rest/v1/strategies?id=eq.${id}&select=*, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': Bearer ${token} } }); const data = await res.json(); s = data?.[0]; }
       if (!s) return;
       editingStrategyId = id; confluences = s.confluences || [];
       document.getElementById('strategyName').value = s.name;
@@ -2829,7 +2643,7 @@ allStrategies = Array.isArray(data) ? data : [];
 
     async function deleteStrategy(id) {
       if (!confirm('Delete this strategy?')) return;
-      await fetch(`${SUPABASE_URL}/rest/v1/strategies?id=eq.${id}`, { method: 'DELETE', headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } });
+      await fetch(${SUPABASE_URL}/rest/v1/strategies?id=eq.${id}, { method: 'DELETE', headers: { 'apikey': SUPABASE_KEY, 'Authorization': Bearer ${token} } });
       loadStrategies();
     }
 
@@ -2841,7 +2655,7 @@ allStrategies = Array.isArray(data) ? data : [];
     }
     function removeConfluence(index) { confluences.splice(index, 1); renderConfluenceTags(); }
     function renderConfluenceTags() {
-      document.getElementById('confluenceTags').innerHTML = confluences.map((c, i) => `<div class="confluence-tag-edit">${c}<button class="remove-confluence" onclick="removeConfluence(${i})">×</button></div>`).join('');
+      document.getElementById('confluenceTags').innerHTML = confluences.map((c, i) => <div class="confluence-tag-edit">${c}<button class="remove-confluence" onclick="removeConfluence(${i})">×</button></div>).join('');
     }
 
     async function saveStrategy() {
@@ -2851,9 +2665,9 @@ allStrategies = Array.isArray(data) ? data : [];
       if (!name) { msg.textContent = 'Please enter a strategy name.'; msg.className = 'modal-msg error'; return; }
       let res;
       if (editingStrategyId) {
-        res = await fetch(`${SUPABASE_URL}/rest/v1/strategies?id=eq.${editingStrategyId}`, { method: 'PATCH', headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' }, body: JSON.stringify({ name, description: desc, confluences }) });
+        res = await fetch(${SUPABASE_URL}/rest/v1/strategies?id=eq.${editingStrategyId}, { method: 'PATCH', headers: { 'apikey': SUPABASE_KEY, 'Authorization': Bearer ${token}, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' }, body: JSON.stringify({ name, description: desc, confluences }) });
       } else {
-        res = await fetch(`${SUPABASE_URL}/rest/v1/strategies`, { method: 'POST', headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' }, body: JSON.stringify({ user_id: user.id, name, description: desc, confluences }) });
+        res = await fetch(${SUPABASE_URL}/rest/v1/strategies, { method: 'POST', headers: { 'apikey': SUPABASE_KEY, 'Authorization': Bearer ${token}, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' }, body: JSON.stringify({ user_id: user.id, name, description: desc, confluences }) });
       }
       if (res.ok) { closeStrategyModal(); loadStrategies(); }
       else { msg.textContent = 'Something went wrong.'; msg.className = 'modal-msg error'; }
@@ -2879,12 +2693,12 @@ allStrategies = Array.isArray(data) ? data : [];
       msg.textContent = 'Uploading...'; msg.className = 'msg';
       const canvas = cropper.getCroppedCanvas({ width: 256, height: 256 });
       canvas.toBlob(async (blob) => {
-        const filename = `${user.id}`;
-        const res = await fetch(`${SUPABASE_URL}/storage/v1/object/avatars/${filename}`, { method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'image/png', 'x-upsert': 'true' }, body: blob });
+        const filename = ${user.id};
+        const res = await fetch(${SUPABASE_URL}/storage/v1/object/avatars/${filename}, { method: 'POST', headers: { 'Authorization': Bearer ${token}, 'Content-Type': 'image/png', 'x-upsert': 'true' }, body: blob });
         if (res.ok) {
-          const url = `${SUPABASE_URL}/storage/v1/object/public/avatars/${filename}?t=${Date.now()}`;
-          await fetch(`${SUPABASE_URL}/rest/v1/profiles`, { method: 'POST', headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' }, body: JSON.stringify({ id: user.id, avatar_url: url }) });
-          const imgTag = `<img src="${url}" alt="avatar"/>`;
+          const url = ${SUPABASE_URL}/storage/v1/object/public/avatars/${filename}?t=${Date.now()};
+          await fetch(${SUPABASE_URL}/rest/v1/profiles, { method: 'POST', headers: { 'apikey': SUPABASE_KEY, 'Authorization': Bearer ${token}, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' }, body: JSON.stringify({ id: user.id, avatar_url: url }) });
+          const imgTag = <img src="${url}" alt="avatar"/>;
           document.getElementById('settingsAvatar').innerHTML = imgTag;
           document.getElementById('sidebarAvatar').innerHTML = imgTag;
           msg.textContent = 'Photo saved!'; msg.className = 'msg success';
@@ -2897,7 +2711,7 @@ allStrategies = Array.isArray(data) ? data : [];
       const username = document.getElementById('usernameInput').value.trim();
       const msg = document.getElementById('profileMsg');
       const btn = event.currentTarget; btn.disabled = true;
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/profiles`, { method: 'POST', headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' }, body: JSON.stringify({ id: user.id, username }) });
+      const res = await fetch(${SUPABASE_URL}/rest/v1/profiles, { method: 'POST', headers: { 'apikey': SUPABASE_KEY, 'Authorization': Bearer ${token}, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' }, body: JSON.stringify({ id: user.id, username }) });
       if (res.ok) { msg.textContent = 'Profile saved!'; msg.className = 'msg success'; document.getElementById('sidebarUsername').textContent = username || user.email?.split('@')[0]; }
       else { const err = await res.json(); msg.textContent = err.message?.includes('unique') ? 'Username already taken.' : 'Something went wrong.'; msg.className = 'msg error'; }
       btn.disabled = false;
@@ -2906,13 +2720,13 @@ allStrategies = Array.isArray(data) ? data : [];
     async function saveEmail() {
   const email = document.getElementById('emailInput').value.trim();
   const msg = document.getElementById('emailMsg');
-  const redirectTo = `${window.location.origin}/dashboard`;
+  const redirectTo = ${window.location.origin}/dashboard;
 
-  const res = await fetch(`${SUPABASE_URL}/auth/v1/user?redirect_to=${encodeURIComponent(redirectTo)}`, {
+  const res = await fetch(${SUPABASE_URL}/auth/v1/user?redirect_to=${encodeURIComponent(redirectTo)}, {
     method: 'PUT',
     headers: {
       'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${token}`,
+      'Authorization': Bearer ${token},
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({ email })
@@ -2933,20 +2747,16 @@ allStrategies = Array.isArray(data) ? data : [];
       const msg = document.getElementById('passwordMsg');
       if (pw !== confirm) { msg.textContent = 'Passwords do not match.'; msg.className = 'msg error'; return; }
       if (pw.length < 6) { msg.textContent = 'Min 6 characters.'; msg.className = 'msg error'; return; }
-      const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, { method: 'PUT', headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pw }) });
+      const res = await fetch(${SUPABASE_URL}/auth/v1/user, { method: 'PUT', headers: { 'apikey': SUPABASE_KEY, 'Authorization': Bearer ${token}, 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pw }) });
       if (res.ok) { msg.textContent = 'Password updated!'; msg.className = 'msg success'; }
       else { msg.textContent = 'Could not update password.'; msg.className = 'msg error'; }
     }
 
     function toggleTheme() {
-  const isLight = document.getElementById('themeToggle').checked;
-  document.getElementById('body').classList.toggle('light', isLight);
-  localStorage.setItem('tp_theme', isLight ? 'light' : 'dark');
-
-  if (document.getElementById('page-charts').classList.contains('active')) {
-    loadTradingViewChart();
-  }
-}
+      const isLight = document.getElementById('themeToggle').checked;
+      document.getElementById('body').classList.toggle('light', isLight);
+      localStorage.setItem('tp_theme', isLight ? 'light' : 'dark');
+    }
 
     function saveCalcDefaults() {
       localStorage.setItem('tp_ticker', document.getElementById('defaultTicker').value);
@@ -2957,35 +2767,24 @@ allStrategies = Array.isArray(data) ? data : [];
     }
 
     let pageSwitchToken = 0;
-
-async function showPage(name, el) {
-  const tok = ++pageSwitchToken;
-
-  closeMobileSidebar();
-
-  if (!pageLoaded[name]) {
-    if (name === 'dashboard') await loadDashboard();
-    if (name === 'strategies') await loadStrategies();
-    if (name === 'calendar') await initCalendar();
-    if (name === 'trades') await loadTrades();
-    if (name === 'notes') await initNotes();
-    if (name === 'calculator') initCalcPage();
-    if (name === 'charts') initChartsPage();
-
-    pageLoaded[name] = true;
-  }
-
-  if (tok !== pageSwitchToken) return;
-
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item, .settings-row').forEach(n => n.classList.remove('active'));
-
-  document.getElementById('page-' + name).classList.add('active');
-
-  if (el) {
-    el.classList.add('active');
-  }
+    async function showPage(name, el) {
+      const tok = ++pageSwitchToken;
+      closeMobileSidebar();
+      if (!pageLoaded[name]) {
+  if (name === 'dashboard') await loadDashboard();
+  if (name === 'strategies') await loadStrategies();
+  if (name === 'calendar') await initCalendar();
+  if (name === 'trades') await loadTrades();
+  if (name === 'notes') await initNotes();
+  if (name === 'calculator') initCalcPage();
+  pageLoaded[name] = true;
 }
+      if (tok !== pageSwitchToken) return;
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-item, .settings-row').forEach(n => n.classList.remove('active'));
+      document.getElementById('page-' + name).classList.add('active');
+      if (el) el.classList.add('active');
+    }
 
     function toggleSidebar() { document.getElementById('sidebar').classList.toggle('collapsed'); }
     function openMobileSidebar() { document.getElementById('sidebar').classList.add('mobile-open'); document.getElementById('overlay').classList.add('active'); }
@@ -3030,9 +2829,9 @@ function runCalc() {
   const profit = tpTicks * spec.tickValue * contracts;
   const rr = risk > 0 ? (profit / risk) : 0;
 
-  document.getElementById('calcRisk').textContent = `-$${risk.toFixed(2)}`;
-  document.getElementById('calcProfit').textContent = `+$${profit.toFixed(2)}`;
-  document.getElementById('calcRR').textContent = `${rr.toFixed(2)}R`;
+  document.getElementById('calcRisk').textContent = -$${risk.toFixed(2)};
+  document.getElementById('calcProfit').textContent = +$${profit.toFixed(2)};
+  document.getElementById('calcRR').textContent = ${rr.toFixed(2)}R;
   document.getElementById('calcResultsCard').style.display = 'block';
 }
 
@@ -3061,9 +2860,9 @@ function runPointsCalc() {
   const profit = tpTicks * spec.tickValue * contracts;
   const rr = risk > 0 ? (profit / risk) : 0;
 
-  document.getElementById('pointsCalcRisk').textContent = `-$${risk.toFixed(2)}`;
-  document.getElementById('pointsCalcProfit').textContent = `+$${profit.toFixed(2)}`;
-  document.getElementById('pointsCalcRR').textContent = `${rr.toFixed(2)}R`;
+  document.getElementById('pointsCalcRisk').textContent = -$${risk.toFixed(2)};
+  document.getElementById('pointsCalcProfit').textContent = +$${profit.toFixed(2)};
+  document.getElementById('pointsCalcRR').textContent = ${rr.toFixed(2)}R;
   document.getElementById('pointsCalcResultsCard').style.display = 'block';
 }
 
@@ -3084,17 +2883,17 @@ function resetPointsCalc() {
   if (!dateStr) return;
 
   const date = new Date(dateStr + 'T12:00:00');
-  const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
+  const monthKey = ${date.getFullYear()}-${date.getMonth()};
 
   Array.from(calendarDataCache.keys()).forEach(key => {
-    if (key.endsWith(`-${monthKey}`)) {
+    if (key.endsWith(-${monthKey})) {
       calendarDataCache.delete(key);
     }
   });
 }
 
     async function loadCalendarData() {
-      const cacheKey = `${activeAccountId}-${calYear}-${calMonth}`;
+      const cacheKey = ${activeAccountId}-${calYear}-${calMonth};
       if (calendarDataCache.has(cacheKey)) {
         const cached = calendarDataCache.get(cacheKey);
         calTradesCache = cached.trades;
@@ -3113,8 +2912,8 @@ function resetPointsCalc() {
       weekEnd.setDate(weekEnd.getDate() + (6 - weekEnd.getDay()));
       const accountFilter = getAccountFilterParam();
       const [tradesRes, notesRes] = await Promise.all([
-        fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}${accountFilter}&date=gte.${weekStart.toISOString().split('T')[0]}&date=lte.${weekEnd.toISOString().split('T')[0]}&select=*,strategies(name),broker_accounts(name)`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } }),
-        fetch(`${SUPABASE_URL}/rest/v1/day_notes?user_id=eq.${user.id}&date=gte.${weekStart.toISOString().split('T')[0]}&date=lte.${weekEnd.toISOString().split('T')[0]}&select=*`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } })
+        fetch(${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}${accountFilter}&date=gte.${weekStart.toISOString().split('T')[0]}&date=lte.${weekEnd.toISOString().split('T')[0]}&select=*,strategies(name),broker_accounts(name), { headers: { 'apikey': SUPABASE_KEY, 'Authorization': Bearer ${token} } }),
+        fetch(${SUPABASE_URL}/rest/v1/day_notes?user_id=eq.${user.id}&date=gte.${weekStart.toISOString().split('T')[0]}&date=lte.${weekEnd.toISOString().split('T')[0]}&select=*, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': Bearer ${token} } })
       ]);
       calTradesCache = await tradesRes.json(); if (!Array.isArray(calTradesCache)) calTradesCache = [];
 calNotesCache = await notesRes.json(); if (!Array.isArray(calNotesCache)) calNotesCache = [];
@@ -3129,7 +2928,7 @@ calNotesCache = await notesRes.json(); if (!Array.isArray(calNotesCache)) calNot
     }
 
     async function prefetchCalendarMonth(year, month) {
-  const cacheKey = `${activeAccountId}-${year}-${month}`;
+  const cacheKey = ${activeAccountId}-${year}-${month};
   if (calendarDataCache.has(cacheKey)) return;
 
   const firstDayOfMonth = new Date(year, month, 1);
@@ -3142,8 +2941,8 @@ calNotesCache = await notesRes.json(); if (!Array.isArray(calNotesCache)) calNot
   const accountFilter = getAccountFilterParam();
 
   const [tradesRes, notesRes] = await Promise.all([
-    fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}${accountFilter}&date=gte.${weekStart.toISOString().split('T')[0]}&date=lte.${weekEnd.toISOString().split('T')[0]}&select=*,strategies(name),broker_accounts(name)`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } }),
-    fetch(`${SUPABASE_URL}/rest/v1/day_notes?user_id=eq.${user.id}&date=gte.${weekStart.toISOString().split('T')[0]}&date=lte.${weekEnd.toISOString().split('T')[0]}&select=*`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } })
+    fetch(${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}${accountFilter}&date=gte.${weekStart.toISOString().split('T')[0]}&date=lte.${weekEnd.toISOString().split('T')[0]}&select=*,strategies(name),broker_accounts(name), { headers: { 'apikey': SUPABASE_KEY, 'Authorization': Bearer ${token} } }),
+    fetch(${SUPABASE_URL}/rest/v1/day_notes?user_id=eq.${user.id}&date=gte.${weekStart.toISOString().split('T')[0]}&date=lte.${weekEnd.toISOString().split('T')[0]}&select=*, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': Bearer ${token} } })
   ]);
 
   const trades = await tradesRes.json();
@@ -3177,7 +2976,7 @@ calNotesCache = await notesRes.json(); if (!Array.isArray(calNotesCache)) calNot
 
     function updateMonthlyStats(trades) {
       const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-      document.getElementById('calMonthLabel').textContent = `${monthNames[calMonth]} ${calYear}`;
+      document.getElementById('calMonthLabel').textContent = ${monthNames[calMonth]} ${calYear};
       const pnlEl = document.getElementById('calMonthlyPnl');
       if (!trades || trades.length === 0) { pnlEl.textContent = '—'; pnlEl.style.color = 'var(--text)'; document.getElementById('calMonthlyTrades').textContent = '—'; document.getElementById('calMonthlyWinRate').textContent = '—'; return; }
       const totalPnl = trades.reduce((sum, t) => sum + (parseFloat(t.pnl) || 0), 0);
@@ -3185,7 +2984,7 @@ calNotesCache = await notesRes.json(); if (!Array.isArray(calNotesCache)) calNot
       pnlEl.textContent = formatPnl(totalPnl);
       pnlEl.style.color = totalPnl > 0 ? 'var(--success)' : totalPnl < 0 ? 'var(--danger)' : 'var(--text)';
       document.getElementById('calMonthlyTrades').textContent = trades.length;
-      document.getElementById('calMonthlyWinRate').textContent = `${Math.round((wins / trades.length) * 100)}%`;
+      document.getElementById('calMonthlyWinRate').textContent = ${Math.round((wins / trades.length) * 100)}%;
     }
 
     function renderCalendar(trades, notes) {
@@ -3200,7 +2999,7 @@ calNotesCache = await notesRes.json(); if (!Array.isArray(calNotesCache)) calNot
       const notesByDay = {};
       notes.forEach(n => { notesByDay[n.date] = n; });
 
-      function makeDateStr(y, m, d) { return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`; }
+      function makeDateStr(y, m, d) { return ${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}; }
 
       function makeCell(dateStr, dayNum, isCurrentMonth) {
         const isToday = today.toISOString().split('T')[0] === dateStr;
@@ -3211,13 +3010,13 @@ calNotesCache = await notesRes.json(); if (!Array.isArray(calNotesCache)) calNot
         const wins = dayTradesArr.filter(t => t.result === 'win').length;
         const winRate = dayTradesArr.length > 0 ? Math.round((wins / dayTradesArr.length) * 100) : 0;
         const cell = document.createElement('div');
-        cell.className = `cal-cell${isToday ? ' today' : ''}${!isCurrentMonth ? ' other-month' : ''}`;
+        cell.className = cal-cell${isToday ? ' today' : ''}${!isCurrentMonth ? ' other-month' : ''};
         cell.onclick = () => openDayModal(dateStr);
-        cell.innerHTML = `
+        cell.innerHTML = 
           <div class="cal-day-num" style="${!isCurrentMonth ? 'opacity:0.3;' : ''}">${dayNum}</div>
-          ${dayTradesArr.length > 0 ? `<div class="cal-day-pnl ${pnlColor}">${formatPnlShort(dayPnl)}</div><div class="cal-day-trades">${dayTradesArr.length} trade${dayTradesArr.length !== 1 ? 's' : ''}</div><div class="cal-day-winrate">${winRate}% WR</div>` : ''}
+          ${dayTradesArr.length > 0 ? <div class="cal-day-pnl ${pnlColor}">${formatPnlShort(dayPnl)}</div><div class="cal-day-trades">${dayTradesArr.length} trade${dayTradesArr.length !== 1 ? 's' : ''}</div><div class="cal-day-winrate">${winRate}% WR</div> : ''}
           ${hasNote ? '<div class="cal-day-note-indicator"></div>' : ''}
-          <div class="cal-plus">+</div>`;
+          <div class="cal-plus">+</div>;
         return { cell, dayTradesArr, dayPnl };
       }
 
@@ -3246,7 +3045,7 @@ calNotesCache = await notesRes.json(); if (!Array.isArray(calNotesCache)) calNot
         weekCell.className = 'cal-week-cell';
         if (weekTrades > 0) {
           const pnlClass = weekPnl > 0 ? 'green' : weekPnl < 0 ? 'red' : '';
-          weekCell.innerHTML = `<div class="cal-week-pnl ${pnlClass}">${formatPnlShort(weekPnl)}</div><div class="cal-week-meta">${weekTrades} trade${weekTrades !== 1 ? 's' : ''}<br>${Math.round((weekWins/weekTrades)*100)}% WR</div>`;
+          weekCell.innerHTML = <div class="cal-week-pnl ${pnlClass}">${formatPnlShort(weekPnl)}</div><div class="cal-week-meta">${weekTrades} trade${weekTrades !== 1 ? 's' : ''}<br>${Math.round((weekWins/weekTrades)*100)}% WR</div>;
         }
         grid.appendChild(weekCell);
       }
@@ -3274,7 +3073,7 @@ function handleDayModalClick(e) {
       selectedDate = dateStr;
       const date = new Date(dateStr + 'T12:00:00');
       const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-      document.getElementById('dayModalTitle').textContent = `${monthNames[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+      document.getElementById('dayModalTitle').textContent = ${monthNames[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()};
       document.getElementById('dayStats').innerHTML = '';
       document.getElementById('dayTradesList').innerHTML = '';
       document.getElementById('noteEditor').innerHTML = '';
@@ -3301,11 +3100,11 @@ function handleDayModalClick(e) {
 
   if (noteId) {
     if (!content) {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/day_notes?id=eq.${noteId}`, {
+      const res = await fetch(${SUPABASE_URL}/rest/v1/day_notes?id=eq.${noteId}, {
         method: 'DELETE',
         headers: {
           'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${token}`
+          'Authorization': Bearer ${token}
         }
       });
 
@@ -3313,11 +3112,11 @@ function handleDayModalClick(e) {
       return null;
     }
 
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/day_notes?id=eq.${noteId}`, {
+    const res = await fetch(${SUPABASE_URL}/rest/v1/day_notes?id=eq.${noteId}, {
       method: 'PATCH',
       headers: {
         'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${token}`,
+        'Authorization': Bearer ${token},
         'Content-Type': 'application/json',
         'Prefer': 'return=minimal'
       },
@@ -3329,11 +3128,11 @@ function handleDayModalClick(e) {
 
   if (!content) return null;
 
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/day_notes?on_conflict=user_id,date`, {
+  const res = await fetch(${SUPABASE_URL}/rest/v1/day_notes?on_conflict=user_id,date, {
     method: 'POST',
     headers: {
       'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${token}`,
+      'Authorization': Bearer ${token},
       'Content-Type': 'application/json',
       'Prefer': 'resolution=merge-duplicates,return=representation'
     },
@@ -3371,10 +3170,10 @@ function handleDayModalClick(e) {
     async function loadDayTrades() {
   const accountFilter = getAccountFilterParam();
 
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}${accountFilter}&date=eq.${selectedDate}&select=*,strategies(name),broker_accounts(name)&order=created_at.asc`, {
+  const res = await fetch(${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}${accountFilter}&date=eq.${selectedDate}&select=*,strategies(name),broker_accounts(name)&order=created_at.asc, {
     headers: {
       'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${token}`
+      'Authorization': Bearer ${token}
     }
   });
 
@@ -3388,32 +3187,32 @@ function handleDayModalClick(e) {
       const totalPnl = dayTrades.reduce((sum, t) => sum + (parseFloat(t.pnl) || 0), 0);
       const wins = dayTrades.filter(t => t.result === 'win').length;
       const losses = dayTrades.filter(t => t.result === 'loss').length;
-      document.getElementById('dayStats').innerHTML = dayTrades.length > 0 ? `<div style="display:flex;gap:32px;padding:20px 36px;flex-wrap:wrap;border-bottom:1px solid var(--border);width:100%;">
+      document.getElementById('dayStats').innerHTML = dayTrades.length > 0 ? <div style="display:flex;gap:32px;padding:20px 36px;flex-wrap:wrap;border-bottom:1px solid var(--border);width:100%;">
         <div class="day-modal-stat"><div class="day-modal-stat-label">Trades</div><div class="day-modal-stat-val">${dayTrades.length}</div></div>
         <div class="day-modal-stat"><div class="day-modal-stat-label">PNL</div><div class="day-modal-stat-val" style="color:${totalPnl > 0 ? 'var(--success)' : totalPnl < 0 ? 'var(--danger)' : 'var(--text)'}">${formatPnl(totalPnl)}</div></div>
         <div class="day-modal-stat"><div class="day-modal-stat-label">Win Rate</div><div class="day-modal-stat-val">${Math.round((wins/dayTrades.length)*100)}%</div></div>
         <div class="day-modal-stat"><div class="day-modal-stat-label">Wins</div><div class="day-modal-stat-val" style="color:var(--success)">${wins}</div></div>
         <div class="day-modal-stat"><div class="day-modal-stat-label">Losses</div><div class="day-modal-stat-val" style="color:var(--danger)">${losses}</div></div>
-      </div>` : '';
+      </div> : '';
       if (!dayTrades.length) { list.innerHTML = ''; return; }
       list.innerHTML = dayTrades.map(t => {
         const pnl = parseFloat(t.pnl) || 0;
         const pnlClass = pnl > 0 ? 'green' : pnl < 0 ? 'red' : '';
         const timeDisplay = t.trade_time ? formatDisplayTime(t.trade_time) : null;
-        return `<div class="trade-feed-item">
+        return <div class="trade-feed-item">
           <div class="trade-feed-left">
-            <div class="trade-feed-strat">${t.strategies?.name || 'Unknown'}${t.asset ? ` · ${t.asset}` : ''} — <span style="color:${t.result==='win'?'var(--success)':t.result==='loss'?'var(--danger)':'var(--text2)'};text-transform:capitalize;">${t.result}</span></div>
+            <div class="trade-feed-strat">${t.strategies?.name || 'Unknown'}${t.asset ?  · ${t.asset} : ''} — <span style="color:${t.result==='win'?'var(--success)':t.result==='loss'?'var(--danger)':'var(--text2)'};text-transform:capitalize;">${t.result}</span></div>
             <div class="trade-feed-detail">
-              ${t.confluences_used?.length ? `${t.confluences_used.length} confluences` : 'No confluences'}${t.actual_rr ? ` · ${t.actual_rr}R` : ''}${timeDisplay ? ` · ${timeDisplay}` : ''}${!t.followed_rules ? ' · <span style="color:var(--danger);">Rules broken</span>' : ''}
+              ${t.confluences_used?.length ? ${t.confluences_used.length} confluences : 'No confluences'}${t.actual_rr ?  · ${t.actual_rr}R : ''}${timeDisplay ?  · ${timeDisplay} : ''}${!t.followed_rules ? ' · <span style="color:var(--danger);">Rules broken</span>' : ''}
             </div>
-            ${t.notes ? `<div class="trade-feed-detail" style="margin-top:3px;font-style:italic;">"${t.notes}"</div>` : ''}
+            ${t.notes ? <div class="trade-feed-detail" style="margin-top:3px;font-style:italic;">"${t.notes}"</div> : ''}
           </div>
           <div class="trade-feed-pnl ${pnlClass}">${formatPnl(pnl)}</div>
           <div class="trade-feed-actions">
             <button class="trade-feed-edit" onclick="openEditTrade('${t.id}')"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
             <button class="trade-feed-delete" onclick="deleteTrade('${t.id}')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>
           </div>
-        </div>`;
+        </div>;
       }).join('');
     }
 
@@ -3422,11 +3221,11 @@ function handleDayModalClick(e) {
 
   const dateToRefresh = selectedDate;
 
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/trades?id=eq.${id}`, {
+  const res = await fetch(${SUPABASE_URL}/rest/v1/trades?id=eq.${id}, {
     method: 'DELETE',
     headers: {
       'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${token}`
+      'Authorization': Bearer ${token}
     }
   });
 
@@ -3485,7 +3284,7 @@ function handleDayModalClick(e) {
     }
 
     async function loadDayNote() {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/day_notes?user_id=eq.${user.id}&date=eq.${selectedDate}&select=*`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } });
+      const res = await fetch(${SUPABASE_URL}/rest/v1/day_notes?user_id=eq.${user.id}&date=eq.${selectedDate}&select=*, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': Bearer ${token} } });
       const data = await res.json();
       applyDayNote(data[0] || null);
     }
@@ -3495,7 +3294,7 @@ function handleDayModalClick(e) {
     function insertImage(e) {
       const file = e.target.files[0]; if (!file) return;
       const reader = new FileReader();
-      reader.onload = (ev) => { document.getElementById('noteEditor').focus(); document.execCommand('insertHTML', false, `<img src="${ev.target.result}" ondblclick="openLightbox(this)"/>`); };
+      reader.onload = (ev) => { document.getElementById('noteEditor').focus(); document.execCommand('insertHTML', false, <img src="${ev.target.result}" ondblclick="openLightbox(this)"/>); };
       reader.readAsDataURL(file);
       e.target.value = '';
     }
@@ -3507,7 +3306,7 @@ function handleDayModalClick(e) {
       if (!allStrategies.length) await loadStrategies();
       if (!allAccounts.length) await loadAccounts();
 populateTradeAccountSelect();
-      document.getElementById('tradeStrategy').innerHTML = '<option value="">Select a strategy...</option>' + allStrategies.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+      document.getElementById('tradeStrategy').innerHTML = '<option value="">Select a strategy...</option>' + allStrategies.map(s => <option value="${s.id}">${s.name}</option>).join('');
       document.getElementById('confluenceSection').style.display = 'none';
       document.getElementById('confluenceChecklist').innerHTML = '';
       document.getElementById('tradeAsset').value = '';
@@ -3521,7 +3320,7 @@ populateTradeAccountSelect();
       document.querySelector('input[name="followedRules"][value="true"]').checked = true;
       document.getElementById('tradeMsg').textContent = '';
       document.getElementById('saveTradeBtn').textContent = 'Save Trade';
-      document.getElementById('logTradeTitle').textContent = `Log Trade — ${document.getElementById('dayModalTitle').textContent}`;
+      document.getElementById('logTradeTitle').textContent = Log Trade — ${document.getElementById('dayModalTitle').textContent};
       document.getElementById('logTradeModal').classList.add('active');
     }
 
@@ -3532,7 +3331,7 @@ populateTradeAccountSelect();
       if (!allStrategies.length) await loadStrategies();
       if (!allAccounts.length) await loadAccounts();
 populateTradeAccountSelect();
-      document.getElementById('tradeStrategy').innerHTML = '<option value="">Select a strategy...</option>' + allStrategies.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+      document.getElementById('tradeStrategy').innerHTML = '<option value="">Select a strategy...</option>' + allStrategies.map(s => <option value="${s.id}">${s.name}</option>).join('');
       document.getElementById('confluenceSection').style.display = 'none';
       document.getElementById('confluenceChecklist').innerHTML = '';
       document.getElementById('tradeAsset').value = '';
@@ -3552,15 +3351,15 @@ populateTradeAccountSelect();
     }
 
     async function openEditTrade(id) {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/trades?id=eq.${id}&select=*,strategies(name),broker_accounts(name)`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } });
+      const res = await fetch(${SUPABASE_URL}/rest/v1/trades?id=eq.${id}&select=*,strategies(name),broker_accounts(name), { headers: { 'apikey': SUPABASE_KEY, 'Authorization': Bearer ${token} } });
       const data = await res.json();
       if (!data || !data[0]) return;
       const t = data[0];
       editingTradeId = id;
       editingTradeOriginalDate = t.date || null;
-      const stratRes = await fetch(`${SUPABASE_URL}/rest/v1/strategies?user_id=eq.${user.id}&select=*`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } });
+      const stratRes = await fetch(${SUPABASE_URL}/rest/v1/strategies?user_id=eq.${user.id}&select=*, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': Bearer ${token} } });
       allStrategies = await stratRes.json();
-      document.getElementById('tradeStrategy').innerHTML = '<option value="">Select a strategy...</option>' + allStrategies.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+      document.getElementById('tradeStrategy').innerHTML = '<option value="">Select a strategy...</option>' + allStrategies.map(s => <option value="${s.id}">${s.name}</option>).join('');
       document.getElementById('tradeStrategy').value = t.strategy_id || '';
       if (!allAccounts.length) await loadAccounts();
 populateTradeAccountSelect();
@@ -3581,10 +3380,10 @@ document.getElementById('tradeAccount').value = t.account_id || '';
         const [h, m] = t.trade_time.split(':').map(Number);
         const ampm = h >= 12 ? 'PM' : 'AM';
         const h12 = h % 12 || 12;
-        document.getElementById('tradeTime').value = `${h12}:${String(m).padStart(2,'0')}`;
+        document.getElementById('tradeTime').value = ${h12}:${String(m).padStart(2,'0')};
         document.getElementById('tradeAmPm').value = ampm;
       } else { document.getElementById('tradeTime').value = ''; document.getElementById('tradeAmPm').value = 'AM'; }
-      document.querySelector(`input[name="followedRules"][value="${t.followed_rules ? 'true' : 'false'}"]`).checked = true;
+      document.querySelector(input[name="followedRules"][value="${t.followed_rules ? 'true' : 'false'}"]).checked = true;
       document.getElementById('tradeMsg').textContent = '';
       document.getElementById('saveTradeBtn').textContent = 'Update Trade';
       document.getElementById('logTradeTitle').textContent = 'Edit Trade';
@@ -3618,7 +3417,7 @@ document.getElementById('tradeAccount').value = t.account_id || '';
       const checklist = document.getElementById('confluenceChecklist');
       if (!strat || !strat.confluences?.length) { section.style.display = 'none'; return; }
       section.style.display = 'block';
-      checklist.innerHTML = strat.confluences.map((c, i) => `<div class="confluence-check"><input type="checkbox" id="conf${i}" value="${c}"/><label for="conf${i}">${c}</label></div>`).join('');
+      checklist.innerHTML = strat.confluences.map((c, i) => <div class="confluence-check"><input type="checkbox" id="conf${i}" value="${c}"/><label for="conf${i}">${c}</label></div>).join('');
     }
 
     async function saveTrade() {
@@ -3693,22 +3492,22 @@ document.getElementById('tradeAccount').value = t.account_id || '';
     let res;
 
     if (tradeIdToUpdate) {
-      res = await fetch(`${SUPABASE_URL}/rest/v1/trades?id=eq.${tradeIdToUpdate}`, {
+      res = await fetch(${SUPABASE_URL}/rest/v1/trades?id=eq.${tradeIdToUpdate}, {
         method: 'PATCH',
         headers: {
           'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${token}`,
+          'Authorization': Bearer ${token},
           'Content-Type': 'application/json',
           'Prefer': 'return=minimal'
         },
         body: JSON.stringify(payload)
       });
     } else {
-      res = await fetch(`${SUPABASE_URL}/rest/v1/trades`, {
+      res = await fetch(${SUPABASE_URL}/rest/v1/trades, {
         method: 'POST',
         headers: {
           'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${token}`,
+          'Authorization': Bearer ${token},
           'Content-Type': 'application/json',
           'Prefer': 'return=minimal'
         },
@@ -3724,7 +3523,7 @@ document.getElementById('tradeAccount').value = t.account_id || '';
         errorText = '';
       }
 
-      throw new Error(errorText || `Save failed with status ${res.status}`);
+      throw new Error(errorText || Save failed with status ${res.status});
     }
 
     closeLogTrade();
@@ -3853,11 +3652,11 @@ function renderDashboard() {
   const summary = getTradeSummary(trades);
 
   if (!trades.length) {
-    statsGrid.innerHTML = `
+    statsGrid.innerHTML = 
       <div class="stat-card"><div class="stat-label">Total Trades</div><div class="stat-value">0</div></div>
       <div class="stat-card"><div class="stat-label">Win Rate</div><div class="stat-value">—</div></div>
       <div class="stat-card"><div class="stat-label">Total PNL</div><div class="stat-value">—</div></div>
-      <div class="stat-card"><div class="stat-label">Avg R:R</div><div class="stat-value">—</div></div>`;
+      <div class="stat-card"><div class="stat-label">Avg R:R</div><div class="stat-value">—</div></div>;
 
     setDashValue('dashTodayPnl', '—');
     setDashValue('dashWeekPnl', '—');
@@ -3874,11 +3673,11 @@ function renderDashboard() {
     return;
   }
 
-  statsGrid.innerHTML = `
+  statsGrid.innerHTML = 
     <div class="stat-card"><div class="stat-label">Total Trades</div><div class="stat-value">${summary.total}</div></div>
     <div class="stat-card"><div class="stat-label">Win Rate</div><div class="stat-value">${summary.winRate ?? '—'}${summary.winRate !== null ? '%' : ''}</div></div>
     <div class="stat-card"><div class="stat-label">Total PNL</div><div class="stat-value" style="color:${summary.totalPnl > 0 ? 'var(--success)' : summary.totalPnl < 0 ? 'var(--danger)' : 'var(--text)'}">${formatPnl(summary.totalPnl)}</div></div>
-    <div class="stat-card"><div class="stat-label">Avg R:R</div><div class="stat-value">${summary.avgRR !== null ? summary.avgRR.toFixed(2) : '—'}</div></div>`;
+    <div class="stat-card"><div class="stat-label">Avg R:R</div><div class="stat-value">${summary.avgRR !== null ? summary.avgRR.toFixed(2) : '—'}</div></div>;
 
   const today = new Date();
   const todayKey = getDateKey(today);
@@ -3901,13 +3700,13 @@ function renderDashboard() {
   setDashValue('dashWeekPnl', weekTrades.length ? formatPnl(weekSummary.totalPnl) : '—', weekTrades.length ? weekSummary.totalPnl : null);
   setDashValue('dashMonthPnl', monthTrades.length ? formatPnl(monthSummary.totalPnl) : '—', monthTrades.length ? monthSummary.totalPnl : null);
 
-  document.getElementById('dashTodayTrades').textContent = todayTrades.length ? `${todayTrades.length} trade${todayTrades.length !== 1 ? 's' : ''} · ${todaySummary.winRate ?? 0}% WR` : 'No trades today';
-  document.getElementById('dashWeekStats').textContent = weekTrades.length ? `${weekTrades.length} trade${weekTrades.length !== 1 ? 's' : ''} · ${weekSummary.winRate ?? 0}% WR` : 'No trades this week';
-  document.getElementById('dashMonthStats').textContent = monthTrades.length ? `${monthTrades.length} trade${monthTrades.length !== 1 ? 's' : ''} · ${monthSummary.winRate ?? 0}% WR` : 'No trades this month';
+  document.getElementById('dashTodayTrades').textContent = todayTrades.length ? ${todayTrades.length} trade${todayTrades.length !== 1 ? 's' : ''} · ${todaySummary.winRate ?? 0}% WR : 'No trades today';
+  document.getElementById('dashWeekStats').textContent = weekTrades.length ? ${weekTrades.length} trade${weekTrades.length !== 1 ? 's' : ''} · ${weekSummary.winRate ?? 0}% WR : 'No trades this week';
+  document.getElementById('dashMonthStats').textContent = monthTrades.length ? ${monthTrades.length} trade${monthTrades.length !== 1 ? 's' : ''} · ${monthSummary.winRate ?? 0}% WR : 'No trades this month';
 
-  document.getElementById('dashRuleRate').textContent = summary.ruleRate !== null ? `${summary.ruleRate}%` : '—';
-  document.getElementById('dashRuleFill').style.width = summary.ruleRate !== null ? `${summary.ruleRate}%` : '0%';
-  document.getElementById('dashRuleSub').textContent = summary.ruleRate !== null ? `${summary.rulesFollowed} of ${summary.ruleTrades.length} trades followed rules` : 'No rule data yet';
+  document.getElementById('dashRuleRate').textContent = summary.ruleRate !== null ? ${summary.ruleRate}% : '—';
+  document.getElementById('dashRuleFill').style.width = summary.ruleRate !== null ? ${summary.ruleRate}% : '0%';
+  document.getElementById('dashRuleSub').textContent = summary.ruleRate !== null ? ${summary.rulesFollowed} of ${summary.ruleTrades.length} trades followed rules : 'No rule data yet';
 
   renderDashboardBars(trades);
   renderDashboardStrategies(trades);
@@ -4012,7 +3811,7 @@ function buildWeeklyDashboardBuckets(range) {
       buckets.push({
         start: weekStart,
         end: weekEnd,
-        label: `${formatDateShort(weekStart)} - ${formatDateShort(weekEnd)}`,
+        label: ${formatDateShort(weekStart)} - ${formatDateShort(weekEnd)},
         shortLabel: formatDateShort(weekStart),
         type: 'week'
       });
@@ -4097,7 +3896,7 @@ function setDashboardChartInactive() {
 
   if (pnlEl) {
     pnlEl.textContent = formatPnl(dashboardChartSummary.pnl);
-    pnlEl.className = `dashboard-chart-pnl ${dashboardChartSummary.pnl > 0 ? 'green' : dashboardChartSummary.pnl < 0 ? 'red' : 'flat'}`;
+    pnlEl.className = dashboard-chart-pnl ${dashboardChartSummary.pnl > 0 ? 'green' : dashboardChartSummary.pnl < 0 ? 'red' : 'flat'};
   }
 }
 
@@ -4115,7 +3914,7 @@ function setDashboardChartActive(index) {
 
   if (pnlEl) {
     pnlEl.textContent = formatPnl(item.pnl);
-    pnlEl.className = `dashboard-chart-pnl ${item.pnl > 0 ? 'green' : item.pnl < 0 ? 'red' : 'flat'}`;
+    pnlEl.className = dashboard-chart-pnl ${item.pnl > 0 ? 'green' : item.pnl < 0 ? 'red' : 'flat'};
   }
 
   document.querySelectorAll('.dashboard-bar-wrap').forEach((el, i) => {
@@ -4176,12 +3975,12 @@ function renderDashboardBars(trades) {
     const cls = d.pnl > 0 ? 'green' : d.pnl < 0 ? 'red' : 'flat';
     const label = shouldShowDashboardBarLabel(index, buckets.length) ? d.shortLabel : '';
 
-    return `
+    return 
       <div class="dashboard-bar-wrap" data-index="${index}">
         <div class="dashboard-bar ${cls}" style="height:${height}px;max-width:${maxBarWidth}px;"></div>
         <div class="dashboard-bar-day">${label}</div>
       </div>
-    `;
+    ;
   }).join('');
 
   bars.onpointermove = (e) => {
@@ -4225,7 +4024,7 @@ function renderDashboardStrategies(trades) {
     return;
   }
 
-  container.innerHTML = rows.map(r => `
+  container.innerHTML = rows.map(r => 
     <div class="dashboard-list-item">
       <div class="dashboard-list-main">
         <div class="dashboard-list-title">${escapeHtml(r.name)}</div>
@@ -4233,7 +4032,7 @@ function renderDashboardStrategies(trades) {
       </div>
       <div class="dashboard-list-value" style="color:${r.pnl > 0 ? 'var(--success)' : r.pnl < 0 ? 'var(--danger)' : 'var(--text)'}">${formatPnl(r.pnl)}</div>
     </div>
-  `).join('');
+  ).join('');
 }
 
 function renderDashboardRecentTrades(trades) {
@@ -4250,19 +4049,19 @@ function renderDashboardRecentTrades(trades) {
     const date = new Date(t.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     const strategy = t.strategies?.name || 'Unknown';
     const accountName = t.broker_accounts?.name || getAccountName(t.account_id);
-const displayStrategy = activeAccountId === 'all' ? `${accountName} · ${strategy}` : strategy;
-    const asset = t.asset ? ` · ${t.asset}` : '';
+const displayStrategy = activeAccountId === 'all' ? ${accountName} · ${strategy} : strategy;
+    const asset = t.asset ?  · ${t.asset} : '';
     const result = t.result === 'breakeven' ? 'be' : (t.result || '-');
 
-    return `
+    return 
       <div class="dashboard-list-item">
         <div class="dashboard-list-main">
           <div class="dashboard-list-title">${escapeHtml(displayStrategy)}${escapeHtml(asset)} — ${escapeHtml(result)}</div>
-          <div class="dashboard-list-sub">${date}${t.actual_rr ? ` · ${t.actual_rr}R` : ''}${t.followed_rules ? '' : ' · Rules broken'}</div>
+          <div class="dashboard-list-sub">${date}${t.actual_rr ?  · ${t.actual_rr}R : ''}${t.followed_rules ? '' : ' · Rules broken'}</div>
         </div>
         <div class="dashboard-list-value" style="color:${pnl > 0 ? 'var(--success)' : pnl < 0 ? 'var(--danger)' : 'var(--text)'}">${formatPnl(pnl)}</div>
       </div>
-    `;
+    ;
   }).join('');
 }
     
@@ -4271,10 +4070,10 @@ const displayStrategy = activeAccountId === 'all' ? `${accountName} · ${strateg
     let filteredTrades = [];
 
     async function loadTrades() {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}&select=*,strategies(name),broker_accounts(name)&order=date.desc,created_at.desc`, {
+  const res = await fetch(${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}&select=*,strategies(name),broker_accounts(name)&order=date.desc,created_at.desc, {
     headers: {
       'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${token}`
+      'Authorization': Bearer ${token}
     }
   });
 
@@ -4285,7 +4084,7 @@ const displayStrategy = activeAccountId === 'all' ? `${accountName} · ${strateg
 
   const strategies = [...new Set(allTrades.map(t => t.strategies?.name).filter(Boolean))];
   const filterSelect = document.getElementById('filterStrategy');
-  filterSelect.innerHTML = '<option value="">All Strategies</option>' + strategies.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+  filterSelect.innerHTML = '<option value="">All Strategies</option>' + strategies.map(s => <option value="${escapeHtml(s)}">${escapeHtml(s)}</option>).join('');
 
   filterTrades();
   renderDashboard();
@@ -4330,14 +4129,14 @@ const displayStrategy = activeAccountId === 'all' ? `${accountName} · ${strateg
       const avgRR = trades.filter(t => t.actual_rr).reduce((sum, t, _, arr) => sum + parseFloat(t.actual_rr) / arr.length, 0);
       const bestTrade = Math.max(...trades.map(t => parseFloat(t.pnl)||0));
       const worstTrade = Math.min(...trades.map(t => parseFloat(t.pnl)||0));
-      grid.innerHTML = `
+      grid.innerHTML = 
         <div class="stat-card"><div class="stat-label">Total Trades</div><div class="stat-value">${trades.length}</div></div>
         <div class="stat-card"><div class="stat-label">Total PNL</div><div class="stat-value" style="color:${totalPnl>0?'var(--success)':totalPnl<0?'var(--danger)':'var(--text)'}">${formatPnl(totalPnl)}</div></div>
         <div class="stat-card"><div class="stat-label">Win Rate</div><div class="stat-value">${winRate}%</div></div>
         <div class="stat-card"><div class="stat-label">Wins / Losses</div><div class="stat-value"><span style="color:var(--success)">${wins}</span> / <span style="color:var(--danger)">${losses}</span></div></div>
         <div class="stat-card"><div class="stat-label">Avg R:R</div><div class="stat-value">${avgRR ? avgRR.toFixed(2) : '—'}</div></div>
         <div class="stat-card"><div class="stat-label">Best Trade</div><div class="stat-value" style="color:var(--success)">${bestTrade > -Infinity ? formatPnl(bestTrade) : '—'}</div></div>
-        <div class="stat-card"><div class="stat-label">Worst Trade</div><div class="stat-value" style="color:var(--danger)">${worstTrade < Infinity ? formatPnl(worstTrade) : '—'}</div></div>`;
+        <div class="stat-card"><div class="stat-label">Worst Trade</div><div class="stat-value" style="color:var(--danger)">${worstTrade < Infinity ? formatPnl(worstTrade) : '—'}</div></div>;
     }
 
     function renderTradesList() {
@@ -4358,17 +4157,17 @@ const displayStrategy = activeAccountId === 'all' ? `${accountName} · ${strateg
     const accountName = t.broker_accounts?.name || getAccountName(t.account_id);
     const strategy = t.strategies?.name || '-';
     const result = t.result === 'breakeven' ? 'be' : (t.result || '-');
-    const rr = t.actual_rr ? `${t.actual_rr}R` : '—';
-    const confluences = t.confluences_used?.length ? `${t.confluences_used.length} confluences` : '—';
+    const rr = t.actual_rr ? ${t.actual_rr}R : '—';
+    const confluences = t.confluences_used?.length ? ${t.confluences_used.length} confluences : '—';
     const timeStr = t.trade_time ? formatDisplayTime(t.trade_time) : '—';
     const asset = t.asset || '—';
     const followed = t.followed_rules ? '' : '<span style="color:var(--danger);font-size:11px;">✗</span>';
-    const notes = t.notes ? `"${t.notes}"` : followed || '—';
+    const notes = t.notes ? "${t.notes}" : followed || '—';
 
-    return `<div class="trades-table-row">
+    return <div class="trades-table-row">
       <div class="trades-table-cell muted">${dateStr}</div>
       <div class="trades-table-cell">${escapeHtml(strategy)}</div>
-      ${isAllAccounts ? `<div class="trades-table-cell muted">${escapeHtml(accountName)}</div>` : ''}
+      ${isAllAccounts ? <div class="trades-table-cell muted">${escapeHtml(accountName)}</div> : ''}
       <div class="trades-table-cell"><span class="trades-badge ${t.result || '-'}">${result}</span></div>
       <div class="trades-table-cell" style="color:${pnlColor};font-weight:700;">${formatPnl(pnl)}</div>
       <div class="trades-table-cell muted">${rr}</div>
@@ -4384,10 +4183,10 @@ const displayStrategy = activeAccountId === 'all' ? `${accountName} · ${strateg
           <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
         </button>
       </div>
-    </div>`;
+    </div>;
   }).join('');
 
-  container.innerHTML = `<div class="trades-table${isAllAccounts ? ' all-accounts' : ''}">
+  container.innerHTML = <div class="trades-table${isAllAccounts ? ' all-accounts' : ''}">
     <div class="trades-table-header">
       <div>Date</div>
       <div>Strategy</div>
@@ -4402,7 +4201,7 @@ const displayStrategy = activeAccountId === 'all' ? `${accountName} · ${strateg
       <div></div>
     </div>
     ${rows}
-  </div>`;
+  </div>;
 }
 
     async function openEditTradeFromList(id) { logFromPage = true; await openEditTrade(id); }
@@ -4410,7 +4209,7 @@ const displayStrategy = activeAccountId === 'all' ? `${accountName} · ${strateg
     async function deleteTradeFromList(id) {
       if (!confirm('Delete this trade?')) return;
       const trade = allTrades.find(t => t.id === id);
-      await fetch(`${SUPABASE_URL}/rest/v1/trades?id=eq.${id}`, { method: 'DELETE', headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } });
+      await fetch(${SUPABASE_URL}/rest/v1/trades?id=eq.${id}, { method: 'DELETE', headers: { 'apikey': SUPABASE_KEY, 'Authorization': Bearer ${token} } });
       invalidateCalendarCacheForDate(trade?.date);
       allTrades = allTrades.filter(t => t.id !== id);
 filterTrades();
@@ -4503,7 +4302,7 @@ function populateInsertTradeFilters() {
 
   strategyFilter.innerHTML =
     '<option value="">All Strategies</option>' +
-    strategies.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+    strategies.map(s => <option value="${escapeHtml(s)}">${escapeHtml(s)}</option>).join('');
 
   if (strategies.includes(currentValue)) {
     strategyFilter.value = currentValue;
@@ -4548,14 +4347,14 @@ function renderInsertTradeList() {
     const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     const strategy = t.strategies?.name || 'Unknown';
     const accountName = t.broker_accounts?.name || getAccountName(t.account_id);
-const displayStrategy = activeAccountId === 'all' ? `${accountName} · ${strategy}` : strategy;
-    const asset = t.asset ? ` · ${t.asset}` : '';
+const displayStrategy = activeAccountId === 'all' ? ${accountName} · ${strategy} : strategy;
+    const asset = t.asset ?  · ${t.asset} : '';
     const result = t.result === 'breakeven' ? 'be' : (t.result || '-');
-    const rr = t.actual_rr ? ` · ${t.actual_rr}R` : '';
-    const time = t.trade_time ? ` · ${formatDisplayTime(t.trade_time)}` : '';
-    const confluences = t.confluences_used?.length ? `${t.confluences_used.length} confluences` : 'No confluences';
+    const rr = t.actual_rr ?  · ${t.actual_rr}R : '';
+    const time = t.trade_time ?  · ${formatDisplayTime(t.trade_time)} : '';
+    const confluences = t.confluences_used?.length ? ${t.confluences_used.length} confluences : 'No confluences';
 
-    return `
+    return 
       <div class="insert-trade-option" onclick="insertTradeIntoNote('${t.id}')">
         <div class="insert-trade-option-main">
           <div class="insert-trade-option-title">${escapeHtml(displayStrategy)}${escapeHtml(asset)} — ${escapeHtml(result)}</div>
@@ -4563,7 +4362,7 @@ const displayStrategy = activeAccountId === 'all' ? `${accountName} · ${strateg
         </div>
         <div class="insert-trade-option-pnl" style="color:${pnlColor};">${formatPnl(pnl)}</div>
       </div>
-    `;
+    ;
   }).join('');
 }
 
@@ -4574,15 +4373,15 @@ function buildNoteTradeCardHtml(t) {
   const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   const strategy = t.strategies?.name || 'Unknown';
   const accountName = t.broker_accounts?.name || getAccountName(t.account_id);
-const displayStrategy = activeAccountId === 'all' ? `${accountName} · ${strategy}` : strategy;
-  const asset = t.asset ? ` · ${t.asset}` : '';
+const displayStrategy = activeAccountId === 'all' ? ${accountName} · ${strategy} : strategy;
+  const asset = t.asset ?  · ${t.asset} : '';
   const result = t.result === 'breakeven' ? 'be' : (t.result || '-');
-  const rr = t.actual_rr ? ` · ${t.actual_rr}R` : '';
-  const time = t.trade_time ? ` · ${formatDisplayTime(t.trade_time)}` : '';
-  const confluences = t.confluences_used?.length ? `${t.confluences_used.length} confluences` : 'No confluences';
-  const notes = t.notes ? `<div class="note-trade-card-notes">"${escapeHtml(t.notes)}"</div>` : '';
+  const rr = t.actual_rr ?  · ${t.actual_rr}R : '';
+  const time = t.trade_time ?  · ${formatDisplayTime(t.trade_time)} : '';
+  const confluences = t.confluences_used?.length ? ${t.confluences_used.length} confluences : 'No confluences';
+  const notes = t.notes ? <div class="note-trade-card-notes">"${escapeHtml(t.notes)}"</div> : '';
 
-  return `
+  return 
     <div class="note-trade-card" contenteditable="false" data-trade-id="${escapeHtml(t.id)}">
       <div class="note-trade-card-title">
         <span>${escapeHtml(displayStrategy)}${escapeHtml(asset)} — ${escapeHtml(result)}</span>
@@ -4591,7 +4390,7 @@ const displayStrategy = activeAccountId === 'all' ? `${accountName} · ${strateg
       <div class="note-trade-card-detail">${escapeHtml(dateStr)} · ${escapeHtml(confluences)}${escapeHtml(rr)}${escapeHtml(time)}</div>
       ${notes}
     </div><br/>
-  `;
+  ;
 }
 
 function insertTradeIntoNote(tradeId) {
@@ -4625,10 +4424,10 @@ function insertTradeIntoNote(tradeId) {
     
     // ─── NOTES PAGE ─────────────────────────────────────────────
         async function initNotes() {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/notes?user_id=eq.${user.id}&order=sort_order.asc.nullslast,updated_at.desc`, {
+      const res = await fetch(${SUPABASE_URL}/rest/v1/notes?user_id=eq.${user.id}&order=sort_order.asc.nullslast,updated_at.desc, {
         headers: {
           'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${token}`
+          'Authorization': Bearer ${token}
         }
       });
 
@@ -4667,7 +4466,7 @@ function insertTradeIntoNote(tradeId) {
         return;
       }
 
-      list.innerHTML = `
+      list.innerHTML = 
         <div class="notes-sort-hint">Press and hold a note to rearrange.</div>
         ${allPageNotes.map(n => {
           const date = new Date(n.updated_at).toLocaleDateString('en-US', {
@@ -4676,15 +4475,15 @@ function insertTradeIntoNote(tradeId) {
             year: 'numeric'
           });
 
-          return `
+          return 
   <div class="note-list-item${n.id === currentNoteId ? ' active' : ''}" data-note-id="${n.id}" onclick="handleNoteListClick('${n.id}')">
     <div class="note-list-title">${escapeHtml(n.title || 'Untitled')}</div>
     <div class="note-list-date">${date}</div>
     <span class="note-drag-handle" aria-hidden="true">≡</span>
   </div>
-`;
+;
         }).join('')}
-      `;
+      ;
 
       attachNoteDragHandlers();
     }
@@ -4775,7 +4574,7 @@ function moveNotePointer(e) {
   e.preventDefault();
 
   const list = document.getElementById('notesList');
-  const dragging = list.querySelector(`.note-list-item[data-note-id="${noteDrag.noteId}"]`);
+  const dragging = list.querySelector(.note-list-item[data-note-id="${noteDrag.noteId}"]);
   const target = document.elementFromPoint(e.clientX, e.clientY)?.closest('.note-list-item[data-note-id]');
 
   if (!dragging || !target || dragging === target) return;
@@ -4847,11 +4646,11 @@ async function saveNoteOrder() {
   await Promise.all(allPageNotes.map((note, index) => {
     note.sort_order = index;
 
-    return fetch(`${SUPABASE_URL}/rest/v1/notes?id=eq.${note.id}`, {
+    return fetch(${SUPABASE_URL}/rest/v1/notes?id=eq.${note.id}, {
       method: 'PATCH',
       headers: {
         'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${token}`,
+        'Authorization': Bearer ${token},
         'Content-Type': 'application/json',
         'Prefer': 'return=minimal'
       },
@@ -4912,7 +4711,7 @@ async function saveNoteOrder() {
       if (!currentNoteId) return;
       const title = document.getElementById('noteTitleInput').value.trim() || 'Untitled';
       const content = document.getElementById('noteBodyEditor').innerHTML;
-      await fetch(`${SUPABASE_URL}/rest/v1/notes?id=eq.${currentNoteId}`, { method: 'PATCH', headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' }, body: JSON.stringify({ title, content, updated_at: new Date().toISOString() }) });
+      await fetch(${SUPABASE_URL}/rest/v1/notes?id=eq.${currentNoteId}, { method: 'PATCH', headers: { 'apikey': SUPABASE_KEY, 'Authorization': Bearer ${token}, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' }, body: JSON.stringify({ title, content, updated_at: new Date().toISOString() }) });
       const note = allPageNotes.find(n => n.id === currentNoteId);
       if (note) { note.title = title; note.content = content; note.updated_at = new Date().toISOString(); }
       document.getElementById('notesAutosaveStatus').textContent = 'Saved';
@@ -4926,11 +4725,11 @@ async function saveNoteOrder() {
         sort_order: (parseInt(n.sort_order, 10) || 0) + 1
       }));
 
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/notes`, {
+      const res = await fetch(${SUPABASE_URL}/rest/v1/notes, {
         method: 'POST',
         headers: {
           'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${token}`,
+          'Authorization': Bearer ${token},
           'Content-Type': 'application/json',
           'Prefer': 'return=representation'
         },
@@ -4956,7 +4755,7 @@ async function saveNoteOrder() {
     async function deleteCurrentNote() {
       if (!currentNoteId) return;
       if (!confirm('Delete this note?')) return;
-      await fetch(`${SUPABASE_URL}/rest/v1/notes?id=eq.${currentNoteId}`, { method: 'DELETE', headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } });
+      await fetch(${SUPABASE_URL}/rest/v1/notes?id=eq.${currentNoteId}, { method: 'DELETE', headers: { 'apikey': SUPABASE_KEY, 'Authorization': Bearer ${token} } });
       allPageNotes = allPageNotes.filter(n => n.id !== currentNoteId);
       closeNoteEditor();
     }
@@ -4968,7 +4767,7 @@ async function saveNoteOrder() {
     function notesInsertImage(e) {
       const file = e.target.files[0]; if (!file) return;
       const reader = new FileReader();
-      reader.onload = (ev) => { document.getElementById('noteBodyEditor').focus(); document.execCommand('insertHTML', false, `<img src="${ev.target.result}" ondblclick="openLightbox(this)"/>`); scheduleNoteSave(); };
+      reader.onload = (ev) => { document.getElementById('noteBodyEditor').focus(); document.execCommand('insertHTML', false, <img src="${ev.target.result}" ondblclick="openLightbox(this)"/>); scheduleNoteSave(); };
       reader.readAsDataURL(file);
       e.target.value = '';
     }
@@ -4985,8 +4784,8 @@ async function saveNoteOrder() {
       if (sel && sel.toString().length > 0) {
         const range = sel.getRangeAt(0);
         const rect = range.getBoundingClientRect();
-        toolbar.style.top = `${rect.top + window.scrollY - 44}px`;
-        toolbar.style.left = `${rect.left + window.scrollX + rect.width / 2 - 80}px`;
+        toolbar.style.top = ${rect.top + window.scrollY - 44}px;
+        toolbar.style.left = ${rect.left + window.scrollX + rect.width / 2 - 80}px;
         toolbar.classList.add('visible');
         document.querySelectorAll('.float-btn[data-ncmd]').forEach(btn => { btn.classList.toggle('active', document.queryCommandState(btn.getAttribute('data-ncmd'))); });
       } else { toolbar.classList.remove('visible'); }
@@ -5008,91 +4807,8 @@ async function saveNoteOrder() {
   const isHidden = input.type === 'password';
   input.type = isHidden ? 'text' : 'password';
   btn.querySelector('svg').innerHTML = isHidden
-    ? `<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>`
-    : `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`;
-}
-
-    function resetPointsCalc() {
-  document.getElementById('pointsCalcSL').value = '';
-  document.getElementById('pointsCalcTP').value = '';
-  document.getElementById('pointsCalcResultsCard').style.display = 'none';
-}
-
-    // ─── CHARTS ──────────────────────────────────────────────
-function initChartsPage() {
-  const symbolInput = document.getElementById('tvSymbolInput');
-  const intervalSelect = document.getElementById('tvIntervalSelect');
-
-  if (symbolInput) {
-    symbolInput.value = localStorage.getItem('tp_tv_symbol') || 'CME_MINI:NQ1!';
-  }
-
-  if (intervalSelect) {
-    intervalSelect.value = localStorage.getItem('tp_tv_interval') || '5';
-  }
-
-  loadTradingViewChart();
-}
-
-function getTradingViewTheme() {
-  return document.getElementById('body').classList.contains('light') ? 'light' : 'dark';
-}
-
-function loadTradingViewChart() {
-  const container = document.getElementById('tradingViewChart');
-  const symbolInput = document.getElementById('tvSymbolInput');
-  const intervalSelect = document.getElementById('tvIntervalSelect');
-
-  if (!container || !symbolInput || !intervalSelect) return;
-
-  const symbol = symbolInput.value.trim() || 'CME_MINI:NQ1!';
-  const interval = intervalSelect.value || '5';
-
-  localStorage.setItem('tp_tv_symbol', symbol);
-  localStorage.setItem('tp_tv_interval', interval);
-
-  container.innerHTML = '';
-
-  const widget = document.createElement('div');
-  widget.className = 'tradingview-widget-container__widget';
-
-  const script = document.createElement('script');
-  script.type = 'text/javascript';
-  script.async = true;
-  script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
-  script.innerHTML = JSON.stringify({
-    autosize: true,
-    symbol,
-    interval,
-    timezone: 'America/New_York',
-    theme: getTradingViewTheme(),
-    style: '1',
-    locale: 'en',
-    allow_symbol_change: true,
-    calendar: false,
-    hide_side_toolbar: false,
-    support_host: 'https://www.tradingview.com'
-  });
-
-  container.appendChild(widget);
-  container.appendChild(script);
-}
-
-function applyTradingViewPreset(symbol) {
-  if (!symbol) return;
-
-  const symbolInput = document.getElementById('tvSymbolInput');
-  const presetSelect = document.getElementById('tvPresetSelect');
-
-  if (symbolInput) {
-    symbolInput.value = symbol;
-  }
-
-  if (presetSelect) {
-    presetSelect.value = '';
-  }
-
-  loadTradingViewChart();
+    ? <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>
+    : <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>;
 }
     
   </script>
