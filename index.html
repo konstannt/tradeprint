@@ -448,44 +448,146 @@
     }
 
     .fingerprint-band {
-      background: var(--bg);
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-      padding: 72px 32px;
-    }
+  background:
+    radial-gradient(circle at 18% 28%, rgba(99, 102, 241, 0.18), transparent 28%),
+    linear-gradient(135deg, #0a0a0a 0%, #111111 48%, #080808 100%);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 76px 32px;
+}
 
-    .fingerprint-inner {
-      width: 100%;
-      max-width: 980px;
-      margin: 0 auto;
-      text-align: center;
-    }
+.fingerprint-inner {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(360px, 0.65fr);
+  gap: 42px;
+  align-items: center;
+}
 
-    .fingerprint-kicker {
-      color: var(--accent-soft);
-      font-size: 12px;
-      font-weight: 850;
-      text-transform: uppercase;
-      letter-spacing: 0;
-      margin-bottom: 14px;
-    }
+.fingerprint-kicker {
+  color: var(--accent-soft);
+  font-size: 12px;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: 0;
+  margin-bottom: 14px;
+}
 
-    .fingerprint-title {
-      color: var(--text);
-      font-size: 48px;
-      line-height: 1.05;
-      font-weight: 900;
-      letter-spacing: 0;
-      margin-bottom: 16px;
-    }
+.fingerprint-title {
+  max-width: 760px;
+  color: var(--text);
+  font-size: 48px;
+  line-height: 1.05;
+  font-weight: 900;
+  letter-spacing: 0;
+  margin-bottom: 16px;
+}
 
-    .fingerprint-copy {
-      max-width: 760px;
-      margin: 0 auto;
-      color: var(--text2);
-      font-size: 17px;
-      line-height: 1.7;
-    }
+.fingerprint-title span {
+  color: var(--accent-soft);
+}
+
+.fingerprint-copy {
+  max-width: 720px;
+  color: var(--text2);
+  font-size: 17px;
+  line-height: 1.7;
+}
+
+.fingerprint-card {
+  background: rgba(17, 17, 17, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.34);
+}
+
+.fingerprint-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 14px;
+}
+
+.fingerprint-card-title {
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.fingerprint-card-badge {
+  color: var(--accent-soft);
+  background: rgba(99, 102, 241, 0.14);
+  border: 1px solid rgba(99, 102, 241, 0.28);
+  border-radius: 8px;
+  padding: 5px 9px;
+  font-size: 11px;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.fingerprint-lines {
+  display: grid;
+  gap: 10px;
+}
+
+.fingerprint-line {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+}
+
+.fingerprint-line-label {
+  color: var(--text3);
+  font-size: 11px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.fingerprint-line-track {
+  height: 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.fingerprint-line-fill {
+  height: 100%;
+  border-radius: 8px;
+  background: var(--accent);
+}
+
+.fingerprint-line-fill.green {
+  background: var(--success);
+}
+
+.fingerprint-line-fill.red {
+  background: var(--danger);
+}
+
+.fingerprint-traits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 16px;
+}
+
+.fingerprint-trait {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text2);
+  border-radius: 8px;
+  padding: 6px 9px;
+  font-size: 12px;
+  font-weight: 750;
+}
 
     .section {
       background: var(--bg);
@@ -1302,13 +1404,22 @@
       }
 
       .fingerprint-band {
-        padding: 60px 18px;
-      }
+  padding: 60px 18px;
+}
 
-      .fingerprint-title {
-        font-size: 34px;
-      }
+.fingerprint-inner {
+  grid-template-columns: 1fr;
+  gap: 26px;
+}
 
+.fingerprint-title {
+  font-size: 34px;
+}
+
+.fingerprint-line {
+  grid-template-columns: 1fr;
+  gap: 7px;
+}
       .section,
       .quote-band,
       .pricing-cta {
@@ -1527,14 +1638,59 @@
   </div>
 
   <section class="fingerprint-band">
-    <div class="fingerprint-inner">
+  <div class="fingerprint-inner">
+    <div>
       <div class="fingerprint-kicker">The idea behind Tradeprint</div>
-      <h2 class="fingerprint-title">Find your trading fingerprint.</h2>
+      <h2 class="fingerprint-title">Find your trading <span>fingerprint.</span></h2>
       <p class="fingerprint-copy">
         Every trader leaves a pattern behind: the setups you trust, the rules you follow, the mistakes you repeat, and the trades that reveal your real edge.
       </p>
     </div>
-  </section>
+
+    <div class="fingerprint-card" aria-label="Trading fingerprint preview">
+      <div class="fingerprint-card-top">
+        <div class="fingerprint-card-title">Your Trading Print</div>
+        <div class="fingerprint-card-badge">Pattern Found</div>
+      </div>
+
+      <div class="fingerprint-lines">
+        <div class="fingerprint-line">
+          <div class="fingerprint-line-label">Discipline</div>
+          <div class="fingerprint-line-track">
+            <div class="fingerprint-line-fill" style="width:88%;"></div>
+          </div>
+        </div>
+
+        <div class="fingerprint-line">
+          <div class="fingerprint-line-label">Setup Edge</div>
+          <div class="fingerprint-line-track">
+            <div class="fingerprint-line-fill green" style="width:74%;"></div>
+          </div>
+        </div>
+
+        <div class="fingerprint-line">
+          <div class="fingerprint-line-label">Late Entries</div>
+          <div class="fingerprint-line-track">
+            <div class="fingerprint-line-fill red" style="width:31%;"></div>
+          </div>
+        </div>
+
+        <div class="fingerprint-line">
+          <div class="fingerprint-line-label">Review Rate</div>
+          <div class="fingerprint-line-track">
+            <div class="fingerprint-line-fill" style="width:92%;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="fingerprint-traits">
+        <span class="fingerprint-trait">Best on continuation</span>
+        <span class="fingerprint-trait">Cleaner after 10 AM</span>
+        <span class="fingerprint-trait">Avoids low-volume chop</span>
+      </div>
+    </div>
+  </div>
+</section>
 
   <section class="section" id="features">
     <div class="section-inner">
