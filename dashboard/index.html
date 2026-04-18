@@ -1505,19 +1505,19 @@
   </select>
 </div>
       <div class="form-field">
-        <label>Strategy</label>
-        <select id="tradeStrategy" style="width:100%;padding:10px 14px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;" onchange="loadStrategyConfluences()">
-          <option value="">Select a strategy...</option>
-        </select>
-      </div>
-      <div class="form-field">
-        <label>Asset</label>
-        <input type="text" id="tradeAsset" placeholder="e.g. NQ, ES, BTC, AAPL" />
-      </div>
-      <div class="form-field" id="confluenceSection" style="display:none;">
-        <label>Confluences Present</label>
-        <div id="confluenceChecklist"></div>
-      </div>
+  <label>Strategy</label>
+  <select id="tradeStrategy" style="width:100%;padding:10px 14px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;" onchange="loadStrategyConfluences()">
+    <option value="">Select a strategy...</option>
+  </select>
+</div>
+<div class="form-field" id="confluenceSection" style="display:none;">
+  <label>Confluences Present</label>
+  <div id="confluenceChecklist"></div>
+</div>
+<div class="form-field">
+  <label>Asset</label>
+  <input type="text" id="tradeAsset" placeholder="e.g. NQ, ES, BTC, AAPL" />
+</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
         <div class="form-field">
           <label>Result</label>
