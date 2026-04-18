@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="Tradeprint"/>
-  <meta name="theme-color" content="#090909"/>
+  <meta name="theme-color" content="#0a0a0a"/>
   <title>Tradeprint</title>
 
   <style>
@@ -19,17 +19,18 @@
     }
 
     :root {
-      --bg: #090909;
-      --bg2: #101010;
-      --panel: #151515;
-      --panel2: #1b1b1b;
-      --border: rgba(255, 255, 255, 0.11);
+      --bg: #0a0a0a;
+      --bg2: #111111;
+      --bg3: #171717;
+      --border: #242424;
+      --border2: #333333;
       --text: #ffffff;
-      --muted: #a0a0a0;
-      --soft: #6f6f6f;
-      --accent: #22c55e;
-      --accent2: #6366f1;
-      --warning: #f59e0b;
+      --text2: #a3a3a3;
+      --text3: #666666;
+      --accent: #6366f1;
+      --accent-hover: #4f46e5;
+      --accent-soft: #c7d2fe;
+      --success: #22c55e;
       --danger: #ef4444;
     }
 
@@ -40,8 +41,8 @@
     body {
       background: var(--bg);
       color: var(--text);
-      font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-      line-height: 1.5;
+      font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
       overflow-x: hidden;
     }
 
@@ -50,9 +51,16 @@
       text-decoration: none;
     }
 
+    button,
+    input {
+      font-family: inherit;
+    }
+
     .site-shell {
       min-height: 100vh;
-      background: var(--bg);
+      background:
+        linear-gradient(rgba(10, 10, 10, 0.24), rgba(10, 10, 10, 0.92)),
+        url('https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=1800&q=80') center top / cover no-repeat;
     }
 
     .topbar {
@@ -60,23 +68,22 @@
       top: 0;
       left: 0;
       right: 0;
+      z-index: 50;
       height: 72px;
-      z-index: 20;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 28px;
-      background: rgba(9, 9, 9, 0.74);
+      padding: 0 32px;
+      background: rgba(10, 10, 10, 0.72);
       border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      backdrop-filter: blur(18px);
+      backdrop-filter: blur(16px);
     }
 
     .brand {
       font-size: 22px;
-      font-weight: 850;
-      color: var(--text);
+      font-weight: 800;
       letter-spacing: 0;
-      line-height: 1;
+      color: var(--text);
     }
 
     .brand span {
@@ -86,8 +93,8 @@
     .top-nav {
       display: flex;
       align-items: center;
-      gap: 22px;
-      color: var(--muted);
+      gap: 24px;
+      color: var(--text2);
       font-size: 14px;
       font-weight: 600;
     }
@@ -100,16 +107,21 @@
       color: var(--text);
     }
 
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
     .login-pill {
       min-height: 42px;
       display: inline-flex;
       align-items: center;
-      justify-content: center;
       gap: 9px;
-      padding: 9px 14px;
-      border: 1px solid rgba(255, 255, 255, 0.18);
+      padding: 0 15px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.16);
       border-radius: 8px;
-      background: rgba(255, 255, 255, 0.07);
       color: var(--text);
       font-size: 14px;
       font-weight: 700;
@@ -118,8 +130,8 @@
 
     .login-pill:hover {
       border-color: var(--accent);
-      background: rgba(34, 197, 94, 0.12);
-      color: #dcfce7;
+      background: rgba(99, 102, 241, 0.14);
+      color: #eef2ff;
     }
 
     .login-pill svg {
@@ -130,110 +142,90 @@
       stroke-width: 2;
       stroke-linecap: round;
       stroke-linejoin: round;
-      flex: 0 0 auto;
+      flex-shrink: 0;
     }
 
     .hero {
-      position: relative;
-      min-height: 88vh;
-      display: flex;
+      min-height: calc(100vh - 112px);
+      display: grid;
       align-items: center;
-      padding: 120px 28px 72px;
-      overflow: hidden;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    }
-
-    .hero::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background:
-        linear-gradient(90deg, rgba(9, 9, 9, 0.96) 0%, rgba(9, 9, 9, 0.82) 42%, rgba(9, 9, 9, 0.35) 100%),
-        url("https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=1800&q=80");
-      background-size: cover;
-      background-position: center;
-      transform: scale(1.02);
-    }
-
-    .hero::after {
-      content: "";
-      position: absolute;
-      inset: auto 0 0;
-      height: 120px;
-      background: linear-gradient(180deg, transparent, var(--bg));
-      pointer-events: none;
+      padding: 136px 32px 64px;
     }
 
     .hero-inner {
-      position: relative;
-      z-index: 2;
       width: 100%;
       max-width: 1180px;
       margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+      gap: 48px;
+      align-items: center;
     }
 
     .eyebrow {
       display: inline-flex;
       align-items: center;
       gap: 9px;
-      color: #bbf7d0;
+      color: var(--accent-soft);
       font-size: 13px;
       font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0;
       margin-bottom: 18px;
-      padding: 7px 10px;
-      border: 1px solid rgba(34, 197, 94, 0.28);
-      border-radius: 8px;
-      background: rgba(34, 197, 94, 0.09);
     }
 
     .eyebrow-dot {
       width: 8px;
       height: 8px;
-      border-radius: 999px;
+      border-radius: 50%;
       background: var(--accent);
-      box-shadow: 0 0 18px rgba(34, 197, 94, 0.75);
+      box-shadow: 0 0 18px rgba(99, 102, 241, 0.75);
     }
 
     .hero h1 {
       max-width: 760px;
-      font-size: 62px;
+      font-size: 64px;
       line-height: 1.02;
-      font-weight: 900;
+      font-weight: 850;
       letter-spacing: 0;
-      margin-bottom: 22px;
+      color: var(--text);
+      margin-bottom: 20px;
     }
 
     .hero h1 span {
-      color: var(--accent);
+      color: var(--accent-soft);
     }
 
     .hero-copy {
       max-width: 650px;
-      color: #c7c7c7;
+      color: #d4d4d4;
       font-size: 19px;
-      margin-bottom: 30px;
+      line-height: 1.65;
+      margin-bottom: 32px;
     }
 
     .hero-actions {
       display: flex;
-      align-items: center;
       gap: 12px;
       flex-wrap: wrap;
+      align-items: center;
       margin-bottom: 28px;
     }
 
     .btn {
-      min-height: 48px;
+      min-height: 50px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      gap: 10px;
+      padding: 0 22px;
       border-radius: 8px;
-      padding: 13px 20px;
       font-size: 15px;
       font-weight: 800;
       cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.2s;
       border: 1px solid transparent;
-      transition: transform 0.2s, border-color 0.2s, background 0.2s, color 0.2s;
+      white-space: nowrap;
     }
 
     .btn:hover {
@@ -242,24 +234,34 @@
 
     .btn-primary {
       background: var(--accent);
-      color: #041109;
+      color: #ffffff;
       border-color: var(--accent);
     }
 
     .btn-primary:hover {
-      background: #16a34a;
-      border-color: #16a34a;
+      background: var(--accent-hover);
+      border-color: var(--accent-hover);
     }
 
     .btn-secondary {
-      background: rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.06);
       color: var(--text);
       border-color: rgba(255, 255, 255, 0.16);
     }
 
     .btn-secondary:hover {
-      border-color: rgba(255, 255, 255, 0.32);
-      background: rgba(255, 255, 255, 0.12);
+      border-color: var(--accent);
+      background: rgba(99, 102, 241, 0.12);
+    }
+
+    .btn svg {
+      width: 17px;
+      height: 17px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2.4;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
 
     .hero-proof {
@@ -267,32 +269,185 @@
       align-items: center;
       gap: 18px;
       flex-wrap: wrap;
-      color: var(--muted);
+      color: var(--text2);
       font-size: 13px;
-      font-weight: 650;
+      line-height: 1.4;
     }
 
     .proof-item {
-      display: inline-flex;
+      display: flex;
       align-items: center;
       gap: 8px;
     }
 
     .proof-mark {
-      width: 18px;
-      height: 18px;
-      display: inline-flex;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .product-preview {
+      background: rgba(17, 17, 17, 0.86);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(12px);
+    }
+
+    .preview-top {
+      height: 44px;
+      display: flex;
       align-items: center;
-      justify-content: center;
-      border-radius: 999px;
-      background: rgba(34, 197, 94, 0.14);
-      color: var(--accent);
+      justify-content: space-between;
+      padding: 0 14px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(10, 10, 10, 0.72);
+    }
+
+    .preview-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .preview-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #3f3f46;
+    }
+
+    .preview-dot:nth-child(2) {
+      background: var(--accent);
+    }
+
+    .preview-label {
+      color: var(--text2);
       font-size: 12px;
-      font-weight: 900;
+      font-weight: 700;
+    }
+
+    .preview-body {
+      padding: 20px;
+    }
+
+    .preview-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .preview-stat {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .preview-stat-label {
+      color: var(--text3);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0;
+      margin-bottom: 8px;
+    }
+
+    .preview-value {
+      font-size: 24px;
+      font-weight: 850;
+      color: var(--text);
+    }
+
+    .preview-value.green {
+      color: var(--success);
+    }
+
+    .preview-value.accent {
+      color: var(--accent-soft);
+    }
+
+    .preview-chart {
+      height: 190px;
+      display: flex;
+      align-items: end;
+      gap: 8px;
+      padding: 18px 12px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 16px;
+    }
+
+    .bar {
+      flex: 1;
+      min-width: 8px;
+      border-radius: 5px 5px 0 0;
+      background: var(--accent);
+      opacity: 0.92;
+    }
+
+    .bar.good {
+      background: var(--success);
+    }
+
+    .bar.muted {
+      background: #3f3f46;
+    }
+
+    .preview-list {
+      display: grid;
+      gap: 9px;
+    }
+
+    .preview-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 11px 12px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    .preview-row-main {
+      min-width: 0;
+    }
+
+    .preview-row-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .preview-row-sub {
+      margin-top: 3px;
+      font-size: 12px;
+      color: var(--text3);
+    }
+
+    .preview-row-pnl {
+      color: var(--success);
+      font-size: 13px;
+      font-weight: 850;
+      white-space: nowrap;
     }
 
     .section {
-      padding: 78px 28px;
+      background: var(--bg);
+      padding: 82px 32px;
+    }
+
+    .section.alt {
+      background: var(--bg2);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
     }
 
     .section-inner {
@@ -301,257 +456,214 @@
       margin: 0 auto;
     }
 
-    .section-heading {
-      max-width: 720px;
-      margin-bottom: 30px;
-    }
-
     .section-kicker {
-      color: var(--accent);
-      font-size: 13px;
+      color: var(--accent-soft);
+      font-size: 12px;
       font-weight: 850;
       text-transform: uppercase;
-      margin-bottom: 9px;
-    }
-
-    .section h2 {
-      font-size: 38px;
-      line-height: 1.12;
       letter-spacing: 0;
       margin-bottom: 12px;
     }
 
-    .section p {
-      color: var(--muted);
-      font-size: 16px;
+    .section-title {
+      max-width: 760px;
+      font-size: 42px;
+      line-height: 1.1;
+      font-weight: 850;
+      letter-spacing: 0;
+      margin-bottom: 16px;
     }
 
-    .feature-grid {
+    .section-copy {
+      max-width: 720px;
+      color: var(--text2);
+      font-size: 17px;
+      line-height: 1.7;
+      margin-bottom: 34px;
+    }
+
+    .features-grid {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(3, 1fr);
       gap: 16px;
     }
 
     .feature-card {
-      background: var(--panel);
+      background: var(--bg2);
       border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 22px;
-      min-height: 210px;
+      padding: 24px;
+      min-height: 230px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .feature-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
     }
 
     .feature-icon {
-      width: 38px;
-      height: 38px;
+      width: 42px;
+      height: 42px;
+      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 8px;
-      margin-bottom: 18px;
       background: rgba(99, 102, 241, 0.13);
-      color: #c7d2fe;
+      color: var(--accent-soft);
+      margin-bottom: 18px;
     }
 
-    .feature-icon svg {
-      width: 20px;
-      height: 20px;
-      stroke: currentColor;
-      fill: none;
-      stroke-width: 2;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
-
-    .feature-card:nth-child(2) .feature-icon {
+    .feature-card:nth-child(3) .feature-icon {
       background: rgba(34, 197, 94, 0.13);
       color: #bbf7d0;
     }
 
-    .feature-card:nth-child(3) .feature-icon {
-      background: rgba(245, 158, 11, 0.13);
-      color: #fde68a;
+    .feature-icon svg {
+      width: 21px;
+      height: 21px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2.2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
 
-    .feature-card h3 {
+    .feature-title {
       font-size: 18px;
-      margin-bottom: 9px;
+      font-weight: 850;
+      margin-bottom: 10px;
+      color: var(--text);
     }
 
-    .feature-card p {
-      color: var(--muted);
+    .feature-copy {
+      color: var(--text2);
       font-size: 14px;
+      line-height: 1.65;
     }
 
-    .product-band {
-      background: #0d0d0d;
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    }
-
-    .product-layout {
+    .split-section {
       display: grid;
-      grid-template-columns: 0.9fr 1.1fr;
-      gap: 34px;
+      grid-template-columns: 0.92fr 1.08fr;
+      gap: 44px;
       align-items: center;
     }
 
-    .product-copy {
-      max-width: 470px;
+    .visual-panel {
+      min-height: 520px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      background:
+        linear-gradient(rgba(10, 10, 10, 0.08), rgba(10, 10, 10, 0.72)),
+        url('https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1400&q=80') center / cover no-repeat;
     }
 
-    .product-copy h2 {
-      font-size: 38px;
-      line-height: 1.12;
-      margin-bottom: 14px;
-    }
-
-    .product-list {
+    .workflow {
       display: grid;
       gap: 12px;
-      margin-top: 24px;
     }
 
-    .product-list-item {
-      display: flex;
-      gap: 10px;
-      color: #d8d8d8;
-      font-size: 15px;
-    }
-
-    .product-list-item span {
-      color: var(--accent);
-      font-weight: 900;
-      flex: 0 0 auto;
-    }
-
-    .product-visual {
-      position: relative;
-      min-height: 430px;
-      border-radius: 8px;
-      overflow: hidden;
-      border: 1px solid var(--border);
-      background:
-        linear-gradient(180deg, rgba(9, 9, 9, 0.08), rgba(9, 9, 9, 0.65)),
-        url("https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1400&q=80");
-      background-size: cover;
-      background-position: center;
-    }
-
-    .dashboard-preview {
-      position: absolute;
-      left: 22px;
-      right: 22px;
-      bottom: 22px;
+    .workflow-item {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 10px;
-    }
-
-    .preview-stat {
-      background: rgba(9, 9, 9, 0.78);
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      border-radius: 8px;
-      padding: 14px;
-      backdrop-filter: blur(14px);
-    }
-
-    .preview-label {
-      color: var(--soft);
-      font-size: 11px;
-      font-weight: 800;
-      text-transform: uppercase;
-      margin-bottom: 6px;
-    }
-
-    .preview-value {
-      font-size: 20px;
-      font-weight: 900;
-    }
-
-    .preview-value.green {
-      color: var(--accent);
-    }
-
-    .preview-value.amber {
-      color: var(--warning);
-    }
-
-    .steps {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: 42px minmax(0, 1fr);
       gap: 14px;
-      counter-reset: step;
+      padding: 18px 0;
+      border-bottom: 1px solid var(--border);
     }
 
-    .step {
-      counter-increment: step;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 20px;
-      background: var(--panel);
-      min-height: 180px;
+    .workflow-item:last-child {
+      border-bottom: none;
     }
 
-    .step::before {
-      content: counter(step);
-      width: 30px;
-      height: 30px;
+    .workflow-number {
+      width: 42px;
+      height: 42px;
       display: flex;
       align-items: center;
       justify-content: center;
+      background: rgba(99, 102, 241, 0.13);
+      border: 1px solid rgba(99, 102, 241, 0.35);
       border-radius: 8px;
-      background: rgba(255, 255, 255, 0.08);
+      color: var(--accent-soft);
+      font-weight: 850;
+    }
+
+    .workflow-title {
+      font-size: 17px;
+      font-weight: 850;
+      margin-bottom: 6px;
+    }
+
+    .workflow-copy {
+      color: var(--text2);
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .quote-band {
+      background: var(--bg);
+      padding: 70px 32px;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .quote-inner {
+      max-width: 980px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .quote-text {
+      font-size: 34px;
+      line-height: 1.28;
+      font-weight: 850;
+      letter-spacing: 0;
       color: var(--text);
-      font-weight: 900;
+      margin-bottom: 20px;
+    }
+
+    .quote-sub {
+      color: var(--text2);
+      font-size: 16px;
+      line-height: 1.65;
+    }
+
+    .pricing-cta {
+      background:
+        linear-gradient(rgba(10, 10, 10, 0.72), rgba(10, 10, 10, 0.94)),
+        url('https://images.unsplash.com/photo-1642543492481-44e81e3914a7?auto=format&fit=crop&w=1800&q=80') center / cover no-repeat;
+      padding: 92px 32px;
+    }
+
+    .pricing-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .pricing-title {
+      font-size: 44px;
+      line-height: 1.1;
+      font-weight: 850;
+      letter-spacing: 0;
       margin-bottom: 16px;
     }
 
-    .step h3 {
-      font-size: 16px;
-      margin-bottom: 8px;
-    }
-
-    .step p {
-      font-size: 14px;
-      color: var(--muted);
-    }
-
-    .checkout-section {
-      padding: 86px 28px 96px;
-      background: #0f0f0f;
-      text-align: center;
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
-    }
-
-    .checkout-box {
-      max-width: 760px;
-      margin: 0 auto;
-    }
-
-    .checkout-box h2 {
-      font-size: 42px;
-      line-height: 1.1;
-      margin-bottom: 14px;
-    }
-
-    .checkout-box p {
-      color: var(--muted);
+    .pricing-copy {
+      color: #d4d4d4;
       font-size: 17px;
-      margin-bottom: 26px;
-    }
-
-    .checkout-note {
-      color: var(--soft);
-      font-size: 13px;
-      margin-top: 14px;
+      line-height: 1.7;
+      max-width: 660px;
+      margin: 0 auto 28px;
     }
 
     .footer {
-      padding: 28px;
-      color: var(--soft);
+      background: var(--bg);
+      border-top: 1px solid var(--border);
+      padding: 28px 32px;
+      color: var(--text3);
       font-size: 13px;
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
-      background: #090909;
     }
 
     .footer-inner {
@@ -559,38 +671,56 @@
       margin: 0 auto;
       display: flex;
       justify-content: space-between;
-      gap: 16px;
+      gap: 18px;
       flex-wrap: wrap;
     }
 
-    @media (max-width: 900px) {
+    .footer-links {
+      display: flex;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .footer a {
+      color: var(--text2);
+      transition: color 0.2s;
+    }
+
+    .footer a:hover {
+      color: var(--text);
+    }
+
+    @media (max-width: 980px) {
       .top-nav {
         display: none;
       }
 
-      .hero h1 {
-        font-size: 46px;
-      }
-
-      .product-layout,
-      .feature-grid,
-      .steps {
+      .hero-inner,
+      .split-section {
         grid-template-columns: 1fr;
       }
 
-      .product-copy {
-        max-width: none;
+      .hero h1 {
+        font-size: 52px;
       }
 
-      .product-visual {
+      .product-preview {
+        max-width: 620px;
+      }
+
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .visual-panel {
         min-height: 360px;
       }
     }
 
-    @media (max-width: 560px) {
+    @media (max-width: 640px) {
       .topbar {
         height: 66px;
-        padding: 0 16px;
+        padding: 0 18px;
       }
 
       .brand {
@@ -599,17 +729,21 @@
 
       .login-pill {
         min-height: 40px;
-        padding: 8px 11px;
-        font-size: 13px;
+        padding: 0 12px;
+      }
+
+      .login-pill span {
+        display: none;
       }
 
       .hero {
-        min-height: 88vh;
-        padding: 102px 18px 58px;
+        min-height: calc(100vh - 98px);
+        padding: 112px 18px 44px;
       }
 
       .hero h1 {
-        font-size: 38px;
+        font-size: 40px;
+        line-height: 1.08;
       }
 
       .hero-copy {
@@ -618,31 +752,44 @@
 
       .hero-actions {
         align-items: stretch;
-        flex-direction: column;
       }
 
       .btn {
         width: 100%;
       }
 
+      .preview-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .preview-chart {
+        height: 150px;
+      }
+
       .section,
-      .checkout-section {
+      .quote-band,
+      .pricing-cta {
         padding-left: 18px;
         padding-right: 18px;
       }
 
-      .section h2,
-      .product-copy h2,
-      .checkout-box h2 {
-        font-size: 30px;
+      .section {
+        padding-top: 64px;
+        padding-bottom: 64px;
       }
 
-      .dashboard-preview {
-        grid-template-columns: 1fr;
+      .section-title,
+      .pricing-title {
+        font-size: 32px;
       }
 
-      .product-visual {
-        min-height: 430px;
+      .quote-text {
+        font-size: 26px;
+      }
+
+      .footer {
+        padding-left: 18px;
+        padding-right: 18px;
       }
     }
   </style>
@@ -653,170 +800,272 @@
     <header class="topbar">
       <a href="/" class="brand">trade<span>print</span></a>
 
-      <nav class="top-nav" aria-label="Main navigation">
+      <nav class="top-nav">
         <a href="#features">Features</a>
-        <a href="#inside">Inside Tradeprint</a>
-        <a href="#checkout">Start</a>
+        <a href="#workflow">How it works</a>
+        <a href="#checkout">Get started</a>
       </nav>
 
-      <a href="/app" class="login-pill" title="Log in">
-        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-          <circle cx="12" cy="7" r="4"/>
-        </svg>
-        Log in
-      </a>
+      <div class="top-actions">
+        <a href="/app" class="login-pill" title="Log in">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          <span>Log in</span>
+        </a>
+      </div>
     </header>
 
-    <main>
-      <section class="hero">
-        <div class="hero-inner">
-          <div class="eyebrow"><span class="eyebrow-dot"></span> Trading journal built for real review</div>
-          <h1>Find what actually improves your <span>edge.</span></h1>
+    <main class="hero">
+      <div class="hero-inner">
+        <div>
+          <div class="eyebrow">
+            <span class="eyebrow-dot"></span>
+            Trading journal for serious review
+          </div>
+
+          <h1>Find the patterns behind your best trades.</h1>
+
           <p class="hero-copy">
-            Tradeprint turns your trades, strategies, confluences, notes, and account history into a clear picture of what is working and what needs to change.
+            Tradeprint gives your trading a clean place to land: strategies, confluences, calendar review, notes, trade logs, and performance stats built around how you actually improve.
           </p>
 
           <div class="hero-actions">
-            <a class="btn btn-primary" href="/checkout">Start with Tradeprint</a>
-            <a class="btn btn-secondary" href="#inside">See what it tracks</a>
+            <a href="/checkout" class="btn btn-primary">
+              Get Tradeprint
+              <svg viewBox="0 0 24 24">
+                <path d="M5 12h14"/>
+                <path d="M13 5l7 7-7 7"/>
+              </svg>
+            </a>
+
+            <a href="#features" class="btn btn-secondary">See what it does</a>
           </div>
 
           <div class="hero-proof">
-            <div class="proof-item"><span class="proof-mark">✓</span> Strategy tracking</div>
-            <div class="proof-item"><span class="proof-mark">✓</span> Confluence edge</div>
-            <div class="proof-item"><span class="proof-mark">✓</span> Calendar and notes</div>
-          </div>
-        </div>
-      </section>
-
-      <section class="section" id="features">
-        <div class="section-inner">
-          <div class="section-heading">
-            <div class="section-kicker">Built For Review</div>
-            <h2>Your trade log should tell you more than win rate.</h2>
-            <p>
-              Tradeprint helps you see the conditions around each setup, not just the final PNL.
-            </p>
-          </div>
-
-          <div class="feature-grid">
-            <article class="feature-card">
-              <div class="feature-icon">
-                <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-              </div>
-              <h3>Strategy breakdowns</h3>
-              <p>Separate every setup and review how each strategy performs across accounts, time, assets, and rule discipline.</p>
-            </article>
-
-            <article class="feature-card">
-              <div class="feature-icon">
-                <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-              </div>
-              <h3>Confluence edge</h3>
-              <p>Track which conditions help, which ones hurt, and which missing confirmations tend to cost you trades.</p>
-            </article>
-
-            <article class="feature-card">
-              <div class="feature-icon">
-                <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              </div>
-              <h3>Calendar clarity</h3>
-              <p>See daily and weekly performance without digging through a spreadsheet or guessing how the month is going.</p>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <section class="section product-band" id="inside">
-        <div class="section-inner product-layout">
-          <div class="product-copy">
-            <div class="section-kicker">Inside Tradeprint</div>
-            <h2>Everything you need after the trade is over.</h2>
-            <p>
-              Log the setup, mark the confluences, attach notes, review the calendar, and let the data show where your best trades come from.
-            </p>
-
-            <div class="product-list">
-              <div class="product-list-item"><span>01</span> Log trades by account, strategy, result, PNL, R:R, time, and asset.</div>
-              <div class="product-list-item"><span>02</span> Mark which confluences were present on each setup.</div>
-              <div class="product-list-item"><span>03</span> Review your best combos, worst combos, and costly missing confirmations.</div>
-              <div class="product-list-item"><span>04</span> Write notes, insert trade cards, and keep your review process in one place.</div>
+            <div class="proof-item">
+              <span class="proof-mark"></span>
+              Log every trade
             </div>
-          </div>
-
-          <div class="product-visual" aria-label="Trading analytics preview">
-            <div class="dashboard-preview">
-              <div class="preview-stat">
-                <div class="preview-label">Best Confluence</div>
-                <div class="preview-value green">VIX</div>
-              </div>
-              <div class="preview-stat">
-                <div class="preview-label">Rule Discipline</div>
-                <div class="preview-value">84%</div>
-              </div>
-              <div class="preview-stat">
-                <div class="preview-label">This Month</div>
-                <div class="preview-value amber">32 trades</div>
-              </div>
+            <div class="proof-item">
+              <span class="proof-mark"></span>
+              Track strategy edge
+            </div>
+            <div class="proof-item">
+              <span class="proof-mark"></span>
+              Review your behavior
             </div>
           </div>
         </div>
-      </section>
 
-      <section class="section">
-        <div class="section-inner">
-          <div class="section-heading">
-            <div class="section-kicker">How It Works</div>
-            <h2>Simple enough to use every day.</h2>
-            <p>
-              The journal works best when logging is fast and review is clear.
-            </p>
+        <div class="product-preview" aria-label="Tradeprint dashboard preview">
+          <div class="preview-top">
+            <div class="preview-dots">
+              <span class="preview-dot"></span>
+              <span class="preview-dot"></span>
+              <span class="preview-dot"></span>
+            </div>
+            <div class="preview-label">Dashboard</div>
           </div>
 
-          <div class="steps">
-            <article class="step">
-              <h3>Create strategies</h3>
-              <p>Add the setups you actually trade and the confluences you want tracked.</p>
-            </article>
+          <div class="preview-body">
+            <div class="preview-grid">
+              <div class="preview-stat">
+                <div class="preview-stat-label">Win Rate</div>
+                <div class="preview-value accent">64%</div>
+              </div>
 
-            <article class="step">
-              <h3>Log each trade</h3>
-              <p>Enter the outcome, PNL, asset, time, account, and confirmations.</p>
-            </article>
+              <div class="preview-stat">
+                <div class="preview-stat-label">Total PNL</div>
+                <div class="preview-value green">+$2,840</div>
+              </div>
 
-            <article class="step">
-              <h3>Review patterns</h3>
-              <p>Use the dashboard, calendar, trades table, and confluence edge to spot what repeats.</p>
-            </article>
+              <div class="preview-stat">
+                <div class="preview-stat-label">Rule Discipline</div>
+                <div class="preview-value">88%</div>
+              </div>
 
-            <article class="step">
-              <h3>Adjust with evidence</h3>
-              <p>Refine your process around what your own trade history keeps proving.</p>
-            </article>
+              <div class="preview-stat">
+                <div class="preview-stat-label">Avg R:R</div>
+                <div class="preview-value">2.1R</div>
+              </div>
+            </div>
+
+            <div class="preview-chart">
+              <span class="bar muted" style="height:38%;"></span>
+              <span class="bar" style="height:54%;"></span>
+              <span class="bar good" style="height:72%;"></span>
+              <span class="bar muted" style="height:44%;"></span>
+              <span class="bar" style="height:68%;"></span>
+              <span class="bar good" style="height:86%;"></span>
+              <span class="bar" style="height:58%;"></span>
+              <span class="bar good" style="height:92%;"></span>
+              <span class="bar muted" style="height:36%;"></span>
+              <span class="bar" style="height:64%;"></span>
+            </div>
+
+            <div class="preview-list">
+              <div class="preview-row">
+                <div class="preview-row-main">
+                  <div class="preview-row-title">Heatseeker · NQ</div>
+                  <div class="preview-row-sub">4 confluences · 2.5R · Rules followed</div>
+                </div>
+                <div class="preview-row-pnl">+$420</div>
+              </div>
+
+              <div class="preview-row">
+                <div class="preview-row-main">
+                  <div class="preview-row-title">Opening Range · ES</div>
+                  <div class="preview-row-sub">3 confluences · 1.8R · Clean execution</div>
+                </div>
+                <div class="preview-row-pnl">+$310</div>
+              </div>
+            </div>
           </div>
         </div>
-      </section>
-
-      <section class="checkout-section" id="checkout">
-        <div class="checkout-box">
-          <h2>Start building your trading record.</h2>
-          <p>
-            Replace guesswork with a journal that shows your setups, habits, and edge clearly.
-          </p>
-
-          <a class="btn btn-primary" href="/checkout">Continue to checkout</a>
-          <div class="checkout-note">Already have an account? Use the login button in the top-right.</div>
-        </div>
-      </section>
-    </main>
-
-    <footer class="footer">
-      <div class="footer-inner">
-        <div>tradeprint</div>
-        <div>Discover your edge. Trade with conviction.</div>
       </div>
-    </footer>
+    </main>
   </div>
+
+  <section class="section" id="features">
+    <div class="section-inner">
+      <div class="section-kicker">What Tradeprint Helps With</div>
+      <h2 class="section-title">Turn your trading history into something you can actually study.</h2>
+      <p class="section-copy">
+        The goal is simple: log cleanly, review honestly, and see what is actually working over time.
+      </p>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24">
+              <path d="M4 19V5"/>
+              <path d="M4 19h16"/>
+              <path d="M8 15l3-3 3 2 5-7"/>
+            </svg>
+          </div>
+          <div class="feature-title">Performance Dashboard</div>
+          <p class="feature-copy">
+            See your PNL, win rate, rule discipline, recent trades, strategy stats, and trading momentum from one clean snapshot.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24">
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+            </svg>
+          </div>
+          <div class="feature-title">Strategy Tracking</div>
+          <p class="feature-copy">
+            Build strategies with their own confluence checklist so every logged trade captures the exact setup behind it.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24">
+              <rect x="3" y="4" width="18" height="18" rx="2"/>
+              <path d="M16 2v4"/>
+              <path d="M8 2v4"/>
+              <path d="M3 10h18"/>
+            </svg>
+          </div>
+          <div class="feature-title">Calendar Review</div>
+          <p class="feature-copy">
+            Review daily and weekly performance with notes attached to the days where the lesson actually happened.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section alt" id="workflow">
+    <div class="section-inner split-section">
+      <div class="visual-panel" aria-label="Trading analytics visual"></div>
+
+      <div>
+        <div class="section-kicker">How It Works</div>
+        <h2 class="section-title">A better loop for every trading day.</h2>
+        <p class="section-copy">
+          Tradeprint keeps the workflow tight so your journal does not become another messy spreadsheet you avoid opening.
+        </p>
+
+        <div class="workflow">
+          <div class="workflow-item">
+            <div class="workflow-number">1</div>
+            <div>
+              <div class="workflow-title">Create your strategies</div>
+              <p class="workflow-copy">
+                Add the setups you trade, then define the confluences that need to be present.
+              </p>
+            </div>
+          </div>
+
+          <div class="workflow-item">
+            <div class="workflow-number">2</div>
+            <div>
+              <div class="workflow-title">Log each trade cleanly</div>
+              <p class="workflow-copy">
+                Capture the result, PNL, asset, time, R:R, rules followed, notes, and confluences.
+              </p>
+            </div>
+          </div>
+
+          <div class="workflow-item">
+            <div class="workflow-number">3</div>
+            <div>
+              <div class="workflow-title">Review what repeats</div>
+              <p class="workflow-copy">
+                Use the dashboard, calendar, notes, and strategy insights to find the trades worth repeating.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="quote-band">
+    <div class="quote-inner">
+      <div class="quote-text">
+        The edge is rarely one trade. It is the pattern you finally notice after tracking enough of them.
+      </div>
+      <p class="quote-sub">
+        Tradeprint is built around that moment: the point where your journal stops being a record and starts becoming feedback.
+      </p>
+    </div>
+  </section>
+
+  <section class="pricing-cta" id="checkout">
+    <div class="pricing-inner">
+      <div class="section-kicker">Start Trading With More Clarity</div>
+      <h2 class="pricing-title">Bring your journal, stats, notes, and strategy review into one place.</h2>
+      <p class="pricing-copy">
+        Start using Tradeprint today and build a cleaner feedback loop around every trade you take.
+      </p>
+
+      <a href="/checkout" class="btn btn-primary">
+        Continue to Checkout
+        <svg viewBox="0 0 24 24">
+          <path d="M5 12h14"/>
+          <path d="M13 5l7 7-7 7"/>
+        </svg>
+      </a>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="brand">trade<span>print</span></div>
+
+      <div class="footer-links">
+        <a href="/app">Log in</a>
+        <a href="/checkout">Checkout</a>
+        <a href="#features">Features</a>
+      </div>
+    </div>
+  </footer>
 </body>
 </html>
