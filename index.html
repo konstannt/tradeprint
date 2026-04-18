@@ -4,232 +4,819 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
-<link rel="apple-touch-icon" href="/apple-touch-icon.png"/>
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-<meta name="apple-mobile-web-app-title" content="Tradeprint"/>
-<meta name="theme-color" content="#0a0a0a"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="Tradeprint"/>
+  <meta name="theme-color" content="#090909"/>
   <title>Tradeprint</title>
+
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #090909;
+      --bg2: #101010;
+      --panel: #151515;
+      --panel2: #1b1b1b;
+      --border: rgba(255, 255, 255, 0.11);
+      --text: #ffffff;
+      --muted: #a0a0a0;
+      --soft: #6f6f6f;
+      --accent: #22c55e;
+      --accent2: #6366f1;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
 
     body {
-      background-color: #0a0a0a;
-      color: #ffffff;
-      font-family: 'Segoe UI', sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      padding: 24px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      line-height: 1.5;
+      overflow-x: hidden;
     }
 
-    .top-right {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-    }
-
-    .login-icon {
-      background: #1a1a1a;
-      border: 1px solid #333;
-      border-radius: 50%;
-      width: 42px;
-      height: 42px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: border-color 0.2s;
+    a {
+      color: inherit;
       text-decoration: none;
     }
 
-    .login-icon:hover {
-      border-color: #6366f1;
+    .site-shell {
+      min-height: 100vh;
+      background: var(--bg);
     }
 
-    .login-icon svg {
+    .topbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 72px;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      background: rgba(9, 9, 9, 0.74);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(18px);
+    }
+
+    .brand {
+      font-size: 22px;
+      font-weight: 850;
+      color: var(--text);
+      letter-spacing: 0;
+      line-height: 1;
+    }
+
+    .brand span {
+      color: var(--accent);
+    }
+
+    .top-nav {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .top-nav a {
+      transition: color 0.2s;
+    }
+
+    .top-nav a:hover {
+      color: var(--text);
+    }
+
+    .login-pill {
+      min-height: 42px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      padding: 9px 14px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.07);
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 700;
+      transition: border-color 0.2s, background 0.2s, color 0.2s;
+    }
+
+    .login-pill:hover {
+      border-color: var(--accent);
+      background: rgba(34, 197, 94, 0.12);
+      color: #dcfce7;
+    }
+
+    .login-pill svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex: 0 0 auto;
+    }
+
+    .hero {
+      position: relative;
+      min-height: 88vh;
+      display: flex;
+      align-items: center;
+      padding: 120px 28px 72px;
+      overflow: hidden;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(9, 9, 9, 0.96) 0%, rgba(9, 9, 9, 0.82) 42%, rgba(9, 9, 9, 0.35) 100%),
+        url("https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=1800&q=80");
+      background-size: cover;
+      background-position: center;
+      transform: scale(1.02);
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto 0 0;
+      height: 120px;
+      background: linear-gradient(180deg, transparent, var(--bg));
+      pointer-events: none;
+    }
+
+    .hero-inner {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 1180px;
+      margin: 0 auto;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      color: #bbf7d0;
+      font-size: 13px;
+      font-weight: 800;
+      margin-bottom: 18px;
+      padding: 7px 10px;
+      border: 1px solid rgba(34, 197, 94, 0.28);
+      border-radius: 8px;
+      background: rgba(34, 197, 94, 0.09);
+    }
+
+    .eyebrow-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 18px rgba(34, 197, 94, 0.75);
+    }
+
+    .hero h1 {
+      max-width: 760px;
+      font-size: 62px;
+      line-height: 1.02;
+      font-weight: 900;
+      letter-spacing: 0;
+      margin-bottom: 22px;
+    }
+
+    .hero h1 span {
+      color: var(--accent);
+    }
+
+    .hero-copy {
+      max-width: 650px;
+      color: #c7c7c7;
+      font-size: 19px;
+      margin-bottom: 30px;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+    }
+
+    .btn {
+      min-height: 48px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      padding: 13px 20px;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: transform 0.2s, border-color 0.2s, background 0.2s, color 0.2s;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #041109;
+      border-color: var(--accent);
+    }
+
+    .btn-primary:hover {
+      background: #16a34a;
+      border-color: #16a34a;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      border-color: rgba(255, 255, 255, 0.16);
+    }
+
+    .btn-secondary:hover {
+      border-color: rgba(255, 255, 255, 0.32);
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .hero-proof {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 650;
+    }
+
+    .proof-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .proof-mark {
+      width: 18px;
+      height: 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.14);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .section {
+      padding: 78px 28px;
+    }
+
+    .section-inner {
+      width: 100%;
+      max-width: 1180px;
+      margin: 0 auto;
+    }
+
+    .section-heading {
+      max-width: 720px;
+      margin-bottom: 30px;
+    }
+
+    .section-kicker {
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 850;
+      text-transform: uppercase;
+      margin-bottom: 9px;
+    }
+
+    .section h2 {
+      font-size: 38px;
+      line-height: 1.12;
+      letter-spacing: 0;
+      margin-bottom: 12px;
+    }
+
+    .section p {
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .feature-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 22px;
+      min-height: 210px;
+    }
+
+    .feature-icon {
+      width: 38px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      margin-bottom: 18px;
+      background: rgba(99, 102, 241, 0.13);
+      color: #c7d2fe;
+    }
+
+    .feature-icon svg {
       width: 20px;
       height: 20px;
-      stroke: #888;
+      stroke: currentColor;
       fill: none;
       stroke-width: 2;
       stroke-linecap: round;
       stroke-linejoin: round;
     }
 
-    .login-icon:hover svg {
-      stroke: #6366f1;
+    .feature-card:nth-child(2) .feature-icon {
+      background: rgba(34, 197, 94, 0.13);
+      color: #bbf7d0;
     }
 
-    .logo {
-      font-size: clamp(36px, 8vw, 56px);
-      font-weight: 800;
-      letter-spacing: -1px;
-      margin-bottom: 16px;
-      text-align: center;
+    .feature-card:nth-child(3) .feature-icon {
+      background: rgba(245, 158, 11, 0.13);
+      color: #fde68a;
     }
 
-    .logo span { color: #6366f1; }
-
-    .tagline {
-      font-size: clamp(14px, 4vw, 18px);
-      color: #888;
-      margin-bottom: 48px;
-      text-align: center;
+    .feature-card h3 {
+      font-size: 18px;
+      margin-bottom: 9px;
     }
 
-    .waitlist-form {
-      display: flex;
-      flex-direction: row;
+    .feature-card p {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .product-band {
+      background: #0d0d0d;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .product-layout {
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: 34px;
+      align-items: center;
+    }
+
+    .product-copy {
+      max-width: 470px;
+    }
+
+    .product-copy h2 {
+      font-size: 38px;
+      line-height: 1.12;
+      margin-bottom: 14px;
+    }
+
+    .product-list {
+      display: grid;
       gap: 12px;
-      margin-bottom: 24px;
-      width: 100%;
-      max-width: 520px;
+      margin-top: 24px;
     }
 
-    .waitlist-form input {
-      padding: 14px 20px;
-      font-size: 16px;
+    .product-list-item {
+      display: flex;
+      gap: 10px;
+      color: #d8d8d8;
+      font-size: 15px;
+    }
+
+    .product-list-item span {
+      color: var(--accent);
+      font-weight: 900;
+      flex: 0 0 auto;
+    }
+
+    .product-visual {
+      position: relative;
+      min-height: 430px;
       border-radius: 8px;
-      border: 1px solid #333;
-      background: #111;
-      color: #fff;
-      flex: 1;
-      min-width: 0;
-      outline: none;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background:
+        linear-gradient(180deg, rgba(9, 9, 9, 0.08), rgba(9, 9, 9, 0.65)),
+        url("https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1400&q=80");
+      background-size: cover;
+      background-position: center;
     }
 
-    .waitlist-form input:focus {
-      border-color: #6366f1;
+    .dashboard-preview {
+      position: absolute;
+      left: 22px;
+      right: 22px;
+      bottom: 22px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
     }
 
-    .btn {
-      background-color: #6366f1;
-      color: white;
-      border: none;
-      padding: 14px 24px;
-      font-size: 16px;
+    .preview-stat {
+      background: rgba(9, 9, 9, 0.78);
+      border: 1px solid rgba(255, 255, 255, 0.14);
       border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: background 0.2s;
-      white-space: nowrap;
-      flex-shrink: 0;
+      padding: 14px;
+      backdrop-filter: blur(14px);
     }
 
-    .btn:hover { background-color: #4f46e5; }
-    .btn:disabled { background-color: #444; cursor: not-allowed; }
+    .preview-label {
+      color: var(--soft);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
 
-    .message {
+    .preview-value {
+      font-size: 20px;
+      font-weight: 900;
+    }
+
+    .preview-value.green {
+      color: var(--accent);
+    }
+
+    .preview-value.amber {
+      color: var(--warning);
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      counter-reset: step;
+    }
+
+    .step {
+      counter-increment: step;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      background: var(--panel);
+      min-height: 180px;
+    }
+
+    .step::before {
+      content: counter(step);
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      font-weight: 900;
+      margin-bottom: 16px;
+    }
+
+    .step h3 {
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+
+    .step p {
       font-size: 14px;
-      margin-top: 8px;
-      min-height: 20px;
-      text-align: center;
+      color: var(--muted);
     }
 
-    .message.success { color: #6366f1; }
-    .message.error { color: #ef4444; }
-
-    .subtext {
-      font-size: 14px;
-      color: #555;
-      margin-top: 16px;
+    .checkout-section {
+      padding: 86px 28px 96px;
+      background: #0f0f0f;
       text-align: center;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
     }
 
-    @media (max-width: 480px) {
-      .waitlist-form {
+    .checkout-box {
+      max-width: 760px;
+      margin: 0 auto;
+    }
+
+    .checkout-box h2 {
+      font-size: 42px;
+      line-height: 1.1;
+      margin-bottom: 14px;
+    }
+
+    .checkout-box p {
+      color: var(--muted);
+      font-size: 17px;
+      margin-bottom: 26px;
+    }
+
+    .checkout-note {
+      color: var(--soft);
+      font-size: 13px;
+      margin-top: 14px;
+    }
+
+    .footer {
+      padding: 28px;
+      color: var(--soft);
+      font-size: 13px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      background: #090909;
+    }
+
+    .footer-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 900px) {
+      .top-nav {
+        display: none;
+      }
+
+      .hero h1 {
+        font-size: 46px;
+      }
+
+      .product-layout,
+      .feature-grid,
+      .steps {
+        grid-template-columns: 1fr;
+      }
+
+      .product-copy {
+        max-width: none;
+      }
+
+      .product-visual {
+        min-height: 360px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .topbar {
+        height: 66px;
+        padding: 0 16px;
+      }
+
+      .brand {
+        font-size: 20px;
+      }
+
+      .login-pill {
+        min-height: 40px;
+        padding: 8px 11px;
+        font-size: 13px;
+      }
+
+      .hero {
+        min-height: 88vh;
+        padding: 102px 18px 58px;
+      }
+
+      .hero h1 {
+        font-size: 38px;
+      }
+
+      .hero-copy {
+        font-size: 16px;
+      }
+
+      .hero-actions {
+        align-items: stretch;
         flex-direction: column;
       }
 
       .btn {
         width: 100%;
-        text-align: center;
+      }
+
+      .section,
+      .checkout-section {
+        padding-left: 18px;
+        padding-right: 18px;
+      }
+
+      .section h2,
+      .product-copy h2,
+      .checkout-box h2 {
+        font-size: 30px;
+      }
+
+      .dashboard-preview {
+        grid-template-columns: 1fr;
+      }
+
+      .product-visual {
+        min-height: 430px;
       }
     }
   </style>
 </head>
+
 <body>
+  <div class="site-shell">
+    <header class="topbar">
+      <a href="/" class="brand">trade<span>print</span></a>
 
-  <div class="top-right">
-    <a href="/app" class="login-icon" title="Log in">
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-        <circle cx="12" cy="7" r="4"/>
-      </svg>
-    </a>
+      <nav class="top-nav" aria-label="Main navigation">
+        <a href="#features">Features</a>
+        <a href="#inside">Inside Tradeprint</a>
+        <a href="#checkout">Start</a>
+      </nav>
+
+      <a href="/app" class="login-pill" title="Log in">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+        Log in
+      </a>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="hero-inner">
+          <div class="eyebrow"><span class="eyebrow-dot"></span> Trading journal built for real review</div>
+          <h1>Find what actually improves your <span>edge.</span></h1>
+          <p class="hero-copy">
+            Tradeprint turns your trades, strategies, confluences, notes, and account history into a clear picture of what is working and what needs to change.
+          </p>
+
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="/checkout">Start with Tradeprint</a>
+            <a class="btn btn-secondary" href="#inside">See what it tracks</a>
+          </div>
+
+          <div class="hero-proof">
+            <div class="proof-item"><span class="proof-mark">✓</span> Strategy tracking</div>
+            <div class="proof-item"><span class="proof-mark">✓</span> Confluence edge</div>
+            <div class="proof-item"><span class="proof-mark">✓</span> Calendar and notes</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="features">
+        <div class="section-inner">
+          <div class="section-heading">
+            <div class="section-kicker">Built For Review</div>
+            <h2>Your trade log should tell you more than win rate.</h2>
+            <p>
+              Tradeprint helps you see the conditions around each setup, not just the final PNL.
+            </p>
+          </div>
+
+          <div class="feature-grid">
+            <article class="feature-card">
+              <div class="feature-icon">
+                <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              </div>
+              <h3>Strategy breakdowns</h3>
+              <p>Separate every setup and review how each strategy performs across accounts, time, assets, and rule discipline.</p>
+            </article>
+
+            <article class="feature-card">
+              <div class="feature-icon">
+                <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+              </div>
+              <h3>Confluence edge</h3>
+              <p>Track which conditions help, which ones hurt, and which missing confirmations tend to cost you trades.</p>
+            </article>
+
+            <article class="feature-card">
+              <div class="feature-icon">
+                <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              </div>
+              <h3>Calendar clarity</h3>
+              <p>See daily and weekly performance without digging through a spreadsheet or guessing how the month is going.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section product-band" id="inside">
+        <div class="section-inner product-layout">
+          <div class="product-copy">
+            <div class="section-kicker">Inside Tradeprint</div>
+            <h2>Everything you need after the trade is over.</h2>
+            <p>
+              Log the setup, mark the confluences, attach notes, review the calendar, and let the data show where your best trades come from.
+            </p>
+
+            <div class="product-list">
+              <div class="product-list-item"><span>01</span> Log trades by account, strategy, result, PNL, R:R, time, and asset.</div>
+              <div class="product-list-item"><span>02</span> Mark which confluences were present on each setup.</div>
+              <div class="product-list-item"><span>03</span> Review your best combos, worst combos, and costly missing confirmations.</div>
+              <div class="product-list-item"><span>04</span> Write notes, insert trade cards, and keep your review process in one place.</div>
+            </div>
+          </div>
+
+          <div class="product-visual" aria-label="Trading analytics preview">
+            <div class="dashboard-preview">
+              <div class="preview-stat">
+                <div class="preview-label">Best Confluence</div>
+                <div class="preview-value green">VIX</div>
+              </div>
+              <div class="preview-stat">
+                <div class="preview-label">Rule Discipline</div>
+                <div class="preview-value">84%</div>
+              </div>
+              <div class="preview-stat">
+                <div class="preview-label">This Month</div>
+                <div class="preview-value amber">32 trades</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-inner">
+          <div class="section-heading">
+            <div class="section-kicker">How It Works</div>
+            <h2>Simple enough to use every day.</h2>
+            <p>
+              The journal works best when logging is fast and review is clear.
+            </p>
+          </div>
+
+          <div class="steps">
+            <article class="step">
+              <h3>Create strategies</h3>
+              <p>Add the setups you actually trade and the confluences you want tracked.</p>
+            </article>
+
+            <article class="step">
+              <h3>Log each trade</h3>
+              <p>Enter the outcome, PNL, asset, time, account, and confirmations.</p>
+            </article>
+
+            <article class="step">
+              <h3>Review patterns</h3>
+              <p>Use the dashboard, calendar, trades table, and confluence edge to spot what repeats.</p>
+            </article>
+
+            <article class="step">
+              <h3>Adjust with evidence</h3>
+              <p>Refine your process around what your own trade history keeps proving.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="checkout-section" id="checkout">
+        <div class="checkout-box">
+          <h2>Start building your trading record.</h2>
+          <p>
+            Replace guesswork with a journal that shows your setups, habits, and edge clearly.
+          </p>
+
+          <a class="btn btn-primary" href="/checkout">Continue to checkout</a>
+          <div class="checkout-note">Already have an account? Use the login button in the top-right.</div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        <div>tradeprint</div>
+        <div>Discover your edge. Trade with conviction.</div>
+      </div>
+    </footer>
   </div>
-
-  <div class="logo">trade<span>print</span></div>
-  <p class="tagline">Discover your edge. Trade with conviction.</p>
-
-  <div class="waitlist-form">
-    <input type="email" id="emailInput" placeholder="Enter your email" />
-    <button class="btn" id="joinBtn" onclick="joinWaitlist()">Join the Waitlist</button>
-  </div>
-
-  <div class="message" id="message"></div>
-  <p class="subtext">The smarter trading journal. Coming soon.</p>
-
-  <script>
-    const SUPABASE_URL = 'https://fpdedufotkmvjsvxdcmk.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_1Q8yInISuuD3HDWI7mVesQ_A-DSkCM7';
-
-    async function joinWaitlist() {
-      const email = document.getElementById('emailInput').value.trim();
-      const btn = document.getElementById('joinBtn');
-      const message = document.getElementById('message');
-
-      if (!email || !email.includes('@')) {
-        message.textContent = 'Please enter a valid email.';
-        message.className = 'message error';
-        return;
-      }
-
-      btn.disabled = true;
-      btn.textContent = 'Joining...';
-
-      try {
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/waitlist`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': SUPABASE_KEY,
-            'Authorization': `Bearer ${SUPABASE_KEY}`,
-            'Prefer': 'return=minimal'
-          },
-          body: JSON.stringify({ email })
-        });
-
-        if (response.ok) {
-          message.textContent = "You're on the list! We'll be in touch.";
-          message.className = 'message success';
-          document.getElementById('emailInput').value = '';
-          btn.textContent = 'Joined!';
-        } else {
-          const err = await response.json();
-          if (err.code === '23505') {
-            message.textContent = 'This email is already on the waitlist!';
-            message.className = 'message error';
-          } else {
-            throw new Error('Something went wrong.');
-          }
-          btn.disabled = false;
-          btn.textContent = 'Join the Waitlist';
-        }
-      } catch (err) {
-        message.textContent = 'Something went wrong. Please try again.';
-        message.className = 'message error';
-        btn.disabled = false;
-        btn.textContent = 'Join the Waitlist';
-      }
-    }
-
-    document.getElementById('emailInput').addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') joinWaitlist();
-    });
-  </script>
 </body>
 </html>
