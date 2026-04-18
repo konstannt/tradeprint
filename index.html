@@ -388,20 +388,22 @@
     }
 
     .bar {
-      flex: 1;
-      min-width: 8px;
-      border-radius: 5px 5px 0 0;
-      background: var(--accent);
-      opacity: 0.92;
-    }
+  flex: 1;
+  min-width: 8px;
+  border-radius: 5px 5px 0 0;
+  background: var(--danger);
+  opacity: 0.92;
+}
 
-    .bar.good {
-      background: var(--success);
-    }
+.bar.good {
+  background: var(--success);
+}
 
-    .bar.muted {
-      background: #3f3f46;
-    }
+.bar.muted {
+  height: 8px !important;
+  background: #3f3f46;
+  opacity: 0.9;
+}
 
     .preview-list {
       display: grid;
@@ -900,17 +902,17 @@
             </div>
 
             <div class="preview-chart">
-              <span class="bar muted" style="height:38%;"></span>
-              <span class="bar" style="height:54%;"></span>
-              <span class="bar good" style="height:72%;"></span>
-              <span class="bar muted" style="height:44%;"></span>
-              <span class="bar" style="height:68%;"></span>
-              <span class="bar good" style="height:86%;"></span>
-              <span class="bar" style="height:58%;"></span>
-              <span class="bar good" style="height:92%;"></span>
-              <span class="bar muted" style="height:36%;"></span>
-              <span class="bar" style="height:64%;"></span>
-            </div>
+  <span class="bar muted"></span>
+  <span class="bar" style="height:54%;"></span>
+  <span class="bar good" style="height:72%;"></span>
+  <span class="bar muted"></span>
+  <span class="bar" style="height:68%;"></span>
+  <span class="bar good" style="height:86%;"></span>
+  <span class="bar" style="height:58%;"></span>
+  <span class="bar good" style="height:92%;"></span>
+  <span class="bar muted"></span>
+  <span class="bar" style="height:64%;"></span>
+</div>
 
             <div class="preview-list">
               <div class="preview-row">
