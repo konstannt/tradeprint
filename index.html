@@ -558,14 +558,248 @@
     }
 
     .visual-panel {
-      min-height: 520px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      overflow: hidden;
-      background:
-        linear-gradient(rgba(10, 10, 10, 0.08), rgba(10, 10, 10, 0.72)),
-        url('https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1400&q=80') center / cover no-repeat;
-    }
+  min-height: 520px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  background: rgba(17, 17, 17, 0.92);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.34);
+}
+
+.strategy-preview-top {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(10, 10, 10, 0.8);
+}
+
+.strategy-preview-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.strategy-preview-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #3f3f46;
+}
+
+.strategy-preview-dot:nth-child(2) {
+  background: var(--accent);
+}
+
+.strategy-preview-label {
+  color: var(--text2);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.strategy-preview-body {
+  padding: 20px;
+}
+
+.strategy-preview-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.strategy-preview-title {
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--text);
+}
+
+.strategy-preview-subtitle {
+  margin-top: 5px;
+  color: var(--text3);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.strategy-preview-button {
+  min-height: 36px;
+  padding: 0 13px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 850;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.strategy-preview-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.strategy-mini-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 15px;
+}
+
+.strategy-mini-card:hover {
+  border-color: rgba(99, 102, 241, 0.55);
+}
+
+.strategy-mini-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.strategy-mini-name {
+  font-size: 15px;
+  font-weight: 900;
+  color: var(--text);
+}
+
+.strategy-mini-badge {
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: rgba(99, 102, 241, 0.14);
+  color: var(--accent-soft);
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.strategy-mini-copy {
+  color: var(--text3);
+  font-size: 12px;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.strategy-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.strategy-tag {
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.logged-trades-panel {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.logged-trades-header {
+  display: grid;
+  grid-template-columns: 1.1fr 0.7fr 0.7fr 0.7fr;
+  gap: 10px;
+  padding: 11px 13px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text3);
+  font-size: 10px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.logged-trade-row {
+  display: grid;
+  grid-template-columns: 1.1fr 0.7fr 0.7fr 0.7fr;
+  gap: 10px;
+  align-items: center;
+  padding: 13px;
+  border-bottom: 1px solid var(--border);
+}
+
+.logged-trade-row:last-child {
+  border-bottom: none;
+}
+
+.logged-trade-main {
+  min-width: 0;
+}
+
+.logged-trade-title {
+  font-size: 13px;
+  font-weight: 850;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.logged-trade-sub {
+  margin-top: 3px;
+  color: var(--text3);
+  font-size: 11px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.logged-trade-cell {
+  color: var(--text2);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.logged-trade-pnl {
+  font-size: 12px;
+  font-weight: 900;
+  text-align: right;
+}
+
+.logged-trade-pnl.green {
+  color: var(--success);
+}
+
+.logged-trade-pnl.red {
+  color: var(--danger);
+}
+
+@media (max-width: 640px) {
+  .strategy-preview-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .strategy-preview-heading {
+    flex-direction: column;
+  }
+
+  .strategy-preview-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .logged-trades-header {
+    display: none;
+  }
+
+  .logged-trade-row {
+    grid-template-columns: 1fr auto;
+  }
+
+  .logged-trade-row .logged-trade-cell {
+    display: none;
+  }
+}
 
     .workflow {
       display: grid;
@@ -992,7 +1226,93 @@
 
   <section class="section alt" id="workflow">
     <div class="section-inner split-section">
-      <div class="visual-panel" aria-label="Trading analytics visual"></div>
+      <div class="visual-panel" aria-label="Tradeprint strategy and trade preview">
+  <div class="strategy-preview-top">
+    <div class="strategy-preview-dots">
+      <span class="strategy-preview-dot"></span>
+      <span class="strategy-preview-dot"></span>
+      <span class="strategy-preview-dot"></span>
+    </div>
+    <div class="strategy-preview-label">Strategies</div>
+  </div>
+
+  <div class="strategy-preview-body">
+    <div class="strategy-preview-heading">
+      <div>
+        <div class="strategy-preview-title">Strategy Playbook</div>
+        <div class="strategy-preview-subtitle">Track setups, confluences, and the trades attached to each idea.</div>
+      </div>
+      <div class="strategy-preview-button">New Strategy</div>
+    </div>
+
+    <div class="strategy-preview-grid">
+      <div class="strategy-mini-card">
+        <div class="strategy-mini-top">
+          <div class="strategy-mini-name">Continuation</div>
+          <div class="strategy-mini-badge">5 rules</div>
+        </div>
+        <div class="strategy-mini-copy">Momentum setup after confirmation and clean structure.</div>
+        <div class="strategy-tags">
+          <span class="strategy-tag">Trend holds</span>
+          <span class="strategy-tag">Pullback</span>
+          <span class="strategy-tag">Volume</span>
+        </div>
+      </div>
+
+      <div class="strategy-mini-card">
+        <div class="strategy-mini-top">
+          <div class="strategy-mini-name">Reversal</div>
+          <div class="strategy-mini-badge">7 rules</div>
+        </div>
+        <div class="strategy-mini-copy">Sweep and reclaim setup near a key level or zone.</div>
+        <div class="strategy-tags">
+          <span class="strategy-tag">Liquidity sweep</span>
+          <span class="strategy-tag">Reclaim</span>
+          <span class="strategy-tag">Bias shift</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="logged-trades-panel">
+      <div class="logged-trades-header">
+        <div>Trade</div>
+        <div>Result</div>
+        <div>R:R</div>
+        <div style="text-align:right;">PNL</div>
+      </div>
+
+      <div class="logged-trade-row">
+        <div class="logged-trade-main">
+          <div class="logged-trade-title">Continuation · NQ</div>
+          <div class="logged-trade-sub">5 confluences · Rules followed</div>
+        </div>
+        <div class="logged-trade-cell">Win</div>
+        <div class="logged-trade-cell">1.8R</div>
+        <div class="logged-trade-pnl green">+$420</div>
+      </div>
+
+      <div class="logged-trade-row">
+        <div class="logged-trade-main">
+          <div class="logged-trade-title">Reversal · ES</div>
+          <div class="logged-trade-sub">7 confluences · Clean execution</div>
+        </div>
+        <div class="logged-trade-cell">Win</div>
+        <div class="logged-trade-cell">3.5R</div>
+        <div class="logged-trade-pnl green">+$610</div>
+      </div>
+
+      <div class="logged-trade-row">
+        <div class="logged-trade-main">
+          <div class="logged-trade-title">Continuation · NQ</div>
+          <div class="logged-trade-sub">3 confluences · Entry late</div>
+        </div>
+        <div class="logged-trade-cell">Loss</div>
+        <div class="logged-trade-cell">-1R</div>
+        <div class="logged-trade-pnl red">-$180</div>
+      </div>
+    </div>
+  </div>
+</div>
 
       <div>
         <div class="section-kicker">How It Works</div>
