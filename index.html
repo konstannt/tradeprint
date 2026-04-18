@@ -57,11 +57,12 @@
     }
 
     .site-shell {
-      min-height: 100vh;
-      background:
-        linear-gradient(rgba(10, 10, 10, 0.24), rgba(10, 10, 10, 0.92)),
-        url('https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=1800&q=80') center top / cover no-repeat;
-    }
+  min-height: 100vh;
+  background:
+    linear-gradient(90deg, rgba(10, 10, 10, 0.96) 0%, rgba(10, 10, 10, 0.86) 34%, rgba(10, 10, 10, 0.58) 62%, rgba(10, 10, 10, 0.9) 100%),
+    linear-gradient(rgba(10, 10, 10, 0.42), rgba(10, 10, 10, 0.94)),
+    url('https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=1800&q=80') center top / cover no-repeat;
+}
 
     .topbar {
       position: fixed;
@@ -153,26 +154,27 @@
     }
 
     .hero-inner {
-      width: 100%;
-      max-width: 1180px;
-      margin: 0 auto;
-      display: grid;
-      grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
-      gap: 48px;
-      align-items: center;
-    }
+  width: 100%;
+  max-width: 1240px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(640px, 1fr) minmax(360px, 0.72fr);
+  gap: 42px;
+  align-items: center;
+}
 
     .eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 9px;
-      color: var(--accent-soft);
-      font-size: 13px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0;
-      margin-bottom: 18px;
-    }
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: #eef2ff;
+  font-size: 13px;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: 0;
+  margin-bottom: 18px;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.65);
+}
 
     .eyebrow-dot {
       width: 8px;
@@ -183,26 +185,28 @@
     }
 
     .hero h1 {
-      max-width: 760px;
-      font-size: 64px;
-      line-height: 1.02;
-      font-weight: 850;
-      letter-spacing: 0;
-      color: var(--text);
-      margin-bottom: 20px;
-    }
+  max-width: 820px;
+  font-size: 66px;
+  line-height: 1.06;
+  font-weight: 900;
+  letter-spacing: 0;
+  color: #ffffff;
+  margin-bottom: 20px;
+  text-shadow: 0 4px 32px rgba(0, 0, 0, 0.78);
+}
 
-    .hero h1 span {
-      color: var(--accent-soft);
-    }
+.hero h1 span {
+  color: var(--accent);
+}
 
     .hero-copy {
-      max-width: 650px;
-      color: #d4d4d4;
-      font-size: 19px;
-      line-height: 1.65;
-      margin-bottom: 32px;
-    }
+  max-width: 720px;
+  color: #f1f1f1;
+  font-size: 20px;
+  line-height: 1.55;
+  margin-bottom: 32px;
+  text-shadow: 0 3px 22px rgba(0, 0, 0, 0.75);
+}
 
     .hero-actions {
       display: flex;
@@ -265,14 +269,16 @@
     }
 
     .hero-proof {
-      display: flex;
-      align-items: center;
-      gap: 18px;
-      flex-wrap: wrap;
-      color: var(--text2);
-      font-size: 13px;
-      line-height: 1.4;
-    }
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  color: #d6d6d6;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.4;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.75);
+}
 
     .proof-item {
       display: flex;
@@ -691,31 +697,32 @@
     }
 
     @media (max-width: 980px) {
-      .top-nav {
-        display: none;
-      }
+  .top-nav {
+    display: none;
+  }
 
-      .hero-inner,
-      .split-section {
-        grid-template-columns: 1fr;
-      }
+  .hero-inner,
+  .split-section {
+    grid-template-columns: 1fr;
+  }
 
-      .hero h1 {
-        font-size: 52px;
-      }
+  .hero h1 {
+    max-width: 760px;
+    font-size: 52px;
+  }
 
-      .product-preview {
-        max-width: 620px;
-      }
+  .product-preview {
+    max-width: 620px;
+  }
 
-      .features-grid {
-        grid-template-columns: 1fr;
-      }
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
 
-      .visual-panel {
-        min-height: 360px;
-      }
-    }
+  .visual-panel {
+    min-height: 360px;
+  }
+}
 
     @media (max-width: 640px) {
       .topbar {
@@ -825,10 +832,10 @@
             Trading journal for serious review
           </div>
 
-          <h1>Find the patterns behind your best trades.</h1>
+          <h1>Find what actually improves your <span>edge.</span></h1>
 
           <p class="hero-copy">
-            Tradeprint gives your trading a clean place to land: strategies, confluences, calendar review, notes, trade logs, and performance stats built around how you actually improve.
+            Tradeprint turns your trades, strategies, confluences, notes, and account history into a clear picture of what is working and what needs to change.
           </p>
 
           <div class="hero-actions">
