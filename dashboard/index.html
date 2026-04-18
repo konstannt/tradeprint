@@ -770,8 +770,8 @@
 .tradeprint-edge-main {
   color: var(--text);
   font-size: 13px;
-  font-weight: 800;
-  line-height: 1.4;
+  font-weight: 500;
+  line-height: 1.45;
 }
 
 .tradeprint-ai-card {
@@ -834,6 +834,73 @@
 
   .tradeprint-edge-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+    .tradeprint-split-stat {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.tradeprint-split-stat::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: 50%;
+  width: 1px;
+  background: var(--border);
+  transform: translateX(-50%);
+}
+
+.tradeprint-split-side {
+  min-width: 0;
+}
+
+.tradeprint-split-label {
+  font-size: 10px;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 900;
+  margin-bottom: 8px;
+}
+
+.tradeprint-review-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 9px;
+  border-radius: 8px;
+  background: rgba(99,102,241,0.14);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 900;
+  margin-bottom: 12px;
+}
+
+.tradeprint-review-copy {
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.tradeprint-review-copy span {
+  color: var(--accent);
+  font-weight: 800;
+}
+
+@media (max-width: 520px) {
+  .tradeprint-split-stat {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .tradeprint-split-stat::before {
+    display: none;
   }
 }
     
@@ -1952,13 +2019,13 @@
       </a>
       <a class="nav-item" onclick="showPage('tradeprint', this)">
   <svg viewBox="0 0 24 24">
-    <path d="M12 11v2"/>
-    <path d="M8 11v1a4 4 0 0 0 8 0v-1a4 4 0 0 0-8 0z"/>
-    <path d="M6 12v-1a6 6 0 0 1 12 0v2"/>
-    <path d="M4 13v-2a8 8 0 0 1 16 0v3"/>
-    <path d="M10 17a6 6 0 0 0 7-5"/>
-    <path d="M14 20a9 9 0 0 0 8-9"/>
-    <path d="M2 11a10 10 0 0 1 18-6"/>
+    <path d="M12 3a8 8 0 0 1 8 8"/>
+    <path d="M4 11a8 8 0 0 1 13.5-5.8"/>
+    <path d="M6.5 13.5V11a5.5 5.5 0 0 1 11 0v1.5"/>
+    <path d="M9 16v-5a3 3 0 0 1 6 0v2"/>
+    <path d="M12 11v4"/>
+    <path d="M5 18c2.5 1.5 5.5 2 8.5 1"/>
+    <path d="M16 17c1.8-1.6 2.8-3.7 3-6"/>
   </svg>
   <span class="nav-label">Tradeprint</span>
 </a>
@@ -2165,11 +2232,16 @@
     </div>
 
     <div class="tradeprint-panel">
-      <div class="tradeprint-panel-title">Best Time Window</div>
-      <div id="tradeprintBestTime"></div>
-    </div>
+  <div class="tradeprint-panel-title">Best Time Window</div>
+  <div id="tradeprintBestTime"></div>
+</div>
 
-    <div class="tradeprint-panel tradeprint-panel-wide">
+<div class="tradeprint-panel">
+  <div class="tradeprint-panel-title">Review Focus</div>
+  <div id="tradeprintReviewFocus"></div>
+</div>
+
+<div class="tradeprint-panel tradeprint-panel-wide">
       <div class="tradeprint-panel-heading">
         <div>
           <div class="tradeprint-panel-title">Confluence Intelligence</div>
@@ -4978,6 +5050,29 @@ function getBestWeekday(trades) {
   return ranked[0] || null;
 }
 
+    function getWorstWeekday(trades) {
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const groups = {};
+
+  trades.forEach(t => {
+    if (!t.date) return;
+    const day = days[getTradeDate(t).getDay()];
+    if (!groups[day]) groups[day] = [];
+    groups[day].push(t);
+  });
+
+  const ranked = Object.entries(groups).map(([day, items]) => {
+    const summary = getTradeSummary(items);
+    return { day, trades: items.length, ...summary };
+  }).filter(d => d.trades > 0).sort((a, b) =>
+    a.totalPnl - b.totalPnl ||
+    (a.winRate ?? 0) - (b.winRate ?? 0) ||
+    b.trades - a.trades
+  );
+
+  return ranked[0] || null;
+}
+
 function getTimeWindowLabel(time24) {
   if (!time24) return null;
 
@@ -5014,6 +5109,28 @@ function getBestTimeWindow(trades) {
   return ranked[0] || null;
 }
 
+    function getWorstTimeWindow(trades) {
+  const groups = {};
+
+  trades.forEach(t => {
+    const label = getTimeWindowLabel(t.trade_time);
+    if (!label) return;
+    if (!groups[label]) groups[label] = [];
+    groups[label].push(t);
+  });
+
+  const ranked = Object.entries(groups).map(([window, items]) => {
+    const summary = getTradeSummary(items);
+    return { window, trades: items.length, ...summary };
+  }).filter(w => w.trades > 0).sort((a, b) =>
+    a.totalPnl - b.totalPnl ||
+    (a.winRate ?? 0) - (b.winRate ?? 0) ||
+    b.trades - a.trades
+  );
+
+  return ranked[0] || null;
+}
+
 function renderTradeprint() {
   const page = document.getElementById('page-tradeprint');
   if (!page) return;
@@ -5025,15 +5142,17 @@ function renderTradeprint() {
   const ranks = getStrategyRanks(trades);
   const bestStrategy = ranks[0] || null;
   const bestDay = getBestWeekday(trades);
-  const bestTime = getBestTimeWindow(trades);
-
+const worstDay = getWorstWeekday(trades);
+const bestTime = getBestTimeWindow(trades);
+const worstTime = getWorstTimeWindow(trades);
   renderTradeprintIdentity({ trades, summary, clarity, bestStrategy, bestDay, bestTime });
-  renderTradeprintRanks(ranks);
-  renderTradeprintRules(summary);
-  renderTradeprintBestDay(bestDay);
-  renderTradeprintBestTime(bestTime);
-  renderTradeprintConfluences(strategies, trades);
-  renderTradeprintCoach({ trades, summary, clarity, bestStrategy, bestDay, bestTime });
+renderTradeprintRanks(ranks);
+renderTradeprintRules(summary);
+renderTradeprintBestDay(bestDay, worstDay);
+renderTradeprintBestTime(bestTime, worstTime);
+renderTradeprintReviewFocus({ trades, summary, ranks, bestDay, worstDay, bestTime, worstTime });
+renderTradeprintConfluences(strategies, trades);
+renderTradeprintCoach({ trades, summary, clarity, bestStrategy, bestDay, bestTime });
 }
 
 function renderTradeprintIdentity({ trades, summary, clarity, bestStrategy, bestDay, bestTime }) {
@@ -5111,37 +5230,105 @@ function renderTradeprintRules(summary) {
   `;
 }
 
-function renderTradeprintBestDay(bestDay) {
+function renderTradeprintBestDay(bestDay, worstDay) {
   const el = document.getElementById('tradeprintBestDay');
   if (!el) return;
 
-  if (!bestDay) {
-    el.innerHTML = '<div class="tradeprint-empty">Log dated trades to find your best day.</div>';
+  if (!bestDay && !worstDay) {
+    el.innerHTML = '<div class="tradeprint-empty">Log dated trades to find your best and worst days.</div>';
     return;
   }
 
-  const cls = bestDay.totalPnl > 0 ? 'green' : bestDay.totalPnl < 0 ? 'red' : '';
+  const bestCls = bestDay?.totalPnl > 0 ? 'green' : bestDay?.totalPnl < 0 ? 'red' : '';
+  const worstCls = worstDay?.totalPnl > 0 ? 'green' : worstDay?.totalPnl < 0 ? 'red' : '';
 
   el.innerHTML = `
-    <div class="tradeprint-simple-main ${cls}">${bestDay.day}</div>
-    <div class="tradeprint-simple-meta">${bestDay.trades} trade${bestDay.trades !== 1 ? 's' : ''} · ${bestDay.winRate ?? 0}% WR · ${formatPnl(bestDay.totalPnl)}</div>
+    <div class="tradeprint-split-stat">
+      <div class="tradeprint-split-side">
+        <div class="tradeprint-split-label">Best</div>
+        ${bestDay ? `
+          <div class="tradeprint-simple-main ${bestCls}">${bestDay.day}</div>
+          <div class="tradeprint-simple-meta">${bestDay.trades} trade${bestDay.trades !== 1 ? 's' : ''} · ${bestDay.winRate ?? 0}% WR · ${formatPnl(bestDay.totalPnl)}</div>
+        ` : '<div class="tradeprint-simple-meta">No best day yet.</div>'}
+      </div>
+
+      <div class="tradeprint-split-side">
+        <div class="tradeprint-split-label">Worst</div>
+        ${worstDay ? `
+          <div class="tradeprint-simple-main ${worstCls}">${worstDay.day}</div>
+          <div class="tradeprint-simple-meta">${worstDay.trades} trade${worstDay.trades !== 1 ? 's' : ''} · ${worstDay.winRate ?? 0}% WR · ${formatPnl(worstDay.totalPnl)}</div>
+        ` : '<div class="tradeprint-simple-meta">No worst day yet.</div>'}
+      </div>
+    </div>
   `;
 }
 
-function renderTradeprintBestTime(bestTime) {
+function renderTradeprintBestTime(bestTime, worstTime) {
   const el = document.getElementById('tradeprintBestTime');
   if (!el) return;
 
-  if (!bestTime) {
-    el.innerHTML = '<div class="tradeprint-empty">Add trade times to reveal your strongest window.</div>';
+  if (!bestTime && !worstTime) {
+    el.innerHTML = '<div class="tradeprint-empty">Add trade times to reveal your best and worst windows.</div>';
     return;
   }
 
-  const cls = bestTime.totalPnl > 0 ? 'green' : bestTime.totalPnl < 0 ? 'red' : '';
+  const bestCls = bestTime?.totalPnl > 0 ? 'green' : bestTime?.totalPnl < 0 ? 'red' : '';
+  const worstCls = worstTime?.totalPnl > 0 ? 'green' : worstTime?.totalPnl < 0 ? 'red' : '';
 
   el.innerHTML = `
-    <div class="tradeprint-simple-main ${cls}">${bestTime.window}</div>
-    <div class="tradeprint-simple-meta">${bestTime.trades} trade${bestTime.trades !== 1 ? 's' : ''} · ${bestTime.winRate ?? 0}% WR · ${formatPnl(bestTime.totalPnl)}</div>
+    <div class="tradeprint-split-stat">
+      <div class="tradeprint-split-side">
+        <div class="tradeprint-split-label">Best</div>
+        ${bestTime ? `
+          <div class="tradeprint-simple-main ${bestCls}">${bestTime.window}</div>
+          <div class="tradeprint-simple-meta">${bestTime.trades} trade${bestTime.trades !== 1 ? 's' : ''} · ${bestTime.winRate ?? 0}% WR · ${formatPnl(bestTime.totalPnl)}</div>
+        ` : '<div class="tradeprint-simple-meta">No best window yet.</div>'}
+      </div>
+
+      <div class="tradeprint-split-side">
+        <div class="tradeprint-split-label">Worst</div>
+        ${worstTime ? `
+          <div class="tradeprint-simple-main ${worstCls}">${worstTime.window}</div>
+          <div class="tradeprint-simple-meta">${worstTime.trades} trade${worstTime.trades !== 1 ? 's' : ''} · ${worstTime.winRate ?? 0}% WR · ${formatPnl(worstTime.totalPnl)}</div>
+        ` : '<div class="tradeprint-simple-meta">No worst window yet.</div>'}
+      </div>
+    </div>
+  `;
+}
+
+    function renderTradeprintReviewFocus({ trades, summary, ranks, worstDay, worstTime }) {
+  const el = document.getElementById('tradeprintReviewFocus');
+  if (!el) return;
+
+  if (!trades.length) {
+    el.innerHTML = '<div class="tradeprint-empty">Log trades to generate your first review focus.</div>';
+    return;
+  }
+
+  const worstStrategy = [...ranks].reverse()[0];
+  let focus = 'Keep logging complete trades so your Tradeprint can sharpen.';
+  let label = 'Build Data';
+
+  if ((summary.ruleRate ?? 100) < 70) {
+    label = 'Rules';
+    focus = `Your rule discipline is ${summary.ruleRate ?? 0}%. Review the trades where rules were broken before adding size.`;
+  } else if (worstStrategy && worstStrategy.trades.length >= 2 && worstStrategy.summary.totalPnl < 0) {
+    label = 'Strategy Leak';
+    focus = `${worstStrategy.name} is your weakest strategy right now at ${formatPnl(worstStrategy.summary.totalPnl)}. Review entries, confluences, and whether it deserves fewer trades.`;
+  } else if (worstTime && worstTime.trades >= 2 && worstTime.totalPnl < 0) {
+    label = 'Time Window';
+    focus = `${worstTime.window} is your weakest time window at ${formatPnl(worstTime.totalPnl)}. Study whether this window has lower-quality setups.`;
+  } else if (worstDay && worstDay.trades >= 2 && worstDay.totalPnl < 0) {
+    label = 'Day Pattern';
+    focus = `${worstDay.day} is currently your weakest trading day at ${formatPnl(worstDay.totalPnl)}. Look for repeated market conditions or behavior.`;
+  } else {
+    label = 'Refinement';
+    focus = `Your main edge is forming. Keep comparing your best setups against your missed or late-entry trades.`;
+  }
+
+  el.innerHTML = `
+    <div class="tradeprint-review-pill">${escapeHtml(label)}</div>
+    <div class="tradeprint-review-copy">${escapeHtml(focus)}</div>
   `;
 }
 
