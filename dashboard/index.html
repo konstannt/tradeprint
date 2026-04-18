@@ -525,6 +525,318 @@
   .dashboard-panel { padding: 18px; }
 }
 
+.tradeprint-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+
+.tradeprint-hero-main {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top right, rgba(99,102,241,0.18), transparent 34%),
+    var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 28px;
+}
+
+.tradeprint-kicker {
+  font-size: 11px;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  font-weight: 900;
+  margin-bottom: 10px;
+}
+
+.tradeprint-hero-main h2 {
+  font-size: 30px;
+  line-height: 1.12;
+  font-weight: 900;
+  max-width: 760px;
+  margin-bottom: 10px;
+}
+
+.tradeprint-hero-main p {
+  color: var(--text2);
+  font-size: 14px;
+  line-height: 1.6;
+  max-width: 720px;
+}
+
+.tradeprint-score-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.tradeprint-score-label {
+  font-size: 11px;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 800;
+  margin-bottom: 10px;
+}
+
+.tradeprint-score {
+  font-size: 42px;
+  font-weight: 950;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.tradeprint-score-sub {
+  color: var(--text2);
+  font-size: 12px;
+  line-height: 1.5;
+  margin-top: 12px;
+}
+
+.tradeprint-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.tradeprint-panel {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 22px;
+  min-width: 0;
+}
+
+.tradeprint-panel-wide {
+  grid-column: 1 / -1;
+}
+
+.tradeprint-panel-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.tradeprint-panel-title {
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 5px;
+}
+
+.tradeprint-panel-sub {
+  color: var(--text2);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.tradeprint-empty {
+  color: var(--text2);
+  font-size: 14px;
+  padding: 18px 0;
+  text-align: center;
+}
+
+.tradeprint-rank-list,
+.tradeprint-edge-list,
+.tradeprint-simple-list {
+  display: grid;
+  gap: 10px;
+}
+
+.tradeprint-rank-item,
+.tradeprint-edge-card,
+.tradeprint-simple-item {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.tradeprint-rank-item {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+}
+
+.tradeprint-rank-number {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(99,102,241,0.14);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 950;
+  font-size: 13px;
+}
+
+.tradeprint-rank-title {
+  font-size: 15px;
+  font-weight: 900;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tradeprint-rank-meta,
+.tradeprint-edge-meta,
+.tradeprint-simple-meta {
+  font-size: 12px;
+  color: var(--text2);
+  margin-top: 4px;
+  line-height: 1.45;
+}
+
+.tradeprint-rank-value {
+  text-align: right;
+  font-size: 14px;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.tradeprint-rank-value.green,
+.tradeprint-simple-main.green,
+.tradeprint-edge-main.green {
+  color: var(--success);
+}
+
+.tradeprint-rank-value.red,
+.tradeprint-simple-main.red,
+.tradeprint-edge-main.red {
+  color: var(--danger);
+}
+
+.tradeprint-simple-main {
+  font-size: 26px;
+  font-weight: 950;
+  color: var(--text);
+}
+
+.tradeprint-meter {
+  height: 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 12px;
+}
+
+.tradeprint-meter-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--accent);
+  border-radius: 8px;
+}
+
+.tradeprint-edge-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 14px;
+}
+
+.tradeprint-edge-title {
+  font-size: 15px;
+  font-weight: 950;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+
+.tradeprint-edge-row {
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+  margin-top: 10px;
+}
+
+.tradeprint-edge-label {
+  font-size: 10px;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 900;
+  margin-bottom: 5px;
+}
+
+.tradeprint-edge-main {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.tradeprint-ai-card {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(280px, 1.2fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.tradeprint-coach-box {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+  padding: 16px;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.tradeprint-coach-box strong {
+  color: var(--accent);
+}
+
+@media (max-width: 900px) {
+  .tradeprint-hero,
+  .tradeprint-grid,
+  .tradeprint-ai-card {
+    grid-template-columns: 1fr;
+  }
+
+  .tradeprint-rank-item {
+    grid-template-columns: 34px minmax(0, 1fr);
+  }
+
+  .tradeprint-rank-value {
+    grid-column: 2;
+    text-align: left;
+  }
+}
+
+@media (max-width: 768px) {
+  #tradeprintAccountControls {
+    width: 100%;
+  }
+
+  #tradeprintAccountControls .account-controls {
+    width: 100%;
+    justify-content: flex-end;
+    flex-wrap: nowrap;
+  }
+
+  .tradeprint-hero-main h2 {
+    font-size: 24px;
+  }
+
+  .tradeprint-panel {
+    padding: 18px;
+  }
+
+  .tradeprint-edge-grid {
+    grid-template-columns: 1fr;
+  }
+}
+    
     .coming-soon { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 60px; text-align: center; color: var(--text2); font-size: 15px; }
     .coming-soon span { display: block; font-size: 32px; margin-bottom: 12px; }
     .strategies-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
@@ -1638,6 +1950,18 @@
         <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
         <span class="nav-label">Dashboard</span>
       </a>
+      <a class="nav-item" onclick="showPage('tradeprint', this)">
+  <svg viewBox="0 0 24 24">
+    <path d="M12 11v2"/>
+    <path d="M8 11v1a4 4 0 0 0 8 0v-1a4 4 0 0 0-8 0z"/>
+    <path d="M6 12v-1a6 6 0 0 1 12 0v2"/>
+    <path d="M4 13v-2a8 8 0 0 1 16 0v3"/>
+    <path d="M10 17a6 6 0 0 0 7-5"/>
+    <path d="M14 20a9 9 0 0 0 8-9"/>
+    <path d="M2 11a10 10 0 0 1 18-6"/>
+  </svg>
+  <span class="nav-label">Tradeprint</span>
+</a>
       <a class="nav-item" onclick="showPage('strategies', this)">
         <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
         <span class="nav-label">Strategies</span>
@@ -1774,15 +2098,15 @@
               <div class="dashboard-action-title">Log Trade</div>
               <div class="dashboard-action-sub">Add a trade from anywhere.</div>
             </button>
-            <button class="dashboard-action" onclick="showPage('calendar', document.querySelectorAll('.nav-item')[2])">
+            <button class="dashboard-action" onclick="showPage('calendar', document.querySelectorAll('.nav-item')[3])">
               <div class="dashboard-action-title">Open Calendar</div>
               <div class="dashboard-action-sub">Review daily and weekly performance.</div>
             </button>
-            <button class="dashboard-action" onclick="showPage('trades', document.querySelectorAll('.nav-item')[3])">
+            <button class="dashboard-action" onclick="showPage('trades', document.querySelectorAll('.nav-item')[4])">
               <div class="dashboard-action-title">View Trades</div>
               <div class="dashboard-action-sub">Filter, edit, and review your log.</div>
             </button>
-            <button class="dashboard-action" onclick="showPage('notes', document.querySelectorAll('.nav-item')[4])">
+            <button class="dashboard-action" onclick="showPage('notes', document.querySelectorAll('.nav-item')[5])">
               <div class="dashboard-action-title">Open Notes</div>
               <div class="dashboard-action-sub">Write reviews and insert trade cards.</div>
             </button>
@@ -1791,6 +2115,82 @@
       </div>
     </div>
 
+<div class="page" id="page-tradeprint">
+  <div class="page-header">
+    <div>
+      <h1>Tradeprint</h1>
+      <p>Your trading fingerprint, built from every logged trade.</p>
+    </div>
+    <div class="page-header-actions">
+      <button class="btn-primary" onclick="openLogTradeFromPage()">
+        <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Log Trade
+      </button>
+      <div id="tradeprintAccountControls"></div>
+    </div>
+  </div>
+
+  <div class="tradeprint-hero">
+    <div class="tradeprint-hero-main">
+      <div class="tradeprint-kicker">Your Tradeprint</div>
+      <h2 id="tradeprintIdentityTitle">Building your trading fingerprint...</h2>
+      <p id="tradeprintIdentityCopy">Log trades with strategies, confluences, time, rules, and notes to reveal your actual trading profile.</p>
+    </div>
+    <div class="tradeprint-score-card">
+      <div class="tradeprint-score-label">Clarity Score</div>
+      <div class="tradeprint-score" id="tradeprintClarityScore">—</div>
+      <div class="tradeprint-score-sub" id="tradeprintClaritySub">More complete trade logs make this sharper.</div>
+    </div>
+  </div>
+
+  <div class="tradeprint-grid">
+    <div class="tradeprint-panel tradeprint-panel-wide">
+      <div class="tradeprint-panel-heading">
+        <div>
+          <div class="tradeprint-panel-title">Strategy Ranking</div>
+          <div class="tradeprint-panel-sub">Best to worst by PNL, win rate, sample size, and rule discipline.</div>
+        </div>
+      </div>
+      <div id="tradeprintStrategyRanks"></div>
+    </div>
+
+    <div class="tradeprint-panel">
+      <div class="tradeprint-panel-title">Rule Discipline</div>
+      <div id="tradeprintRules"></div>
+    </div>
+
+    <div class="tradeprint-panel">
+      <div class="tradeprint-panel-title">Best Trading Day</div>
+      <div id="tradeprintBestDay"></div>
+    </div>
+
+    <div class="tradeprint-panel">
+      <div class="tradeprint-panel-title">Best Time Window</div>
+      <div id="tradeprintBestTime"></div>
+    </div>
+
+    <div class="tradeprint-panel tradeprint-panel-wide">
+      <div class="tradeprint-panel-heading">
+        <div>
+          <div class="tradeprint-panel-title">Confluence Intelligence</div>
+          <div class="tradeprint-panel-sub">Best combos, weak spots, and costly missing conditions by strategy.</div>
+        </div>
+      </div>
+      <div id="tradeprintConfluenceIntel"></div>
+    </div>
+
+    <div class="tradeprint-panel tradeprint-panel-wide">
+      <div class="tradeprint-ai-card">
+        <div>
+          <div class="tradeprint-panel-title">AI Coach</div>
+          <div class="tradeprint-panel-sub">Coming next: automatic feedback from your Tradeprint data.</div>
+        </div>
+        <div id="tradeprintCoachPreview"></div>
+      </div>
+    </div>
+  </div>
+</div>
+    
     <div class="page" id="page-strategies">
       <div class="page-header">
   <div><h1>Strategies</h1><p>Build and manage your trading strategies.</p></div>
@@ -2366,7 +2766,15 @@ let activeAccountId = localStorage.getItem('tp_active_account') || 'all';
 let allLoadedTrades = [];
 let accountSwitchTimer = null;
 
-    const pageLoaded = { dashboard: false, strategies: false, calendar: false, trades: false, notes: false, calculator: false };
+    const pageLoaded = {
+  dashboard: false,
+  tradeprint: false,
+  strategies: false,
+  calendar: false,
+  trades: false,
+  notes: false,
+  calculator: false
+};
 
     const TICK_SPECS = {
       MNQ: { tickSize: 0.25, tickValue: 0.50 },
@@ -2510,7 +2918,7 @@ function renderAccountControls() {
     </div>
   `;
 
-  ['dashboardAccountControls', 'calendarAccountControls', 'tradesAccountControls', 'strategiesAccountControls'].forEach(id => {
+  ['dashboardAccountControls', 'tradeprintAccountControls', 'calendarAccountControls', 'tradesAccountControls', 'strategiesAccountControls'].forEach(id => {
   const el = document.getElementById(id);
   if (el) el.innerHTML = html;
 });
@@ -2604,6 +3012,10 @@ strategyAnalyticsTradesLoaded = false;
 filterTrades();
 renderDashboard();
 
+if (document.getElementById('page-tradeprint')?.classList.contains('active')) {
+  renderTradeprint();
+}
+  
 if (document.getElementById('page-strategies')?.classList.contains('active')) {
   renderStrategyConfluenceAnalytics(allStrategies, getActiveAccountTrades());
 }
@@ -3176,7 +3588,8 @@ async function showPage(name, el) {
 
   if (!pageLoaded[name]) {
     if (name === 'dashboard') await loadDashboard();
-    if (name === 'strategies') await loadStrategies();
+if (name === 'tradeprint') await loadTradeprint();
+if (name === 'strategies') await loadStrategies();
     if (name === 'calendar') await initCalendar();
     if (name === 'trades') await loadTrades();
     if (name === 'notes') await initNotes();
@@ -4475,6 +4888,334 @@ const displayStrategy = activeAccountId === 'all' ? `${accountName} · ${strateg
     `;
   }).join('');
 }
+
+    // ─── TRADEPRINT ───────────────────────────────────────────────
+async function loadTradeprint() {
+  if (!allLoadedTrades.length) {
+    await loadTrades();
+    return;
+  }
+
+  if (!allStrategies.length) {
+    await loadStrategies();
+    return;
+  }
+
+  renderTradeprint();
+}
+
+function getTradeprintTrades() {
+  return Array.isArray(allTrades) ? allTrades : [];
+}
+
+function getTradeprintCompleteness(trades) {
+  if (!trades.length) return 0;
+
+  const total = trades.length * 6;
+  const filled = trades.reduce((sum, t) => {
+    let score = 0;
+    if (t.strategy_id) score++;
+    if (t.result) score++;
+    if (t.date) score++;
+    if (t.trade_time) score++;
+    if (typeof t.followed_rules === 'boolean') score++;
+    if ((t.confluences_used || []).length) score++;
+    return sum + score;
+  }, 0);
+
+  return Math.round((filled / total) * 100);
+}
+
+function getStrategyRanks(trades) {
+  const groups = {};
+
+  trades.forEach(t => {
+    const id = t.strategy_id || 'unknown';
+    const name = t.strategies?.name || allStrategies.find(s => s.id === id)?.name || 'Unknown Strategy';
+
+    if (!groups[id]) groups[id] = { id, name, trades: [] };
+    groups[id].trades.push(t);
+  });
+
+  return Object.values(groups).map(group => {
+    const summary = getTradeSummary(group.trades);
+    const ruleRate = summary.ruleRate ?? 0;
+    const sampleBonus = Math.min(group.trades.length, 20) * 1.5;
+    const score = summary.totalPnl + ((summary.winRate ?? 0) * 8) + (ruleRate * 4) + sampleBonus;
+
+    return {
+      ...group,
+      summary,
+      score
+    };
+  }).sort((a, b) =>
+    b.score - a.score ||
+    b.summary.totalPnl - a.summary.totalPnl ||
+    b.trades.length - a.trades.length
+  );
+}
+
+function getBestWeekday(trades) {
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const groups = {};
+
+  trades.forEach(t => {
+    if (!t.date) return;
+    const day = days[getTradeDate(t).getDay()];
+    if (!groups[day]) groups[day] = [];
+    groups[day].push(t);
+  });
+
+  const ranked = Object.entries(groups).map(([day, items]) => {
+    const summary = getTradeSummary(items);
+    return { day, trades: items.length, ...summary };
+  }).filter(d => d.trades > 0).sort((a, b) =>
+    b.totalPnl - a.totalPnl ||
+    (b.winRate ?? 0) - (a.winRate ?? 0) ||
+    b.trades - a.trades
+  );
+
+  return ranked[0] || null;
+}
+
+function getTimeWindowLabel(time24) {
+  if (!time24) return null;
+
+  const [hour] = time24.split(':').map(Number);
+
+  if (hour >= 4 && hour < 9) return 'Pre-market';
+  if (hour >= 9 && hour < 11) return '9 AM - 11 AM';
+  if (hour >= 11 && hour < 13) return '11 AM - 1 PM';
+  if (hour >= 13 && hour < 16) return '1 PM - 4 PM';
+  if (hour >= 16 && hour < 20) return 'After hours';
+
+  return 'Other hours';
+}
+
+function getBestTimeWindow(trades) {
+  const groups = {};
+
+  trades.forEach(t => {
+    const label = getTimeWindowLabel(t.trade_time);
+    if (!label) return;
+    if (!groups[label]) groups[label] = [];
+    groups[label].push(t);
+  });
+
+  const ranked = Object.entries(groups).map(([window, items]) => {
+    const summary = getTradeSummary(items);
+    return { window, trades: items.length, ...summary };
+  }).filter(w => w.trades > 0).sort((a, b) =>
+    b.totalPnl - a.totalPnl ||
+    (b.winRate ?? 0) - (a.winRate ?? 0) ||
+    b.trades - a.trades
+  );
+
+  return ranked[0] || null;
+}
+
+function renderTradeprint() {
+  const page = document.getElementById('page-tradeprint');
+  if (!page) return;
+
+  const trades = getTradeprintTrades();
+  const strategies = Array.isArray(allStrategies) ? allStrategies : [];
+  const summary = getTradeSummary(trades);
+  const clarity = getTradeprintCompleteness(trades);
+  const ranks = getStrategyRanks(trades);
+  const bestStrategy = ranks[0] || null;
+  const bestDay = getBestWeekday(trades);
+  const bestTime = getBestTimeWindow(trades);
+
+  renderTradeprintIdentity({ trades, summary, clarity, bestStrategy, bestDay, bestTime });
+  renderTradeprintRanks(ranks);
+  renderTradeprintRules(summary);
+  renderTradeprintBestDay(bestDay);
+  renderTradeprintBestTime(bestTime);
+  renderTradeprintConfluences(strategies, trades);
+  renderTradeprintCoach({ trades, summary, clarity, bestStrategy, bestDay, bestTime });
+}
+
+function renderTradeprintIdentity({ trades, summary, clarity, bestStrategy, bestDay, bestTime }) {
+  const title = document.getElementById('tradeprintIdentityTitle');
+  const copy = document.getElementById('tradeprintIdentityCopy');
+  const score = document.getElementById('tradeprintClarityScore');
+  const sub = document.getElementById('tradeprintClaritySub');
+
+  if (!title || !copy || !score || !sub) return;
+
+  score.textContent = trades.length ? `${clarity}%` : '—';
+
+  if (!trades.length) {
+    title.textContent = 'Your Tradeprint is waiting to form.';
+    copy.textContent = 'Log trades with strategy, confluences, time, rules, and results to reveal your trading fingerprint.';
+    sub.textContent = 'No trade data yet.';
+    return;
+  }
+
+  const bestName = bestStrategy?.name || 'your best setup';
+  const dayText = bestDay ? ` You perform best on ${bestDay.day}.` : '';
+  const timeText = bestTime ? ` Your strongest window is ${bestTime.window}.` : '';
+
+  title.textContent = `Your Tradeprint favors ${bestName}.`;
+  copy.textContent = `Across ${trades.length} trade${trades.length !== 1 ? 's' : ''}, your trading fingerprint is showing ${summary.winRate ?? 0}% win rate, ${formatPnl(summary.totalPnl)} total PNL, and ${summary.ruleRate ?? 0}% rule discipline.${dayText}${timeText}`;
+  sub.textContent = clarity >= 80 ? 'Strong data quality.' : clarity >= 55 ? 'Good start. Add more confluences and times.' : 'Log more complete trades to sharpen this.';
+}
+
+function renderTradeprintRanks(ranks) {
+  const el = document.getElementById('tradeprintStrategyRanks');
+  if (!el) return;
+
+  if (!ranks.length) {
+    el.innerHTML = '<div class="tradeprint-empty">Create strategies and log trades to rank your setups.</div>';
+    return;
+  }
+
+  el.innerHTML = `<div class="tradeprint-rank-list">
+    ${ranks.map((rank, index) => {
+      const pnl = rank.summary.totalPnl;
+      const cls = pnl > 0 ? 'green' : pnl < 0 ? 'red' : '';
+
+      return `
+        <div class="tradeprint-rank-item">
+          <div class="tradeprint-rank-number">${index + 1}</div>
+          <div>
+            <div class="tradeprint-rank-title">${escapeHtml(rank.name)}</div>
+            <div class="tradeprint-rank-meta">
+              ${rank.trades.length} trade${rank.trades.length !== 1 ? 's' : ''} · ${rank.summary.winRate ?? 0}% WR · ${rank.summary.ruleRate ?? 0}% rules followed
+            </div>
+          </div>
+          <div class="tradeprint-rank-value ${cls}">${formatPnl(pnl)}</div>
+        </div>
+      `;
+    }).join('')}
+  </div>`;
+}
+
+function renderTradeprintRules(summary) {
+  const el = document.getElementById('tradeprintRules');
+  if (!el) return;
+
+  if (!summary.ruleTrades.length) {
+    el.innerHTML = '<div class="tradeprint-empty">No rule discipline data yet.</div>';
+    return;
+  }
+
+  const rate = summary.ruleRate ?? 0;
+  const cls = rate >= 80 ? 'green' : rate < 60 ? 'red' : '';
+
+  el.innerHTML = `
+    <div class="tradeprint-simple-main ${cls}">${rate}%</div>
+    <div class="tradeprint-simple-meta">${summary.rulesFollowed} of ${summary.ruleTrades.length} trades followed rules.</div>
+    <div class="tradeprint-meter"><div class="tradeprint-meter-fill" style="width:${rate}%;"></div></div>
+  `;
+}
+
+function renderTradeprintBestDay(bestDay) {
+  const el = document.getElementById('tradeprintBestDay');
+  if (!el) return;
+
+  if (!bestDay) {
+    el.innerHTML = '<div class="tradeprint-empty">Log dated trades to find your best day.</div>';
+    return;
+  }
+
+  const cls = bestDay.totalPnl > 0 ? 'green' : bestDay.totalPnl < 0 ? 'red' : '';
+
+  el.innerHTML = `
+    <div class="tradeprint-simple-main ${cls}">${bestDay.day}</div>
+    <div class="tradeprint-simple-meta">${bestDay.trades} trade${bestDay.trades !== 1 ? 's' : ''} · ${bestDay.winRate ?? 0}% WR · ${formatPnl(bestDay.totalPnl)}</div>
+  `;
+}
+
+function renderTradeprintBestTime(bestTime) {
+  const el = document.getElementById('tradeprintBestTime');
+  if (!el) return;
+
+  if (!bestTime) {
+    el.innerHTML = '<div class="tradeprint-empty">Add trade times to reveal your strongest window.</div>';
+    return;
+  }
+
+  const cls = bestTime.totalPnl > 0 ? 'green' : bestTime.totalPnl < 0 ? 'red' : '';
+
+  el.innerHTML = `
+    <div class="tradeprint-simple-main ${cls}">${bestTime.window}</div>
+    <div class="tradeprint-simple-meta">${bestTime.trades} trade${bestTime.trades !== 1 ? 's' : ''} · ${bestTime.winRate ?? 0}% WR · ${formatPnl(bestTime.totalPnl)}</div>
+  `;
+}
+
+function renderTradeprintConfluences(strategies, trades) {
+  const el = document.getElementById('tradeprintConfluenceIntel');
+  if (!el) return;
+
+  if (!strategies.length) {
+    el.innerHTML = '<div class="tradeprint-empty">Create strategies with confluences to unlock confluence intelligence.</div>';
+    return;
+  }
+
+  const cards = strategies.map(strategy => {
+    const strategyTrades = trades.filter(t => t.strategy_id === strategy.id);
+    const insights = getStrategyConfluenceInsights(strategy, strategyTrades);
+
+    return `
+      <div class="tradeprint-edge-card">
+        <div class="tradeprint-edge-title">${escapeHtml(strategy.name)}</div>
+        ${renderTradeprintEdgeRow('Best combo', insights.bestCombo, 'green')}
+        ${renderTradeprintEdgeRow('Worst combo', insights.worstCombo, 'red')}
+        ${renderTradeprintEdgeRow('Best confluence', insights.bestConfluence, 'green')}
+        ${renderTradeprintEdgeRow('Worst confluence', insights.worstConfluence, 'red')}
+        ${renderTradeprintEdgeRow('Costly when missing', insights.costlyMissing, 'red')}
+      </div>
+    `;
+  }).join('');
+
+  el.innerHTML = `<div class="tradeprint-edge-grid">${cards}</div>`;
+}
+
+function renderTradeprintEdgeRow(label, insight, tone = '') {
+  if (!insight) {
+    return `
+      <div class="tradeprint-edge-row">
+        <div class="tradeprint-edge-label">${label}</div>
+        <div class="tradeprint-edge-main">Not enough data yet</div>
+        <div class="tradeprint-edge-meta">Log more trades with this strategy.</div>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="tradeprint-edge-row">
+      <div class="tradeprint-edge-label">${label}</div>
+      <div class="tradeprint-edge-main ${tone}">${escapeHtml(insight.name)}</div>
+      <div class="tradeprint-edge-meta">${insight.trades} trade${insight.trades !== 1 ? 's' : ''} · ${insight.winRate}% WR · ${formatPnl(insight.pnl)}</div>
+    </div>
+  `;
+}
+
+function renderTradeprintCoach({ trades, summary, clarity, bestStrategy, bestDay, bestTime }) {
+  const el = document.getElementById('tradeprintCoachPreview');
+  if (!el) return;
+
+  if (!trades.length) {
+    el.innerHTML = `
+      <div class="tradeprint-coach-box">
+        <strong>Coach preview:</strong> Log 10-20 complete trades and this area will summarize your strengths, leaks, and next review focus.
+      </div>
+    `;
+    return;
+  }
+
+  const bestSetup = bestStrategy?.name || 'your strongest setup';
+  const day = bestDay?.day || 'your best day';
+  const time = bestTime?.window || 'your best time window';
+
+  el.innerHTML = `
+    <div class="tradeprint-coach-box">
+      <strong>Coach preview:</strong> Your current data points toward <strong>${escapeHtml(bestSetup)}</strong> as the setup to study first. Your rule discipline is <strong>${summary.ruleRate ?? 0}%</strong>, your data clarity is <strong>${clarity}%</strong>, and your strongest context appears around <strong>${escapeHtml(day)}</strong> / <strong>${escapeHtml(time)}</strong>. AI feedback will turn this into a focused review plan.
+    </div>
+  `;
+}
     
     // ─── TRADES PAGE ────────────────────────────────────────────
     let allTrades = [];
@@ -4498,8 +5239,10 @@ const displayStrategy = activeAccountId === 'all' ? `${accountName} · ${strateg
   filterSelect.innerHTML = '<option value="">All Strategies</option>' + strategies.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
 
   filterTrades();
-  renderDashboard();
-  pageLoaded.dashboard = true;
+renderDashboard();
+renderTradeprint();
+pageLoaded.dashboard = true;
+pageLoaded.tradeprint = true;
 }
 
     function filterTrades() {
