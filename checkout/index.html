@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png"/>
+  <meta name="theme-color" content="#0a0a0a"/>
+  <title>Tradeprint Checkout</title>
+
+  <script
+    async
+    defer
+    src="https://js.whop.com/static/checkout/loader.js"
+  ></script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #0a0a0a;
+      --bg2: #111111;
+      --border: #242424;
+      --border2: #333333;
+      --text: #ffffff;
+      --text2: #a3a3a3;
+      --text3: #666666;
+      --accent: #6366f1;
+      --accent-hover: #4f46e5;
+      --accent-soft: #c7d2fe;
+      --success: #22c55e;
+    }
+
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 72% 18%, rgba(99, 102, 241, 0.2), transparent 34%),
+        linear-gradient(135deg, #0a0a0a 0%, #111111 52%, #080808 100%);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .topbar {
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      background: rgba(10, 10, 10, 0.72);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(16px);
+    }
+
+    .brand {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 0;
+      color: var(--text);
+    }
+
+    .brand span {
+      color: var(--accent);
+    }
+
+    .login-link {
+      min-height: 42px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 15px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 750;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .login-link:hover {
+      border-color: var(--accent);
+      background: rgba(99, 102, 241, 0.14);
+    }
+
+    .checkout-shell {
+      width: 100%;
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 56px 32px 72px;
+      display: grid;
+      grid-template-columns: minmax(0, 0.88fr) minmax(420px, 1.12fr);
+      gap: 36px;
+      align-items: start;
+    }
+
+    .checkout-copy {
+      padding-top: 24px;
+    }
+
+    .checkout-kicker {
+      color: var(--accent-soft);
+      font-size: 12px;
+      font-weight: 850;
+      text-transform: uppercase;
+      letter-spacing: 0;
+      margin-bottom: 14px;
+    }
+
+    .checkout-title {
+      font-size: 48px;
+      line-height: 1.08;
+      font-weight: 900;
+      letter-spacing: 0;
+      margin-bottom: 16px;
+    }
+
+    .checkout-text {
+      color: #d4d4d4;
+      font-size: 17px;
+      line-height: 1.7;
+      max-width: 560px;
+      margin-bottom: 24px;
+    }
+
+    .checkout-points {
+      display: grid;
+      gap: 10px;
+      max-width: 520px;
+    }
+
+    .checkout-point {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text2);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .checkout-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex: 0 0 8px;
+    }
+
+    .checkout-card {
+      background: rgba(17, 17, 17, 0.94);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.44);
+    }
+
+    .checkout-card-top {
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(10, 10, 10, 0.82);
+    }
+
+    .checkout-card-title {
+      font-size: 13px;
+      font-weight: 850;
+      color: var(--text2);
+    }
+
+    .checkout-card-badge {
+      color: var(--accent-soft);
+      background: rgba(99, 102, 241, 0.14);
+      border: 1px solid rgba(99, 102, 241, 0.28);
+      border-radius: 8px;
+      padding: 5px 9px;
+      font-size: 11px;
+      font-weight: 850;
+    }
+
+    .checkout-embed-wrap {
+      min-height: 620px;
+      padding: 18px;
+    }
+
+    .checkout-embed-wrap > div {
+      width: 100%;
+      min-height: 580px;
+    }
+
+    .checkout-note {
+      color: var(--text3);
+      font-size: 12px;
+      line-height: 1.5;
+      padding: 0 18px 18px;
+    }
+
+    .checkout-note a {
+      color: var(--accent-soft);
+      font-weight: 750;
+    }
+
+    @media (max-width: 920px) {
+      .checkout-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .checkout-copy {
+        padding-top: 0;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .topbar {
+        padding: 0 18px;
+      }
+
+      .checkout-shell {
+        padding: 36px 18px 56px;
+      }
+
+      .checkout-title {
+        font-size: 36px;
+      }
+
+      .checkout-embed-wrap {
+        padding: 12px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="topbar">
+    <a href="/" class="brand">trade<span>print</span></a>
+    <a href="/app" class="login-link">Log in</a>
+  </header>
+
+  <main class="checkout-shell">
+    <section class="checkout-copy">
+      <div class="checkout-kicker">Tradeprint Pro</div>
+      <h1 class="checkout-title">Unlock the full Tradeprint brain.</h1>
+      <p class="checkout-text">
+        Upgrade to access the Tradeprint section, calculator, deeper strategy feedback, confluence intelligence, and the tools built for serious review.
+      </p>
+
+      <div class="checkout-points">
+        <div class="checkout-point">
+          <span class="checkout-dot"></span>
+          Tradeprint feedback and trading fingerprint insights
+        </div>
+        <div class="checkout-point">
+          <span class="checkout-dot"></span>
+          Strategy rankings, confluence breakdowns, best and worst trading windows
+        </div>
+        <div class="checkout-point">
+          <span class="checkout-dot"></span>
+          Calculator access and upcoming AI coach feedback
+        </div>
+      </div>
+    </section>
+
+    <section class="checkout-card">
+      <div class="checkout-card-top">
+        <div class="checkout-card-title">Secure checkout</div>
+        <div class="checkout-card-badge">Powered by Whop</div>
+      </div>
+
+      <div class="checkout-embed-wrap">
+        <div
+          data-whop-checkout-plan-id="plan_p8rbmcqFJT2qn"
+          data-whop-checkout-return-url="https://tradeprint.ai/dashboard"
+          data-whop-checkout-theme="dark"
+        ></div>
+      </div>
+
+      <p class="checkout-note">
+        After checkout, you will be sent back to Tradeprint. Already have an account?
+        <a href="/app">Log in here</a>.
+      </p>
+    </section>
+  </main>
+</body>
+</html>
