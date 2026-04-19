@@ -219,7 +219,7 @@
       margin-bottom: 7px;
     }
 
-    .field input {
+        .field input {
       width: 100%;
       min-height: 46px;
       padding: 0 13px;
@@ -231,6 +231,54 @@
       font-size: 15px;
       font-family: inherit;
       transition: border-color 0.2s;
+    }
+
+    .password-wrap {
+      position: relative;
+    }
+
+    .password-wrap input {
+      padding-right: 48px;
+    }
+
+    .password-toggle {
+      position: absolute;
+      right: 11px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 28px;
+      height: 28px;
+      border: none;
+      background: transparent;
+      color: var(--text2);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      transition: color 0.2s, background 0.2s;
+    }
+
+    .password-toggle:hover {
+      color: var(--text);
+      background: var(--border);
+    }
+
+    .password-toggle svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .field-help {
+      color: var(--text2);
+      font-size: 12px;
+      line-height: 1.45;
+      margin-top: 7px;
     }
 
     .field input:focus {
@@ -467,9 +515,18 @@
               <input type="email" id="authEmail" placeholder="you@example.com" autocomplete="email"/>
             </div>
 
-            <div class="field">
+                        <div class="field">
               <label>Password</label>
-              <input type="password" id="authPassword" placeholder="Minimum 6 characters" autocomplete="current-password"/>
+              <div class="password-wrap">
+                <input type="password" id="authPassword" placeholder="Enter your password" autocomplete="current-password"/>
+                <button class="password-toggle" type="button" onclick="toggleAuthPassword()" aria-label="Show password">
+                  <svg id="passwordEyeIcon" viewBox="0 0 24 24">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                </button>
+              </div>
+              <div class="field-help" id="passwordHelp"></div>
             </div>
 
             <button class="primary-btn" id="authSubmitBtn" onclick="submitAuth()">Log In</button>
@@ -546,7 +603,7 @@
       msg.className = `msg ${type}`.trim();
     }
 
-    function setAuthMode(mode) {
+        function setAuthMode(mode) {
       authMode = mode;
 
       document.getElementById('loginTab').classList.toggle('active', mode === 'login');
@@ -554,9 +611,41 @@
       document.getElementById('authSubmitBtn').textContent = mode === 'login' ? 'Log In' : 'Create Account';
 
       const password = document.getElementById('authPassword');
-      password.autocomplete = mode === 'login' ? 'current-password' : 'new-password';
+      const help = document.getElementById('passwordHelp');
 
+      password.type = 'password';
+      password.autocomplete = mode === 'login' ? 'current-password' : 'new-password';
+      password.placeholder = mode === 'login' ? 'Enter your password' : 'Create a secure password';
+
+      help.textContent = mode === 'login'
+        ? ''
+        : 'Minimum 8 characters, with uppercase, lowercase, and a number.';
+
+      updatePasswordEyeIcon(false);
       setMsg('');
+    }
+
+        function updatePasswordEyeIcon(isVisible) {
+      const icon = document.getElementById('passwordEyeIcon');
+      if (!icon) return;
+
+      icon.innerHTML = isVisible
+        ? `<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+           <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+           <line x1="1" y1="1" x2="23" y2="23"/>`
+        : `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+           <circle cx="12" cy="12" r="3"/>`;
+    }
+
+    function toggleAuthPassword() {
+      const input = document.getElementById('authPassword');
+      const btn = document.querySelector('.password-toggle');
+      const willShow = input.type === 'password';
+
+      input.type = willShow ? 'text' : 'password';
+      btn.setAttribute('aria-label', willShow ? 'Hide password' : 'Show password');
+      updatePasswordEyeIcon(willShow);
+      input.focus();
     }
 
     function getUserFromAccessToken(accessToken) {
@@ -774,9 +863,22 @@
         return;
       }
 
-      if (!password || password.length < 6) {
-        setMsg('Password must be at least 6 characters.', 'error');
-        return;
+            if (authMode === 'login') {
+        if (!password) {
+          setMsg('Enter your password.', 'error');
+          return;
+        }
+      }
+
+      if (authMode === 'signup') {
+        const hasUppercase = /[A-Z]/.test(password);
+        const hasLowercase = /[a-z]/.test(password);
+        const hasNumber = /\d/.test(password);
+
+        if (password.length < 8 || !hasUppercase || !hasLowercase || !hasNumber) {
+          setMsg('Use at least 8 characters with uppercase, lowercase, and a number.', 'error');
+          return;
+        }
       }
 
       btn.disabled = true;
@@ -803,17 +905,18 @@
           throw new Error(data?.msg || data?.message || 'Could not complete authentication.');
         }
 
-        if (data.access_token) {
+                if (data.access_token) {
           persistSession(data);
           await syncAuthUser();
           await showCheckoutForUser();
           return;
         }
 
-        if (data.user && !data.access_token) {
-          setMsg('Account created. Check your email to confirm it, then log in here to continue checkout.', 'success');
+        if (authMode === 'signup') {
           setAuthMode('login');
           document.getElementById('authEmail').value = email;
+          document.getElementById('authPassword').value = '';
+          setMsg('Account created. Check your email to confirm it, then log in here to continue checkout.', 'success');
           return;
         }
 
