@@ -2692,12 +2692,38 @@
             </div>
           </div>
         </div>
+            </div>
+    </div>
+
+    <div class="calc-card calc-defaults-card">
+      <div class="calc-card-title">Calculator Defaults</div>
+
+      <div class="calc-input-grid">
+        <div class="calc-field">
+          <label>Default Ticker</label>
+          <select id="defaultTicker">
+            <option value="MNQ">MNQ</option>
+            <option value="NQ">NQ</option>
+            <option value="MES">MES</option>
+            <option value="ES">ES</option>
+            <option value="MGC">MGC</option>
+            <option value="GC">GC</option>
+          </select>
+        </div>
+
+        <div class="calc-field">
+          <label>Default Contracts</label>
+          <input type="number" id="defaultContracts" placeholder="e.g. 2" min="1"/>
+        </div>
       </div>
+
+      <button class="calc-reset-btn" onclick="saveCalcDefaults()">Save Defaults</button>
+      <div class="msg" id="calcMsg"></div>
     </div>
   </div>
 </div>
 
-<div class="page" id="page-pro">
+    <div class="page" id="page-pro">
   <div class="pro-paywall">
     <div class="pro-paywall-card">
       <div class="pro-paywall-badge">Tradeprint Pro</div>
@@ -2777,22 +2803,6 @@
         </div>
       </div>
         
-      <div class="settings-section">
-        <div class="settings-section-title">Calculator Defaults</div>
-        <div class="settings-field"><label>Default Ticker</label>
-          <select id="defaultTicker">
-            <option value="MNQ">MNQ</option><option value="NQ">NQ</option>
-            <option value="MES">MES</option><option value="ES">ES</option>
-            <option value="MGC">MGC</option><option value="GC">GC</option>
-          </select>
-        </div>
-        <div class="calc-row">
-          <div class="settings-field"><label>Default Contracts</label><input type="number" id="defaultContracts" placeholder="e.g. 2" min="1" /></div>
-          <div class="settings-field"><label>Default R:R</label><input type="text" id="defaultRR" placeholder="e.g. 2" /></div>
-        </div>
-        <button class="save-btn" onclick="saveCalcDefaults()">Save Defaults</button>
-        <div class="msg" id="calcMsg"></div>
-      </div>
         <div class="settings-section">
         <div class="settings-section-title">Tradeprint Pro</div>
 
@@ -3186,9 +3196,7 @@ const PRO_STATUSES = ['active', 'trialing', 'completed'];
     }
   }
 
-  document.getElementById('defaultTicker').value = localStorage.getItem('tp_ticker') || 'MNQ';
-  document.getElementById('defaultContracts').value = localStorage.getItem('tp_contracts') || '';
-  document.getElementById('defaultRR').value = localStorage.getItem('tp_rr') || '';
+    syncCalcDefaultsInputs();
 }
 
 loadProfile()
@@ -4026,12 +4034,38 @@ function getMostCostlyMissingConfluence(confluences, trades) {
 }
 
     function saveCalcDefaults() {
-      localStorage.setItem('tp_ticker', document.getElementById('defaultTicker').value);
-      localStorage.setItem('tp_contracts', document.getElementById('defaultContracts').value);
-      localStorage.setItem('tp_rr', document.getElementById('defaultRR').value);
-      const msg = document.getElementById('calcMsg');
-      msg.textContent = 'Defaults saved!'; msg.className = 'msg success';
-    }
+  const ticker = document.getElementById('defaultTicker')?.value || 'MNQ';
+  const contracts = document.getElementById('defaultContracts')?.value || '';
+
+  localStorage.setItem('tp_ticker', ticker);
+  localStorage.setItem('tp_contracts', contracts);
+  localStorage.removeItem('tp_rr');
+
+  const calcTicker = document.getElementById('calcTicker');
+  const pointsCalcTicker = document.getElementById('pointsCalcTicker');
+  const calcContracts = document.getElementById('calcContracts');
+  const pointsCalcContracts = document.getElementById('pointsCalcContracts');
+
+  if (calcTicker) calcTicker.value = ticker;
+  if (pointsCalcTicker) pointsCalcTicker.value = ticker;
+  if (calcContracts) calcContracts.value = contracts;
+  if (pointsCalcContracts) pointsCalcContracts.value = contracts;
+
+  runCalc();
+  runPointsCalc();
+
+  const msg = document.getElementById('calcMsg');
+  if (msg) {
+    msg.textContent = 'Defaults saved!';
+    msg.className = 'msg success';
+
+    setTimeout(() => {
+      if (msg.textContent === 'Defaults saved!') {
+        msg.textContent = '';
+      }
+    }, 2000);
+  }
+}
 
     let pageSwitchToken = 0;
 
@@ -4091,11 +4125,26 @@ async function showPage(name, el) {
     function logout() { localStorage.removeItem('tp_token'); localStorage.removeItem('tp_user'); window.location.href = '/app'; }
 
     // ─── CALCULATOR ──────────────────────────────────────────────
-function initCalcPage() {
-    if (!hasPro) return;
-  
+function syncCalcDefaultsInputs() {
+  const defaultTicker = document.getElementById('defaultTicker');
+  const defaultContracts = document.getElementById('defaultContracts');
+
+  if (defaultTicker) {
+    defaultTicker.value = localStorage.getItem('tp_ticker') || 'MNQ';
+  }
+
+  if (defaultContracts) {
+    defaultContracts.value = localStorage.getItem('tp_contracts') || '';
+  }
+}
+    
+    function initCalcPage() {
+  if (!hasPro) return;
+
   const defaultTicker = localStorage.getItem('tp_ticker') || 'MNQ';
   const defaultContracts = localStorage.getItem('tp_contracts') || '';
+
+  syncCalcDefaultsInputs();
 
   document.getElementById('calcTicker').value = defaultTicker;
   document.getElementById('calcContracts').value = defaultContracts;
