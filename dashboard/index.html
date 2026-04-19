@@ -2776,6 +2776,23 @@
           <label class="switch"><input type="checkbox" id="themeToggle" onchange="toggleTheme()"/><span class="slider"></span></label>
         </div>
       </div>
+        
+      <div class="settings-section">
+        <div class="settings-section-title">Calculator Defaults</div>
+        <div class="settings-field"><label>Default Ticker</label>
+          <select id="defaultTicker">
+            <option value="MNQ">MNQ</option><option value="NQ">NQ</option>
+            <option value="MES">MES</option><option value="ES">ES</option>
+            <option value="MGC">MGC</option><option value="GC">GC</option>
+          </select>
+        </div>
+        <div class="calc-row">
+          <div class="settings-field"><label>Default Contracts</label><input type="number" id="defaultContracts" placeholder="e.g. 2" min="1" /></div>
+          <div class="settings-field"><label>Default R:R</label><input type="text" id="defaultRR" placeholder="e.g. 2" /></div>
+        </div>
+        <button class="save-btn" onclick="saveCalcDefaults()">Save Defaults</button>
+        <div class="msg" id="calcMsg"></div>
+      </div>
         <div class="settings-section">
         <div class="settings-section-title">Tradeprint Pro</div>
 
@@ -2795,22 +2812,7 @@
 
         <div id="proSettingsActions"></div>
       </div>
-      <div class="settings-section">
-        <div class="settings-section-title">Calculator Defaults</div>
-        <div class="settings-field"><label>Default Ticker</label>
-          <select id="defaultTicker">
-            <option value="MNQ">MNQ</option><option value="NQ">NQ</option>
-            <option value="MES">MES</option><option value="ES">ES</option>
-            <option value="MGC">MGC</option><option value="GC">GC</option>
-          </select>
-        </div>
-        <div class="calc-row">
-          <div class="settings-field"><label>Default Contracts</label><input type="number" id="defaultContracts" placeholder="e.g. 2" min="1" /></div>
-          <div class="settings-field"><label>Default R:R</label><input type="text" id="defaultRR" placeholder="e.g. 2" /></div>
-        </div>
-        <button class="save-btn" onclick="saveCalcDefaults()">Save Defaults</button>
-        <div class="msg" id="calcMsg"></div>
-      </div>
+  
       <div class="settings-section">
         <div class="settings-section-title" style="color:var(--danger)">Danger Zone</div>
         <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">Log out of your Tradeprint account.</p>
