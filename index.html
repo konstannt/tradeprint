@@ -1289,6 +1289,84 @@
       color: var(--danger);
     }
 
+.free-tier-section {
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  padding: 34px 32px;
+}
+
+.free-tier-inner {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 24px;
+}
+
+.free-tier-kicker {
+  color: var(--accent-soft);
+  font-size: 12px;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: 0;
+  margin-bottom: 8px;
+}
+
+.free-tier-title {
+  color: var(--text);
+  font-size: 28px;
+  line-height: 1.15;
+  font-weight: 900;
+  letter-spacing: 0;
+  margin-bottom: 8px;
+}
+
+.free-tier-copy {
+  color: var(--text2);
+  font-size: 15px;
+  line-height: 1.6;
+  max-width: 620px;
+}
+
+.free-tier-btn {
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 0 18px;
+  border-radius: 8px;
+  border: 1px solid var(--border2);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 850;
+  white-space: nowrap;
+  transition: border-color 0.2s, background 0.2s, color 0.2s;
+}
+
+.free-tier-btn:hover {
+  border-color: var(--accent);
+  background: rgba(99, 102, 241, 0.12);
+  color: #eef2ff;
+}
+
+.free-tier-btn svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+    
     .footer {
       background: var(--bg);
       border-top: 1px solid var(--border);
@@ -1496,10 +1574,23 @@
         grid-template-columns: 1fr;
       }
 
-      .footer {
-        padding-left: 18px;
-        padding-right: 18px;
-      }
+      .free-tier-section {
+  padding: 28px 18px;
+}
+
+.free-tier-inner {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.free-tier-btn {
+  width: 100%;
+}
+
+.footer {
+  padding-left: 18px;
+  padding-right: 18px;
+}
     }
   </style>
 </head>
