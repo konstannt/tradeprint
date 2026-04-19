@@ -1088,6 +1088,90 @@
     .modal-msg.success { color: var(--success); }
     .modal-msg.error { color: var(--danger); }
     .settings-section { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 28px; margin-bottom: 20px; max-width: 560px; }
+        .pro-status-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .pro-status-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .pro-status-label {
+      font-size: 12px;
+      color: var(--text2);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      font-weight: 800;
+    }
+
+    .pro-status-pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      padding: 0 10px;
+      border-radius: 8px;
+      background: rgba(34,197,94,0.14);
+      color: var(--success);
+      border: 1px solid rgba(34,197,94,0.28);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: capitalize;
+    }
+
+    .pro-status-pill.free {
+      background: rgba(99,102,241,0.14);
+      color: var(--accent);
+      border-color: rgba(99,102,241,0.28);
+    }
+
+    .pro-status-copy {
+      font-size: 13px;
+      line-height: 1.55;
+      color: var(--text2);
+    }
+
+    .pro-manage-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 0 18px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s, background 0.2s;
+    }
+
+    .pro-manage-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(99,102,241,0.08);
+    }
+
+    .pro-manage-btn.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .pro-manage-btn.primary:hover {
+      background: var(--accent-hover);
+      border-color: var(--accent-hover);
+      color: #fff;
+    }
     .settings-section-title { font-size: 15px; font-weight: 700; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
     .settings-field { margin-bottom: 18px; }
     .settings-field label { display: block; font-size: 12px; color: var(--text2); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.4px; }
@@ -2692,6 +2776,25 @@
           <label class="switch"><input type="checkbox" id="themeToggle" onchange="toggleTheme()"/><span class="slider"></span></label>
         </div>
       </div>
+        <div class="settings-section">
+        <div class="settings-section-title">Tradeprint Pro</div>
+
+        <div class="pro-status-card">
+          <div class="pro-status-row">
+            <div>
+              <div class="pro-status-label">Current Plan</div>
+              <div class="pro-status-copy" id="proSettingsEmail">Checking your subscription...</div>
+            </div>
+            <div class="pro-status-pill free" id="proSettingsStatus">Free</div>
+          </div>
+
+          <div class="pro-status-copy" id="proSettingsCopy">
+            Tradeprint Pro unlocks Tradeprint, Calculator, and advanced review tools.
+          </div>
+        </div>
+
+        <div id="proSettingsActions"></div>
+      </div>
       <div class="settings-section">
         <div class="settings-section-title">Calculator Defaults</div>
         <div class="settings-field"><label>Default Ticker</label>
@@ -3119,16 +3222,20 @@ loadAccounts().catch(console.warn);
     const data = await res.json();
     const sub = Array.isArray(data) ? data[0] : null;
 
-    currentSubscription = sub || null;
+        currentSubscription = sub || null;
     hasPro = !!sub && PRO_STATUSES.includes(String(sub.status || '').toLowerCase());
     subscriptionLoaded = true;
+    renderProSettings();
+
+    return hasPro;
 
     return hasPro;
   } catch (err) {
     console.warn('Subscription check failed:', err);
-    hasPro = false;
+        hasPro = false;
     subscriptionLoaded = true;
     currentSubscription = null;
+    renderProSettings();
     return false;
   }
 }
@@ -3155,6 +3262,87 @@ function setProPaywallContent(sectionName) {
 
   title.textContent = 'The Tradeprint section is only available through Tradeprint Pro.';
   copy.textContent = 'Upgrade to unlock your trading fingerprint, strategy rankings, confluence intelligence, best and worst trading windows, and upcoming AI feedback.';
+}
+
+    function getSubscriptionManageUrl() {
+  if (currentSubscription?.manage_url) return currentSubscription.manage_url;
+
+  const rawEvent = currentSubscription?.metadata?.raw_event;
+  const data = rawEvent?.data || {};
+
+  return (
+    data?.manage_url ||
+    data?.membership?.manage_url ||
+    null
+  );
+}
+
+function formatSubscriptionDate(value) {
+  if (!value) return '';
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  });
+}
+
+function renderProSettings() {
+  const emailEl = document.getElementById('proSettingsEmail');
+  const statusEl = document.getElementById('proSettingsStatus');
+  const copyEl = document.getElementById('proSettingsCopy');
+  const actionsEl = document.getElementById('proSettingsActions');
+
+  if (!emailEl || !statusEl || !copyEl || !actionsEl) return;
+
+  const manageUrl = getSubscriptionManageUrl();
+  const status = String(currentSubscription?.status || (hasPro ? 'active' : 'free')).toLowerCase();
+  const periodEnd = formatSubscriptionDate(currentSubscription?.current_period_end);
+  const cancelAtPeriodEnd = !!currentSubscription?.metadata?.cancel_at_period_end ||
+    !!currentSubscription?.metadata?.raw_event?.data?.cancel_at_period_end;
+
+  emailEl.textContent = user?.email || 'No account email found.';
+  statusEl.textContent = hasPro ? (cancelAtPeriodEnd ? 'Canceling' : status) : 'Free';
+  statusEl.className = `pro-status-pill${hasPro ? '' : ' free'}`;
+
+  if (hasPro && cancelAtPeriodEnd) {
+    copyEl.textContent = periodEnd
+      ? `Your Pro subscription is set to cancel at the end of the current period on ${periodEnd}.`
+      : 'Your Pro subscription is set to cancel at the end of the current period.';
+  } else if (hasPro) {
+    copyEl.textContent = periodEnd
+      ? `Your Pro access is active. Manage billing or cancel before your next renewal on ${periodEnd}.`
+      : 'Your Pro access is active. Manage billing or cancel from Whop.';
+  } else {
+    copyEl.textContent = 'Upgrade to unlock Tradeprint, Calculator, and advanced review tools.';
+  }
+
+  if (hasPro && manageUrl) {
+    actionsEl.innerHTML = `
+      <a class="pro-manage-btn" href="${manageUrl}" target="_blank" rel="noopener">
+        Manage or Cancel Subscription
+      </a>
+    `;
+    return;
+  }
+
+  if (hasPro && !manageUrl) {
+    actionsEl.innerHTML = `
+      <a class="pro-manage-btn" href="https://whop.com/orders" target="_blank" rel="noopener">
+        Manage on Whop
+      </a>
+    `;
+    return;
+  }
+
+  actionsEl.innerHTML = `
+    <button class="pro-manage-btn primary" onclick="window.location.href='/checkout'">
+      Upgrade to Pro
+    </button>
+  `;
 }
 
     function getAccountFilterParam() {
@@ -3866,6 +4054,11 @@ async function showPage(name, el) {
     if (name === 'trades') await loadTrades();
     if (name === 'notes') await initNotes();
     if (name === 'calculator') initCalcPage();
+    
+        if (name === 'settings') {
+      await ensureSubscriptionLoaded();
+      renderProSettings();
+    }
 
     pageLoaded[name] = true;
   }
