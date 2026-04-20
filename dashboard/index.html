@@ -168,7 +168,7 @@
   width: 100%;
   min-height: 38px;
   display: grid;
-  grid-template-columns: 24px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) 24px;
   align-items: center;
   gap: 8px;
   padding: 7px 9px;
@@ -301,6 +301,13 @@
     align-items: start;
     gap: 14px;
   }
+
+  @media (max-width: 768px) {
+  #calendarAccountControls .account-menu {
+    left: 0;
+    right: auto;
+  }
+}
 
   .page-header h1 {
     line-height: 1.05;
@@ -3539,11 +3546,11 @@ function renderAccountControls() {
             const checked = activeAccountIds.includes(a.id);
 
             return `
-              <button class="account-menu-item${checked ? ' active' : ''}" type="button" onclick="setActiveAccount('${a.id}')">
-                <span class="account-check${checked ? ' checked' : ''}" onclick="toggleAccountCheckbox(event, '${a.id}')"></span>
-                <span class="account-menu-name">${escapeHtml(a.name)}</span>
-              </button>
-            `;
+  <button class="account-menu-item${checked ? ' active' : ''}" type="button" onclick="setActiveAccount('${a.id}')">
+    <span class="account-menu-name">${escapeHtml(a.name)}</span>
+    <span class="account-check${checked ? ' checked' : ''}" onclick="toggleAccountCheckbox(event, '${a.id}')"></span>
+  </button>
+`;
           }).join('')}
         </div>
       </div>
@@ -3663,24 +3670,34 @@ async function setActiveAccounts(accountIds) {
 function toggleAccountCheckbox(event, accountId) {
   event.stopPropagation();
 
+  const controls = event.currentTarget.closest('[id$="AccountControls"]');
+  const controlId = controls?.id || null;
+
   const nextIds = activeAccountIds.includes(accountId)
     ? activeAccountIds.filter(id => id !== accountId)
     : [...activeAccountIds, accountId];
 
   persistActiveAccounts(nextIds);
-  refreshAccountScopedViews();
+  refreshAccountScopedViews({ keepPickerOpen: true, controlId });
 }
 
 function closeAccountPickers() {
   document.querySelectorAll('.account-picker.open').forEach(el => el.classList.remove('open'));
 }
 
-function refreshAccountScopedViews() {
+function refreshAccountScopedViews(options = {}) {
+  const { keepPickerOpen = false, controlId = null } = options;
+
   calendarDataCache.clear();
   pageLoaded.strategies = false;
   strategyAnalyticsTradesLoaded = false;
 
   renderAccountControls();
+
+  if (keepPickerOpen && controlId) {
+    document.querySelector(`#${controlId} .account-picker`)?.classList.add('open');
+  }
+
   populateTradeAccountSelect();
 
   allTrades = getActiveAccountTrades();
