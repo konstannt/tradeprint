@@ -64,6 +64,32 @@
     .sidebar.collapsed .settings-row { padding: 10px 0; justify-content: center; }
     .sidebar.collapsed .settings-label { display: none; }
     .settings-row svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+    .prints-nav-row {
+  margin: 0 10px 10px;
+  padding: 11px 10px;
+  border: 1px solid rgba(99,102,241,0.28);
+  border-left: 1px solid rgba(99,102,241,0.28);
+  border-radius: 8px;
+  background: rgba(99,102,241,0.08);
+  color: var(--text);
+}
+
+.prints-nav-row:hover,
+.prints-nav-row.active {
+  border-color: rgba(99,102,241,0.55);
+  background: rgba(99,102,241,0.16);
+  color: #fff;
+}
+
+.prints-nav-row.active {
+  box-shadow: inset 0 0 0 1px rgba(99,102,241,0.22);
+}
+
+.sidebar.collapsed .prints-nav-row {
+  margin: 0 8px 10px;
+  padding: 11px 0;
+  justify-content: center;
+}
     .user-row { display: flex; align-items: center; gap: 10px; padding: 8px 16px; cursor: pointer; transition: background 0.2s; }
     .user-row:hover { background: var(--border); }
     .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0; overflow: hidden; }
@@ -3481,12 +3507,13 @@ select::-ms-expand {
         <svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="12" y2="14"/></svg>
         <span class="nav-label">Calculator</span>
       </a>
-      <a class="nav-item" onclick="showPage('prints', this)">
-  <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-  <span class="nav-label">Prints</span>
-</a>
     </div>
-    <div class="sidebar-bottom">
+        <div class="sidebar-bottom">
+      <div class="settings-row prints-nav-row" id="prints-nav" onclick="showPage('prints', this)">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span class="settings-label">Prints</span>
+      </div>
+
       <div class="settings-row" id="settings-nav" onclick="showPage('settings', this)">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         <span class="settings-label">Settings</span>
