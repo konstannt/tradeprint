@@ -3574,7 +3574,6 @@ function toggleAccountPicker(event) {
 document.addEventListener('click', () => {
   document.querySelectorAll('.account-picker.open').forEach(el => el.classList.remove('open'));
 });
-}
 
 function populateTradeAccountSelect() {
   const select = document.getElementById('tradeAccount');
@@ -4456,7 +4455,7 @@ function resetPointsCalc() {
 }
 
     async function loadCalendarData() {
-      const cacheKey = `${activeAccountId}-${calYear}-${calMonth}`;
+      const cacheKey = `${activeAccountIds.length ? activeAccountIds.join(',') : 'all'}-${calYear}-${calMonth}`;
       if (calendarDataCache.has(cacheKey)) {
         const cached = calendarDataCache.get(cacheKey);
         calTradesCache = cached.trades;
@@ -4491,7 +4490,7 @@ calNotesCache = await notesRes.json(); if (!Array.isArray(calNotesCache)) calNot
     }
 
     async function prefetchCalendarMonth(year, month) {
-  const cacheKey = `${activeAccountId}-${year}-${month}`;
+  const cacheKey = `${activeAccountIds.length ? activeAccountIds.join(',') : 'all'}-${year}-${month}`;
   if (calendarDataCache.has(cacheKey)) return;
 
   const firstDayOfMonth = new Date(year, month, 1);
