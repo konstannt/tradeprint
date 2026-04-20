@@ -264,7 +264,7 @@ select.tp-native-select {
   padding: 9px 34px 9px 12px;
   border-radius: 8px;
   border: 1px solid var(--border);
-  background: var(--bg2);
+  background: var(--bg);
   color: var(--text);
   font: inherit;
   font-size: 14px;
@@ -293,6 +293,21 @@ select.tp-native-select {
   border-right: 1.5px solid var(--text2);
   border-bottom: 1.5px solid var(--text2);
   transform: translateY(-65%) rotate(45deg);
+}
+
+  .form-field .tp-select,
+.settings-field .tp-select,
+.calc-field .tp-select {
+  width: 100%;
+}
+
+.time-input-row .tp-select {
+  flex: 0 0 150px;
+  min-width: 0;
+}
+
+.time-input-row .tp-select-btn {
+  height: 100%;
 }
 
 .tp-select-menu {
@@ -3769,6 +3784,8 @@ function populateTradeAccountSelect() {
   } else if (allAccounts[0]) {
     select.value = allAccounts[0].id;
   }
+
+  syncPrettySelects();
 }
 
 async function loadAccounts() {
@@ -5098,6 +5115,7 @@ populateTradeAccountSelect();
       document.getElementById('tradeMsg').textContent = '';
       document.getElementById('saveTradeBtn').textContent = 'Save Trade';
       document.getElementById('logTradeTitle').textContent = `Log Trade — ${document.getElementById('dayModalTitle').textContent}`;
+      syncPrettySelects();
       document.getElementById('logTradeModal').classList.add('active');
     }
 
@@ -5164,6 +5182,7 @@ document.getElementById('tradeAccount').value = t.account_id || '';
       document.getElementById('tradeMsg').textContent = '';
       document.getElementById('saveTradeBtn').textContent = 'Update Trade';
       document.getElementById('logTradeTitle').textContent = 'Edit Trade';
+      syncPrettySelects();
       document.getElementById('logTradeModal').classList.add('active');
     }
 
