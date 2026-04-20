@@ -302,12 +302,26 @@ select.tp-native-select {
 }
 
 .time-input-row .tp-select {
-  flex: 0 0 150px;
-  min-width: 0;
+  flex: 0 0 84px;
+  min-width: 84px;
 }
 
 .time-input-row .tp-select-btn {
   height: 100%;
+}
+
+  .time-input-row .tp-select-btn {
+  padding-left: 12px;
+  padding-right: 30px;
+}
+
+.time-input-row .tp-select-menu {
+  width: 84px;
+  min-width: 84px;
+}
+
+.time-input-row input {
+  min-width: 0;
 }
 
 .tp-select-menu {
@@ -343,7 +357,7 @@ select.tp-native-select {
   cursor: pointer;
   font: inherit;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -4989,13 +5003,17 @@ function handleDayModalClick(e) {
         <div class="day-modal-stat"><div class="day-modal-stat-label">Losses</div><div class="day-modal-stat-val" style="color:var(--danger)">${losses}</div></div>
       </div>` : '';
       if (!dayTrades.length) { list.innerHTML = ''; return; }
-      list.innerHTML = dayTrades.map(t => {
+            list.innerHTML = dayTrades.map(t => {
         const pnl = parseFloat(t.pnl) || 0;
         const pnlClass = pnl > 0 ? 'green' : pnl < 0 ? 'red' : '';
         const timeDisplay = t.trade_time ? formatDisplayTime(t.trade_time) : null;
+        const strategy = t.strategies?.name || 'Unknown';
+        const accountName = t.broker_accounts?.name || getAccountName(t.account_id);
+        const displayStrategy = !isSingleAccountActive() ? `${accountName} · ${strategy}` : strategy;
+
         return `<div class="trade-feed-item">
           <div class="trade-feed-left">
-            <div class="trade-feed-strat">${t.strategies?.name || 'Unknown'}${t.asset ? ` · ${t.asset}` : ''} — <span style="color:${t.result==='win'?'var(--success)':t.result==='loss'?'var(--danger)':'var(--text2)'};text-transform:capitalize;">${t.result}</span></div>
+            <div class="trade-feed-strat">${escapeHtml(displayStrategy)}${t.asset ? ` · ${escapeHtml(t.asset)}` : ''} — <span style="color:${t.result==='win'?'var(--success)':t.result==='loss'?'var(--danger)':'var(--text2)'};text-transform:capitalize;">${escapeHtml(t.result)}</span></div>
             <div class="trade-feed-detail">
               ${t.confluences_used?.length ? `${t.confluences_used.length} confluences` : 'No confluences'}${t.actual_rr ? ` · ${t.actual_rr}R` : ''}${timeDisplay ? ` · ${timeDisplay}` : ''}${!t.followed_rules ? ' · <span style="color:var(--danger);">Rules broken</span>' : ''}
             </div>
@@ -6580,6 +6598,7 @@ function escapeHtml(value) {
     }
   };
 
+select._syncPrettySelect = sync;
   select.addEventListener('change', sync);
 
   const observer = new MutationObserver(sync);
@@ -6604,13 +6623,15 @@ function enhanceAllSelects() {
 
 function syncPrettySelects() {
   document.querySelectorAll('select.tp-native-select').forEach(select => {
-    select.dispatchEvent(new Event('change'));
+    select._syncPrettySelect?.();
   });
 }
 
-document.addEventListener('click', () => {
-  closePrettySelects();
-});
+document.addEventListener('click', (event) => {
+  if (!event.target.closest('.tp-select')) {
+    closePrettySelects();
+  }
+}, true);
 
 async function openInsertTradeModal() {
   saveNotesCursor();
