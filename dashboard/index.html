@@ -2855,6 +2855,141 @@ select.tp-native-select {
   align-items: flex-start;
 }
 
+.print-caption {
+  margin: 12px 0 2px;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.print-textarea-wrap {
+  position: relative;
+}
+
+.print-textarea-wrap textarea {
+  width: 100%;
+  min-height: 92px;
+  padding: 12px 14px 30px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+  resize: vertical;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.print-textarea-wrap textarea:focus {
+  border-color: var(--accent);
+}
+
+.print-text-counter {
+  position: absolute;
+  right: 11px;
+  bottom: 9px;
+  color: var(--text2);
+  font-size: 11px;
+  font-weight: 800;
+  pointer-events: none;
+}
+
+.print-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.print-chart + .print-card-footer {
+  margin-top: 20px;
+}
+
+.print-reply-btn {
+  min-height: 31px;
+  padding: 0 11px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.print-reply-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.print-replies-modal-box {
+  max-width: 680px;
+}
+
+.print-replies-list {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.print-reply-item {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  padding: 12px;
+}
+
+.print-reply-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 7px;
+}
+
+.print-reply-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 950;
+  color: var(--text);
+}
+
+.print-reply-body {
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.print-reply-compose {
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
+
+.print-reply-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.founder-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 0 7px;
+  border-radius: 8px;
+  border: 1px solid rgba(99,102,241,0.4);
+  background: rgba(99,102,241,0.14);
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  vertical-align: middle;
+}
+
 @media (max-width: 900px) {
   .prints-layout {
     grid-template-columns: 1fr;
@@ -2938,8 +3073,7 @@ select.tp-native-select {
   border-color: rgba(255,255,255,0.12);
 }
 
-.print-result,
-.print-result-row {
+.print-result {
   display: none !important;
 }
 
@@ -3436,6 +3570,36 @@ select::-ms-expand {
     </div>
 
     <div id="printNetworkList"></div>
+  </div>
+</div>
+
+<!-- PRINT REPLIES MODAL -->
+<div class="modal" id="printRepliesModal" onclick="handlePrintRepliesModalClick(event)">
+  <div class="modal-box print-replies-modal-box" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">Replies</div>
+      <button class="modal-close" onclick="closePrintRepliesModal()">×</button>
+    </div>
+
+    <div id="printRepliesContent"></div>
+
+    <div class="print-reply-compose">
+      <div class="print-textarea-wrap">
+        <textarea
+          id="printReplyInput"
+          maxlength="240"
+          placeholder="Reply to this Print..."
+          oninput="updatePrintReplyCounter()"
+        ></textarea>
+        <div class="print-text-counter"><span id="printReplyCount">0</span>/240</div>
+      </div>
+
+      <div class="print-reply-actions">
+        <button class="btn-primary" type="button" onclick="savePrintReply()">Reply</button>
+      </div>
+    </div>
+
+    <div class="modal-msg" id="printRepliesMsg"></div>
   </div>
 </div>
   
@@ -8315,19 +8479,24 @@ async function saveNoteOrder() {
 
 let printsTab = 'everyone';
 let printPosts = [];
+let printReplies = [];
 let printFollows = [];
 let printProfilesById = {};
 let selectedPrintChartFile = null;
 let selectedPrintChartPreviewUrl = '';
 let selectedPrintTradeId = null;
+let activeReplyPostId = null;
 let activePrintNetworkType = 'followers';
 let activePrintNetworkUserId = null;
 
+const PRINT_CAPTION_MAX = 280;
+const PRINT_REPLY_MAX = 240;
+const FOUNDER_EMAIL = 'dean.tsi.198@gmail.com';
+
 async function loadPrints() {
-  await Promise.all([
-    loadPrintFollows(),
-    loadPrintPosts()
-  ]);
+  await loadPrintFollows();
+  await loadPrintPosts();
+  await loadPrintReplies();
 
   renderPrintsProfile();
   renderPrintsFeed();
@@ -8352,6 +8521,68 @@ async function loadPrintPosts() {
     }
   });
 
+  async function loadPrintReplies() {
+  const postIds = printPosts.map(p => p.id).filter(Boolean);
+
+  if (!postIds.length) {
+    printReplies = [];
+    return;
+  }
+
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/print_replies?post_id=in.(${postIds.join(',')})&select=*&order=created_at.asc`, {
+    cache: 'no-store',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`,
+      'Cache-Control': 'no-cache'
+    }
+  });
+
+  const data = await res.json();
+  printReplies = Array.isArray(data) ? data : [];
+
+  const missingUserIds = [...new Set(printReplies.map(r => r.user_id).filter(Boolean))]
+    .filter(id => !printProfilesById[id]);
+
+  if (missingUserIds.length) {
+    const profileRes = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=in.(${missingUserIds.join(',')})&select=id,username,avatar_url,bio,is_founder`, {
+      cache: 'no-store',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${token}`,
+        'Cache-Control': 'no-cache'
+      }
+    });
+
+    const profiles = await profileRes.json();
+
+    if (Array.isArray(profiles)) {
+      profiles.forEach(profile => {
+        printProfilesById[profile.id] = profile;
+      });
+    }
+  }
+}
+
+function isFounderProfile(profile) {
+  return !!profile?.is_founder || (
+    profile?.id === user?.id &&
+    String(user?.email || '').toLowerCase() === FOUNDER_EMAIL
+  );
+}
+
+function getFounderBadgeHtml(profile) {
+  return isFounderProfile(profile) ? '<span class="founder-badge">Founder</span>' : '';
+}
+
+function formatPrintText(value) {
+  return escapeHtml(value || '').replace(/\n/g, '<br>');
+}
+
+function getPostReplies(postId) {
+  return printReplies.filter(reply => reply.post_id === postId);
+}
+
   const posts = await res.json();
   const safePosts = Array.isArray(posts) ? posts : [];
   const postUserIds = safePosts.map(p => p.user_id).filter(Boolean);
@@ -8361,7 +8592,7 @@ async function loadPrintPosts() {
   printProfilesById = {};
 
   if (userIds.length) {
-    const profileRes = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=in.(${userIds.join(',')})&select=id,username,avatar_url,bio`, {
+    const profileRes = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=in.(${userIds.join(',')})&select=id,username,avatar_url,bio,is_founder`, {
       cache: 'no-store',
       headers: {
         'apikey': SUPABASE_KEY,
@@ -8403,7 +8634,8 @@ function getPrintProfile(userId) {
       id: user.id,
       username: document.getElementById('usernameInput')?.value.trim() || printProfilesById[userId]?.username || user.email?.split('@')[0] || 'Trader',
       bio: document.getElementById('bioInput')?.value.trim() || printProfilesById[userId]?.bio || '',
-      avatar_url: printProfilesById[userId]?.avatar_url || null
+      avatar_url: printProfilesById[userId]?.avatar_url || null,
+is_founder: printProfilesById[userId]?.is_founder || String(user?.email || '').toLowerCase() === FOUNDER_EMAIL
     };
   }
 
@@ -8543,7 +8775,7 @@ function renderPrintLeaderboard(feed) {
             <div class="print-leaderboard-user" onclick="openPrintProfile('${row.userId}')">
               <div class="avatar">${getPrintAvatarHtml(profile)}</div>
               <div style="min-width:0;">
-                <div class="print-card-name">${escapeHtml(profile.username || 'Trader')}</div>
+                <div class="print-card-name">${escapeHtml(profile.username || 'Trader')} ${getFounderBadgeHtml(profile)}</div>
                 <div class="print-meta">${row.posts} Print${row.posts !== 1 ? 's' : ''} · ${winRate}% shared WR</div>
               </div>
             </div>
@@ -8570,6 +8802,8 @@ function renderPrintCard(post) {
   const pnlTone = getPnlTone(pnl);
   const created = new Date(post.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   const confluences = Array.isArray(snap.confluences_used) ? snap.confluences_used : [];
+      const caption = snap.caption || '';
+  const replies = getPostReplies(post.id);
 
   return `
     <div class="print-card" id="print-${escapeHtml(post.id)}">
@@ -8577,7 +8811,7 @@ function renderPrintCard(post) {
         <div class="print-card-user" onclick="openPrintProfile('${post.user_id}')">
           <div class="avatar">${avatarHtml}</div>
           <div>
-            <div class="print-card-name">${escapeHtml(username)}</div>
+            <div class="print-card-name">${escapeHtml(username)} ${getFounderBadgeHtml(profile)}</div>
             <div class="print-card-bio">${escapeHtml(bio || 'No bio yet.')}</div>
           </div>
         </div>
@@ -8608,13 +8842,20 @@ function renderPrintCard(post) {
         <div class="print-pnl-chip ${pnlTone}">${formatPnl(pnl)}</div>
       </div>
 
+      ${caption ? `<div class="print-caption">${formatPrintText(caption)}</div>` : ''}
+
       ${post.image_url ? `
         <div class="print-chart">
           <img src="${escapeHtml(post.image_url)}" alt="chart" onclick="openLightbox(this)"/>
         </div>
       ` : ''}
 
-      <button class="print-details-btn" onclick="togglePrintDetails('${post.id}', this)">View details</button>
+            <div class="print-card-footer">
+        <button class="print-details-btn" onclick="togglePrintDetails('${post.id}', this)">View confluences</button>
+        <button class="print-reply-btn" onclick="openPrintRepliesModal('${post.id}')">
+          Reply${replies.length ? ` (${replies.length})` : ''}
+        </button>
+      </div>
 
       <div class="print-card-details">
         <div class="print-meta">Confluences</div>
@@ -8633,7 +8874,7 @@ function togglePrintDetails(postId, btn) {
   if (!card) return;
 
   card.classList.toggle('expanded');
-  if (btn) btn.textContent = card.classList.contains('expanded') ? 'Hide details' : 'View details';
+  if (btn) btn.textContent = card.classList.contains('expanded') ? 'Hide confluences' : 'View confluences';
 }
 
 async function togglePrintFollow(targetUserId) {
@@ -8805,6 +9046,15 @@ function selectPrintTradeForConfirm(tradeId) {
   renderPrintConfirm();
 }
 
+function updatePrintCaptionCounter() {
+  const input = document.getElementById('printCaptionInput');
+  const count = document.getElementById('printCaptionCount');
+
+  if (input && count) {
+    count.textContent = input.value.length;
+  }
+}
+    
 function renderPrintConfirm() {
   const list = document.getElementById('printTradeList');
   const confirm = document.getElementById('printConfirm');
@@ -8832,6 +9082,16 @@ function renderPrintConfirm() {
           <div class="print-meta">${trade.date || ''}${escapeHtml(rr)}${escapeHtml(time)} · ${trade.confluences_used?.length || 0} confluences</div>
         </div>
         <div class="print-pnl-chip ${tone}">${formatPnl(pnl)}</div>
+      </div>
+
+      <div class="print-textarea-wrap" style="margin-top:14px;">
+        <textarea
+          id="printCaptionInput"
+          maxlength="${PRINT_CAPTION_MAX}"
+          placeholder="Add a quick note about the setup..."
+          oninput="updatePrintCaptionCounter()"
+        ></textarea>
+        <div class="print-text-counter"><span id="printCaptionCount">0</span>/${PRINT_CAPTION_MAX}</div>
       </div>
 
       <div class="print-chart-upload">
@@ -8912,7 +9172,8 @@ async function publishPrintTrade(tradeId = selectedPrintTradeId) {
     pnl: parseFloat(trade.pnl) || 0,
     actual_rr: trade.actual_rr || null,
     trade_time: trade.trade_time || null,
-    confluences_used: Array.isArray(trade.confluences_used) ? trade.confluences_used : []
+    confluences_used: Array.isArray(trade.confluences_used) ? trade.confluences_used : [],
+caption: document.getElementById('printCaptionInput')?.value.trim().slice(0, PRINT_CAPTION_MAX) || ''
   };
 
   const res = await fetch(`${SUPABASE_URL}/rest/v1/print_posts`, {
@@ -8970,7 +9231,7 @@ function openPrintProfile(profileUserId) {
     <div class="print-profile-hero">
       <div class="avatar">${getPrintAvatarHtml(profile)}</div>
       <div style="min-width:0;flex:1;">
-        <div class="print-profile-name">${escapeHtml(profile.username || 'Trader')}</div>
+        <div class="print-profile-name">${escapeHtml(profile.username || 'Trader')} ${getFounderBadgeHtml(profile)}</div>
         <div class="print-profile-bio">${escapeHtml(profile.bio || 'No bio yet.')}</div>
       </div>
       ${isOwnProfile ? '' : `
@@ -9007,6 +9268,7 @@ function renderPrintMiniPost(post) {
   const tone = getPnlTone(pnl);
   const created = new Date(post.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   const isOwnPost = post.user_id === user.id;
+  const replies = getPostReplies(post.id);
 
   return `
     <div class="print-mini-post">
@@ -9025,7 +9287,14 @@ function renderPrintMiniPost(post) {
         </div>
       ` : ''}
 
-      ${isOwnPost ? `<button class="print-delete-btn" style="margin-top:10px;" onclick="deletePrintPost('${post.id}').then(() => openPrintProfile(user.id))">Delete Print</button>` : ''}
+      ${isOwnPost ? `
+  <div class="print-card-footer">
+    <button class="print-details-btn" onclick="openPrintRepliesModal('${post.id}')">
+      View replies${replies.length ? ` (${replies.length})` : ''}
+    </button>
+    <button class="print-delete-btn" onclick="deletePrintPost('${post.id}').then(() => openPrintProfile(user.id))">Delete Print</button>
+  </div>
+` : ''}
     </div>
   `;
 }
@@ -9091,6 +9360,130 @@ function closePrintNetworkModal() {
 
 function handlePrintNetworkModalClick(e) {
   if (e.target === document.getElementById('printNetworkModal')) closePrintNetworkModal();
+}
+
+function openPrintRepliesModal(postId) {
+  activeReplyPostId = postId;
+  document.getElementById('printRepliesMsg').textContent = '';
+  document.getElementById('printRepliesMsg').className = 'modal-msg';
+
+  const input = document.getElementById('printReplyInput');
+  if (input) input.value = '';
+
+  updatePrintReplyCounter();
+  renderPrintRepliesContent();
+  document.getElementById('printRepliesModal')?.classList.add('active');
+}
+
+function closePrintRepliesModal() {
+  document.getElementById('printRepliesModal')?.classList.remove('active');
+  activeReplyPostId = null;
+}
+
+function handlePrintRepliesModalClick(e) {
+  if (e.target === document.getElementById('printRepliesModal')) {
+    closePrintRepliesModal();
+  }
+}
+
+function updatePrintReplyCounter() {
+  const input = document.getElementById('printReplyInput');
+  const count = document.getElementById('printReplyCount');
+
+  if (input && count) {
+    count.textContent = input.value.length;
+  }
+}
+
+function renderPrintRepliesContent() {
+  const content = document.getElementById('printRepliesContent');
+  const post = printPosts.find(p => p.id === activeReplyPostId);
+
+  if (!content || !post) return;
+
+  const snap = post.trade_snapshot || {};
+  const replies = getPostReplies(post.id);
+
+  content.innerHTML = `
+    <div class="print-confirm-card" style="margin-bottom:14px;">
+      <div class="print-confirm-head">
+        <div>
+          <div class="print-trade-main">${escapeHtml(snap.strategy_name || 'Unknown Strategy')}${snap.asset ? ` · ${escapeHtml(snap.asset)}` : ''}</div>
+          <div class="print-meta">${snap.trade_time ? escapeHtml(formatDisplayTime(snap.trade_time)) : 'No time'}${snap.actual_rr ? ` · ${escapeHtml(snap.actual_rr)}R` : ''}</div>
+        </div>
+        <div class="print-pnl-chip ${getPnlTone(parseFloat(snap.pnl) || 0)}">${formatPnl(parseFloat(snap.pnl) || 0)}</div>
+      </div>
+      ${snap.caption ? `<div class="print-caption">${formatPrintText(snap.caption)}</div>` : ''}
+    </div>
+
+    <div class="print-replies-list">
+      ${replies.length ? replies.map(renderPrintReply).join('') : '<div class="prints-empty" style="padding:24px;">No replies yet.</div>'}
+    </div>
+  `;
+}
+
+function renderPrintReply(reply) {
+  const profile = getPrintProfile(reply.user_id);
+  const date = new Date(reply.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+  return `
+    <div class="print-reply-item">
+      <div class="print-reply-head">
+        <div class="avatar" style="width:28px;height:28px;font-size:11px;">${getPrintAvatarHtml(profile)}</div>
+        <div>
+          <div class="print-reply-name">${escapeHtml(profile.username || 'Trader')} ${getFounderBadgeHtml(profile)}</div>
+          <div class="print-meta">${escapeHtml(date)}</div>
+        </div>
+      </div>
+      <div class="print-reply-body">${formatPrintText(reply.body)}</div>
+    </div>
+  `;
+}
+
+async function savePrintReply() {
+  const msg = document.getElementById('printRepliesMsg');
+  const input = document.getElementById('printReplyInput');
+  const body = input?.value.trim().slice(0, PRINT_REPLY_MAX) || '';
+
+  if (!activeReplyPostId || !body) {
+    msg.textContent = 'Write a reply first.';
+    msg.className = 'modal-msg error';
+    return;
+  }
+
+  msg.textContent = 'Posting reply...';
+  msg.className = 'modal-msg';
+
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/print_replies`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal'
+    },
+    body: JSON.stringify({
+      post_id: activeReplyPostId,
+      user_id: user.id,
+      body
+    })
+  });
+
+  if (!res.ok) {
+    msg.textContent = 'Could not post reply.';
+    msg.className = 'modal-msg error';
+    return;
+  }
+
+  input.value = '';
+  updatePrintReplyCounter();
+
+  await loadPrintReplies();
+  renderPrintRepliesContent();
+  renderPrintsFeed();
+
+  msg.textContent = '';
+  msg.className = 'modal-msg';
 }
     
     document.addEventListener('DOMContentLoaded', enhanceAllSelects);
