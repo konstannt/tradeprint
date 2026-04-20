@@ -2094,11 +2094,37 @@ select.tp-native-select {
   }
 }
 
+.prints-page-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.prints-page-head h1 {
+  font-size: 26px;
+  line-height: 1.05;
+  font-weight: 900;
+  margin-bottom: 6px;
+}
+
+.prints-page-head p {
+  color: var(--text2);
+  font-size: 14px;
+}
+
+.prints-publish-btn {
+  margin-left: auto;
+}
+
 .prints-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 280px;
+  grid-template-columns: minmax(0, 760px) 300px;
   gap: 20px;
-  max-width: 1120px;
+  align-items: start;
+  justify-content: space-between;
+  width: 100%;
 }
 
 .prints-main,
@@ -2106,18 +2132,28 @@ select.tp-native-select {
   min-width: 0;
 }
 
+.prints-side {
+  position: sticky;
+  top: 0;
+  display: grid;
+  gap: 14px;
+  margin-top: 58px;
+}
+
 .prints-tabs {
-  display: inline-flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 280px;
   gap: 6px;
   padding: 5px;
   background: var(--bg2);
   border: 1px solid var(--border);
   border-radius: 8px;
-  margin-bottom: 18px;
+  margin-bottom: 14px;
 }
 
 .prints-tab {
-  min-height: 34px;
+  min-height: 36px;
   padding: 0 14px;
   border: none;
   border-radius: 6px;
@@ -2125,7 +2161,7 @@ select.tp-native-select {
   color: var(--text2);
   cursor: pointer;
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 900;
 }
 
 .prints-tab.active {
@@ -2136,19 +2172,25 @@ select.tp-native-select {
 .prints-feed,
 .print-trade-list {
   display: grid;
-  gap: 12px;
+  gap: 14px;
 }
 
 .print-card,
 .prints-profile-card,
 .print-trade-option {
-  background: var(--bg2);
+  background: linear-gradient(180deg, rgba(255,255,255,0.025), transparent), var(--bg2);
   border: 1px solid var(--border);
   border-radius: 12px;
 }
 
 .print-card {
-  padding: 16px;
+  padding: 18px;
+  transition: border-color 0.18s, background 0.18s;
+}
+
+.print-card:hover {
+  border-color: rgba(99,102,241,0.45);
+  background: linear-gradient(180deg, rgba(99,102,241,0.055), transparent), var(--bg2);
 }
 
 .print-card-head,
@@ -2163,20 +2205,26 @@ select.tp-native-select {
 
 .print-card-head {
   justify-content: space-between;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 .print-card-user {
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 11px;
+  cursor: pointer;
+}
+
+.print-card-user:hover .print-card-name {
+  color: var(--accent);
 }
 
 .print-card-name {
   font-size: 14px;
-  font-weight: 900;
+  font-weight: 950;
   color: var(--text);
+  transition: color 0.15s;
 }
 
 .print-card-bio,
@@ -2190,10 +2238,15 @@ select.tp-native-select {
   line-height: 1.5;
 }
 
+.print-card-date {
+  white-space: nowrap;
+}
+
 .print-follow-btn,
 .print-details-btn,
-.print-delete-btn {
-  min-height: 30px;
+.print-delete-btn,
+.print-profile-action {
+  min-height: 31px;
   padding: 0 11px;
   border-radius: 8px;
   border: 1px solid var(--border);
@@ -2201,12 +2254,20 @@ select.tp-native-select {
   color: var(--text);
   cursor: pointer;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 900;
+}
+
+.print-follow-btn:hover,
+.print-details-btn:hover,
+.print-profile-action:hover {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .print-follow-btn.active {
   border-color: var(--accent);
   color: var(--accent);
+  background: rgba(99,102,241,0.1);
 }
 
 .print-delete-btn:hover {
@@ -2215,21 +2276,22 @@ select.tp-native-select {
 }
 
 .print-trade-main {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 950;
   color: var(--text);
   margin-bottom: 6px;
+  letter-spacing: 0;
 }
 
 .print-result {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 24px;
-  padding: 0 9px;
+  min-height: 26px;
+  padding: 0 10px;
   border-radius: 8px;
   font-size: 11px;
-  font-weight: 900;
+  font-weight: 950;
   text-transform: capitalize;
 }
 
@@ -2250,14 +2312,14 @@ select.tp-native-select {
 
 .print-card-topline {
   justify-content: space-between;
-  margin-bottom: 10px;
+  margin-bottom: 13px;
 }
 
 .print-card-details {
   display: none;
   border-top: 1px solid var(--border);
-  margin-top: 12px;
-  padding-top: 12px;
+  margin-top: 14px;
+  padding-top: 14px;
 }
 
 .print-card.expanded .print-card-details {
@@ -2281,22 +2343,38 @@ select.tp-native-select {
 }
 
 .prints-profile-card {
-  padding: 16px;
-  margin-bottom: 14px;
+  padding: 17px;
+}
+
+.prints-profile-button {
+  width: 100%;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.prints-profile-button:hover {
+  border-color: rgba(99,102,241,0.45);
 }
 
 .prints-side-title {
   font-size: 11px;
-  font-weight: 900;
+  font-weight: 950;
   color: var(--text2);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 14px;
 }
 
+.prints-profile-avatar {
+  width: 38px;
+  height: 38px;
+}
+
 .prints-profile-name {
-  font-size: 14px;
-  font-weight: 900;
+  font-size: 15px;
+  font-weight: 950;
 }
 
 .prints-network {
@@ -2306,16 +2384,24 @@ select.tp-native-select {
   border-top: 1px solid var(--border);
 }
 
-.prints-network-value {
-  font-size: 20px;
-  font-weight: 950;
+.prints-network span {
+  cursor: pointer;
 }
 
-.prints-network-label {
-  font-size: 11px;
+.prints-network strong {
+  display: block;
+  font-size: 20px;
+  font-weight: 950;
+  color: var(--text);
+}
+
+.prints-network small {
+  display: block;
+  font-size: 10px;
   color: var(--text2);
   text-transform: uppercase;
   letter-spacing: 0.4px;
+  margin-top: 3px;
 }
 
 .prints-empty {
@@ -2328,8 +2414,13 @@ select.tp-native-select {
   font-size: 14px;
 }
 
-.print-trade-modal-box {
+.print-trade-modal-box,
+.print-profile-modal-box {
   max-width: 760px;
+}
+
+.print-network-modal-box {
+  max-width: 540px;
 }
 
 .print-modal-copy {
@@ -2352,17 +2443,138 @@ select.tp-native-select {
   cursor: default;
 }
 
+.print-profile-hero {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.print-profile-hero .avatar {
+  width: 54px;
+  height: 54px;
+  font-size: 18px;
+}
+
+.print-profile-name {
+  font-size: 22px;
+  font-weight: 950;
+  margin-bottom: 4px;
+}
+
+.print-profile-bio {
+  color: var(--text2);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.print-profile-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.print-profile-stat {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.print-profile-stat strong {
+  display: block;
+  font-size: 20px;
+  font-weight: 950;
+}
+
+.print-profile-stat span {
+  display: block;
+  color: var(--text2);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin-top: 3px;
+}
+
+.print-profile-posts {
+  display: grid;
+  gap: 10px;
+}
+
+.print-mini-post {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 13px;
+}
+
+.print-network-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.print-network-row:last-child {
+  border-bottom: none;
+}
+
+.print-network-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.print-network-name {
+  font-size: 14px;
+  font-weight: 900;
+  color: var(--text);
+}
+
+.print-network-bio {
+  font-size: 12px;
+  color: var(--text2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 1100px) {
+  .prints-layout {
+    grid-template-columns: minmax(0, 1fr) 280px;
+  }
+}
+
 @media (max-width: 900px) {
   .prints-layout {
     grid-template-columns: 1fr;
   }
+
+  .prints-side {
+    position: static;
+    margin-top: 0;
+    order: -1;
+  }
 }
 
 @media (max-width: 768px) {
+  .prints-page-head {
+    grid-template-columns: 1fr;
+  }
+
+  .prints-publish-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
   .prints-tabs {
     width: 100%;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
   }
 
   .print-card-head,
@@ -2375,6 +2587,10 @@ select.tp-native-select {
     width: 100%;
     justify-content: flex-start;
     flex-wrap: wrap;
+  }
+
+  .print-profile-stats {
+    grid-template-columns: 1fr;
   }
 }
     
@@ -2765,6 +2981,30 @@ select::-ms-expand {
 
     <div class="print-trade-list" id="printTradeList"></div>
     <div class="modal-msg" id="printTradeMsg"></div>
+  </div>
+</div>
+
+  <!-- PRINT PROFILE MODAL -->
+<div class="modal" id="printProfileModal" onclick="handlePrintProfileModalClick(event)">
+  <div class="modal-box print-profile-modal-box" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">Print Profile</div>
+      <button class="modal-close" onclick="closePrintProfileModal()">×</button>
+    </div>
+
+    <div id="printProfileContent"></div>
+  </div>
+</div>
+
+<!-- PRINT NETWORK MODAL -->
+<div class="modal" id="printNetworkModal" onclick="handlePrintNetworkModalClick(event)">
+  <div class="modal-box print-network-modal-box" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title" id="printNetworkTitle">Followers</div>
+      <button class="modal-close" onclick="closePrintNetworkModal()">×</button>
+    </div>
+
+    <div id="printNetworkList"></div>
   </div>
 </div>
   
@@ -3332,17 +3572,16 @@ select::-ms-expand {
 </div>
 
 <div class="page" id="page-prints">
-  <div class="page-header">
+  <div class="prints-page-head">
     <div>
       <h1>Prints</h1>
-      <p>Real trade posts from traders building their edge.</p>
+      <p>Logged trades from traders building their edge.</p>
     </div>
-    <div class="page-header-actions">
-      <button class="btn-primary" onclick="openPrintTradeModal()">
-        <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Publish Trade
-      </button>
-    </div>
+
+    <button class="btn-primary prints-publish-btn" onclick="openPrintTradeModal()">
+      <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Publish Trade
+    </button>
   </div>
 
   <div class="prints-layout">
@@ -3358,10 +3597,10 @@ select::-ms-expand {
     </div>
 
     <div class="prints-side">
-      <div class="prints-profile-card">
+      <button class="prints-profile-card prints-profile-button" onclick="openPrintProfile(user.id)">
         <div class="prints-side-title">Your Print</div>
         <div class="prints-profile-row">
-          <div class="avatar" id="printsMyAvatar">?</div>
+          <div class="avatar prints-profile-avatar" id="printsMyAvatar">?</div>
           <div>
             <div class="prints-profile-name" id="printsMyName">—</div>
             <div class="prints-profile-sub" id="printsMyBio">Add a bio in Settings.</div>
@@ -3369,16 +3608,20 @@ select::-ms-expand {
         </div>
 
         <div class="prints-network">
-          <div>
-            <div class="prints-network-value" id="printsFollowersCount">0</div>
-            <div class="prints-network-label">Followers</div>
-          </div>
-          <div>
-            <div class="prints-network-value" id="printsFollowingCount">0</div>
-            <div class="prints-network-label">Following</div>
-          </div>
+          <span onclick="event.stopPropagation(); openPrintNetwork('followers', user.id)">
+            <strong id="printsFollowersCount">0</strong>
+            <small>Followers</small>
+          </span>
+          <span onclick="event.stopPropagation(); openPrintNetwork('following', user.id)">
+            <strong id="printsFollowingCount">0</strong>
+            <small>Following</small>
+          </span>
+          <span>
+            <strong id="printsMyPostCount">0</strong>
+            <small>Prints</small>
+          </span>
         </div>
-      </div>
+      </button>
 
       <div class="prints-profile-card">
         <div class="prints-side-title">Signal Over Noise</div>
@@ -4820,7 +5063,20 @@ function getMostCostlyMissingConfluence(confluences, trades) {
   const msg = document.getElementById('profileMsg');
   const btn = event.currentTarget; btn.disabled = true;
   const res = await fetch(`${SUPABASE_URL}/rest/v1/profiles`, { method: 'POST', headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' }, body: JSON.stringify({ id: user.id, username, bio }) });
-      if (res.ok) { msg.textContent = 'Profile saved!'; msg.className = 'msg success'; document.getElementById('sidebarUsername').textContent = username || user.email?.split('@')[0]; }
+      if (res.ok) {
+  msg.textContent = 'Profile saved!';
+  msg.className = 'msg success';
+
+  const display = username || user.email?.split('@')[0] || 'Trader';
+  document.getElementById('sidebarUsername').textContent = display;
+
+  if (!printProfilesById[user.id]) printProfilesById[user.id] = { id: user.id };
+  printProfilesById[user.id].username = display;
+  printProfilesById[user.id].bio = bio;
+
+  renderPrintsProfile();
+  renderPrintsFeed();
+}
       else { const err = await res.json(); msg.textContent = err.message?.includes('unique') ? 'Username already taken.' : 'Something went wrong.'; msg.className = 'msg error'; }
       btn.disabled = false;
     }
@@ -7614,6 +7870,7 @@ async function saveNoteOrder() {
 let printsTab = 'everyone';
 let printPosts = [];
 let printFollows = [];
+let printProfilesById = {};
 
 async function loadPrints() {
   await Promise.all([
@@ -7627,10 +7884,7 @@ async function loadPrints() {
 
 async function loadPrintFollows() {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/print_follows?or=(follower_id.eq.${user.id},following_id.eq.${user.id})&select=*`, {
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${token}`
-    }
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
   });
 
   const data = await res.json();
@@ -7638,31 +7892,27 @@ async function loadPrintFollows() {
 }
 
 async function loadPrintPosts() {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/print_posts?select=*&order=created_at.desc&limit=60`, {
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${token}`
-    }
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/print_posts?select=*&order=created_at.desc&limit=80`, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
   });
 
   const posts = await res.json();
   const safePosts = Array.isArray(posts) ? posts : [];
-  const userIds = [...new Set(safePosts.map(p => p.user_id).filter(Boolean))];
+  const postUserIds = safePosts.map(p => p.user_id).filter(Boolean);
+  const followUserIds = printFollows.flatMap(f => [f.follower_id, f.following_id]).filter(Boolean);
+  const userIds = [...new Set([...postUserIds, ...followUserIds, user.id])];
 
-  let profilesById = {};
+  printProfilesById = {};
 
   if (userIds.length) {
     const profileRes = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=in.(${userIds.join(',')})&select=id,username,avatar_url,bio`, {
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${token}`
-      }
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
     });
 
     const profiles = await profileRes.json();
 
     if (Array.isArray(profiles)) {
-      profilesById = profiles.reduce((map, profile) => {
+      printProfilesById = profiles.reduce((map, profile) => {
         map[profile.id] = profile;
         return map;
       }, {});
@@ -7671,21 +7921,52 @@ async function loadPrintPosts() {
 
   printPosts = safePosts.map(post => ({
     ...post,
-    profile: profilesById[post.user_id] || null
+    profile: printProfilesById[post.user_id] || null
   }));
 }
 
 function setPrintsTab(tab) {
   printsTab = tab === 'following' ? 'following' : 'everyone';
-
   document.getElementById('printsTabEveryone')?.classList.toggle('active', printsTab === 'everyone');
   document.getElementById('printsTabFollowing')?.classList.toggle('active', printsTab === 'following');
-
   renderPrintsFeed();
+}
+
+function getPrintProfile(userId) {
+  if (userId === user.id) {
+    return {
+      ...(printProfilesById[userId] || {}),
+      id: user.id,
+      username: document.getElementById('usernameInput')?.value.trim() || printProfilesById[userId]?.username || user.email?.split('@')[0] || 'Trader',
+      bio: document.getElementById('bioInput')?.value.trim() || printProfilesById[userId]?.bio || '',
+      avatar_url: printProfilesById[userId]?.avatar_url || null
+    };
+  }
+
+  return printProfilesById[userId] || { id: userId, username: 'Trader', bio: '', avatar_url: null };
+}
+
+function getPrintAvatarHtml(profile) {
+  const username = profile?.username || 'Trader';
+
+  if (profile?.avatar_url) {
+    return `<img src="${escapeHtml(profile.avatar_url)}" alt="avatar"/>`;
+  }
+
+  if (profile?.id === user.id) {
+    const sidebarAvatar = document.getElementById('sidebarAvatar');
+    if (sidebarAvatar?.innerHTML) return sidebarAvatar.innerHTML;
+  }
+
+  return escapeHtml(username[0]?.toUpperCase() || '?');
 }
 
 function isFollowingPrintUser(userId) {
   return printFollows.some(f => f.follower_id === user.id && f.following_id === userId);
+}
+
+function getUserPrintPosts(userId) {
+  return printPosts.filter(post => post.user_id === userId);
 }
 
 function renderPrintsProfile() {
@@ -7694,20 +7975,19 @@ function renderPrintsProfile() {
   const avatarEl = document.getElementById('printsMyAvatar');
   const followersEl = document.getElementById('printsFollowersCount');
   const followingEl = document.getElementById('printsFollowingCount');
+  const postsEl = document.getElementById('printsMyPostCount');
 
-  if (!nameEl || !bioEl || !avatarEl || !followersEl || !followingEl) return;
+  if (!nameEl || !bioEl || !avatarEl || !followersEl || !followingEl || !postsEl) return;
 
-  const username = document.getElementById('usernameInput')?.value.trim() || user.email?.split('@')[0] || 'Trader';
-  const bio = document.getElementById('bioInput')?.value.trim() || 'Add a bio in Settings.';
+  const profile = getPrintProfile(user.id);
 
-  nameEl.textContent = username;
-  bioEl.textContent = bio;
-
-  const sidebarAvatar = document.getElementById('sidebarAvatar');
-  avatarEl.innerHTML = sidebarAvatar?.innerHTML || username[0]?.toUpperCase() || '?';
+  nameEl.textContent = profile.username || 'Trader';
+  bioEl.textContent = profile.bio || 'Add a bio in Settings.';
+  avatarEl.innerHTML = getPrintAvatarHtml(profile);
 
   followersEl.textContent = printFollows.filter(f => f.following_id === user.id).length;
   followingEl.textContent = printFollows.filter(f => f.follower_id === user.id).length;
+  postsEl.textContent = getUserPrintPosts(user.id).length;
 }
 
 function getVisiblePrintPosts() {
@@ -7738,29 +8018,22 @@ function renderPrintsFeed() {
 
 function renderPrintCard(post) {
   const snap = post.trade_snapshot || {};
-  const profile = post.profile || {};
+  const profile = getPrintProfile(post.user_id);
   const username = profile.username || 'Trader';
   const bio = profile.bio || '';
-  const avatarHtml = profile.avatar_url
-    ? `<img src="${escapeHtml(profile.avatar_url)}" alt="avatar"/>`
-    : escapeHtml(username[0]?.toUpperCase() || '?');
-
+  const avatarHtml = getPrintAvatarHtml(profile);
   const isOwnPost = post.user_id === user.id;
   const isFollowing = isFollowingPrintUser(post.user_id);
   const result = snap.result || 'breakeven';
   const resultClass = result === 'loss' ? 'loss' : result === 'win' ? 'win' : 'breakeven';
   const pnl = parseFloat(snap.pnl) || 0;
-  const created = new Date(post.created_at).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric'
-  });
-
+  const created = new Date(post.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   const confluences = Array.isArray(snap.confluences_used) ? snap.confluences_used : [];
 
   return `
     <div class="print-card" id="print-${escapeHtml(post.id)}">
       <div class="print-card-head">
-        <div class="print-card-user">
+        <div class="print-card-user" onclick="openPrintProfile('${post.user_id}')">
           <div class="avatar">${avatarHtml}</div>
           <div>
             <div class="print-card-name">${escapeHtml(username)}</div>
@@ -7789,7 +8062,7 @@ function renderPrintCard(post) {
         <span class="print-result ${resultClass}">${escapeHtml(result)}</span>
       </div>
 
-      <button class="print-details-btn" onclick="togglePrintDetails('${post.id}')">View details</button>
+      <button class="print-details-btn" onclick="togglePrintDetails('${post.id}', this)">View details</button>
 
       <div class="print-card-details">
         <div class="print-meta">Confluences</div>
@@ -7803,8 +8076,12 @@ function renderPrintCard(post) {
   `;
 }
 
-function togglePrintDetails(postId) {
-  document.getElementById(`print-${postId}`)?.classList.toggle('expanded');
+function togglePrintDetails(postId, btn) {
+  const card = document.getElementById(`print-${postId}`);
+  if (!card) return;
+
+  card.classList.toggle('expanded');
+  if (btn) btn.textContent = card.classList.contains('expanded') ? 'Hide details' : 'View details';
 }
 
 async function togglePrintFollow(targetUserId) {
@@ -7815,10 +8092,7 @@ async function togglePrintFollow(targetUserId) {
   if (alreadyFollowing) {
     await fetch(`${SUPABASE_URL}/rest/v1/print_follows?follower_id=eq.${user.id}&following_id=eq.${targetUserId}`, {
       method: 'DELETE',
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${token}`
-      }
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
     });
   } else {
     await fetch(`${SUPABASE_URL}/rest/v1/print_follows`, {
@@ -7829,10 +8103,7 @@ async function togglePrintFollow(targetUserId) {
         'Content-Type': 'application/json',
         'Prefer': 'return=minimal'
       },
-      body: JSON.stringify({
-        follower_id: user.id,
-        following_id: targetUserId
-      })
+      body: JSON.stringify({ follower_id: user.id, following_id: targetUserId })
     });
   }
 
@@ -7851,9 +8122,7 @@ async function openPrintTradeModal() {
   msg.textContent = '';
   msg.className = 'modal-msg';
 
-  if (!allTrades.length) {
-    await loadTrades();
-  }
+  if (!allTrades.length) await loadTrades();
 
   const existingTradeIds = new Set(printPosts.map(p => p.trade_id).filter(Boolean));
   const trades = [...allTrades].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 40);
@@ -7893,9 +8162,7 @@ function closePrintTradeModal() {
 }
 
 function handlePrintTradeModalClick(e) {
-  if (e.target === document.getElementById('printTradeModal')) {
-    closePrintTradeModal();
-  }
+  if (e.target === document.getElementById('printTradeModal')) closePrintTradeModal();
 }
 
 async function publishPrintTrade(tradeId) {
@@ -7926,11 +8193,7 @@ async function publishPrintTrade(tradeId) {
       'Content-Type': 'application/json',
       'Prefer': 'return=minimal'
     },
-    body: JSON.stringify({
-      user_id: user.id,
-      trade_id: trade.id,
-      trade_snapshot: snapshot
-    })
+    body: JSON.stringify({ user_id: user.id, trade_id: trade.id, trade_snapshot: snapshot })
   });
 
   if (!res.ok) {
@@ -7948,13 +8211,132 @@ async function deletePrintPost(postId) {
 
   await fetch(`${SUPABASE_URL}/rest/v1/print_posts?id=eq.${postId}`, {
     method: 'DELETE',
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${token}`
-    }
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
   });
 
   await loadPrints();
+}
+
+function openPrintProfile(profileUserId) {
+  const modal = document.getElementById('printProfileModal');
+  const content = document.getElementById('printProfileContent');
+  if (!modal || !content) return;
+
+  const profile = getPrintProfile(profileUserId);
+  const posts = getUserPrintPosts(profileUserId);
+  const followers = printFollows.filter(f => f.following_id === profileUserId).length;
+  const following = printFollows.filter(f => f.follower_id === profileUserId).length;
+  const isOwnProfile = profileUserId === user.id;
+  const isFollowing = isFollowingPrintUser(profileUserId);
+
+  content.innerHTML = `
+    <div class="print-profile-hero">
+      <div class="avatar">${getPrintAvatarHtml(profile)}</div>
+      <div style="min-width:0;flex:1;">
+        <div class="print-profile-name">${escapeHtml(profile.username || 'Trader')}</div>
+        <div class="print-profile-bio">${escapeHtml(profile.bio || 'No bio yet.')}</div>
+      </div>
+      ${isOwnProfile ? '' : `
+        <button class="print-profile-action ${isFollowing ? 'active' : ''}" onclick="togglePrintFollow('${profileUserId}').then(() => openPrintProfile('${profileUserId}'))">
+          ${isFollowing ? 'Following' : 'Follow'}
+        </button>
+      `}
+    </div>
+
+    <div class="print-profile-stats">
+      <div class="print-profile-stat" onclick="openPrintNetwork('followers', '${profileUserId}')">
+        <strong>${followers}</strong><span>Followers</span>
+      </div>
+      <div class="print-profile-stat" onclick="openPrintNetwork('following', '${profileUserId}')">
+        <strong>${following}</strong><span>Following</span>
+      </div>
+      <div class="print-profile-stat">
+        <strong>${posts.length}</strong><span>Prints</span>
+      </div>
+    </div>
+
+    <div class="prints-side-title">Prints</div>
+    <div class="print-profile-posts">
+      ${posts.length ? posts.map(renderPrintMiniPost).join('') : '<div class="prints-empty">No Prints yet.</div>'}
+    </div>
+  `;
+
+  modal.classList.add('active');
+}
+
+function renderPrintMiniPost(post) {
+  const snap = post.trade_snapshot || {};
+  const pnl = parseFloat(snap.pnl) || 0;
+  const created = new Date(post.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+  return `
+    <div class="print-mini-post">
+      <div class="print-trade-main" style="font-size:15px;">${escapeHtml(snap.strategy_name || 'Unknown Strategy')}${snap.asset ? ` · ${escapeHtml(snap.asset)}` : ''}</div>
+      <div class="print-meta">${escapeHtml(created)} · ${escapeHtml(snap.result || '-')} · ${snap.actual_rr ? `${escapeHtml(snap.actual_rr)}R · ` : ''}${formatPnl(pnl)}</div>
+    </div>
+  `;
+}
+
+function closePrintProfileModal() {
+  document.getElementById('printProfileModal')?.classList.remove('active');
+}
+
+function handlePrintProfileModalClick(e) {
+  if (e.target === document.getElementById('printProfileModal')) closePrintProfileModal();
+}
+
+function openPrintNetwork(type, profileUserId) {
+  const modal = document.getElementById('printNetworkModal');
+  const title = document.getElementById('printNetworkTitle');
+  const list = document.getElementById('printNetworkList');
+  if (!modal || !title || !list) return;
+
+  const isFollowers = type === 'followers';
+  const rows = printFollows
+    .filter(f => isFollowers ? f.following_id === profileUserId : f.follower_id === profileUserId)
+    .map(f => isFollowers ? f.follower_id : f.following_id);
+
+  title.textContent = isFollowers ? 'Followers' : 'Following';
+
+  if (!rows.length) {
+    list.innerHTML = `<div class="prints-empty">No ${isFollowers ? 'followers' : 'following'} yet.</div>`;
+  } else {
+    list.innerHTML = rows.map(renderPrintNetworkRow).join('');
+  }
+
+  modal.classList.add('active');
+}
+
+function renderPrintNetworkRow(profileUserId) {
+  const profile = getPrintProfile(profileUserId);
+  const isOwnProfile = profileUserId === user.id;
+  const isFollowing = isFollowingPrintUser(profileUserId);
+
+  return `
+    <div class="print-network-row">
+      <div class="print-network-user" onclick="closePrintNetworkModal(); openPrintProfile('${profileUserId}')">
+        <div class="avatar">${getPrintAvatarHtml(profile)}</div>
+        <div style="min-width:0;">
+          <div class="print-network-name">${escapeHtml(profile.username || 'Trader')}</div>
+          <div class="print-network-bio">${escapeHtml(profile.bio || 'No bio yet.')}</div>
+        </div>
+      </div>
+
+      ${isOwnProfile ? '' : `
+        <button class="print-follow-btn ${isFollowing ? 'active' : ''}" onclick="togglePrintFollow('${profileUserId}').then(() => openPrintNetwork('${printsTab}', '${user.id}'))">
+          ${isFollowing ? 'Following' : 'Follow'}
+        </button>
+      `}
+    </div>
+  `;
+}
+
+function closePrintNetworkModal() {
+  document.getElementById('printNetworkModal')?.classList.remove('active');
+}
+
+function handlePrintNetworkModalClick(e) {
+  if (e.target === document.getElementById('printNetworkModal')) closePrintNetworkModal();
 }
     
     document.addEventListener('DOMContentLoaded', enhanceAllSelects);
