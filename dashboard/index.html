@@ -103,10 +103,15 @@
   flex-wrap: wrap;
 }
 
-.account-select {
-  min-width: 160px;
+.account-picker {
+  position: relative;
+  min-width: 180px;
+}
+
+.account-picker-btn {
+  width: 100%;
   min-height: 38px;
-  padding: 9px 12px;
+  padding: 9px 34px 9px 12px;
   font-size: 14px;
   line-height: 1;
   border-radius: 8px;
@@ -115,10 +120,112 @@
   color: var(--text);
   outline: none;
   cursor: pointer;
+  text-align: left;
+  position: relative;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.account-select:focus {
+.account-picker-btn:hover,
+.account-picker.open .account-picker-btn {
   border-color: var(--accent);
+}
+
+.account-picker-btn::after {
+  content: '';
+  position: absolute;
+  right: 13px;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid var(--text2);
+  border-bottom: 1.5px solid var(--text2);
+  transform: translateY(-65%) rotate(45deg);
+}
+
+.account-menu {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  width: 240px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 6px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg2);
+  box-shadow: 0 18px 45px rgba(0,0,0,0.42);
+  z-index: 80;
+}
+
+.account-picker.open .account-menu {
+  display: block;
+}
+
+.account-menu-item {
+  width: 100%;
+  min-height: 38px;
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 7px 9px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.account-menu-item:hover {
+  background: var(--border);
+}
+
+.account-menu-item.active {
+  background: rgba(99,102,241,0.14);
+}
+
+.account-menu-all {
+  grid-template-columns: minmax(0, 1fr);
+  font-weight: 800;
+}
+
+.account-menu-name {
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-check {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  cursor: pointer;
+}
+
+.account-check.checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.account-check.checked::after {
+  content: '✓';
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
 }
 
 .account-manage-btn {
@@ -231,16 +338,21 @@
   flex-wrap: nowrap;
 }
 
-      .account-select {
+        .account-picker {
     width: clamp(190px, 48vw, 280px);
     min-width: 0;
     max-width: 100%;
+  }
+
+  .account-picker-btn {
     min-height: 46px;
     height: 46px;
     padding: 0 36px 0 14px;
     font-size: 16px;
-    line-height: 1;
-    text-overflow: ellipsis;
+  }
+
+  .account-menu {
+    width: min(280px, calc(100vw - 40px));
   }
 
   .account-manage-btn {
@@ -285,8 +397,11 @@
   justify-content: flex-end;
 }
 
-    .account-select {
+      .account-picker {
     width: clamp(180px, 56vw, 250px);
+  }
+
+  .account-picker-btn {
     min-height: 46px;
     height: 46px;
     font-size: 15px;
@@ -3075,7 +3190,8 @@ applyAuthRedirectIfPresent();
     let editingTradeOriginalDate = null;
     let logFromPage = false;
         let allAccounts = [];
-let activeAccountId = localStorage.getItem('tp_active_account') || 'all';
+let activeAccountIds = readActiveAccountIds();
+let activeAccountId = activeAccountIds.length === 1 ? activeAccountIds[0] : 'all';
 let allLoadedTrades = [];
 let accountSwitchTimer = null;
 let hasPro = false;
@@ -3355,13 +3471,40 @@ function renderProSettings() {
   `;
 }
 
-    function getAccountFilterParam() {
-  return activeAccountId && activeAccountId !== 'all' ? `&account_id=eq.${activeAccountId}` : '';
+    function readActiveAccountIds() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('tp_active_account_ids') || '[]');
+    if (Array.isArray(saved)) return saved.filter(Boolean);
+  } catch (err) {}
+
+  const old = localStorage.getItem('tp_active_account') || 'all';
+  return old && old !== 'all' ? [old] : [];
+}
+
+function persistActiveAccounts(ids) {
+  activeAccountIds = Array.isArray(ids) ? [...new Set(ids.filter(Boolean))] : [];
+  activeAccountId = activeAccountIds.length === 1 ? activeAccountIds[0] : 'all';
+
+  localStorage.setItem('tp_active_account_ids', JSON.stringify(activeAccountIds));
+  localStorage.setItem('tp_active_account', activeAccountId);
+}
+
+function isAllAccountsActive() {
+  return activeAccountIds.length === 0;
+}
+
+function isSingleAccountActive() {
+  return activeAccountIds.length === 1;
+}
+
+function getAccountFilterParam() {
+  if (isAllAccountsActive()) return '';
+  return `&account_id=in.(${activeAccountIds.join(',')})`;
 }
 
 function getActiveAccountTrades() {
-  if (activeAccountId === 'all') return allLoadedTrades;
-  return allLoadedTrades.filter(t => t.account_id === activeAccountId);
+  if (isAllAccountsActive()) return allLoadedTrades;
+  return allLoadedTrades.filter(t => activeAccountIds.includes(t.account_id));
 }
 
 function getAccountName(accountId) {
@@ -3369,20 +3512,67 @@ function getAccountName(accountId) {
   return allAccounts.find(a => a.id === accountId)?.name || 'Unknown account';
 }
 
+function getAccountPickerLabel() {
+  if (isAllAccountsActive()) return 'All accounts';
+
+  if (activeAccountIds.length === 1) {
+    return getAccountName(activeAccountIds[0]);
+  }
+
+  return `${activeAccountIds.length} accounts`;
+}
+
 function renderAccountControls() {
   const html = `
     <div class="account-controls">
-      <select class="account-select" onchange="setActiveAccount(this.value)">
-        <option value="all"${activeAccountId === 'all' ? ' selected' : ''}>All accounts</option>
-        ${allAccounts.map(a => `<option value="${a.id}"${activeAccountId === a.id ? ' selected' : ''}>${escapeHtml(a.name)}</option>`).join('')}
-      </select>
+      <div class="account-picker">
+        <button class="account-picker-btn" type="button" onclick="toggleAccountPicker(event)">
+          ${escapeHtml(getAccountPickerLabel())}
+        </button>
+
+        <div class="account-menu" onclick="event.stopPropagation()">
+          <button class="account-menu-item account-menu-all${isAllAccountsActive() ? ' active' : ''}" type="button" onclick="setActiveAccounts([])">
+            <span class="account-menu-name">All accounts</span>
+          </button>
+
+          ${allAccounts.map(a => {
+            const checked = activeAccountIds.includes(a.id);
+
+            return `
+              <button class="account-menu-item${checked ? ' active' : ''}" type="button" onclick="setActiveAccount('${a.id}')">
+                <span class="account-check${checked ? ' checked' : ''}" onclick="toggleAccountCheckbox(event, '${a.id}')"></span>
+                <span class="account-menu-name">${escapeHtml(a.name)}</span>
+              </button>
+            `;
+          }).join('')}
+        </div>
+      </div>
+
       <button class="account-manage-btn" onclick="openAccountModal()">Manage</button>
     </div>
   `;
 
   ['dashboardAccountControls', 'tradeprintAccountControls', 'calendarAccountControls', 'tradesAccountControls', 'strategiesAccountControls'].forEach(id => {
-  const el = document.getElementById(id);
-  if (el) el.innerHTML = html;
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = html;
+  });
+}
+
+function toggleAccountPicker(event) {
+  event.stopPropagation();
+
+  const picker = event.currentTarget.closest('.account-picker');
+  const wasOpen = picker.classList.contains('open');
+
+  document.querySelectorAll('.account-picker.open').forEach(el => el.classList.remove('open'));
+
+  if (!wasOpen) {
+    picker.classList.add('open');
+  }
+}
+
+document.addEventListener('click', () => {
+  document.querySelectorAll('.account-picker.open').forEach(el => el.classList.remove('open'));
 });
 }
 
@@ -3393,8 +3583,8 @@ function populateTradeAccountSelect() {
   select.innerHTML = '<option value="">Select an account...</option>' +
     allAccounts.map(a => `<option value="${a.id}">${escapeHtml(a.name)}</option>`).join('');
 
-  if (activeAccountId !== 'all') {
-    select.value = activeAccountId;
+  if (isSingleAccountActive()) {
+    select.value = activeAccountIds[0];
   } else if (allAccounts[0]) {
     select.value = allAccounts[0].id;
   }
@@ -3418,9 +3608,9 @@ async function loadAccounts() {
     return;
   }
 
-  if (activeAccountId !== 'all' && !allAccounts.some(a => a.id === activeAccountId)) {
-    activeAccountId = 'all';
-    localStorage.setItem('tp_active_account', activeAccountId);
+    const validIds = activeAccountIds.filter(id => allAccounts.some(a => a.id === id));
+  if (validIds.length !== activeAccountIds.length) {
+    persistActiveAccounts(validIds);
   }
 
   renderAccountControls();
@@ -3460,27 +3650,51 @@ async function createDefaultAccount() {
 }
 
 async function setActiveAccount(accountId) {
-  activeAccountId = accountId || 'all';
-  localStorage.setItem('tp_active_account', activeAccountId);
+  persistActiveAccounts(accountId ? [accountId] : []);
+  closeAccountPickers();
+  refreshAccountScopedViews();
+}
 
+async function setActiveAccounts(accountIds) {
+  persistActiveAccounts(accountIds || []);
+  closeAccountPickers();
+  refreshAccountScopedViews();
+}
+
+function toggleAccountCheckbox(event, accountId) {
+  event.stopPropagation();
+
+  const nextIds = activeAccountIds.includes(accountId)
+    ? activeAccountIds.filter(id => id !== accountId)
+    : [...activeAccountIds, accountId];
+
+  persistActiveAccounts(nextIds);
+  refreshAccountScopedViews();
+}
+
+function closeAccountPickers() {
+  document.querySelectorAll('.account-picker.open').forEach(el => el.classList.remove('open'));
+}
+
+function refreshAccountScopedViews() {
   calendarDataCache.clear();
   pageLoaded.strategies = false;
-strategyAnalyticsTradesLoaded = false;
+  strategyAnalyticsTradesLoaded = false;
 
   renderAccountControls();
   populateTradeAccountSelect();
 
   allTrades = getActiveAccountTrades();
-filterTrades();
-renderDashboard();
+  filterTrades();
+  renderDashboard();
 
-if (document.getElementById('page-tradeprint')?.classList.contains('active')) {
-  renderTradeprint();
-}
-  
-if (document.getElementById('page-strategies')?.classList.contains('active')) {
-  renderStrategyConfluenceAnalytics(allStrategies, getActiveAccountTrades());
-}
+  if (document.getElementById('page-tradeprint')?.classList.contains('active')) {
+    renderTradeprint();
+  }
+
+  if (document.getElementById('page-strategies')?.classList.contains('active')) {
+    renderStrategyConfluenceAnalytics(allStrategies, getActiveAccountTrades());
+  }
 
   clearTimeout(accountSwitchTimer);
   accountSwitchTimer = setTimeout(async () => {
@@ -3518,7 +3732,7 @@ function renderAccountList() {
     <div class="account-list-item">
       <div>
         <div class="account-list-name">${escapeHtml(a.name)}</div>
-        <div class="dashboard-list-sub">${activeAccountId === a.id ? 'Currently selected' : 'Trading account'}</div>
+          <div class="dashboard-list-sub">${activeAccountIds.includes(a.id) ? 'Currently selected' : 'Trading account'}</div>
       </div>
       <button class="account-delete-btn" onclick="deleteBrokerAccount('${a.id}')">Delete</button>
     </div>
@@ -3593,9 +3807,8 @@ async function deleteBrokerAccount(id) {
 
   allAccounts = allAccounts.filter(a => a.id !== id);
 
-  if (activeAccountId === id) {
-    activeAccountId = 'all';
-    localStorage.setItem('tp_active_account', activeAccountId);
+    if (activeAccountIds.includes(id)) {
+    persistActiveAccounts(activeAccountIds.filter(accountId => accountId !== id));
   }
 
   calendarDataCache.clear();
@@ -5399,7 +5612,7 @@ function renderDashboardRecentTrades(trades) {
     const date = new Date(t.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     const strategy = t.strategies?.name || 'Unknown';
     const accountName = t.broker_accounts?.name || getAccountName(t.account_id);
-const displayStrategy = activeAccountId === 'all' ? `${accountName} · ${strategy}` : strategy;
+const displayStrategy = !isSingleAccountActive() ? `${accountName} · ${strategy}` : strategy;
     const asset = t.asset ? ` · ${t.asset}` : '';
     const result = t.result === 'breakeven' ? 'be' : (t.result || '-');
 
@@ -5951,7 +6164,7 @@ pageLoaded.tradeprint = hasPro;
     return;
   }
 
-  const isAllAccounts = activeAccountId === 'all';
+  const showAccountColumn = !isSingleAccountActive();
 
   const rows = filteredTrades.map(t => {
     const pnl = parseFloat(t.pnl) || 0;
@@ -5971,7 +6184,7 @@ pageLoaded.tradeprint = hasPro;
     return `<div class="trades-table-row">
       <div class="trades-table-cell muted">${dateStr}</div>
       <div class="trades-table-cell">${escapeHtml(strategy)}</div>
-      ${isAllAccounts ? `<div class="trades-table-cell muted">${escapeHtml(accountName)}</div>` : ''}
+      ${showAccountColumn ? `<div class="trades-table-cell muted">${escapeHtml(accountName)}</div>` : ''}
       <div class="trades-table-cell"><span class="trades-badge ${t.result || '-'}">${result}</span></div>
       <div class="trades-table-cell" style="color:${pnlColor};font-weight:700;">${formatPnl(pnl)}</div>
       <div class="trades-table-cell muted">${rr}</div>
@@ -5990,11 +6203,11 @@ pageLoaded.tradeprint = hasPro;
     </div>`;
   }).join('');
 
-  container.innerHTML = `<div class="trades-table${isAllAccounts ? ' all-accounts' : ''}">
+  container.innerHTML = `<div class="trades-table${showAccountColumn ? ' all-accounts' : ''}">
     <div class="trades-table-header">
       <div>Date</div>
       <div>Strategy</div>
-      ${isAllAccounts ? '<div>Account</div>' : ''}
+      ${showAccountColumn ? '<div>Account</div>' : ''}
       <div>Result</div>
       <div>PNL</div>
       <div>R:R</div>
@@ -6151,7 +6364,7 @@ function renderInsertTradeList() {
     const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     const strategy = t.strategies?.name || 'Unknown';
     const accountName = t.broker_accounts?.name || getAccountName(t.account_id);
-const displayStrategy = activeAccountId === 'all' ? `${accountName} · ${strategy}` : strategy;
+const displayStrategy = !isSingleAccountActive() ? `${accountName} · ${strategy}` : strategy;
     const asset = t.asset ? ` · ${t.asset}` : '';
     const result = t.result === 'breakeven' ? 'be' : (t.result || '-');
     const rr = t.actual_rr ? ` · ${t.actual_rr}R` : '';
@@ -6177,7 +6390,7 @@ function buildNoteTradeCardHtml(t) {
   const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   const strategy = t.strategies?.name || 'Unknown';
   const accountName = t.broker_accounts?.name || getAccountName(t.account_id);
-const displayStrategy = activeAccountId === 'all' ? `${accountName} · ${strategy}` : strategy;
+const displayStrategy = !isSingleAccountActive() ? `${accountName} · ${strategy}` : strategy;
   const asset = t.asset ? ` · ${t.asset}` : '';
   const result = t.result === 'breakeven' ? 'be' : (t.result || '-');
   const rr = t.actual_rr ? ` · ${t.actual_rr}R` : '';
