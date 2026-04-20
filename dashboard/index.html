@@ -7611,6 +7611,352 @@ async function saveNoteOrder() {
     : `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`;
 }
 
+let printsTab = 'everyone';
+let printPosts = [];
+let printFollows = [];
+
+async function loadPrints() {
+  await Promise.all([
+    loadPrintFollows(),
+    loadPrintPosts()
+  ]);
+
+  renderPrintsProfile();
+  renderPrintsFeed();
+}
+
+async function loadPrintFollows() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/print_follows?or=(follower_id.eq.${user.id},following_id.eq.${user.id})&select=*`, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`
+    }
+  });
+
+  const data = await res.json();
+  printFollows = Array.isArray(data) ? data : [];
+}
+
+async function loadPrintPosts() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/print_posts?select=*&order=created_at.desc&limit=60`, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`
+    }
+  });
+
+  const posts = await res.json();
+  const safePosts = Array.isArray(posts) ? posts : [];
+  const userIds = [...new Set(safePosts.map(p => p.user_id).filter(Boolean))];
+
+  let profilesById = {};
+
+  if (userIds.length) {
+    const profileRes = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=in.(${userIds.join(',')})&select=id,username,avatar_url,bio`, {
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    const profiles = await profileRes.json();
+
+    if (Array.isArray(profiles)) {
+      profilesById = profiles.reduce((map, profile) => {
+        map[profile.id] = profile;
+        return map;
+      }, {});
+    }
+  }
+
+  printPosts = safePosts.map(post => ({
+    ...post,
+    profile: profilesById[post.user_id] || null
+  }));
+}
+
+function setPrintsTab(tab) {
+  printsTab = tab === 'following' ? 'following' : 'everyone';
+
+  document.getElementById('printsTabEveryone')?.classList.toggle('active', printsTab === 'everyone');
+  document.getElementById('printsTabFollowing')?.classList.toggle('active', printsTab === 'following');
+
+  renderPrintsFeed();
+}
+
+function isFollowingPrintUser(userId) {
+  return printFollows.some(f => f.follower_id === user.id && f.following_id === userId);
+}
+
+function renderPrintsProfile() {
+  const nameEl = document.getElementById('printsMyName');
+  const bioEl = document.getElementById('printsMyBio');
+  const avatarEl = document.getElementById('printsMyAvatar');
+  const followersEl = document.getElementById('printsFollowersCount');
+  const followingEl = document.getElementById('printsFollowingCount');
+
+  if (!nameEl || !bioEl || !avatarEl || !followersEl || !followingEl) return;
+
+  const username = document.getElementById('usernameInput')?.value.trim() || user.email?.split('@')[0] || 'Trader';
+  const bio = document.getElementById('bioInput')?.value.trim() || 'Add a bio in Settings.';
+
+  nameEl.textContent = username;
+  bioEl.textContent = bio;
+
+  const sidebarAvatar = document.getElementById('sidebarAvatar');
+  avatarEl.innerHTML = sidebarAvatar?.innerHTML || username[0]?.toUpperCase() || '?';
+
+  followersEl.textContent = printFollows.filter(f => f.following_id === user.id).length;
+  followingEl.textContent = printFollows.filter(f => f.follower_id === user.id).length;
+}
+
+function getVisiblePrintPosts() {
+  if (printsTab !== 'following') return printPosts;
+
+  const followingIds = printFollows
+    .filter(f => f.follower_id === user.id)
+    .map(f => f.following_id);
+
+  return printPosts.filter(post => followingIds.includes(post.user_id) || post.user_id === user.id);
+}
+
+function renderPrintsFeed() {
+  const feed = document.getElementById('printsFeed');
+  if (!feed) return;
+
+  const posts = getVisiblePrintPosts();
+
+  if (!posts.length) {
+    feed.innerHTML = printsTab === 'following'
+      ? '<div class="prints-empty">Follow traders to build your Prints feed.</div>'
+      : '<div class="prints-empty">No Prints yet. Publish a logged trade to start the feed.</div>';
+    return;
+  }
+
+  feed.innerHTML = posts.map(renderPrintCard).join('');
+}
+
+function renderPrintCard(post) {
+  const snap = post.trade_snapshot || {};
+  const profile = post.profile || {};
+  const username = profile.username || 'Trader';
+  const bio = profile.bio || '';
+  const avatarHtml = profile.avatar_url
+    ? `<img src="${escapeHtml(profile.avatar_url)}" alt="avatar"/>`
+    : escapeHtml(username[0]?.toUpperCase() || '?');
+
+  const isOwnPost = post.user_id === user.id;
+  const isFollowing = isFollowingPrintUser(post.user_id);
+  const result = snap.result || 'breakeven';
+  const resultClass = result === 'loss' ? 'loss' : result === 'win' ? 'win' : 'breakeven';
+  const pnl = parseFloat(snap.pnl) || 0;
+  const created = new Date(post.created_at).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric'
+  });
+
+  const confluences = Array.isArray(snap.confluences_used) ? snap.confluences_used : [];
+
+  return `
+    <div class="print-card" id="print-${escapeHtml(post.id)}">
+      <div class="print-card-head">
+        <div class="print-card-user">
+          <div class="avatar">${avatarHtml}</div>
+          <div>
+            <div class="print-card-name">${escapeHtml(username)}</div>
+            <div class="print-card-bio">${escapeHtml(bio || 'No bio yet.')}</div>
+          </div>
+        </div>
+
+        <div class="print-card-actions">
+          <div class="print-card-date">${escapeHtml(created)}</div>
+          ${isOwnPost ? `<button class="print-delete-btn" onclick="deletePrintPost('${post.id}')">Delete</button>` : `
+            <button class="print-follow-btn ${isFollowing ? 'active' : ''}" onclick="togglePrintFollow('${post.user_id}')">
+              ${isFollowing ? 'Following' : 'Follow'}
+            </button>
+          `}
+        </div>
+      </div>
+
+      <div class="print-card-topline">
+        <div>
+          <div class="print-trade-main">${escapeHtml(snap.strategy_name || 'Unknown Strategy')}${snap.asset ? ` · ${escapeHtml(snap.asset)}` : ''}</div>
+          <div class="print-meta">
+            ${snap.trade_time ? escapeHtml(formatDisplayTime(snap.trade_time)) : 'No time'} · ${snap.actual_rr ? `${escapeHtml(snap.actual_rr)}R` : 'No R:R'} · ${formatPnl(pnl)}
+          </div>
+        </div>
+
+        <span class="print-result ${resultClass}">${escapeHtml(result)}</span>
+      </div>
+
+      <button class="print-details-btn" onclick="togglePrintDetails('${post.id}')">View details</button>
+
+      <div class="print-card-details">
+        <div class="print-meta">Confluences</div>
+        <div class="print-confluence-list">
+          ${confluences.length
+            ? confluences.map(c => `<span class="print-confluence-pill">${escapeHtml(c)}</span>`).join('')
+            : '<span class="print-confluence-pill">No confluences shared</span>'}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function togglePrintDetails(postId) {
+  document.getElementById(`print-${postId}`)?.classList.toggle('expanded');
+}
+
+async function togglePrintFollow(targetUserId) {
+  if (!targetUserId || targetUserId === user.id) return;
+
+  const alreadyFollowing = isFollowingPrintUser(targetUserId);
+
+  if (alreadyFollowing) {
+    await fetch(`${SUPABASE_URL}/rest/v1/print_follows?follower_id=eq.${user.id}&following_id=eq.${targetUserId}`, {
+      method: 'DELETE',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${token}`
+      }
+    });
+  } else {
+    await fetch(`${SUPABASE_URL}/rest/v1/print_follows`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        follower_id: user.id,
+        following_id: targetUserId
+      })
+    });
+  }
+
+  await loadPrintFollows();
+  renderPrintsProfile();
+  renderPrintsFeed();
+}
+
+async function openPrintTradeModal() {
+  const modal = document.getElementById('printTradeModal');
+  const list = document.getElementById('printTradeList');
+  const msg = document.getElementById('printTradeMsg');
+
+  if (!modal || !list || !msg) return;
+
+  msg.textContent = '';
+  msg.className = 'modal-msg';
+
+  if (!allTrades.length) {
+    await loadTrades();
+  }
+
+  const existingTradeIds = new Set(printPosts.map(p => p.trade_id).filter(Boolean));
+  const trades = [...allTrades].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 40);
+
+  if (!trades.length) {
+    list.innerHTML = '<div class="prints-empty">Log a trade first, then publish it as a Print.</div>';
+  } else {
+    list.innerHTML = trades.map(t => {
+      const alreadyPosted = existingTradeIds.has(t.id);
+      const strategy = t.strategies?.name || 'Unknown Strategy';
+      const asset = t.asset ? ` · ${t.asset}` : '';
+      const result = t.result === 'breakeven' ? 'BE' : (t.result || '-');
+      const rr = t.actual_rr ? ` · ${t.actual_rr}R` : '';
+      const time = t.trade_time ? ` · ${formatDisplayTime(t.trade_time)}` : '';
+      const pnl = parseFloat(t.pnl) || 0;
+
+      return `
+        <div class="print-trade-option ${alreadyPosted ? 'disabled' : ''}" ${alreadyPosted ? '' : `onclick="publishPrintTrade('${t.id}')"`}>
+          <div class="print-card-topline" style="margin-bottom:0;">
+            <div>
+              <div class="print-trade-main">${escapeHtml(strategy)}${escapeHtml(asset)} — ${escapeHtml(result)}</div>
+              <div class="print-meta">${t.date || ''}${escapeHtml(rr)}${escapeHtml(time)} · ${t.confluences_used?.length || 0} confluences</div>
+            </div>
+            <div class="dashboard-list-value" style="color:${pnl > 0 ? 'var(--success)' : pnl < 0 ? 'var(--danger)' : 'var(--text)'}">${formatPnl(pnl)}</div>
+          </div>
+          ${alreadyPosted ? '<div class="print-meta" style="margin-top:8px;">Already published.</div>' : ''}
+        </div>
+      `;
+    }).join('');
+  }
+
+  modal.classList.add('active');
+}
+
+function closePrintTradeModal() {
+  document.getElementById('printTradeModal')?.classList.remove('active');
+}
+
+function handlePrintTradeModalClick(e) {
+  if (e.target === document.getElementById('printTradeModal')) {
+    closePrintTradeModal();
+  }
+}
+
+async function publishPrintTrade(tradeId) {
+  const msg = document.getElementById('printTradeMsg');
+  const trade = allTrades.find(t => t.id === tradeId);
+
+  if (!trade) {
+    msg.textContent = 'Could not find that trade.';
+    msg.className = 'modal-msg error';
+    return;
+  }
+
+  const snapshot = {
+    strategy_name: trade.strategies?.name || 'Unknown Strategy',
+    asset: trade.asset || '',
+    result: trade.result || '',
+    pnl: parseFloat(trade.pnl) || 0,
+    actual_rr: trade.actual_rr || null,
+    trade_time: trade.trade_time || null,
+    confluences_used: Array.isArray(trade.confluences_used) ? trade.confluences_used : []
+  };
+
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/print_posts`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal'
+    },
+    body: JSON.stringify({
+      user_id: user.id,
+      trade_id: trade.id,
+      trade_snapshot: snapshot
+    })
+  });
+
+  if (!res.ok) {
+    msg.textContent = 'Could not publish this Print.';
+    msg.className = 'modal-msg error';
+    return;
+  }
+
+  closePrintTradeModal();
+  await loadPrints();
+}
+
+async function deletePrintPost(postId) {
+  if (!confirm('Delete this Print?')) return;
+
+  await fetch(`${SUPABASE_URL}/rest/v1/print_posts?id=eq.${postId}`, {
+    method: 'DELETE',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`
+    }
+  });
+
+  await loadPrints();
+}
+    
     document.addEventListener('DOMContentLoaded', enhanceAllSelects);
 setTimeout(enhanceAllSelects, 0);
     
