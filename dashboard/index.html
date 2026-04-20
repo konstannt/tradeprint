@@ -4663,6 +4663,12 @@ function setProPaywallContent(sectionName) {
     return;
   }
 
+  if (sectionName === 'prints') {
+    title.textContent = 'Prints is only available through Tradeprint Pro.';
+    copy.textContent = 'Upgrade to share logged trades, follow other traders, view profiles, and build your Prints feed.';
+    return;
+  }
+
   title.textContent = 'The Tradeprint section is only available through Tradeprint Pro.';
   copy.textContent = 'Upgrade to unlock your trading fingerprint, strategy rankings, confluence intelligence, best and worst trading windows, and upcoming AI feedback.';
 }
@@ -5604,7 +5610,7 @@ async function showPage(name, el) {
   closeMobileSidebar();
 
   const requestedName = name;
-  const isProSection = name === 'tradeprint' || name === 'calculator';
+  const isProSection = name === 'tradeprint' || name === 'calculator' || name === 'prints';
 
   if (isProSection && !(await ensureSubscriptionLoaded())) {
     setProPaywallContent(name);
