@@ -2853,6 +2853,148 @@ select.tp-native-select {
     width: 100%;
   }
 }
+
+  /* PRINTS FINAL POLISH */
+#page-prints {
+  width: 100%;
+  max-width: none;
+  position: relative;
+}
+
+#page-prints::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  background:
+    linear-gradient(115deg, rgba(34,197,94,0.035), transparent 26%, transparent 64%, rgba(239,68,68,0.028)),
+    repeating-linear-gradient(125deg, rgba(255,255,255,0.016) 0 1px, transparent 1px 34px),
+    linear-gradient(180deg, rgba(255,255,255,0.018), transparent 42%);
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,0.95), transparent 78%);
+}
+
+.prints-page-head {
+  width: 100%;
+  max-width: none;
+}
+
+.prints-publish-btn {
+  justify-self: end;
+  margin-left: 0;
+}
+
+.prints-layout {
+  width: 100%;
+  max-width: none;
+  grid-template-columns: minmax(0, 760px) 320px;
+  justify-content: space-between;
+  gap: 28px;
+}
+
+.prints-side {
+  justify-self: end;
+  width: 320px;
+  margin-top: 62px;
+  top: 12px;
+}
+
+.print-card,
+.print-card:hover,
+.prints-profile-card,
+.print-trade-option,
+.print-mini-post,
+.print-profile-stat {
+  background: var(--bg2);
+}
+
+.print-card:hover {
+  border-color: rgba(255,255,255,0.12);
+}
+
+.print-result,
+.print-result-row {
+  display: none !important;
+}
+
+.print-confirm {
+  display: grid;
+  gap: 14px;
+}
+
+.print-confirm-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  padding: 14px;
+}
+
+.print-confirm-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.print-confirm-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.print-confirm-back {
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.print-confirm-back:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.print-chart-upload {
+  margin-top: 14px;
+}
+
+.print-chart-upload-btn {
+  width: 100%;
+}
+
+@media (max-width: 900px) {
+  .prints-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .prints-side {
+    width: 100%;
+    justify-self: stretch;
+    margin-top: 0;
+    order: -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .prints-page-head {
+    grid-template-columns: 1fr;
+  }
+
+  .prints-publish-btn {
+    justify-self: stretch;
+  }
+
+  .print-confirm-head {
+    grid-template-columns: 1fr;
+  }
+}
     
     .pro-paywall {
   min-height: calc(100vh - 120px);
@@ -3235,25 +3377,14 @@ select::-ms-expand {
       <button class="modal-close" onclick="closePrintTradeModal()">×</button>
     </div>
 
-    <div class="print-modal-copy">
-  Choose one logged trade to share. Add a chart screenshot if you want the setup to speak for itself.
-</div>
-
-<div class="print-chart-upload">
-  <input type="file" id="printChartInput" accept="image/png,image/jpeg,image/webp" style="display:none" onchange="handlePrintChartSelect(event)"/>
-
-  <button class="print-chart-upload-btn" type="button" onclick="document.getElementById('printChartInput').click()">
-    Add Chart Image
-  </button>
-
-  <button class="print-chart-clear-btn" id="printChartClearBtn" type="button" onclick="clearPrintChartImage()" style="display:none;">
-    Remove Image
-  </button>
-
-  <div class="print-chart-preview" id="printChartPreview" style="display:none;"></div>
+    <div class="print-modal-copy" id="printTradeModalCopy">
+  Choose one logged trade to publish.
 </div>
 
 <div class="print-trade-list" id="printTradeList"></div>
+
+<div class="print-confirm" id="printConfirm" style="display:none;"></div>
+
     <div class="modal-msg" id="printTradeMsg"></div>
   </div>
 </div>
@@ -8155,6 +8286,7 @@ let printFollows = [];
 let printProfilesById = {};
 let selectedPrintChartFile = null;
 let selectedPrintChartPreviewUrl = '';
+let selectedPrintTradeId = null;
 let activePrintNetworkType = 'followers';
 let activePrintNetworkUserId = null;
 
@@ -8433,10 +8565,11 @@ function renderPrintCard(post) {
           <div class="print-meta">
             ${snap.trade_time ? escapeHtml(formatDisplayTime(snap.trade_time)) : 'No time'} · ${snap.actual_rr ? `${escapeHtml(snap.actual_rr)}R` : 'No R:R'}
           </div>
-          <div class="print-result-row">
-            <span class="print-result ${resultClass}">${escapeHtml(result)}</span>
-            ${post.image_url ? '<span class="print-confluence-pill">Chart attached</span>' : ''}
-          </div>
+          ${post.image_url ? `
+  <div class="print-result-row" style="display:flex !important;">
+    <span class="print-confluence-pill">Chart attached</span>
+  </div>
+` : ''}
         </div>
 
         <div class="print-pnl-chip ${pnlTone}">${formatPnl(pnl)}</div>
@@ -8582,13 +8715,21 @@ async function uploadPrintChartImage(tradeId) {
 async function openPrintTradeModal() {
   const modal = document.getElementById('printTradeModal');
   const list = document.getElementById('printTradeList');
+  const confirm = document.getElementById('printConfirm');
+  const copy = document.getElementById('printTradeModalCopy');
   const msg = document.getElementById('printTradeMsg');
 
-  if (!modal || !list || !msg) return;
+  if (!modal || !list || !confirm || !copy || !msg) return;
+
+  selectedPrintTradeId = null;
+  clearPrintChartImage();
 
   msg.textContent = '';
   msg.className = 'modal-msg';
-  clearPrintChartImage();
+  copy.textContent = 'Choose one logged trade to publish.';
+  list.style.display = 'grid';
+  confirm.style.display = 'none';
+  confirm.innerHTML = '';
 
   if (!allTrades.length) await loadTrades();
 
@@ -8602,19 +8743,19 @@ async function openPrintTradeModal() {
       const alreadyPosted = existingTradeIds.has(t.id);
       const strategy = t.strategies?.name || 'Unknown Strategy';
       const asset = t.asset ? ` · ${t.asset}` : '';
-      const result = t.result === 'breakeven' ? 'BE' : (t.result || '-');
       const rr = t.actual_rr ? ` · ${t.actual_rr}R` : '';
       const time = t.trade_time ? ` · ${formatDisplayTime(t.trade_time)}` : '';
       const pnl = parseFloat(t.pnl) || 0;
+      const tone = getPnlTone(pnl);
 
       return `
-        <div class="print-trade-option ${alreadyPosted ? 'disabled' : ''}" ${alreadyPosted ? '' : `onclick="publishPrintTrade('${t.id}')"`}>
+        <div class="print-trade-option ${alreadyPosted ? 'disabled' : ''}" ${alreadyPosted ? '' : `onclick="selectPrintTradeForConfirm('${t.id}')"`}>
           <div class="print-card-topline" style="margin-bottom:0;">
             <div>
-              <div class="print-trade-main">${escapeHtml(strategy)}${escapeHtml(asset)} — ${escapeHtml(result)}</div>
+              <div class="print-trade-main">${escapeHtml(strategy)}${escapeHtml(asset)}</div>
               <div class="print-meta">${t.date || ''}${escapeHtml(rr)}${escapeHtml(time)} · ${t.confluences_used?.length || 0} confluences</div>
             </div>
-            <div class="dashboard-list-value" style="color:${pnl > 0 ? 'var(--success)' : pnl < 0 ? 'var(--danger)' : 'var(--text)'}">${formatPnl(pnl)}</div>
+            <div class="print-pnl-chip ${tone}" style="min-height:36px;min-width:104px;font-size:14px;">${formatPnl(pnl)}</div>
           </div>
           ${alreadyPosted ? '<div class="print-meta" style="margin-top:8px;">Already published.</div>' : ''}
         </div>
@@ -8625,20 +8766,95 @@ async function openPrintTradeModal() {
   modal.classList.add('active');
 }
 
+function selectPrintTradeForConfirm(tradeId) {
+  selectedPrintTradeId = tradeId;
+  clearPrintChartImage();
+  renderPrintConfirm();
+}
+
+function renderPrintConfirm() {
+  const list = document.getElementById('printTradeList');
+  const confirm = document.getElementById('printConfirm');
+  const copy = document.getElementById('printTradeModalCopy');
+  const trade = allTrades.find(t => t.id === selectedPrintTradeId);
+
+  if (!trade || !list || !confirm || !copy) return;
+
+  const strategy = trade.strategies?.name || 'Unknown Strategy';
+  const asset = trade.asset ? ` · ${trade.asset}` : '';
+  const rr = trade.actual_rr ? ` · ${trade.actual_rr}R` : '';
+  const time = trade.trade_time ? ` · ${formatDisplayTime(trade.trade_time)}` : '';
+  const pnl = parseFloat(trade.pnl) || 0;
+  const tone = getPnlTone(pnl);
+
+  copy.textContent = 'Confirm your Print. A chart image is optional.';
+  list.style.display = 'none';
+  confirm.style.display = 'grid';
+
+  confirm.innerHTML = `
+    <div class="print-confirm-card">
+      <div class="print-confirm-head">
+        <div>
+          <div class="print-trade-main">${escapeHtml(strategy)}${escapeHtml(asset)}</div>
+          <div class="print-meta">${trade.date || ''}${escapeHtml(rr)}${escapeHtml(time)} · ${trade.confluences_used?.length || 0} confluences</div>
+        </div>
+        <div class="print-pnl-chip ${tone}">${formatPnl(pnl)}</div>
+      </div>
+
+      <div class="print-chart-upload">
+        <input type="file" id="printChartInput" accept="image/png,image/jpeg,image/webp" style="display:none" onchange="handlePrintChartSelect(event)"/>
+
+        <button class="print-chart-upload-btn" type="button" onclick="document.getElementById('printChartInput').click()">
+          Add Chart Image
+        </button>
+
+        <button class="print-chart-clear-btn" id="printChartClearBtn" type="button" onclick="clearPrintChartImage()" style="display:none;">
+          Remove Image
+        </button>
+
+        <div class="print-chart-preview" id="printChartPreview" style="display:none;"></div>
+      </div>
+
+      <div class="print-confirm-actions">
+        <button class="print-confirm-back" type="button" onclick="backToPrintTradeList()">Back</button>
+        <button class="btn-primary" type="button" onclick="publishPrintTrade()">Post Print</button>
+      </div>
+    </div>
+  `;
+}
+
+function backToPrintTradeList() {
+  selectedPrintTradeId = null;
+  clearPrintChartImage();
+
+  const list = document.getElementById('printTradeList');
+  const confirm = document.getElementById('printConfirm');
+  const copy = document.getElementById('printTradeModalCopy');
+
+  if (copy) copy.textContent = 'Choose one logged trade to publish.';
+  if (list) list.style.display = 'grid';
+  if (confirm) {
+    confirm.style.display = 'none';
+    confirm.innerHTML = '';
+  }
+}
+
 function closePrintTradeModal() {
   document.getElementById('printTradeModal')?.classList.remove('active');
+  selectedPrintTradeId = null;
+  clearPrintChartImage();
 }
 
 function handlePrintTradeModalClick(e) {
   if (e.target === document.getElementById('printTradeModal')) closePrintTradeModal();
 }
 
-async function publishPrintTrade(tradeId) {
+async function publishPrintTrade(tradeId = selectedPrintTradeId) {
   const msg = document.getElementById('printTradeMsg');
   const trade = allTrades.find(t => t.id === tradeId);
 
   if (!trade) {
-    msg.textContent = 'Could not find that trade.';
+    msg.textContent = 'Choose a trade first.';
     msg.className = 'modal-msg error';
     return;
   }
@@ -8688,6 +8904,7 @@ async function publishPrintTrade(tradeId) {
     return;
   }
 
+  selectedPrintTradeId = null;
   clearPrintChartImage();
   closePrintTradeModal();
   await loadPrints();
@@ -8763,7 +8980,7 @@ function renderPrintMiniPost(post) {
       <div class="print-profile-post-head">
         <div>
           <div class="print-trade-main" style="font-size:15px;">${escapeHtml(snap.strategy_name || 'Unknown Strategy')}${snap.asset ? ` · ${escapeHtml(snap.asset)}` : ''}</div>
-          <div class="print-meta">${escapeHtml(created)} · ${escapeHtml(snap.result || '-')}${snap.actual_rr ? ` · ${escapeHtml(snap.actual_rr)}R` : ''}${post.image_url ? ' · Chart' : ''}</div>
+          <div class="print-meta">${escapeHtml(created)}${snap.actual_rr ? ` · ${escapeHtml(snap.actual_rr)}R` : ''}${post.image_url ? ' · Chart' : ''}</div>
         </div>
 
         <div class="print-pnl-chip ${tone}" style="min-height:34px;min-width:92px;font-size:13px;">${formatPnl(pnl)}</div>
