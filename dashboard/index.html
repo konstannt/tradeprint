@@ -1709,7 +1709,7 @@ select.tp-native-select {
   flex: 0 0 auto;
   min-height: calc(100vh - 260px);
   overflow: visible;
-  padding: 4px 36px 40px;
+    padding: 4px 36px 180px;
   font-size: 16px;
   line-height: 1.8;
   color: var(--text);
@@ -1946,8 +1946,8 @@ select.tp-native-select {
       }
 
       .note-body-editor {
-        padding: 4px 16px 24px;
-      }
+  padding: 4px 16px 160px;
+}
     }
     .calc-layout {
   width: 100%;
@@ -2834,7 +2834,7 @@ select::-ms-expand {
             <span>📝</span>
             Select a note or create a new one
           </div>
-          <div id="notesEditorInner" style="display:none;flex-direction:column;flex:1;min-height:0;overflow-y:auto;">
+          <div id="notesEditorInner" style="display:none;flex-direction:column;flex:1;min-height:0;overflow-y:auto;scroll-padding-bottom:180px;">
             <div class="notes-top-bar">
               <button class="notes-format-btn" data-ncmd="bold" onclick="notesFormat('bold')"><b>B</b></button>
               <button class="notes-format-btn" data-ncmd="italic" onclick="notesFormat('italic')"><i>I</i></button>
@@ -4819,7 +4819,7 @@ function resetPointsCalc() {
         const winRate = dayTradesArr.length > 0 ? Math.round((wins / dayTradesArr.length) * 100) : 0;
         const cell = document.createElement('div');
         cell.className = `cal-cell${isToday ? ' today' : ''}${!isCurrentMonth ? ' other-month' : ''}`;
-        cell.onclick = () => openDayModal(dateStr);
+        cell.dataset.date = dateStr;
         cell.innerHTML = `
           <div class="cal-day-num" style="${!isCurrentMonth ? 'opacity:0.3;' : ''}">${dayNum}</div>
           ${dayTradesArr.length > 0 ? `<div class="cal-day-pnl ${pnlColor}">${formatPnlShort(dayPnl)}</div><div class="cal-day-trades">${dayTradesArr.length} trade${dayTradesArr.length !== 1 ? 's' : ''}</div><div class="cal-day-winrate">${winRate}% WR</div>` : ''}
@@ -4827,6 +4827,24 @@ function resetPointsCalc() {
           <div class="cal-plus">+</div>`;
         return { cell, dayTradesArr, dayPnl };
       }
+
+      let lastCalendarOpenAt = 0;
+
+function handleCalendarGridPointerUp(event) {
+  const grid = document.getElementById('calGrid');
+  const cell = event.target.closest('.cal-cell[data-date]');
+
+  if (!grid || !cell || !grid.contains(cell)) return;
+
+  const now = Date.now();
+
+  if (now - lastCalendarOpenAt < 250) return;
+  lastCalendarOpenAt = now;
+
+  openDayModal(cell.dataset.date);
+}
+
+document.getElementById('calGrid')?.addEventListener('pointerup', handleCalendarGridPointerUp);
 
       const prevMonthDays = new Date(calYear, calMonth, 0).getDate();
       let allCells = [];
@@ -6390,11 +6408,13 @@ pageLoaded.tradeprint = hasPro;
     }
 
     function clearTradeFilters() {
-      document.getElementById('filterStrategy').value = '';
-      document.getElementById('filterResult').value = '';
-      document.getElementById('filterSort').value = 'date_desc';
-      filterTrades();
-    }
+  document.getElementById('filterStrategy').value = '';
+  document.getElementById('filterResult').value = '';
+  document.getElementById('filterSort').value = 'date_desc';
+
+  syncPrettySelects();
+  filterTrades();
+}
 
     function renderTradesStats() {
       const trades = filteredTrades;
