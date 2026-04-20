@@ -5953,19 +5953,30 @@ function getTradeprintTrades() {
 function getTradeprintCompleteness(trades) {
   if (!trades.length) return 0;
 
-  const total = trades.length * 6;
-  const filled = trades.reduce((sum, t) => {
-    let score = 0;
-    if (t.strategy_id) score++;
-    if (t.result) score++;
-    if (t.date) score++;
-    if (t.trade_time) score++;
-    if (typeof t.followed_rules === 'boolean') score++;
-    if ((t.confluences_used || []).length) score++;
-    return sum + score;
+  const totalScore = trades.reduce((sum, t) => {
+    let filledFields = 0;
+
+    const hasAsset = !!String(t.asset || '').trim();
+
+    const pnlValue = parseFloat(t.pnl);
+    const hasPnl = Number.isFinite(pnlValue) && (
+      pnlValue !== 0 || t.result === 'breakeven'
+    );
+
+    const hasTime = !!t.trade_time;
+
+    const rrValue = parseFloat(t.actual_rr);
+    const hasRR = Number.isFinite(rrValue) && rrValue > 0;
+
+    if (hasAsset) filledFields++;
+    if (hasPnl) filledFields++;
+    if (hasTime) filledFields++;
+    if (hasRR) filledFields++;
+
+    return sum + Math.round((filledFields / 4) * 100);
   }, 0);
 
-  return Math.round((filled / total) * 100);
+  return Math.round(totalScore / trades.length);
 }
 
 function getStrategyRanks(trades) {
@@ -6148,7 +6159,11 @@ function renderTradeprintIdentity({ trades, summary, clarity, bestStrategy, best
 
   title.textContent = `Your Tradeprint favors ${bestName}.`;
   copy.textContent = `Across ${trades.length} trade${trades.length !== 1 ? 's' : ''}, your trading fingerprint is showing ${summary.winRate ?? 0}% win rate, ${formatPnl(summary.totalPnl)} total PNL, and ${summary.ruleRate ?? 0}% rule discipline.${dayText}${timeText}`;
-  sub.textContent = clarity >= 80 ? 'Strong data quality.' : clarity >= 55 ? 'Good start. Add more confluences and times.' : 'Log more complete trades to sharpen this.';
+  sub.textContent = clarity >= 80
+  ? 'Strong trade detail.'
+  : clarity >= 55
+  ? 'Useful, but missing some trade details.'
+  : 'Add asset, PNL, time, and R:R to make this meaningful.';
 }
 
 function renderTradeprintRanks(ranks) {
