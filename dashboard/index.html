@@ -136,14 +136,12 @@
   content: '';
   position: absolute;
   right: 13px;
-  top: calc(50% - 2px);
-  width: 10px;
-  height: 6px;
-  background:
-    linear-gradient(45deg, transparent 50%, var(--text2) 50%) no-repeat,
-    linear-gradient(135deg, var(--text2) 50%, transparent 50%) no-repeat;
-  background-size: 6px 6px, 6px 6px;
-  background-position: 0 0, 5px 0;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid var(--text2);
+  border-bottom: 1.5px solid var(--text2);
+  transform: translateY(-65%) rotate(45deg);
 }
 
 .account-menu {
@@ -2062,9 +2060,16 @@
   appearance: none !important;
   -webkit-appearance: none !important;
   -moz-appearance: none !important;
-  background-image: none !important;
+  background-image: url("data:image/svg+xml,%3Csvg width='18' height='18' viewBox='0 0 18 18' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 7l4 4 4-4' fill='none' stroke='%23555' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: calc(100% - 12px) 50% !important;
+  background-size: 18px 18px !important;
   padding-right: 38px !important;
   transition: border-color 0.12s ease, color 0.12s ease, background-color 0.12s ease !important;
+}
+
+body.light select {
+  background-image: url("data:image/svg+xml,%3Csvg width='18' height='18' viewBox='0 0 18 18' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 7l4 4 4-4' fill='none' stroke='%23888' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
 }
 
 select:hover,
@@ -2075,18 +2080,6 @@ select:focus {
 
 select::-ms-expand {
   display: none;
-}
-
-    select:not([multiple]) {
-  background:
-    linear-gradient(45deg, transparent 50%, var(--text2) 50%) no-repeat,
-    linear-gradient(135deg, var(--text2) 50%, transparent 50%) no-repeat,
-    var(--bg2) !important;
-  background-size: 6px 6px, 6px 6px, auto !important;
-  background-position:
-    calc(100% - 18px) calc(50% - 2px),
-    calc(100% - 13px) calc(50% - 2px),
-    0 0 !important;
 }
 
     #tradeDate::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
