@@ -295,19 +295,19 @@
 }
 
 @media (max-width: 768px) {
+  #calendarAccountControls .account-menu {
+    left: 0;
+    right: auto;
+  }
+}
+
+@media (max-width: 768px) {
   .page-header {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: start;
     gap: 14px;
   }
-
-  @media (max-width: 768px) {
-  #calendarAccountControls .account-menu {
-    left: 0;
-    right: auto;
-  }
-}
 
   .page-header h1 {
     line-height: 1.05;
@@ -3188,6 +3188,48 @@ applyAuthRedirectIfPresent();
     let calTradesCache = [];
     let calNotesCache = [];
     const calendarDataCache = new Map();
+    let calendarLoadToken = 0;
+
+function getCalendarCacheKey(year = calYear, month = calMonth) {
+  return `${activeAccountIds.length ? activeAccountIds.join(',') : 'all'}-${year}-${month}`;
+}
+
+function getCalendarVisibleRange(year = calYear, month = calMonth) {
+  const firstDayOfMonth = new Date(year, month, 1);
+  const lastDayOfMonth = new Date(year, month + 1, 0);
+
+  const weekStart = new Date(firstDayOfMonth);
+  weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+
+  const weekEnd = new Date(lastDayOfMonth);
+  weekEnd.setDate(weekEnd.getDate() + (6 - weekEnd.getDay()));
+
+  return {
+    weekStart: weekStart.toISOString().split('T')[0],
+    weekEnd: weekEnd.toISOString().split('T')[0],
+    monthStart: firstDayOfMonth.toISOString().split('T')[0],
+    monthEnd: lastDayOfMonth.toISOString().split('T')[0]
+  };
+}
+
+function renderCalendarFromLoadedTrades() {
+  const calendarPage = document.getElementById('page-calendar');
+  if (!calendarPage) return;
+
+  const { weekStart, weekEnd, monthStart, monthEnd } = getCalendarVisibleRange();
+
+  const visibleTrades = getActiveAccountTrades().filter(t =>
+    t.date >= weekStart && t.date <= weekEnd
+  );
+
+  const monthTrades = visibleTrades.filter(t =>
+    t.date >= monthStart && t.date <= monthEnd
+  );
+
+  renderCalendar(visibleTrades, calNotesCache || []);
+  updateMonthlyStats(monthTrades);
+  updateNavButtons();
+}
     let noteAutosaveTimer = null;
     const MIN_DATE = new Date(2026, 0, 1);
     let allPageNotes = [];
@@ -3689,8 +3731,6 @@ function refreshAccountScopedViews(options = {}) {
   const { keepPickerOpen = false, controlId = null } = options;
 
   calendarDataCache.clear();
-  pageLoaded.strategies = false;
-  strategyAnalyticsTradesLoaded = false;
 
   renderAccountControls();
 
@@ -3703,6 +3743,10 @@ function refreshAccountScopedViews(options = {}) {
   allTrades = getActiveAccountTrades();
   filterTrades();
   renderDashboard();
+  
+  if (document.getElementById('page-calendar')?.classList.contains('active')) {
+  renderCalendarFromLoadedTrades();
+}
 
   if (document.getElementById('page-tradeprint')?.classList.contains('active')) {
     renderTradeprint();
@@ -3860,6 +3904,11 @@ async function loadStrategies() {
 
 async function loadStrategyAnalyticsTrades() {
   if (strategyAnalyticsTradesLoaded) return;
+
+  if (Array.isArray(allLoadedTrades) && allLoadedTrades.length) {
+    strategyAnalyticsTradesLoaded = true;
+    return;
+  }
 
   const res = await fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}&select=*,strategies(name),broker_accounts(name)&order=date.desc,created_at.desc`, {
     headers: {
@@ -4472,70 +4521,86 @@ function resetPointsCalc() {
 }
 
     async function loadCalendarData() {
-      const cacheKey = `${activeAccountIds.length ? activeAccountIds.join(',') : 'all'}-${calYear}-${calMonth}`;
-      if (calendarDataCache.has(cacheKey)) {
-        const cached = calendarDataCache.get(cacheKey);
-        calTradesCache = cached.trades;
-        calNotesCache = cached.notes;
-        renderCalendar(calTradesCache, calNotesCache);
-        updateMonthlyStats(cached.monthTrades);
-        updateNavButtons();
-        prefetchAdjacentCalendarMonths();
-        return;
-      }
-      const firstDayOfMonth = new Date(calYear, calMonth, 1);
-      const lastDayOfMonth = new Date(calYear, calMonth + 1, 0);
-      const weekStart = new Date(firstDayOfMonth);
-      weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-      const weekEnd = new Date(lastDayOfMonth);
-      weekEnd.setDate(weekEnd.getDate() + (6 - weekEnd.getDay()));
-      const accountFilter = getAccountFilterParam();
-      const [tradesRes, notesRes] = await Promise.all([
-        fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}${accountFilter}&date=gte.${weekStart.toISOString().split('T')[0]}&date=lte.${weekEnd.toISOString().split('T')[0]}&select=*,strategies(name),broker_accounts(name)`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } }),
-        fetch(`${SUPABASE_URL}/rest/v1/day_notes?user_id=eq.${user.id}&date=gte.${weekStart.toISOString().split('T')[0]}&date=lte.${weekEnd.toISOString().split('T')[0]}&select=*`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } })
-      ]);
-      calTradesCache = await tradesRes.json(); if (!Array.isArray(calTradesCache)) calTradesCache = [];
-calNotesCache = await notesRes.json(); if (!Array.isArray(calNotesCache)) calNotesCache = [];
-      const monthFirstDay = new Date(calYear, calMonth, 1).toISOString().split('T')[0];
-      const monthLastDay = new Date(calYear, calMonth + 1, 0).toISOString().split('T')[0];
-      const monthTrades = calTradesCache.filter(t => t.date >= monthFirstDay && t.date <= monthLastDay);
-      calendarDataCache.set(cacheKey, { trades: calTradesCache, notes: calNotesCache, monthTrades });
-      renderCalendar(calTradesCache, calNotesCache);
-      updateMonthlyStats(monthTrades);
-      updateNavButtons();
-      prefetchAdjacentCalendarMonths();
-    }
+  const tok = ++calendarLoadToken;
+  const cacheKey = getCalendarCacheKey();
 
-    async function prefetchCalendarMonth(year, month) {
-  const cacheKey = `${activeAccountIds.length ? activeAccountIds.join(',') : 'all'}-${year}-${month}`;
-  if (calendarDataCache.has(cacheKey)) return;
+  if (calendarDataCache.has(cacheKey)) {
+    const cached = calendarDataCache.get(cacheKey);
+    calTradesCache = cached.trades;
+    calNotesCache = cached.notes;
+    renderCalendar(calTradesCache, calNotesCache);
+    updateMonthlyStats(cached.monthTrades);
+    updateNavButtons();
+    prefetchAdjacentCalendarMonths();
+    return;
+  }
 
-  const firstDayOfMonth = new Date(year, month, 1);
-  const lastDayOfMonth = new Date(year, month + 1, 0);
-  const weekStart = new Date(firstDayOfMonth);
-  weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-  const weekEnd = new Date(lastDayOfMonth);
-  weekEnd.setDate(weekEnd.getDate() + (6 - weekEnd.getDay()));
-  
+  renderCalendarFromLoadedTrades();
+
+  const { weekStart, weekEnd, monthStart, monthEnd } = getCalendarVisibleRange();
   const accountFilter = getAccountFilterParam();
 
   const [tradesRes, notesRes] = await Promise.all([
-    fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}${accountFilter}&date=gte.${weekStart.toISOString().split('T')[0]}&date=lte.${weekEnd.toISOString().split('T')[0]}&select=*,strategies(name),broker_accounts(name)`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } }),
-    fetch(`${SUPABASE_URL}/rest/v1/day_notes?user_id=eq.${user.id}&date=gte.${weekStart.toISOString().split('T')[0]}&date=lte.${weekEnd.toISOString().split('T')[0]}&select=*`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } })
+    fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}${accountFilter}&date=gte.${weekStart}&date=lte.${weekEnd}&select=*,strategies(name),broker_accounts(name)`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
+    }),
+    fetch(`${SUPABASE_URL}/rest/v1/day_notes?user_id=eq.${user.id}&date=gte.${weekStart}&date=lte.${weekEnd}&select=*`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
+    })
   ]);
 
-  const trades = await tradesRes.json();
-  const notes = await notesRes.json();
-  if (!Array.isArray(trades) || !Array.isArray(notes)) return;
+  if (tok !== calendarLoadToken) return;
 
-  const monthFirstDay = new Date(year, month, 1).toISOString().split('T')[0];
-  const monthLastDay = new Date(year, month + 1, 0).toISOString().split('T')[0];
+  calTradesCache = await tradesRes.json();
+  if (!Array.isArray(calTradesCache)) calTradesCache = [];
+
+  calNotesCache = await notesRes.json();
+  if (!Array.isArray(calNotesCache)) calNotesCache = [];
+
+  const monthTrades = calTradesCache.filter(t => t.date >= monthStart && t.date <= monthEnd);
 
   calendarDataCache.set(cacheKey, {
-    trades,
-    notes,
-    monthTrades: trades.filter(t => t.date >= monthFirstDay && t.date <= monthLastDay)
+    trades: calTradesCache,
+    notes: calNotesCache,
+    monthTrades
   });
+
+  renderCalendar(calTradesCache, calNotesCache);
+  updateMonthlyStats(monthTrades);
+  updateNavButtons();
+  prefetchAdjacentCalendarMonths();
+}
+
+    async function prefetchCalendarMonth(year, month) {
+  const cacheKey = getCalendarCacheKey(year, month);
+  if (calendarDataCache.has(cacheKey)) return;
+
+  const { weekStart, weekEnd, monthStart, monthEnd } = getCalendarVisibleRange(year, month);
+  const accountFilter = getAccountFilterParam();
+
+  try {
+    const [tradesRes, notesRes] = await Promise.all([
+      fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}${accountFilter}&date=gte.${weekStart}&date=lte.${weekEnd}&select=*,strategies(name),broker_accounts(name)`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
+      }),
+      fetch(`${SUPABASE_URL}/rest/v1/day_notes?user_id=eq.${user.id}&date=gte.${weekStart}&date=lte.${weekEnd}&select=*`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
+      })
+    ]);
+
+    const trades = await tradesRes.json();
+    const notes = await notesRes.json();
+
+    if (!Array.isArray(trades) || !Array.isArray(notes)) return;
+
+    calendarDataCache.set(cacheKey, {
+      trades,
+      notes,
+      monthTrades: trades.filter(t => t.date >= monthStart && t.date <= monthEnd)
+    });
+  } catch (err) {
+    console.warn('Calendar prefetch failed:', err);
+  }
 }
 
     function prefetchAdjacentCalendarMonths() {
@@ -5163,11 +5228,21 @@ document.getElementById('tradeAccount').value = t.account_id || '';
 }
 
     function changeMonth(dir) {
-      calMonth += dir;
-      if (calMonth > 11) { calMonth = 0; calYear++; }
-      if (calMonth < 0) { calMonth = 11; calYear--; }
-      loadCalendarData();
-    }
+  calMonth += dir;
+
+  if (calMonth > 11) {
+    calMonth = 0;
+    calYear++;
+  }
+
+  if (calMonth < 0) {
+    calMonth = 11;
+    calYear--;
+  }
+
+  renderCalendarFromLoadedTrades();
+  loadCalendarData();
+}
 
 // ─── DASHBOARD ───────────────────────────────────────────────
 async function loadDashboard() {
