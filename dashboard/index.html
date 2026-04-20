@@ -2593,6 +2593,266 @@ select.tp-native-select {
     grid-template-columns: 1fr;
   }
 }
+
+  #page-prints {
+  position: relative;
+  max-width: 1180px;
+}
+
+#page-prints::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.026) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.022) 1px, transparent 1px);
+  background-size: 54px 54px;
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,0.85), transparent 72%);
+  z-index: -1;
+}
+
+.prints-page-head {
+  max-width: 1180px;
+}
+
+.prints-layout {
+  grid-template-columns: minmax(0, 760px) 320px;
+  justify-content: start;
+  gap: 26px;
+  max-width: 1180px;
+}
+
+.prints-side {
+  margin-top: 0;
+  top: 12px;
+}
+
+.prints-tabs {
+  grid-template-columns: repeat(3, 1fr);
+  width: 430px;
+  background: rgba(255,255,255,0.025);
+}
+
+.print-card,
+.prints-profile-card,
+.print-trade-option,
+.print-mini-post,
+.print-profile-stat {
+  background: var(--bg2);
+}
+
+.print-card {
+  border-color: rgba(255,255,255,0.075);
+}
+
+.print-card:hover {
+  border-color: rgba(255,255,255,0.12);
+  background: var(--bg2);
+}
+
+.print-card-user:hover .print-card-name,
+.print-details-btn:hover,
+.print-network-user:hover .print-network-name {
+  color: var(--accent);
+}
+
+.print-card-topline {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.print-printline {
+  min-width: 0;
+}
+
+.print-pnl-chip {
+  min-width: 112px;
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  font-size: 18px;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.print-pnl-chip.green {
+  color: var(--success);
+  border-color: rgba(34,197,94,0.26);
+  background: rgba(34,197,94,0.07);
+}
+
+.print-pnl-chip.red {
+  color: var(--danger);
+  border-color: rgba(239,68,68,0.26);
+  background: rgba(239,68,68,0.07);
+}
+
+.print-pnl-chip.flat {
+  color: var(--text2);
+}
+
+.print-result-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.print-chart {
+  width: 100%;
+  margin: 14px 0 2px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  overflow: hidden;
+}
+
+.print-chart img {
+  width: 100%;
+  max-height: 440px;
+  display: block;
+  object-fit: contain;
+  cursor: zoom-in;
+}
+
+.print-chart-upload {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.print-chart-upload-btn,
+.print-chart-clear-btn {
+  min-height: 38px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.print-chart-upload-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.print-chart-clear-btn:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.print-chart-preview {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.print-chart-preview img {
+  width: 100%;
+  max-height: 260px;
+  display: block;
+  object-fit: contain;
+}
+
+.prints-network span,
+.print-profile-stat {
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s, transform 0.15s;
+}
+
+.prints-network span:hover small,
+.prints-network span:hover strong {
+  color: var(--accent);
+}
+
+.print-profile-stat:hover {
+  border-color: var(--accent);
+  background: rgba(99,102,241,0.08);
+  transform: translateY(-1px);
+}
+
+.print-leaderboard {
+  display: grid;
+  gap: 10px;
+}
+
+.print-leaderboard-row {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg2);
+}
+
+.print-leaderboard-rank {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text2);
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.print-leaderboard-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.print-leaderboard-user:hover .print-card-name {
+  color: var(--accent);
+}
+
+.print-profile-post-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+@media (max-width: 900px) {
+  .prints-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .prints-side {
+    order: -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .prints-tabs {
+    width: 100%;
+  }
+
+  .print-card-topline,
+  .print-leaderboard-row {
+    grid-template-columns: 1fr;
+  }
+
+  .print-pnl-chip {
+    width: 100%;
+  }
+}
     
     .pro-paywall {
   min-height: calc(100vh - 120px);
@@ -2976,10 +3236,24 @@ select::-ms-expand {
     </div>
 
     <div class="print-modal-copy">
-      Choose one logged trade to share. Prints show the trade details, not your private account notes.
-    </div>
+  Choose one logged trade to share. Add a chart screenshot if you want the setup to speak for itself.
+</div>
 
-    <div class="print-trade-list" id="printTradeList"></div>
+<div class="print-chart-upload">
+  <input type="file" id="printChartInput" accept="image/png,image/jpeg,image/webp" style="display:none" onchange="handlePrintChartSelect(event)"/>
+
+  <button class="print-chart-upload-btn" type="button" onclick="document.getElementById('printChartInput').click()">
+    Add Chart Image
+  </button>
+
+  <button class="print-chart-clear-btn" id="printChartClearBtn" type="button" onclick="clearPrintChartImage()" style="display:none;">
+    Remove Image
+  </button>
+
+  <div class="print-chart-preview" id="printChartPreview" style="display:none;"></div>
+</div>
+
+<div class="print-trade-list" id="printTradeList"></div>
     <div class="modal-msg" id="printTradeMsg"></div>
   </div>
 </div>
@@ -3587,9 +3861,10 @@ select::-ms-expand {
   <div class="prints-layout">
     <div class="prints-main">
       <div class="prints-tabs">
-        <button class="prints-tab active" id="printsTabEveryone" onclick="setPrintsTab('everyone')">Everyone</button>
-        <button class="prints-tab" id="printsTabFollowing" onclick="setPrintsTab('following')">Following</button>
-      </div>
+  <button class="prints-tab active" id="printsTabEveryone" onclick="setPrintsTab('everyone')">Everyone</button>
+  <button class="prints-tab" id="printsTabFollowing" onclick="setPrintsTab('following')">Following</button>
+  <button class="prints-tab" id="printsTabLeaderboard" onclick="setPrintsTab('leaderboard')">Leaderboard</button>
+</div>
 
       <div class="prints-feed" id="printsFeed">
         <div class="prints-empty">Loading Prints...</div>
@@ -5051,6 +5326,13 @@ function getMostCostlyMissingConfluence(confluences, trades) {
           const imgTag = `<img src="${url}" alt="avatar"/>`;
           document.getElementById('settingsAvatar').innerHTML = imgTag;
           document.getElementById('sidebarAvatar').innerHTML = imgTag;
+          if (typeof printProfilesById !== 'undefined') {
+  if (!printProfilesById[user.id]) printProfilesById[user.id] = { id: user.id };
+  printProfilesById[user.id].avatar_url = url;
+}
+
+if (typeof renderPrintsProfile === 'function') renderPrintsProfile();
+if (typeof renderPrintsFeed === 'function') renderPrintsFeed();
           msg.textContent = 'Photo saved!'; msg.className = 'msg success';
           closeCropper();
         } else { msg.textContent = 'Upload failed.'; msg.className = 'msg error'; }
@@ -7871,6 +8153,10 @@ let printsTab = 'everyone';
 let printPosts = [];
 let printFollows = [];
 let printProfilesById = {};
+let selectedPrintChartFile = null;
+let selectedPrintChartPreviewUrl = '';
+let activePrintNetworkType = 'followers';
+let activePrintNetworkUserId = null;
 
 async function loadPrints() {
   await Promise.all([
@@ -7892,8 +8178,13 @@ async function loadPrintFollows() {
 }
 
 async function loadPrintPosts() {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/print_posts?select=*&order=created_at.desc&limit=80`, {
-    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/print_posts?select=*&order=created_at.desc&limit=120`, {
+    cache: 'no-store',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`,
+      'Cache-Control': 'no-cache'
+    }
   });
 
   const posts = await res.json();
@@ -7906,7 +8197,12 @@ async function loadPrintPosts() {
 
   if (userIds.length) {
     const profileRes = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=in.(${userIds.join(',')})&select=id,username,avatar_url,bio`, {
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
+      cache: 'no-store',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${token}`,
+        'Cache-Control': 'no-cache'
+      }
     });
 
     const profiles = await profileRes.json();
@@ -7926,9 +8222,12 @@ async function loadPrintPosts() {
 }
 
 function setPrintsTab(tab) {
-  printsTab = tab === 'following' ? 'following' : 'everyone';
+  printsTab = ['everyone', 'following', 'leaderboard'].includes(tab) ? tab : 'everyone';
+
   document.getElementById('printsTabEveryone')?.classList.toggle('active', printsTab === 'everyone');
   document.getElementById('printsTabFollowing')?.classList.toggle('active', printsTab === 'following');
+  document.getElementById('printsTabLeaderboard')?.classList.toggle('active', printsTab === 'leaderboard');
+
   renderPrintsFeed();
 }
 
@@ -8004,6 +8303,11 @@ function renderPrintsFeed() {
   const feed = document.getElementById('printsFeed');
   if (!feed) return;
 
+  if (printsTab === 'leaderboard') {
+    renderPrintLeaderboard(feed);
+    return;
+  }
+
   const posts = getVisiblePrintPosts();
 
   if (!posts.length) {
@@ -8014,6 +8318,77 @@ function renderPrintsFeed() {
   }
 
   feed.innerHTML = posts.map(renderPrintCard).join('');
+}
+
+function getPrintPostPnl(post) {
+  return parseFloat(post.trade_snapshot?.pnl) || 0;
+}
+
+function getPnlTone(value) {
+  return value > 0 ? 'green' : value < 0 ? 'red' : 'flat';
+}
+
+function getPrintLeaderboardRows() {
+  const groups = {};
+
+  printPosts.forEach(post => {
+    if (!post.user_id) return;
+
+    if (!groups[post.user_id]) {
+      groups[post.user_id] = {
+        userId: post.user_id,
+        pnl: 0,
+        posts: 0,
+        wins: 0
+      };
+    }
+
+    groups[post.user_id].pnl += getPrintPostPnl(post);
+    groups[post.user_id].posts += 1;
+
+    if (post.trade_snapshot?.result === 'win') {
+      groups[post.user_id].wins += 1;
+    }
+  });
+
+  return Object.values(groups)
+    .sort((a, b) => b.pnl - a.pnl || b.posts - a.posts)
+    .slice(0, 50);
+}
+
+function renderPrintLeaderboard(feed) {
+  const rows = getPrintLeaderboardRows();
+
+  if (!rows.length) {
+    feed.innerHTML = '<div class="prints-empty">No leaderboard yet. Published Prints will rank traders by shared PNL.</div>';
+    return;
+  }
+
+  feed.innerHTML = `
+    <div class="print-leaderboard">
+      ${rows.map((row, index) => {
+        const profile = getPrintProfile(row.userId);
+        const winRate = row.posts ? Math.round((row.wins / row.posts) * 100) : 0;
+        const tone = getPnlTone(row.pnl);
+
+        return `
+          <div class="print-leaderboard-row">
+            <div class="print-leaderboard-rank">${index + 1}</div>
+
+            <div class="print-leaderboard-user" onclick="openPrintProfile('${row.userId}')">
+              <div class="avatar">${getPrintAvatarHtml(profile)}</div>
+              <div style="min-width:0;">
+                <div class="print-card-name">${escapeHtml(profile.username || 'Trader')}</div>
+                <div class="print-meta">${row.posts} Print${row.posts !== 1 ? 's' : ''} · ${winRate}% shared WR</div>
+              </div>
+            </div>
+
+            <div class="print-pnl-chip ${tone}">${formatPnl(row.pnl)}</div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
 }
 
 function renderPrintCard(post) {
@@ -8027,6 +8402,7 @@ function renderPrintCard(post) {
   const result = snap.result || 'breakeven';
   const resultClass = result === 'loss' ? 'loss' : result === 'win' ? 'win' : 'breakeven';
   const pnl = parseFloat(snap.pnl) || 0;
+  const pnlTone = getPnlTone(pnl);
   const created = new Date(post.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   const confluences = Array.isArray(snap.confluences_used) ? snap.confluences_used : [];
 
@@ -8052,15 +8428,25 @@ function renderPrintCard(post) {
       </div>
 
       <div class="print-card-topline">
-        <div>
+        <div class="print-printline">
           <div class="print-trade-main">${escapeHtml(snap.strategy_name || 'Unknown Strategy')}${snap.asset ? ` · ${escapeHtml(snap.asset)}` : ''}</div>
           <div class="print-meta">
-            ${snap.trade_time ? escapeHtml(formatDisplayTime(snap.trade_time)) : 'No time'} · ${snap.actual_rr ? `${escapeHtml(snap.actual_rr)}R` : 'No R:R'} · ${formatPnl(pnl)}
+            ${snap.trade_time ? escapeHtml(formatDisplayTime(snap.trade_time)) : 'No time'} · ${snap.actual_rr ? `${escapeHtml(snap.actual_rr)}R` : 'No R:R'}
+          </div>
+          <div class="print-result-row">
+            <span class="print-result ${resultClass}">${escapeHtml(result)}</span>
+            ${post.image_url ? '<span class="print-confluence-pill">Chart attached</span>' : ''}
           </div>
         </div>
 
-        <span class="print-result ${resultClass}">${escapeHtml(result)}</span>
+        <div class="print-pnl-chip ${pnlTone}">${formatPnl(pnl)}</div>
       </div>
+
+      ${post.image_url ? `
+        <div class="print-chart">
+          <img src="${escapeHtml(post.image_url)}" alt="chart" onclick="openLightbox(this)"/>
+        </div>
+      ` : ''}
 
       <button class="print-details-btn" onclick="togglePrintDetails('${post.id}', this)">View details</button>
 
@@ -8112,6 +8498,87 @@ async function togglePrintFollow(targetUserId) {
   renderPrintsFeed();
 }
 
+function handlePrintChartSelect(event) {
+  const file = event.target.files?.[0];
+  const preview = document.getElementById('printChartPreview');
+  const clearBtn = document.getElementById('printChartClearBtn');
+
+  if (!file || !preview || !clearBtn) return;
+
+  if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
+    document.getElementById('printTradeMsg').textContent = 'Use a PNG, JPG, or WEBP chart image.';
+    document.getElementById('printTradeMsg').className = 'modal-msg error';
+    event.target.value = '';
+    return;
+  }
+
+  if (file.size > 5 * 1024 * 1024) {
+    document.getElementById('printTradeMsg').textContent = 'Chart image must be under 5MB.';
+    document.getElementById('printTradeMsg').className = 'modal-msg error';
+    event.target.value = '';
+    return;
+  }
+
+  selectedPrintChartFile = file;
+
+  if (selectedPrintChartPreviewUrl) {
+    URL.revokeObjectURL(selectedPrintChartPreviewUrl);
+  }
+
+  selectedPrintChartPreviewUrl = URL.createObjectURL(file);
+  preview.innerHTML = `<img src="${selectedPrintChartPreviewUrl}" alt="chart preview"/>`;
+  preview.style.display = 'block';
+  clearBtn.style.display = 'block';
+}
+
+function clearPrintChartImage() {
+  selectedPrintChartFile = null;
+
+  if (selectedPrintChartPreviewUrl) {
+    URL.revokeObjectURL(selectedPrintChartPreviewUrl);
+    selectedPrintChartPreviewUrl = '';
+  }
+
+  const input = document.getElementById('printChartInput');
+  const preview = document.getElementById('printChartPreview');
+  const clearBtn = document.getElementById('printChartClearBtn');
+
+  if (input) input.value = '';
+  if (preview) {
+    preview.innerHTML = '';
+    preview.style.display = 'none';
+  }
+  if (clearBtn) clearBtn.style.display = 'none';
+}
+
+async function uploadPrintChartImage(tradeId) {
+  if (!selectedPrintChartFile) return null;
+
+  const ext = selectedPrintChartFile.type === 'image/webp'
+    ? 'webp'
+    : selectedPrintChartFile.type === 'image/png'
+    ? 'png'
+    : 'jpg';
+
+  const path = `${user.id}/${tradeId}-${Date.now()}.${ext}`;
+
+  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/print-charts/${path}`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': selectedPrintChartFile.type,
+      'x-upsert': 'true'
+    },
+    body: selectedPrintChartFile
+  });
+
+  if (!res.ok) {
+    throw new Error('Chart upload failed.');
+  }
+
+  return `${SUPABASE_URL}/storage/v1/object/public/print-charts/${path}`;
+}
+    
 async function openPrintTradeModal() {
   const modal = document.getElementById('printTradeModal');
   const list = document.getElementById('printTradeList');
@@ -8121,6 +8588,7 @@ async function openPrintTradeModal() {
 
   msg.textContent = '';
   msg.className = 'modal-msg';
+  clearPrintChartImage();
 
   if (!allTrades.length) await loadTrades();
 
@@ -8175,6 +8643,19 @@ async function publishPrintTrade(tradeId) {
     return;
   }
 
+  msg.textContent = selectedPrintChartFile ? 'Uploading chart...' : 'Publishing...';
+  msg.className = 'modal-msg';
+
+  let chartUrl = null;
+
+  try {
+    chartUrl = await uploadPrintChartImage(trade.id);
+  } catch (err) {
+    msg.textContent = 'Could not upload chart image.';
+    msg.className = 'modal-msg error';
+    return;
+  }
+
   const snapshot = {
     strategy_name: trade.strategies?.name || 'Unknown Strategy',
     asset: trade.asset || '',
@@ -8193,7 +8674,12 @@ async function publishPrintTrade(tradeId) {
       'Content-Type': 'application/json',
       'Prefer': 'return=minimal'
     },
-    body: JSON.stringify({ user_id: user.id, trade_id: trade.id, trade_snapshot: snapshot })
+    body: JSON.stringify({
+      user_id: user.id,
+      trade_id: trade.id,
+      trade_snapshot: snapshot,
+      image_url: chartUrl
+    })
   });
 
   if (!res.ok) {
@@ -8202,6 +8688,7 @@ async function publishPrintTrade(tradeId) {
     return;
   }
 
+  clearPrintChartImage();
   closePrintTradeModal();
   await loadPrints();
 }
@@ -8267,12 +8754,28 @@ function openPrintProfile(profileUserId) {
 function renderPrintMiniPost(post) {
   const snap = post.trade_snapshot || {};
   const pnl = parseFloat(snap.pnl) || 0;
+  const tone = getPnlTone(pnl);
   const created = new Date(post.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const isOwnPost = post.user_id === user.id;
 
   return `
     <div class="print-mini-post">
-      <div class="print-trade-main" style="font-size:15px;">${escapeHtml(snap.strategy_name || 'Unknown Strategy')}${snap.asset ? ` · ${escapeHtml(snap.asset)}` : ''}</div>
-      <div class="print-meta">${escapeHtml(created)} · ${escapeHtml(snap.result || '-')} · ${snap.actual_rr ? `${escapeHtml(snap.actual_rr)}R · ` : ''}${formatPnl(pnl)}</div>
+      <div class="print-profile-post-head">
+        <div>
+          <div class="print-trade-main" style="font-size:15px;">${escapeHtml(snap.strategy_name || 'Unknown Strategy')}${snap.asset ? ` · ${escapeHtml(snap.asset)}` : ''}</div>
+          <div class="print-meta">${escapeHtml(created)} · ${escapeHtml(snap.result || '-')}${snap.actual_rr ? ` · ${escapeHtml(snap.actual_rr)}R` : ''}${post.image_url ? ' · Chart' : ''}</div>
+        </div>
+
+        <div class="print-pnl-chip ${tone}" style="min-height:34px;min-width:92px;font-size:13px;">${formatPnl(pnl)}</div>
+      </div>
+
+      ${post.image_url ? `
+        <div class="print-chart">
+          <img src="${escapeHtml(post.image_url)}" alt="chart" onclick="openLightbox(this)"/>
+        </div>
+      ` : ''}
+
+      ${isOwnPost ? `<button class="print-delete-btn" style="margin-top:10px;" onclick="deletePrintPost('${post.id}').then(() => openPrintProfile(user.id))">Delete Print</button>` : ''}
     </div>
   `;
 }
@@ -8291,18 +8794,19 @@ function openPrintNetwork(type, profileUserId) {
   const list = document.getElementById('printNetworkList');
   if (!modal || !title || !list) return;
 
-  const isFollowers = type === 'followers';
+  activePrintNetworkType = type === 'following' ? 'following' : 'followers';
+  activePrintNetworkUserId = profileUserId;
+
+  const isFollowers = activePrintNetworkType === 'followers';
   const rows = printFollows
     .filter(f => isFollowers ? f.following_id === profileUserId : f.follower_id === profileUserId)
     .map(f => isFollowers ? f.follower_id : f.following_id);
 
   title.textContent = isFollowers ? 'Followers' : 'Following';
 
-  if (!rows.length) {
-    list.innerHTML = `<div class="prints-empty">No ${isFollowers ? 'followers' : 'following'} yet.</div>`;
-  } else {
-    list.innerHTML = rows.map(renderPrintNetworkRow).join('');
-  }
+  list.innerHTML = rows.length
+    ? rows.map(renderPrintNetworkRow).join('')
+    : `<div class="prints-empty">No ${isFollowers ? 'followers' : 'following'} yet.</div>`;
 
   modal.classList.add('active');
 }
@@ -8323,7 +8827,7 @@ function renderPrintNetworkRow(profileUserId) {
       </div>
 
       ${isOwnProfile ? '' : `
-        <button class="print-follow-btn ${isFollowing ? 'active' : ''}" onclick="togglePrintFollow('${profileUserId}').then(() => openPrintNetwork('${printsTab}', '${user.id}'))">
+        <button class="print-follow-btn ${isFollowing ? 'active' : ''}" onclick="togglePrintFollow('${profileUserId}').then(() => openPrintNetwork(activePrintNetworkType, activePrintNetworkUserId))">
           ${isFollowing ? 'Following' : 'Follow'}
         </button>
       `}
