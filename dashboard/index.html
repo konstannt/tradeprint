@@ -2755,6 +2755,48 @@ select.tp-native-select {
   color: var(--text2);
 }
 
+.print-pnl-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.print-pnl-toggle {
+  width: 46px;
+  min-width: 46px;
+  min-height: 46px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+
+.print-pnl-toggle:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.print-pnl-toggle.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(99,102,241,0.08);
+}
+
+.print-pnl-toggle svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .print-result-row {
   display: flex;
   align-items: center;
@@ -3077,6 +3119,13 @@ select.tp-native-select {
 
   .print-pnl-chip {
     width: 100%;
+  }
+    .print-pnl-row {
+    width: 100%;
+  }
+
+  .print-pnl-toggle {
+    min-height: 44px;
   }
 }
 
@@ -8563,6 +8612,7 @@ let printProfilesById = {};
 let selectedPrintChartFile = null;
 let selectedPrintChartPreviewUrl = '';
 let selectedPrintTradeId = null;
+let selectedPrintHidePnl = false;
 let activeReplyPostId = null;
 let activePrintNetworkType = 'followers';
 let activePrintNetworkUserId = null;
@@ -8838,6 +8888,17 @@ function getPnlTone(value) {
   return value > 0 ? 'green' : value < 0 ? 'red' : 'flat';
 }
 
+function getPrintPnlDisplay(postOrSnapshot) {
+  const source = postOrSnapshot?.trade_snapshot ? postOrSnapshot.trade_snapshot : postOrSnapshot;
+  const pnl = parseFloat(source?.pnl) || 0;
+  return source?.pnl_hidden ? '****' : formatPnl(pnl);
+}
+
+function toggleSelectedPrintHidePnl() {
+  selectedPrintHidePnl = !selectedPrintHidePnl;
+  renderPrintConfirm();
+}
+
 function getPrintLeaderboardRows() {
   const groups = {};
 
@@ -8952,7 +9013,7 @@ function renderPrintCard(post) {
 ` : ''}
         </div>
 
-        <div class="print-pnl-chip ${pnlTone}">${formatPnl(pnl)}</div>
+        <div class="print-pnl-chip ${pnlTone}">${getPrintPnlDisplay(post)}</div>
       </div>
 
       ${caption ? `<div class="print-caption">${formatPrintText(caption)}</div>` : ''}
@@ -9109,7 +9170,8 @@ async function openPrintTradeModal() {
   if (!modal || !list || !confirm || !copy || !msg) return;
 
   selectedPrintTradeId = null;
-  clearPrintChartImage();
+selectedPrintHidePnl = false;
+clearPrintChartImage();
 
   msg.textContent = '';
   msg.className = 'modal-msg';
@@ -9155,6 +9217,7 @@ async function openPrintTradeModal() {
 
 function selectPrintTradeForConfirm(tradeId) {
   selectedPrintTradeId = tradeId;
+  selectedPrintHidePnl = false;
   clearPrintChartImage();
   renderPrintConfirm();
 }
@@ -9182,6 +9245,7 @@ function renderPrintConfirm() {
   const time = trade.trade_time ? ` · ${formatDisplayTime(trade.trade_time)}` : '';
   const pnl = parseFloat(trade.pnl) || 0;
   const tone = getPnlTone(pnl);
+    const pnlDisplay = selectedPrintHidePnl ? '****' : formatPnl(pnl);
 
   copy.textContent = 'Confirm your Print. A chart image is optional.';
   list.style.display = 'none';
@@ -9194,7 +9258,30 @@ function renderPrintConfirm() {
           <div class="print-trade-main">${escapeHtml(strategy)}${escapeHtml(asset)}</div>
           <div class="print-meta">${trade.date || ''}${escapeHtml(rr)}${escapeHtml(time)} · ${trade.confluences_used?.length || 0} confluences</div>
         </div>
-        <div class="print-pnl-chip ${tone}">${formatPnl(pnl)}</div>
+                <div class="print-pnl-row">
+          <div class="print-pnl-chip ${tone}">${pnlDisplay}</div>
+
+          <button
+            class="print-pnl-toggle ${selectedPrintHidePnl ? 'active' : ''}"
+            type="button"
+            onclick="toggleSelectedPrintHidePnl()"
+            title="${selectedPrintHidePnl ? 'Show real PNL' : 'Hide PNL'}"
+          >
+            ${selectedPrintHidePnl ? `
+              <svg viewBox="0 0 24 24">
+                <path d="M3 3l18 18"/>
+                <path d="M10.58 10.58a2 2 0 0 0 2.83 2.83"/>
+                <path d="M9.36 5.37A9.97 9.97 0 0 1 12 5c7 0 10 7 10 7a17.46 17.46 0 0 1-5.06 5.94"/>
+                <path d="M6.23 6.23C3.5 8.11 2 12 2 12s3 7 10 7a9.8 9.8 0 0 0 2.77-.39"/>
+              </svg>
+            ` : `
+              <svg viewBox="0 0 24 24">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            `}
+          </button>
+        </div>
       </div>
 
       <div class="print-textarea-wrap" style="margin-top:14px;">
@@ -9231,6 +9318,7 @@ function renderPrintConfirm() {
 
 function backToPrintTradeList() {
   selectedPrintTradeId = null;
+  selectedPrintHidePnl = false;
   clearPrintChartImage();
 
   const list = document.getElementById('printTradeList');
@@ -9248,6 +9336,7 @@ function backToPrintTradeList() {
 function closePrintTradeModal() {
   document.getElementById('printTradeModal')?.classList.remove('active');
   selectedPrintTradeId = null;
+  selectedPrintHidePnl = false;
   clearPrintChartImage();
 }
 
@@ -9279,16 +9368,16 @@ async function publishPrintTrade(tradeId = selectedPrintTradeId) {
   }
 
   const snapshot = {
-    strategy_name: trade.strategies?.name || 'Unknown Strategy',
-    asset: trade.asset || '',
-    result: trade.result || '',
-    pnl: parseFloat(trade.pnl) || 0,
-    actual_rr: trade.actual_rr || null,
-    trade_time: trade.trade_time || null,
-    confluences_used: Array.isArray(trade.confluences_used) ? trade.confluences_used : [],
-caption: document.getElementById('printCaptionInput')?.value.trim().slice(0, PRINT_CAPTION_MAX) || ''
-  };
-
+  strategy_name: trade.strategies?.name || 'Unknown Strategy',
+  asset: trade.asset || '',
+  result: trade.result || '',
+  pnl: parseFloat(trade.pnl) || 0,
+  pnl_hidden: selectedPrintHidePnl,
+  actual_rr: trade.actual_rr || null,
+  trade_time: trade.trade_time || null,
+  confluences_used: Array.isArray(trade.confluences_used) ? trade.confluences_used : [],
+  caption: document.getElementById('printCaptionInput')?.value.trim().slice(0, PRINT_CAPTION_MAX) || ''
+};
   const res = await fetch(`${SUPABASE_URL}/rest/v1/print_posts`, {
     method: 'POST',
     headers: {
@@ -9391,7 +9480,7 @@ function renderPrintMiniPost(post) {
           <div class="print-meta">${escapeHtml(created)}${snap.actual_rr ? ` · ${escapeHtml(snap.actual_rr)}R` : ''}${post.image_url ? ' · Chart' : ''}</div>
         </div>
 
-        <div class="print-pnl-chip ${tone}" style="min-height:34px;min-width:92px;font-size:13px;">${formatPnl(pnl)}</div>
+        <div class="print-pnl-chip ${tone}" style="min-height:34px;min-width:92px;font-size:13px;">${getPrintPnlDisplay(post)}</div>
       </div>
 
       ${post.image_url ? `
@@ -9524,7 +9613,7 @@ function renderPrintRepliesContent() {
           <div class="print-trade-main">${escapeHtml(snap.strategy_name || 'Unknown Strategy')}${snap.asset ? ` · ${escapeHtml(snap.asset)}` : ''}</div>
           <div class="print-meta">${snap.trade_time ? escapeHtml(formatDisplayTime(snap.trade_time)) : 'No time'}${snap.actual_rr ? ` · ${escapeHtml(snap.actual_rr)}R` : ''}</div>
         </div>
-        <div class="print-pnl-chip ${getPnlTone(parseFloat(snap.pnl) || 0)}">${formatPnl(parseFloat(snap.pnl) || 0)}</div>
+        <div class="print-pnl-chip ${getPnlTone(parseFloat(snap.pnl) || 0)}">${getPrintPnlDisplay(snap)}</div>
       </div>
       ${snap.caption ? `<div class="print-caption">${formatPrintText(snap.caption)}</div>` : ''}
     </div>
