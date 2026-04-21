@@ -8891,7 +8891,7 @@ function getPnlTone(value) {
 function getPrintPnlDisplay(postOrSnapshot) {
   const source = postOrSnapshot?.trade_snapshot ? postOrSnapshot.trade_snapshot : postOrSnapshot;
   const pnl = parseFloat(source?.pnl) || 0;
-  return source?.pnl_hidden ? '****' : formatPnl(pnl);
+  return source?.pnl_hidden ? '******' : formatPnl(pnl);
 }
 
 function toggleSelectedPrintHidePnl() {
