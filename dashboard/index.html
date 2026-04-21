@@ -8891,7 +8891,12 @@ function getPnlTone(value) {
 function getPrintPnlDisplay(postOrSnapshot) {
   const source = postOrSnapshot?.trade_snapshot ? postOrSnapshot.trade_snapshot : postOrSnapshot;
   const pnl = parseFloat(source?.pnl) || 0;
-  return source?.pnl_hidden ? '******' : formatPnl(pnl);
+
+  if (!source?.pnl_hidden) return formatPnl(pnl);
+  if (pnl < 0) return '-$*****';
+  if (pnl > 0) return '+$*****';
+
+  return '$*****';
 }
 
 function toggleSelectedPrintHidePnl() {
@@ -9245,7 +9250,9 @@ function renderPrintConfirm() {
   const time = trade.trade_time ? ` · ${formatDisplayTime(trade.trade_time)}` : '';
   const pnl = parseFloat(trade.pnl) || 0;
   const tone = getPnlTone(pnl);
-    const pnlDisplay = selectedPrintHidePnl ? '****' : formatPnl(pnl);
+    const pnlDisplay = selectedPrintHidePnl
+  ? (pnl < 0 ? '-$*****' : pnl > 0 ? '+$*****' : '$*****')
+  : formatPnl(pnl);
 
   copy.textContent = 'Confirm your Print. A chart image is optional.';
   list.style.display = 'none';
