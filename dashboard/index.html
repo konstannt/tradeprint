@@ -2166,6 +2166,14 @@ select.tp-native-select {
   margin-top: 58px;
 }
 
+.prints-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
 .prints-tabs {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -2175,7 +2183,30 @@ select.tp-native-select {
   background: var(--bg2);
   border: 1px solid var(--border);
   border-radius: 8px;
-  margin-bottom: 14px;
+  margin-bottom: 0;
+}
+
+.prints-refresh-btn {
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg2);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.prints-refresh-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.prints-refresh-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
 }
 
 .prints-tab {
@@ -3001,7 +3032,16 @@ select.tp-native-select {
 }
 
 @media (max-width: 768px) {
+  .prints-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
   .prints-tabs {
+    width: 100%;
+  }
+
+  .prints-refresh-btn {
     width: 100%;
   }
 
@@ -4182,11 +4222,17 @@ select::-ms-expand {
 
   <div class="prints-layout">
     <div class="prints-main">
-      <div class="prints-tabs">
-  <button class="prints-tab active" id="printsTabEveryone" onclick="setPrintsTab('everyone')">Everyone</button>
-  <button class="prints-tab" id="printsTabFollowing" onclick="setPrintsTab('following')">Following</button>
-  <button class="prints-tab" id="printsTabLeaderboard" onclick="setPrintsTab('leaderboard')">Leaderboard</button>
-</div>
+            <div class="prints-toolbar">
+        <div class="prints-tabs">
+          <button class="prints-tab active" id="printsTabEveryone" onclick="setPrintsTab('everyone')">Everyone</button>
+          <button class="prints-tab" id="printsTabFollowing" onclick="setPrintsTab('following')">Following</button>
+          <button class="prints-tab" id="printsTabLeaderboard" onclick="setPrintsTab('leaderboard')">Leaderboard</button>
+        </div>
+
+        <button class="prints-refresh-btn" id="printsRefreshBtn" type="button" onclick="refreshPrintsFeed()">
+          Refresh
+        </button>
+      </div>
 
       <div class="prints-feed" id="printsFeed">
         <div class="prints-empty">Loading Prints...</div>
@@ -4195,7 +4241,7 @@ select::-ms-expand {
 
     <div class="prints-side">
       <button class="prints-profile-card prints-profile-button" onclick="openPrintProfile(user.id)">
-        <div class="prints-side-title">Your Print</div>
+        <div class="prints-side-title">Prints Profile</div>
         <div class="prints-profile-row">
           <div class="avatar prints-profile-avatar" id="printsMyAvatar">?</div>
           <div>
@@ -4761,13 +4807,20 @@ loadProfile()
   .then(loadAccounts)
   .catch(console.warn);
 
-    setTimeout(() => {
+        setTimeout(() => {
   loadSubscriptionStatus().catch(console.warn);
-loadAccounts().catch(console.warn);
+  loadAccounts().catch(console.warn);
   loadStrategies().then(() => { pageLoaded.strategies = true; }).catch(console.warn);
   loadCalendarData().then(() => { pageLoaded.calendar = true; }).catch(console.warn);
   loadTrades().then(() => { pageLoaded.trades = true; }).catch(console.warn);
   initNotes().then(() => { pageLoaded.notes = true; }).catch(console.warn);
+
+  printsWarmPromise = ensureSubscriptionLoaded()
+    .then((isPro) => {
+      if (!isPro) return;
+      return loadPrints().then(() => { pageLoaded.prints = true; });
+    })
+    .catch(console.warn);
 }, 300);
 
     async function loadSubscriptionStatus() {
@@ -5789,7 +5842,7 @@ async function showPage(name, el) {
     if (name === 'trades') await loadTrades();
     if (name === 'notes') await initNotes();
     if (name === 'calculator') initCalcPage();
-    if (name === 'prints') await loadPrints();
+    if (name === 'prints') await (printsWarmPromise || loadPrints());
     
         if (name === 'settings') {
       await ensureSubscriptionLoaded();
@@ -8493,6 +8546,8 @@ const PRINT_CAPTION_MAX = 280;
 const PRINT_REPLY_MAX = 240;
 const FOUNDER_EMAIL = 'dean.tsi.198@gmail.com';
 
+let printsWarmPromise = null;
+
 async function loadPrints() {
   await loadPrintFollows();
   await loadPrintPosts();
@@ -8500,6 +8555,27 @@ async function loadPrints() {
 
   renderPrintsProfile();
   renderPrintsFeed();
+}
+
+async function refreshPrintsFeed() {
+  const btn = document.getElementById('printsRefreshBtn');
+
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Refreshing...';
+  }
+
+  try {
+    await loadPrints();
+    pageLoaded.prints = true;
+  } catch (err) {
+    console.warn('Prints refresh failed:', err);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Refresh';
+    }
+  }
 }
 
 async function loadPrintFollows() {
@@ -9287,12 +9363,12 @@ function renderPrintMiniPost(post) {
         </div>
       ` : ''}
 
-      ${isOwnPost ? `
+            ${isOwnPost ? `
   <div class="print-card-footer">
+    <button class="print-delete-btn" onclick="deletePrintPost('${post.id}').then(() => openPrintProfile(user.id))">Delete Print</button>
     <button class="print-details-btn" onclick="openPrintRepliesModal('${post.id}')">
       View replies${replies.length ? ` (${replies.length})` : ''}
     </button>
-    <button class="print-delete-btn" onclick="deletePrintPost('${post.id}').then(() => openPrintProfile(user.id))">Delete Print</button>
   </div>
 ` : ''}
     </div>
