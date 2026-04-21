@@ -8681,6 +8681,14 @@ function isFounderProfile(profile) {
   );
 }
 
+function canModeratePrints() {
+  return String(user?.email || '').toLowerCase() === FOUNDER_EMAIL;
+}
+
+function canDeletePrintPost(post) {
+  return !!post && (post.user_id === user.id || canModeratePrints());
+}
+
 function getFounderBadgeHtml(profile) {
   return isFounderProfile(profile) ? '<span class="founder-badge">Founder</span>' : '';
 }
@@ -8870,7 +8878,7 @@ function renderPrintCard(post) {
   const username = profile.username || 'Trader';
   const bio = profile.bio || '';
   const avatarHtml = getPrintAvatarHtml(profile);
-  const isOwnPost = post.user_id === user.id;
+  const canDeletePost = canDeletePrintPost(post);
   const isFollowing = isFollowingPrintUser(post.user_id);
   const result = snap.result || 'breakeven';
   const resultClass = result === 'loss' ? 'loss' : result === 'win' ? 'win' : 'breakeven';
@@ -8894,7 +8902,7 @@ function renderPrintCard(post) {
 
         <div class="print-card-actions">
           <div class="print-card-date">${escapeHtml(created)}</div>
-          ${isOwnPost ? `<button class="print-delete-btn" onclick="deletePrintPost('${post.id}')">Delete</button>` : `
+                    ${canDeletePost ? `<button class="print-delete-btn" onclick="deletePrintPost('${post.id}')">Delete</button>` : `
             <button class="print-follow-btn ${isFollowing ? 'active' : ''}" onclick="togglePrintFollow('${post.user_id}')">
               ${isFollowing ? 'Following' : 'Follow'}
             </button>
@@ -9281,7 +9289,7 @@ caption: document.getElementById('printCaptionInput')?.value.trim().slice(0, PRI
 }
 
 async function deletePrintPost(postId) {
-  if (!confirm('Delete this Print?')) return;
+    if (!confirm(canModeratePrints() ? 'Delete this Print as moderator?' : 'Delete this Print?')) return;
 
   await fetch(`${SUPABASE_URL}/rest/v1/print_posts?id=eq.${postId}`, {
     method: 'DELETE',
@@ -9343,7 +9351,7 @@ function renderPrintMiniPost(post) {
   const pnl = parseFloat(snap.pnl) || 0;
   const tone = getPnlTone(pnl);
   const created = new Date(post.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  const isOwnPost = post.user_id === user.id;
+  const canDeletePost = canDeletePrintPost(post);
   const replies = getPostReplies(post.id);
 
   return `
@@ -9363,12 +9371,12 @@ function renderPrintMiniPost(post) {
         </div>
       ` : ''}
 
-            ${isOwnPost ? `
+                  ${canDeletePost ? `
   <div class="print-card-footer">
-    <button class="print-delete-btn" onclick="deletePrintPost('${post.id}').then(() => openPrintProfile(user.id))">Delete Print</button>
     <button class="print-details-btn" onclick="openPrintRepliesModal('${post.id}')">
       View replies${replies.length ? ` (${replies.length})` : ''}
     </button>
+    <button class="print-delete-btn" onclick="deletePrintPost('${post.id}').then(() => openPrintProfile('${post.user_id}'))">Delete Print</button>
   </div>
 ` : ''}
     </div>
