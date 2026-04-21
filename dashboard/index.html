@@ -2974,9 +2974,34 @@ select.tp-native-select {
 
 .print-reply-head {
   display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 7px;
+}
+
+.print-reply-head-main {
+  display: flex;
   align-items: center;
   gap: 9px;
-  margin-bottom: 7px;
+  min-width: 0;
+}
+
+.print-reply-delete {
+  background: none;
+  border: none;
+  color: var(--text2);
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.print-reply-delete:hover {
+  color: var(--danger);
 }
 
 .print-reply-name {
@@ -8689,6 +8714,10 @@ function canDeletePrintPost(post) {
   return !!post && (post.user_id === user.id || canModeratePrints());
 }
 
+function canDeletePrintReply(reply) {
+  return !!reply && (reply.user_id === user.id || canModeratePrints());
+}
+
 function getFounderBadgeHtml(profile) {
   return isFounderProfile(profile) ? '<span class="founder-badge">Founder</span>' : '';
 }
@@ -9509,21 +9538,54 @@ function renderPrintRepliesContent() {
 function renderPrintReply(reply) {
   const profile = getPrintProfile(reply.user_id);
   const date = new Date(reply.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const canDeleteReply = canDeletePrintReply(reply);
 
   return `
     <div class="print-reply-item">
       <div class="print-reply-head">
-        <div class="avatar" style="width:28px;height:28px;font-size:11px;">${getPrintAvatarHtml(profile)}</div>
-        <div>
-          <div class="print-reply-name">${escapeHtml(profile.username || 'Trader')} ${getFounderBadgeHtml(profile)}</div>
-          <div class="print-meta">${escapeHtml(date)}</div>
+        <div class="print-reply-head-main">
+          <div class="avatar" style="width:28px;height:28px;font-size:11px;">${getPrintAvatarHtml(profile)}</div>
+          <div>
+            <div class="print-reply-name">${escapeHtml(profile.username || 'Trader')} ${getFounderBadgeHtml(profile)}</div>
+            <div class="print-meta">${escapeHtml(date)}</div>
+          </div>
         </div>
+
+        ${canDeleteReply ? `
+          <button class="print-reply-delete" onclick="deletePrintReply('${reply.id}')">Delete</button>
+        ` : ''}
       </div>
+
       <div class="print-reply-body">${formatPrintText(reply.body)}</div>
     </div>
   `;
 }
 
+async function deletePrintReply(replyId) {
+  if (!confirm(canModeratePrints() ? 'Delete this reply as moderator?' : 'Delete this reply?')) return;
+
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/print_replies?id=eq.${replyId}`, {
+    method: 'DELETE',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`
+    }
+  });
+
+  if (!res.ok) {
+    const msg = document.getElementById('printRepliesMsg');
+    if (msg) {
+      msg.textContent = 'Could not delete reply.';
+      msg.className = 'modal-msg error';
+    }
+    return;
+  }
+
+  await loadPrintReplies();
+  renderPrintRepliesContent();
+  renderPrintsFeed();
+}
+    
 async function savePrintReply() {
   const msg = document.getElementById('printRepliesMsg');
   const input = document.getElementById('printReplyInput');
