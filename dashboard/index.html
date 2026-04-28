@@ -6400,6 +6400,8 @@ function resizeImageFileToDataUrl(file, maxWidth = 1400, quality = 0.82) {
   document.getElementById('dayModalTitle').textContent = `${monthNames[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
   document.getElementById('dayStats').innerHTML = '';
   document.getElementById('dayTradesList').innerHTML = '';
+
+  editor.dataset.loadingNote = 'false';
   editor.innerHTML = '';
 
   dayTrades = calTradesCache.filter(t => t.date === dateStr);
@@ -6407,30 +6409,42 @@ function resizeImageFileToDataUrl(file, maxWidth = 1400, quality = 0.82) {
 
   document.getElementById('dayModal').classList.add('active');
 
-  requestAnimationFrame(() => {
-    editor.innerHTML = '<div style="color:var(--text2);font-size:14px;">Loading note...</div>';
-  });
+  applyDayNote(null);
 
-  loadDayNoteContent(dateStr)
-    .then(note => {
-      if (selectedDate !== dateStr) return;
-      applyDayNote(note);
-    })
-    .catch(err => {
-      console.warn('Day note load failed:', err);
-      if (selectedDate === dateStr) applyDayNote(null);
-    });
+  try {
+    const note = await loadDayNoteContent(dateStr);
+
+    if (selectedDate !== dateStr) return;
+
+    applyDayNote(note);
+  } catch (err) {
+    console.warn('Day note load failed:', err);
+
+    if (selectedDate === dateStr) {
+      applyDayNote(null);
+    }
+  }
 
   if (!calTradesCache.length) {
     loadDayTrades().catch(console.warn);
   }
 }
+  
     function getNoteContent() {
-      const editor = document.getElementById('noteEditor');
-      const raw = editor.innerHTML;
-      const empty = raw.replace(/<br\s*\/?>/gi, '').replace(/<div><\/div>/gi, '').trim() === '';
-      return empty ? '' : raw;
-    }
+  const editor = document.getElementById('noteEditor');
+
+  if (editor.dataset.loadingNote === 'true') return '';
+
+  const raw = editor.innerHTML;
+  const empty = raw
+    .replace(/<br\s*\/?>/gi, '')
+    .replace(/<div><\/div>/gi, '')
+    .replace(/<p><\/p>/gi, '')
+    .replace(/<p><br><\/p>/gi, '')
+    .trim() === '';
+
+  return empty ? '' : raw;
+}
 
     async function saveDayNoteNow(dateStr, content, noteId = selectedNoteId) {
   if (!dateStr) return null;
@@ -6530,6 +6544,7 @@ function resizeImageFileToDataUrl(file, maxWidth = 1400, quality = 0.82) {
     })
     .catch(console.warn);
 }
+
     async function loadDayTrades() {
   const accountFilter = getAccountFilterParam();
 
@@ -6670,27 +6685,6 @@ function resizeImageFileToDataUrl(file, maxWidth = 1400, quality = 0.82) {
       }
     }
   };
-}
-
-async function loadDayNoteContent(dateStr) {
-  if (!dateStr) return null;
-
-  if (dayNoteContentCache.has(dateStr)) {
-    return dayNoteContentCache.get(dateStr);
-  }
-
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/day_notes?user_id=eq.${user.id}&date=eq.${dateStr}&select=*`, {
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${token}`
-    }
-  });
-
-  const data = await res.json();
-  const note = Array.isArray(data) ? data[0] || null : null;
-
-  dayNoteContentCache.set(dateStr, note);
-  return note;
 }
 
 async function loadDayNote() {
