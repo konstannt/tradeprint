@@ -1579,6 +1579,44 @@ select.tp-native-select {
     .notion-tool.active { background: var(--border); color: var(--text); }
     .notion-tool-divider { width: 1px; height: 18px; background: var(--border); margin: 0 4px; }
     .notion-note { min-height: 200px; overflow-y: auto; font-size: 15px; line-height: 1.8; color: var(--text); outline: none; cursor: text; padding: 4px 0; }
+    .notion-note {
+  min-height: 260px;
+  max-height: 42vh;
+  overflow-y: auto;
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--text);
+  outline: none;
+  cursor: text;
+  padding: 4px 0 180px;
+  scroll-padding-bottom: 160px;
+}
+
+.note-body-editor {
+  flex: 0 0 auto;
+  min-height: calc(100vh - 260px);
+  overflow: visible;
+  padding: 4px 36px 360px;
+  font-size: 16px;
+  line-height: 1.8;
+  color: var(--text);
+  outline: none;
+  cursor: text;
+}
+
+@media (max-width: 768px) {
+  .notion-note {
+    min-height: 300px;
+    max-height: 46vh;
+    padding-bottom: 220px;
+    scroll-padding-bottom: 190px;
+  }
+
+  .note-body-editor {
+    padding: 4px 16px 260px;
+    min-height: calc(100vh - 340px);
+  }
+}
     .notion-note:empty:before { content: attr(placeholder); color: var(--text2); pointer-events: none; }
     .notion-note hr { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
     .notion-note img { max-width: 100%; border-radius: 8px; margin: 8px 0; display: block; }
@@ -5908,38 +5946,39 @@ async function showPage(name, el) {
     name = 'pro';
   }
 
-  if (!pageLoaded[name]) {
-    if (name === 'dashboard') await loadDashboard();
-    if (name === 'tradeprint') await loadTradeprint();
-    if (name === 'strategies') await loadStrategies();
-    if (name === 'calendar') await initCalendar();
-    if (name === 'trades') await loadTrades();
-    if (name === 'notes') await initNotes();
-    if (name === 'calculator') initCalcPage();
-    if (name === 'prints') await (printsWarmPromise || loadPrints());
-    
-        if (name === 'settings') {
-      await ensureSubscriptionLoaded();
-      renderProSettings();
-    }
-
-    pageLoaded[name] = true;
-  }
-
-  if (tok !== pageSwitchToken) return;
-
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item, .settings-row').forEach(n => n.classList.remove('active'));
 
-  document.getElementById('page-' + name).classList.add('active');
+  const page = document.getElementById('page-' + name);
+  if (page) page.classList.add('active');
 
-  if (el) {
-    el.classList.add('active');
+  if (el) el.classList.add('active');
+
+  if (tok !== pageSwitchToken) return;
+
+  try {
+    if (!pageLoaded[name]) {
+      if (name === 'dashboard') await loadDashboard();
+      if (name === 'tradeprint') await loadTradeprint();
+      if (name === 'strategies') await loadStrategies();
+      if (name === 'calendar') await initCalendar();
+      if (name === 'trades') await loadTrades();
+      if (name === 'notes') await initNotes();
+      if (name === 'calculator') initCalcPage();
+      if (name === 'prints') await (printsWarmPromise || loadPrints());
+
+      if (name === 'settings') {
+        await ensureSubscriptionLoaded();
+        renderProSettings();
+      }
+
+      pageLoaded[name] = true;
+    }
+  } catch (err) {
+    console.warn(`Could not load ${name}:`, err);
   }
 
-  if (name === 'pro' && el) {
-    el.classList.add('active');
-  }
+  if (tok !== pageSwitchToken) return;
 
   if (requestedName !== name && el) {
     el.classList.add('active');
@@ -6280,22 +6319,103 @@ function handleDayModalClick(e) {
     
     function handleLogTradeModalClick(e) { if (e.target === document.getElementById('logTradeModal')) closeLogTrade(); }
 
+    function focusEditableAtEnd(editor) {
+  if (!editor) return;
+
+  editor.focus();
+
+  const range = document.createRange();
+  range.selectNodeContents(editor);
+  range.collapse(false);
+
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+}
+
+function handleEditableBlankClick(event, editorId) {
+  const editor = document.getElementById(editorId);
+  if (!editor) return;
+
+  if (event.target === editor) {
+    focusEditableAtEnd(editor);
+  }
+}
+
+function ensureEditableTypingSpace(editor) {
+  if (!editor) return;
+
+  const html = editor.innerHTML.trim();
+
+  if (
+    html &&
+    !html.endsWith('<br>') &&
+    !html.endsWith('<br/>') &&
+    !html.endsWith('<p><br></p>') &&
+    !html.endsWith('<div><br></div>')
+  ) {
+    editor.insertAdjacentHTML('beforeend', '<p><br></p>');
+  }
+}
+
+function resizeImageFileToDataUrl(file, maxWidth = 1400, quality = 0.82) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      const img = new Image();
+
+      img.onload = () => {
+        const scale = Math.min(1, maxWidth / img.width);
+        const width = Math.round(img.width * scale);
+        const height = Math.round(img.height * scale);
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+
+      img.onerror = reject;
+      img.src = reader.result;
+    };
+
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
     async function openDayModal(dateStr) {
-      selectedDate = dateStr;
-      const date = new Date(dateStr + 'T12:00:00');
-      const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-      document.getElementById('dayModalTitle').textContent = `${monthNames[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
-      document.getElementById('dayStats').innerHTML = '';
-      document.getElementById('dayTradesList').innerHTML = '';
-      document.getElementById('noteEditor').innerHTML = '';
-      const cachedTrades = calTradesCache.filter(t => t.date === dateStr);
-      const cachedNote = calNotesCache.find(n => n.date === dateStr) || null;
-      dayTrades = cachedTrades;
-      renderDayTrades();
-      applyDayNote(cachedNote);
-      document.getElementById('dayModal').classList.add('active');
-      if (!calTradesCache.length && !calNotesCache.length) await Promise.all([loadDayTrades(), loadDayNote()]);
-    }
+  selectedDate = dateStr;
+
+  const date = new Date(dateStr + 'T12:00:00');
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  document.getElementById('dayModalTitle').textContent = `${monthNames[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+  document.getElementById('dayStats').innerHTML = '';
+  document.getElementById('dayTradesList').innerHTML = '';
+  document.getElementById('noteEditor').innerHTML = '';
+
+  document.getElementById('dayModal').classList.add('active');
+
+  const cachedTrades = calTradesCache.filter(t => t.date === dateStr);
+  const cachedNote = calNotesCache.find(n => n.date === dateStr) || null;
+
+  dayTrades = cachedTrades;
+  renderDayTrades();
+
+  requestAnimationFrame(() => {
+    applyDayNote(cachedNote);
+  });
+
+  if (!calTradesCache.length && !calNotesCache.length) {
+    Promise.all([loadDayTrades(), loadDayNote()]).catch(console.warn);
+  }
+}
 
     function getNoteContent() {
       const editor = document.getElementById('noteEditor');
@@ -6369,13 +6489,32 @@ function handleDayModalClick(e) {
 
   document.getElementById('dayModal').classList.remove('active');
 
-  await saveDayNoteNow(dateToSave, content, noteIdToSave);
-
   selectedDate = null;
   selectedNoteId = null;
 
-  invalidateCalendarCacheForDate(dateToSave);
-  await loadCalendarData();
+  saveDayNoteNow(dateToSave, content, noteIdToSave)
+    .then((savedId) => {
+      const existingIndex = calNotesCache.findIndex(n => n.date === dateToSave);
+
+      if (content) {
+        const nextNote = {
+          id: savedId || noteIdToSave,
+          user_id: user.id,
+          date: dateToSave,
+          content
+        };
+
+        if (existingIndex >= 0) calNotesCache[existingIndex] = nextNote;
+        else calNotesCache.push(nextNote);
+      } else if (existingIndex >= 0) {
+        calNotesCache.splice(existingIndex, 1);
+      }
+
+      invalidateCalendarCacheForDate(dateToSave);
+      renderCalendarFromLoadedTrades();
+      loadCalendarData().catch(console.warn);
+    })
+    .catch(console.warn);
 }
 
     async function loadDayTrades() {
@@ -6467,36 +6606,58 @@ function handleDayModalClick(e) {
 }
 
     function applyDayNote(note) {
-      const editor = document.getElementById('noteEditor');
-      selectedNoteId = note?.id || null;
-      editor.innerHTML = note?.content || '';
-      editor.ondblclick = (e) => { if (e.target.tagName === 'IMG') openLightbox(e.target); };
-      const trigger = () => {
-        clearTimeout(noteAutosaveTimer);
-        const dateAtSave = selectedDate;
-        noteAutosaveTimer = setTimeout(async () => { await saveDayNoteNow(dateAtSave, getNoteContent()); }, 1000);
-      };
-      editor.oninput = trigger;
-      editor.onkeyup = (e) => { trigger(); updateToolbarState(); };
-      editor.onmouseup = updateToolbarState;
-      editor.onkeydown = (e) => {
-        if (e.key === 'Enter') {
-          const sel = window.getSelection();
-          if (sel && sel.rangeCount > 0) {
-            const range = sel.getRangeAt(0);
-            const text = range.startContainer.textContent || '';
-            const before = text.substring(0, range.startOffset);
-            if (before.endsWith('--')) {
-              e.preventDefault();
-              document.execCommand('delete', false, null);
-              document.execCommand('delete', false, null);
-              document.execCommand('insertHTML', false, '<hr/><br/>');
-              trigger();
-            }
-          }
+  const editor = document.getElementById('noteEditor');
+
+  selectedNoteId = note?.id || null;
+  editor.innerHTML = note?.content || '';
+
+  ensureEditableTypingSpace(editor);
+
+  editor.ondblclick = (e) => {
+    if (e.target.tagName === 'IMG') openLightbox(e.target);
+  };
+
+  editor.onclick = (e) => {
+    handleEditableBlankClick(e, 'noteEditor');
+  };
+
+  const trigger = () => {
+    clearTimeout(noteAutosaveTimer);
+    const dateAtSave = selectedDate;
+    noteAutosaveTimer = setTimeout(async () => {
+      await saveDayNoteNow(dateAtSave, getNoteContent());
+    }, 700);
+  };
+
+  editor.oninput = trigger;
+
+  editor.onkeyup = (e) => {
+    trigger();
+    updateToolbarState();
+  };
+
+  editor.onmouseup = updateToolbarState;
+
+  editor.onkeydown = (e) => {
+    if (e.key === 'Enter') {
+      const sel = window.getSelection();
+
+      if (sel && sel.rangeCount > 0) {
+        const range = sel.getRangeAt(0);
+        const text = range.startContainer.textContent || '';
+        const before = text.substring(0, range.startOffset);
+
+        if (before.endsWith('--')) {
+          e.preventDefault();
+          document.execCommand('delete', false, null);
+          document.execCommand('delete', false, null);
+          document.execCommand('insertHTML', false, '<hr/><br/>');
+          trigger();
         }
-      };
+      }
     }
+  };
+}
 
     async function loadDayNote() {
       const res = await fetch(`${SUPABASE_URL}/rest/v1/day_notes?user_id=eq.${user.id}&date=eq.${selectedDate}&select=*`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } });
@@ -6506,13 +6667,30 @@ function handleDayModalClick(e) {
 
     function noteFormat(cmd) { document.getElementById('noteEditor').focus(); document.execCommand(cmd, false, null); }
     function insertHR() { document.getElementById('noteEditor').focus(); document.execCommand('insertHTML', false, '<hr/>'); }
-    function insertImage(e) {
-      const file = e.target.files[0]; if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (ev) => { document.getElementById('noteEditor').focus(); document.execCommand('insertHTML', false, `<img src="${ev.target.result}" ondblclick="openLightbox(this)"/>`); };
-      reader.readAsDataURL(file);
-      e.target.value = '';
-    }
+    async function insertImage(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const editor = document.getElementById('noteEditor');
+
+  try {
+    const dataUrl = await resizeImageFileToDataUrl(file, 1400, 0.82);
+
+    editor.focus();
+    document.execCommand(
+      'insertHTML',
+      false,
+      `<img src="${dataUrl}" ondblclick="openLightbox(this)"/><p><br></p>`
+    );
+
+    focusEditableAtEnd(editor);
+    await saveDayNoteNow(selectedDate, getNoteContent());
+  } catch (err) {
+    console.warn('Image insert failed:', err);
+  }
+
+  e.target.value = '';
+}
 
     async function openLogTrade() {
       logFromPage = false;
@@ -8462,11 +8640,16 @@ async function saveNoteOrder() {
       document.getElementById('noteTitleInput').value = note.title || '';
       const body = document.getElementById('noteBodyEditor');
       body.innerHTML = note.content || '';
+      ensureEditableTypingSpace(body);
       document.getElementById('notesAutosaveStatus').textContent = '';
       renderNotesList();
       body.ondblclick = (e) => { if (e.target.tagName === 'IMG') openLightbox(e.target); };
       body.oninput = () => { saveNotesCursor(); scheduleNoteSave(); };
       body.onmouseup = () => { saveNotesCursor(); updateNotesToolbarState(); };
+      body.onclick = (e) => {
+  handleEditableBlankClick(e, 'noteBodyEditor');
+  saveNotesCursor();
+};
       body.onkeyup = () => { saveNotesCursor(); scheduleNoteSave(); updateNotesToolbarState(); };
       body.onkeydown = (e) => {
         if (e.key === 'Enter') {
@@ -8557,13 +8740,31 @@ async function saveNoteOrder() {
     function notesFormatH1() { document.getElementById('noteBodyEditor').focus(); document.execCommand('formatBlock', false, 'H1'); updateNotesToolbarState(); }
     function notesInsertHR() { document.getElementById('noteBodyEditor').focus(); document.execCommand('insertHTML', false, '<hr/><br/>'); }
 
-    function notesInsertImage(e) {
-      const file = e.target.files[0]; if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (ev) => { document.getElementById('noteBodyEditor').focus(); document.execCommand('insertHTML', false, `<img src="${ev.target.result}" ondblclick="openLightbox(this)"/>`); scheduleNoteSave(); };
-      reader.readAsDataURL(file);
-      e.target.value = '';
-    }
+    async function notesInsertImage(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const editor = document.getElementById('noteBodyEditor');
+
+  try {
+    const dataUrl = await resizeImageFileToDataUrl(file, 1400, 0.82);
+
+    editor.focus();
+    document.execCommand(
+      'insertHTML',
+      false,
+      `<img src="${dataUrl}" ondblclick="openLightbox(this)"/><p><br></p>`
+    );
+
+    focusEditableAtEnd(editor);
+    saveNotesCursor();
+    scheduleNoteSave();
+  } catch (err) {
+    console.warn('Note image insert failed:', err);
+  }
+
+  e.target.value = '';
+}
 
     function updateNotesToolbarState() {
       document.querySelectorAll('.notes-format-btn[data-ncmd]').forEach(btn => { btn.classList.toggle('active', document.queryCommandState(btn.getAttribute('data-ncmd'))); });
