@@ -6357,11 +6357,21 @@ function handleDayModalClick(e) {
 
 function handleEditableBlankClick(event, editorId) {
   const editor = document.getElementById(editorId);
-  if (!editor) return;
+  if (!editor || event.target !== editor) return;
 
-  if (event.target === editor) {
-    focusEditableAtEnd(editor);
+  const selection = window.getSelection();
+
+  if (selection && !selection.isCollapsed && selection.toString().length > 0) {
+    return;
   }
+
+  const hasContent =
+    editor.textContent.replace(/\u00a0/g, '').trim().length > 0 ||
+    !!editor.querySelector('img, hr, .note-trade-card');
+
+  if (hasContent) return;
+
+  focusEditableAtEnd(editor);
 }
 
 function ensureEditableTypingSpace(editor) {
@@ -6378,6 +6388,16 @@ function ensureEditableTypingSpace(editor) {
   ) {
     editor.insertAdjacentHTML('beforeend', '<p><br></p>');
   }
+}
+
+function optimizeEditorContent(editor) {
+  if (!editor) return;
+
+  editor.querySelectorAll('img').forEach(img => {
+    img.loading = 'lazy';
+    img.decoding = 'async';
+    img.ondblclick = () => openLightbox(img);
+  });
 }
 
 function resizeImageFileToDataUrl(file, maxWidth = 1400, quality = 0.82) {
@@ -6422,15 +6442,18 @@ function resizeImageFileToDataUrl(file, maxWidth = 1400, quality = 0.82) {
   document.getElementById('dayStats').innerHTML = '';
   document.getElementById('dayTradesList').innerHTML = '';
 
-  editor.dataset.loadingNote = 'false';
-  editor.innerHTML = '';
+  editor.dataset.loadingNote = 'true';
+editor.dataset.dirty = 'false';
+editor.innerHTML = '<div style="color:var(--text2);padding:12px 0;">Loading notes...</div>';
 
-  dayTrades = calTradesCache.filter(t => t.date === dateStr);
-  renderDayTrades();
+dayTrades = calTradesCache.filter(t => t.date === dateStr);
+renderDayTrades();
 
-  document.getElementById('dayModal').classList.add('active');
+document.getElementById('dayModal').classList.add('active');
 
-  applyDayNote(null);
+if (dayNoteContentCache.has(dateStr)) {
+  applyDayNote(dayNoteContentCache.get(dateStr));
+}
 
   try {
     const note = await loadDayNoteContent(dateStr);
@@ -6526,14 +6549,20 @@ function resizeImageFileToDataUrl(file, maxWidth = 1400, quality = 0.82) {
     async function closeDayModal() {
   clearTimeout(noteAutosaveTimer);
 
-  const dateToSave = selectedDate;
-  const noteIdToSave = selectedNoteId;
-  const content = getNoteContent();
+  const editor = document.getElementById('noteEditor');
+const dateToSave = selectedDate;
+const noteIdToSave = selectedNoteId;
+const isStillLoading = editor?.dataset.loadingNote === 'true';
+const content = isStillLoading ? null : getNoteContent();
 
-  document.getElementById('dayModal').classList.remove('active');
+document.getElementById('dayModal').classList.remove('active');
 
-  selectedDate = null;
-  selectedNoteId = null;
+selectedDate = null;
+selectedNoteId = null;
+
+if (isStillLoading) {
+  return;
+}
 
   saveDayNoteNow(dateToSave, content, noteIdToSave)
     .then((savedId) => {
@@ -6660,7 +6689,10 @@ function resizeImageFileToDataUrl(file, maxWidth = 1400, quality = 0.82) {
   selectedNoteId = note?.id || null;
   editor.innerHTML = note?.content || '';
 
-  ensureEditableTypingSpace(editor);
+ensureEditableTypingSpace(editor);
+optimizeEditorContent(editor);
+editor.dataset.loadingNote = 'false';
+editor.dataset.dirty = 'false';
 
   editor.ondblclick = (e) => {
     if (e.target.tagName === 'IMG') openLightbox(e.target);
@@ -6671,14 +6703,23 @@ function resizeImageFileToDataUrl(file, maxWidth = 1400, quality = 0.82) {
   };
 
   const trigger = () => {
-    clearTimeout(noteAutosaveTimer);
-    const dateAtSave = selectedDate;
-    noteAutosaveTimer = setTimeout(async () => {
-      const savedId = await saveDayNoteNow(dateAtSave, getNoteContent());
-if (savedId && selectedDate === dateAtSave) selectedNoteId = savedId;
-    }, 700);
-  };
+  if (editor.dataset.loadingNote === 'true') return;
 
+  editor.dataset.dirty = 'true';
+  clearTimeout(noteAutosaveTimer);
+
+  const dateAtSave = selectedDate;
+
+  noteAutosaveTimer = setTimeout(async () => {
+    const savedId = await saveDayNoteNow(dateAtSave, getNoteContent());
+
+    if (savedId && selectedDate === dateAtSave) {
+      selectedNoteId = savedId;
+    }
+
+    editor.dataset.dirty = 'false';
+  }, 700);
+};
   editor.oninput = trigger;
 
   editor.onkeyup = (e) => {
@@ -8690,6 +8731,7 @@ async function saveNoteOrder() {
       const body = document.getElementById('noteBodyEditor');
       body.innerHTML = note.content || '';
       ensureEditableTypingSpace(body);
+optimizeEditorContent(body);
       document.getElementById('notesAutosaveStatus').textContent = '';
       renderNotesList();
       body.ondblclick = (e) => { if (e.target.tagName === 'IMG') openLightbox(e.target); };
