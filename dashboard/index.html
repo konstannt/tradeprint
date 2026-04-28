@@ -6506,22 +6506,23 @@ function resizeImageFileToDataUrl(file, maxWidth = 1400, quality = 0.82) {
 
       if (content) {
         const nextNote = {
-        dayNoteContentCache.set(dateToSave, nextNote);
           id: savedId || noteIdToSave,
           user_id: user.id,
           date: dateToSave,
           content
         };
 
+        dayNoteContentCache.set(dateToSave, nextNote);
+
         if (existingIndex >= 0) calNotesCache[existingIndex] = nextNote;
         else calNotesCache.push(nextNote);
       } else {
-  dayNoteContentCache.set(dateToSave, null);
+        dayNoteContentCache.set(dateToSave, null);
 
-  if (existingIndex >= 0) {
-    calNotesCache.splice(existingIndex, 1);
-  }
-}
+        if (existingIndex >= 0) {
+          calNotesCache.splice(existingIndex, 1);
+        }
+      }
 
       invalidateCalendarCacheForDate(dateToSave);
       renderCalendarFromLoadedTrades();
@@ -6529,7 +6530,6 @@ function resizeImageFileToDataUrl(file, maxWidth = 1400, quality = 0.82) {
     })
     .catch(console.warn);
 }
-
     async function loadDayTrades() {
   const accountFilter = getAccountFilterParam();
 
@@ -6672,17 +6672,31 @@ function resizeImageFileToDataUrl(file, maxWidth = 1400, quality = 0.82) {
   };
 }
 
+async function loadDayNoteContent(dateStr) {
+  if (!dateStr) return null;
+
+  if (dayNoteContentCache.has(dateStr)) {
+    return dayNoteContentCache.get(dateStr);
+  }
+
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/day_notes?user_id=eq.${user.id}&date=eq.${dateStr}&select=*`, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`
+    }
+  });
+
+  const data = await res.json();
+  const note = Array.isArray(data) ? data[0] || null : null;
+
+  dayNoteContentCache.set(dateStr, note);
+  return note;
+}
+
 async function loadDayNote() {
   const note = await loadDayNoteContent(selectedDate);
   applyDayNote(note);
 }
-
-
-    async function loadDayNote() {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/day_notes?user_id=eq.${user.id}&date=eq.${selectedDate}&select=*`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } });
-      const data = await res.json();
-      applyDayNote(data[0] || null);
-    }
 
     function noteFormat(cmd) { document.getElementById('noteEditor').focus(); document.execCommand(cmd, false, null); }
     function insertHR() { document.getElementById('noteEditor').focus(); document.execCommand('insertHTML', false, '<hr/>'); }
