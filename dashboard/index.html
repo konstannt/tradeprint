@@ -4735,6 +4735,7 @@ applyAuthRedirectIfPresent();
     let calTradesCache = [];
     let calNotesCache = [];
     const calendarDataCache = new Map();
+    const dayNoteContentCache = new Map();
     let calendarLoadToken = 0;
 
 function getCalendarCacheKey(year = calYear, month = calMonth) {
@@ -6132,7 +6133,7 @@ function resetPointsCalc() {
     fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}${accountFilter}&date=gte.${weekStart}&date=lte.${weekEnd}&select=*,strategies(name),broker_accounts(name)`, {
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
     }),
-    fetch(`${SUPABASE_URL}/rest/v1/day_notes?user_id=eq.${user.id}&date=gte.${weekStart}&date=lte.${weekEnd}&select=*`, {
+    fetch(`${SUPABASE_URL}/rest/v1/day_notes?user_id=eq.${user.id}&date=gte.${weekStart}&date=lte.${weekEnd}&select=id,user_id,date`, {
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
     })
   ]);
@@ -6171,7 +6172,7 @@ function resetPointsCalc() {
       fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}${accountFilter}&date=gte.${weekStart}&date=lte.${weekEnd}&select=*,strategies(name),broker_accounts(name)`, {
         headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
       }),
-      fetch(`${SUPABASE_URL}/rest/v1/day_notes?user_id=eq.${user.id}&date=gte.${weekStart}&date=lte.${weekEnd}&select=*`, {
+      fetch(`${SUPABASE_URL}/rest/v1/day_notes?user_id=eq.${user.id}&date=gte.${weekStart}&date=lte.${weekEnd}&select=id,user_id,date`, {
         headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
       })
     ]);
@@ -6394,29 +6395,36 @@ function resizeImageFileToDataUrl(file, maxWidth = 1400, quality = 0.82) {
 
   const date = new Date(dateStr + 'T12:00:00');
   const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const editor = document.getElementById('noteEditor');
 
   document.getElementById('dayModalTitle').textContent = `${monthNames[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
   document.getElementById('dayStats').innerHTML = '';
   document.getElementById('dayTradesList').innerHTML = '';
-  document.getElementById('noteEditor').innerHTML = '';
+  editor.innerHTML = '';
+
+  dayTrades = calTradesCache.filter(t => t.date === dateStr);
+  renderDayTrades();
 
   document.getElementById('dayModal').classList.add('active');
 
-  const cachedTrades = calTradesCache.filter(t => t.date === dateStr);
-  const cachedNote = calNotesCache.find(n => n.date === dateStr) || null;
-
-  dayTrades = cachedTrades;
-  renderDayTrades();
-
   requestAnimationFrame(() => {
-    applyDayNote(cachedNote);
+    editor.innerHTML = '<div style="color:var(--text2);font-size:14px;">Loading note...</div>';
   });
 
-  if (!calTradesCache.length && !calNotesCache.length) {
-    Promise.all([loadDayTrades(), loadDayNote()]).catch(console.warn);
+  loadDayNoteContent(dateStr)
+    .then(note => {
+      if (selectedDate !== dateStr) return;
+      applyDayNote(note);
+    })
+    .catch(err => {
+      console.warn('Day note load failed:', err);
+      if (selectedDate === dateStr) applyDayNote(null);
+    });
+
+  if (!calTradesCache.length) {
+    loadDayTrades().catch(console.warn);
   }
 }
-
     function getNoteContent() {
       const editor = document.getElementById('noteEditor');
       const raw = editor.innerHTML;
@@ -6498,6 +6506,7 @@ function resizeImageFileToDataUrl(file, maxWidth = 1400, quality = 0.82) {
 
       if (content) {
         const nextNote = {
+        dayNoteContentCache.set(dateToSave, nextNote);
           id: savedId || noteIdToSave,
           user_id: user.id,
           date: dateToSave,
@@ -6506,9 +6515,13 @@ function resizeImageFileToDataUrl(file, maxWidth = 1400, quality = 0.82) {
 
         if (existingIndex >= 0) calNotesCache[existingIndex] = nextNote;
         else calNotesCache.push(nextNote);
-      } else if (existingIndex >= 0) {
-        calNotesCache.splice(existingIndex, 1);
-      }
+      } else {
+  dayNoteContentCache.set(dateToSave, null);
+
+  if (existingIndex >= 0) {
+    calNotesCache.splice(existingIndex, 1);
+  }
+}
 
       invalidateCalendarCacheForDate(dateToSave);
       renderCalendarFromLoadedTrades();
@@ -6658,6 +6671,12 @@ function resizeImageFileToDataUrl(file, maxWidth = 1400, quality = 0.82) {
     }
   };
 }
+
+async function loadDayNote() {
+  const note = await loadDayNoteContent(selectedDate);
+  applyDayNote(note);
+}
+
 
     async function loadDayNote() {
       const res = await fetch(`${SUPABASE_URL}/rest/v1/day_notes?user_id=eq.${user.id}&date=eq.${selectedDate}&select=*`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } });
