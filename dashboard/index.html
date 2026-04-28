@@ -4738,6 +4738,27 @@ applyAuthRedirectIfPresent();
     const dayNoteContentCache = new Map();
     let calendarLoadToken = 0;
 
+    async function loadDayNoteContent(dateStr) {
+  if (!dateStr) return null;
+
+  if (dayNoteContentCache.has(dateStr)) {
+    return dayNoteContentCache.get(dateStr);
+  }
+
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/day_notes?user_id=eq.${user.id}&date=eq.${dateStr}&select=id,user_id,date,content&limit=1`, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`
+    }
+  });
+
+  const data = await res.json();
+  const note = Array.isArray(data) && data[0] ? data[0] : null;
+
+  dayNoteContentCache.set(dateStr, note);
+  return note;
+}
+
 function getCalendarCacheKey(year = calYear, month = calMonth) {
   return `${activeAccountIds.length ? activeAccountIds.join(',') : 'all'}-${year}-${month}`;
 }
@@ -6481,13 +6502,13 @@ function resizeImageFileToDataUrl(file, maxWidth = 1400, quality = 0.82) {
 
   if (!content) return null;
 
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/day_notes?on_conflict=user_id,date`, {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/day_notes`, {
     method: 'POST',
     headers: {
       'apikey': SUPABASE_KEY,
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',
-      'Prefer': 'resolution=merge-duplicates,return=representation'
+      'Prefer': 'return=representation'
     },
     body: JSON.stringify(payload)
   });
@@ -6653,7 +6674,8 @@ function resizeImageFileToDataUrl(file, maxWidth = 1400, quality = 0.82) {
     clearTimeout(noteAutosaveTimer);
     const dateAtSave = selectedDate;
     noteAutosaveTimer = setTimeout(async () => {
-      await saveDayNoteNow(dateAtSave, getNoteContent());
+      const savedId = await saveDayNoteNow(dateAtSave, getNoteContent());
+if (savedId && selectedDate === dateAtSave) selectedNoteId = savedId;
     }, 700);
   };
 
