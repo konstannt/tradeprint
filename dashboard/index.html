@@ -6819,30 +6819,6 @@ async function loadDayNote() {
   e.target.value = '';
 }
 
-  const file = e.target.files[0];
-  if (!file) return;
-
-  const editor = document.getElementById('noteEditor');
-
-  try {
-    const dataUrl = await resizeImageFileToDataUrl(file, 1400, 0.82);
-
-    editor.focus();
-    document.execCommand(
-      'insertHTML',
-      false,
-      `<img src="${dataUrl}" ondblclick="openLightbox(this)"/><p><br></p>`
-    );
-
-    focusEditableAtEnd(editor);
-    await saveDayNoteNow(selectedDate, getNoteContent());
-  } catch (err) {
-    console.warn('Image insert failed:', err);
-  }
-
-  e.target.value = '';
-}
-
     async function openLogTrade() {
       logFromPage = false;
       editingTradeId = null;
