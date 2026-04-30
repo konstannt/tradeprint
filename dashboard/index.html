@@ -8521,6 +8521,25 @@ function insertTradeIntoNote(tradeId) {
 }
     
     // ─── NOTES PAGE ─────────────────────────────────────────────
+    function getNoteContentCacheKey(noteId) {
+  return `tp_note_content_${user.id}_${noteId}`;
+}
+
+function readNoteContentCache(noteId) {
+  try {
+    return localStorage.getItem(getNoteContentCacheKey(noteId));
+  } catch (err) {
+    return null;
+  }
+}
+
+function writeNoteContentCache(noteId, content) {
+  try {
+    localStorage.setItem(getNoteContentCacheKey(noteId), content || '');
+  } catch (err) {
+    console.warn('Note content cache failed:', err);
+  }
+}
         async function initNotes() {
   const list = document.getElementById('notesList');
 
@@ -8562,7 +8581,14 @@ function insertTradeIntoNote(tradeId) {
       return new Date(b.updated_at || 0) - new Date(a.updated_at || 0);
     });
 
-    localStorage.setItem(`tp_notes_cache_${user.id}`, JSON.stringify(allPageNotes));
+    localStorage.setItem(
+  `tp_notes_cache_${user.id}`,
+  JSON.stringify(allPageNotes.map(({ content, ...note }) => note))
+);
+
+allPageNotes.forEach(note => {
+  if (note.content !== undefined) writeNoteContentCache(note.id, note.content);
+});
     renderNotesList();
 
     if (currentNoteId) {
@@ -8780,19 +8806,15 @@ async function saveNoteOrder() {
 }
 
 async function loadNoteContent(note) {
-  if (!note || note.content !== undefined) return note;
+  if (!note) return note;
 
-  const pending = (() => {
-    try {
-      return JSON.parse(localStorage.getItem(`tp_note_pending_${user.id}_${note.id}`) || 'null');
-    } catch (err) {
-      return null;
-    }
-  })();
+  try {
+    const pending = JSON.parse(localStorage.getItem(`tp_note_pending_${user.id}_${note.id}`) || 'null');
+    if (pending?.content !== undefined) return { ...note, ...pending };
+  } catch (err) {}
 
-  if (pending?.content !== undefined) {
-    return { ...note, ...pending };
-  }
+  const cachedContent = readNoteContentCache(note.id);
+  if (cachedContent !== null) return { ...note, content: cachedContent };
 
   const res = await fetch(`${SUPABASE_URL}/rest/v1/notes?id=eq.${note.id}&select=content&limit=1`, {
     headers: {
@@ -8804,65 +8826,106 @@ async function loadNoteContent(note) {
   if (!res.ok) throw new Error(`Note content load failed: ${res.status}`);
 
   const data = await res.json();
-  return { ...note, content: data?.[0]?.content || '' };
+  const content = data?.[0]?.content || '';
+  writeNoteContentCache(note.id, content);
+
+  return { ...note, content };
 }
     
-    async function openNote(id) {
-      if (currentNoteId && currentNoteId !== id) {
-  clearTimeout(noteSaveTimer);
-  saveCurrentNote().catch(console.warn);
-} else {
-  clearTimeout(noteSaveTimer);
-}
-      let note = allPageNotes.find(n => n.id === id);
-if (!note) return;
+    function openNote(id) {
+  if (currentNoteId && currentNoteId !== id) {
+    clearTimeout(noteSaveTimer);
+    saveCurrentNote().catch(console.warn);
+  } else {
+    clearTimeout(noteSaveTimer);
+  }
 
-currentNoteId = id;
+  const note = allPageNotes.find(n => n.id === id);
+  if (!note) return;
 
-try {
-  note = await loadNoteContent(note);
-  const index = allPageNotes.findIndex(n => n.id === id);
-  if (index >= 0) allPageNotes[index] = note;
-} catch (err) {
-  console.warn('Note content load failed:', err);
-  document.getElementById('notesAutosaveStatus').textContent = 'Could not load note';
-  return;
-}
-      document.getElementById('notesEditorEmpty').style.display = 'none';
-      document.getElementById('notesEditorInner').style.display = 'flex';
-      document.getElementById('noteTitleInput').value = note.title || '';
-      const body = document.getElementById('noteBodyEditor');
-      body.innerHTML = note.content || '';
-      ensureEditableTypingSpace(body);
-optimizeEditorContent(body);
-      document.getElementById('notesAutosaveStatus').textContent = '';
-      renderNotesList();
-      body.ondblclick = (e) => { if (e.target.tagName === 'IMG') openLightbox(e.target); };
-      body.oninput = () => { saveNotesCursor(); scheduleNoteSave(); };
-      body.onmouseup = () => { saveNotesCursor(); updateNotesToolbarState(); };
-      body.onclick = (e) => {
-  handleEditableBlankClick(e, 'noteBodyEditor');
-  saveNotesCursor();
-};
-      body.onkeyup = () => { saveNotesCursor(); scheduleNoteSave(); updateNotesToolbarState(); };
-      body.onkeydown = (e) => {
-        if (e.key === 'Enter') {
-          const sel = window.getSelection();
-          if (sel && sel.rangeCount > 0) {
-            const range = sel.getRangeAt(0);
-            const text = range.startContainer.textContent || '';
-            const before = text.substring(0, range.startOffset);
-            if (before.endsWith('--')) {
-              e.preventDefault();
-              document.execCommand('delete', false, null);
-              document.execCommand('delete', false, null);
-              document.execCommand('insertHTML', false, '<hr/><br/>');
-              scheduleNoteSave();
-            }
-          }
+  currentNoteId = id;
+
+  const cachedContent = note.content ?? readNoteContentCache(id) ?? '';
+  note.content = cachedContent;
+
+  document.getElementById('notesEditorEmpty').style.display = 'none';
+  document.getElementById('notesEditorInner').style.display = 'flex';
+  document.getElementById('noteTitleInput').value = note.title || '';
+
+  const body = document.getElementById('noteBodyEditor');
+  body.innerHTML = note.content || '';
+
+  ensureEditableTypingSpace(body);
+  optimizeEditorContent(body);
+
+  document.getElementById('notesAutosaveStatus').textContent = '';
+  renderNotesList();
+
+  body.ondblclick = (e) => {
+    if (e.target.tagName === 'IMG') openLightbox(e.target);
+  };
+
+  body.oninput = () => {
+    saveNotesCursor();
+    scheduleNoteSave();
+  };
+
+  body.onmouseup = () => {
+    saveNotesCursor();
+    updateNotesToolbarState();
+  };
+
+  body.onclick = (e) => {
+    handleEditableBlankClick(e, 'noteBodyEditor');
+    saveNotesCursor();
+  };
+
+  body.onkeyup = () => {
+    saveNotesCursor();
+    scheduleNoteSave();
+    updateNotesToolbarState();
+  };
+
+  body.onkeydown = (e) => {
+    if (e.key === 'Enter') {
+      const sel = window.getSelection();
+
+      if (sel && sel.rangeCount > 0) {
+        const range = sel.getRangeAt(0);
+        const text = range.startContainer.textContent || '';
+        const before = text.substring(0, range.startOffset);
+
+        if (before.endsWith('--')) {
+          e.preventDefault();
+          document.execCommand('delete', false, null);
+          document.execCommand('delete', false, null);
+          document.execCommand('insertHTML', false, '<hr/><br/>');
+          scheduleNoteSave();
         }
-      };
+      }
     }
+  };
+
+  loadNoteContent(note)
+    .then(freshNote => {
+      if (!freshNote || currentNoteId !== id) return;
+
+      const pending = localStorage.getItem(`tp_note_pending_${user.id}_${id}`);
+      if (pending) return;
+
+      const index = allPageNotes.findIndex(n => n.id === id);
+      if (index >= 0) allPageNotes[index] = freshNote;
+
+      if (freshNote.content !== body.innerHTML) {
+        body.innerHTML = freshNote.content || '';
+        ensureEditableTypingSpace(body);
+        optimizeEditorContent(body);
+      }
+    })
+    .catch(err => {
+      console.warn('Note background refresh failed:', err);
+    });
+}
 
     function closeNoteEditor() {
       currentNoteId = null;
@@ -8892,6 +8955,7 @@ optimizeEditorContent(body);
   try {
     localStorage.setItem(`tp_notes_cache_${user.id}`, JSON.stringify(allPageNotes));
     localStorage.setItem(`tp_note_pending_${user.id}_${noteId}`, JSON.stringify({ title, content, updated_at: updatedAt }));
+    writeNoteContentCache(noteId, content);
   } catch (err) {
     console.warn('Local note cache failed:', err);
   }
