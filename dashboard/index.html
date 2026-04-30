@@ -3457,7 +3457,13 @@ select::-ms-expand {
     *::-webkit-scrollbar-track { background: var(--bg2); }
     *::-webkit-scrollbar-thumb { background: var(--border); border-radius: 8px; }
     *::-webkit-scrollbar-thumb:hover { background: var(--text2); }
-  
+
+.notion-note.is-loading {
+  cursor: wait;
+  user-select: none;
+  pointer-events: none;
+}
+    
   </style>
 </head>
 <body id="body">
@@ -4735,8 +4741,24 @@ applyAuthRedirectIfPresent();
     let calTradesCache = [];
     let calNotesCache = [];
     const calendarDataCache = new Map();
-    const dayNoteContentCache = new Map();
-    let calendarLoadToken = 0;
+const dayNoteContentCache = new Map();
+let calendarLoadToken = 0;
+let lastCalendarOpenAt = 0;
+
+function handleCalendarGridPointerUp(event) {
+  const grid = document.getElementById('calGrid');
+  const cell = event.target.closest('.cal-cell[data-date]');
+
+  if (!grid || !cell || !grid.contains(cell)) return;
+
+  const now = Date.now();
+  if (now - lastCalendarOpenAt < 250) return;
+
+  lastCalendarOpenAt = now;
+  openDayModal(cell.dataset.date);
+}
+
+document.getElementById('calGrid')?.addEventListener('pointerup', handleCalendarGridPointerUp);
 
     async function loadDayNoteContent(dateStr) {
   if (!dateStr) return null;
@@ -4804,6 +4826,9 @@ function renderCalendarFromLoadedTrades() {
     let allPageNotes = [];
     let currentNoteId = null;
     let noteSaveTimer = null;
+let noteSavePromise = Promise.resolve();
+let noteSaveVersion = 0;
+const NOTE_SAVE_DEBOUNCE_MS = 120;
     let editingTradeId = null;
     let editingTradeOriginalDate = null;
     let logFromPage = false;
@@ -6274,24 +6299,6 @@ function resetPointsCalc() {
         return { cell, dayTradesArr, dayPnl };
       }
 
-      let lastCalendarOpenAt = 0;
-
-function handleCalendarGridPointerUp(event) {
-  const grid = document.getElementById('calGrid');
-  const cell = event.target.closest('.cal-cell[data-date]');
-
-  if (!grid || !cell || !grid.contains(cell)) return;
-
-  const now = Date.now();
-
-  if (now - lastCalendarOpenAt < 250) return;
-  lastCalendarOpenAt = now;
-
-  openDayModal(cell.dataset.date);
-}
-
-document.getElementById('calGrid')?.addEventListener('pointerup', handleCalendarGridPointerUp);
-
       const prevMonthDays = new Date(calYear, calMonth, 0).getDate();
       let allCells = [];
       for (let i = firstDayOfWeek - 1; i >= 0; i--) {
@@ -6444,6 +6451,9 @@ function resizeImageFileToDataUrl(file, maxWidth = 1400, quality = 0.82) {
 
   editor.dataset.loadingNote = 'true';
 editor.dataset.dirty = 'false';
+editor.classList.add('is-loading');
+editor.setAttribute('contenteditable', 'false');
+editor.removeAttribute('tabindex');
 editor.innerHTML = '<div style="color:var(--text2);padding:12px 0;">Loading notes...</div>';
 
 dayTrades = calTradesCache.filter(t => t.date === dateStr);
@@ -6688,6 +6698,9 @@ if (isStillLoading) {
 
   selectedNoteId = note?.id || null;
   editor.innerHTML = note?.content || '';
+  editor.classList.remove('is-loading');
+editor.setAttribute('contenteditable', 'true');
+editor.setAttribute('tabindex', '0');
 
 ensureEditableTypingSpace(editor);
 optimizeEditorContent(editor);
@@ -6718,7 +6731,7 @@ editor.dataset.dirty = 'false';
     }
 
     editor.dataset.dirty = 'false';
-  }, 700);
+  }, 180);
 };
   editor.oninput = trigger;
 
@@ -8721,7 +8734,12 @@ async function saveNoteOrder() {
 }
 
     function openNote(id) {
-      clearTimeout(noteSaveTimer);
+      if (currentNoteId && currentNoteId !== id) {
+  clearTimeout(noteSaveTimer);
+  saveCurrentNote().catch(console.warn);
+} else {
+  clearTimeout(noteSaveTimer);
+}
       const note = allPageNotes.find(n => n.id === id);
       if (!note) return;
       currentNoteId = id;
@@ -8769,22 +8787,73 @@ optimizeEditorContent(body);
     }
 
     function scheduleNoteSave() {
-      document.getElementById('notesAutosaveStatus').textContent = 'Saving...';
-      clearTimeout(noteSaveTimer);
-      noteSaveTimer = setTimeout(saveCurrentNote, 1000);
-    }
+  const status = document.getElementById('notesAutosaveStatus');
+  if (status) status.textContent = 'Saving...';
 
-    async function saveCurrentNote() {
-      if (!currentNoteId) return;
-      const title = document.getElementById('noteTitleInput').value.trim() || 'Untitled';
-      const content = document.getElementById('noteBodyEditor').innerHTML;
-      await fetch(`${SUPABASE_URL}/rest/v1/notes?id=eq.${currentNoteId}`, { method: 'PATCH', headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' }, body: JSON.stringify({ title, content, updated_at: new Date().toISOString() }) });
-      const note = allPageNotes.find(n => n.id === currentNoteId);
-      if (note) { note.title = title; note.content = content; note.updated_at = new Date().toISOString(); }
-      document.getElementById('notesAutosaveStatus').textContent = 'Saved';
-      setTimeout(() => { if (document.getElementById('notesAutosaveStatus').textContent === 'Saved') document.getElementById('notesAutosaveStatus').textContent = ''; }, 2000);
-      renderNotesList();
-    }
+  noteSaveVersion += 1;
+  const versionAtSchedule = noteSaveVersion;
+
+  clearTimeout(noteSaveTimer);
+  noteSaveTimer = setTimeout(() => {
+    saveCurrentNote(versionAtSchedule).catch(console.warn);
+  }, NOTE_SAVE_DEBOUNCE_MS);
+}
+
+async function saveCurrentNote(version = ++noteSaveVersion) {
+  if (!currentNoteId) return;
+
+  const noteId = currentNoteId;
+  const title = document.getElementById('noteTitleInput').value.trim() || 'Untitled';
+  const content = document.getElementById('noteBodyEditor').innerHTML;
+  const updatedAt = new Date().toISOString();
+
+  noteSavePromise = noteSavePromise
+    .catch(() => {})
+    .then(async () => {
+      if (currentNoteId === noteId && version !== noteSaveVersion) return;
+
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/notes?id=eq.${noteId}`, {
+        method: 'PATCH',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({ title, content, updated_at: updatedAt })
+      });
+
+      if (!res.ok) throw new Error(`Note save failed: ${res.status}`);
+
+      const note = allPageNotes.find(n => n.id === noteId);
+      const titleChanged = note && note.title !== title;
+
+      if (note) {
+        note.title = title;
+        note.content = content;
+        note.updated_at = updatedAt;
+      }
+
+      if (titleChanged) renderNotesList();
+
+      if (currentNoteId === noteId && version === noteSaveVersion) {
+        const status = document.getElementById('notesAutosaveStatus');
+        if (status) {
+          status.textContent = 'Saved!';
+          setTimeout(() => {
+            if (status.textContent === 'Saved!') status.textContent = '';
+          }, 1200);
+        }
+      }
+    })
+    .catch(err => {
+      console.warn('Note save failed:', err);
+      const status = document.getElementById('notesAutosaveStatus');
+      if (status && currentNoteId === noteId) status.textContent = 'Save failed';
+    });
+
+  return noteSavePromise;
+}
 
         async function createNote() {
       allPageNotes = allPageNotes.map(n => ({
