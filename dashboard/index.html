@@ -8526,6 +8526,7 @@ function insertTradeIntoNote(tradeId) {
 
   try {
     const cached = JSON.parse(localStorage.getItem(`tp_notes_cache_${user.id}`) || '[]');
+
     if (Array.isArray(cached) && cached.length) {
       allPageNotes = cached;
       renderNotesList();
@@ -8534,47 +8535,47 @@ function insertTradeIntoNote(tradeId) {
     }
   } catch (err) {}
 
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/notes?user_id=eq.${user.id}&order=sort_order.asc.nullslast,updated_at.desc`, {
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${token}`
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/notes?user_id=eq.${user.id}&select=id,user_id,title,updated_at,sort_order&order=updated_at.desc`,
+      {
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${token}`
+        }
+      }
+    );
+
+    if (!res.ok) throw new Error(`Notes load failed: ${res.status}`);
+
+    const serverNotes = await res.json();
+    allPageNotes = Array.isArray(serverNotes) ? serverNotes : [];
+
+    allPageNotes.sort((a, b) => {
+      const aOrder = a.sort_order;
+      const bOrder = b.sort_order;
+
+      if (aOrder !== null && aOrder !== undefined && bOrder !== null && bOrder !== undefined) {
+        return aOrder - bOrder;
+      }
+
+      return new Date(b.updated_at || 0) - new Date(a.updated_at || 0);
+    });
+
+    localStorage.setItem(`tp_notes_cache_${user.id}`, JSON.stringify(allPageNotes));
+    renderNotesList();
+
+    if (currentNoteId) {
+      const still = allPageNotes.find(n => n.id === currentNoteId);
+      if (still) openNote(still.id);
+      else closeNoteEditor();
     }
-  });
+  } catch (err) {
+    console.warn('Notes load failed:', err);
 
-  const serverNotes = await res.json();
-  allPageNotes = Array.isArray(serverNotes) ? serverNotes : [];
-
-  allPageNotes = allPageNotes.map(note => {
-    try {
-      const pending = JSON.parse(localStorage.getItem(`tp_note_pending_${user.id}_${note.id}`) || 'null');
-      return pending ? { ...note, ...pending } : note;
-    } catch (err) {
-      return note;
+    if (!allPageNotes.length && list) {
+      list.innerHTML = '<div class="note-list-empty">Could not load notes. Refresh and try again.</div>';
     }
-  });
-
-  let needsOrderSave = false;
-
-  allPageNotes = allPageNotes.map((note, index) => {
-    if (note.sort_order === null || note.sort_order === undefined) {
-      needsOrderSave = true;
-      return { ...note, sort_order: index };
-    }
-
-    return note;
-  });
-
-  localStorage.setItem(`tp_notes_cache_${user.id}`, JSON.stringify(allPageNotes));
-  renderNotesList();
-
-  if (needsOrderSave) {
-    saveNoteOrder().catch(console.warn);
-  }
-
-  if (currentNoteId) {
-    const still = allPageNotes.find(n => n.id === currentNoteId);
-    if (still) openNote(still.id);
-    else closeNoteEditor();
   }
 }
         function renderNotesList() {
@@ -8778,16 +8779,55 @@ async function saveNoteOrder() {
   }));
 }
 
-    function openNote(id) {
+async function loadNoteContent(note) {
+  if (!note || note.content !== undefined) return note;
+
+  const pending = (() => {
+    try {
+      return JSON.parse(localStorage.getItem(`tp_note_pending_${user.id}_${note.id}`) || 'null');
+    } catch (err) {
+      return null;
+    }
+  })();
+
+  if (pending?.content !== undefined) {
+    return { ...note, ...pending };
+  }
+
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/notes?id=eq.${note.id}&select=content&limit=1`, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`
+    }
+  });
+
+  if (!res.ok) throw new Error(`Note content load failed: ${res.status}`);
+
+  const data = await res.json();
+  return { ...note, content: data?.[0]?.content || '' };
+}
+    
+    async function openNote(id) {
       if (currentNoteId && currentNoteId !== id) {
   clearTimeout(noteSaveTimer);
   saveCurrentNote().catch(console.warn);
 } else {
   clearTimeout(noteSaveTimer);
 }
-      const note = allPageNotes.find(n => n.id === id);
-      if (!note) return;
-      currentNoteId = id;
+      let note = allPageNotes.find(n => n.id === id);
+if (!note) return;
+
+currentNoteId = id;
+
+try {
+  note = await loadNoteContent(note);
+  const index = allPageNotes.findIndex(n => n.id === id);
+  if (index >= 0) allPageNotes[index] = note;
+} catch (err) {
+  console.warn('Note content load failed:', err);
+  document.getElementById('notesAutosaveStatus').textContent = 'Could not load note';
+  return;
+}
       document.getElementById('notesEditorEmpty').style.display = 'none';
       document.getElementById('notesEditorInner').style.display = 'flex';
       document.getElementById('noteTitleInput').value = note.title || '';
