@@ -6407,7 +6407,7 @@ function optimizeEditorContent(editor) {
   });
 }
 
-function resizeImageFileToDataUrl(file, maxWidth = 1400, quality = 0.82) {
+function resizeImageFileToBlob(file, maxWidth = 1400, quality = 0.82) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
 
@@ -6426,7 +6426,11 @@ function resizeImageFileToDataUrl(file, maxWidth = 1400, quality = 0.82) {
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
 
-        resolve(canvas.toDataURL('image/jpeg', quality));
+        canvas.toBlob(
+          blob => blob ? resolve(blob) : reject(new Error('Image resize failed.')),
+          'image/jpeg',
+          quality
+        );
       };
 
       img.onerror = reject;
@@ -6436,6 +6440,26 @@ function resizeImageFileToDataUrl(file, maxWidth = 1400, quality = 0.82) {
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
+}
+
+async function uploadNoteImage(file, folder = 'notes') {
+  const blob = await resizeImageFileToBlob(file, 1400, 0.82);
+  const id = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  const path = `${user.id}/${folder}/${id}.jpg`;
+
+  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/note-images/${path}`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'image/jpeg',
+      'x-upsert': 'false'
+    },
+    body: blob
+  });
+
+  if (!res.ok) throw new Error('Note image upload failed.');
+
+  return `${SUPABASE_URL}/storage/v1/object/public/note-images/${path}`;
 }
 
     async function openDayModal(dateStr) {
@@ -6771,6 +6795,30 @@ async function loadDayNote() {
     function noteFormat(cmd) { document.getElementById('noteEditor').focus(); document.execCommand(cmd, false, null); }
     function insertHR() { document.getElementById('noteEditor').focus(); document.execCommand('insertHTML', false, '<hr/>'); }
     async function insertImage(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const editor = document.getElementById('noteEditor');
+
+  try {
+    const imageUrl = await uploadNoteImage(file, 'day-notes');
+
+    editor.focus();
+    document.execCommand(
+      'insertHTML',
+      false,
+      `<img src="${escapeHtml(imageUrl)}" ondblclick="openLightbox(this)"/><p><br></p>`
+    );
+
+    focusEditableAtEnd(editor);
+    await saveDayNoteNow(selectedDate, getNoteContent());
+  } catch (err) {
+    console.warn('Image insert failed:', err);
+  }
+
+  e.target.value = '';
+}
+
   const file = e.target.files[0];
   if (!file) return;
 
@@ -8498,40 +8546,61 @@ function insertTradeIntoNote(tradeId) {
     
     // ─── NOTES PAGE ─────────────────────────────────────────────
         async function initNotes() {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/notes?user_id=eq.${user.id}&order=sort_order.asc.nullslast,updated_at.desc`, {
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${token}`
-        }
-      });
+  const list = document.getElementById('notesList');
 
-      allPageNotes = await res.json();
-      if (!Array.isArray(allPageNotes)) allPageNotes = [];
-
-      let needsOrderSave = false;
-
-      allPageNotes = allPageNotes.map((note, index) => {
-        if (note.sort_order === null || note.sort_order === undefined) {
-          needsOrderSave = true;
-          return { ...note, sort_order: index };
-        }
-
-        return note;
-      });
-
+  try {
+    const cached = JSON.parse(localStorage.getItem(`tp_notes_cache_${user.id}`) || '[]');
+    if (Array.isArray(cached) && cached.length) {
+      allPageNotes = cached;
       renderNotesList();
+    } else if (list) {
+      list.innerHTML = '<div class="note-list-empty">Loading notes...</div>';
+    }
+  } catch (err) {}
 
-      if (needsOrderSave) {
-        saveNoteOrder().catch(console.warn);
-      }
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/notes?user_id=eq.${user.id}&order=sort_order.asc.nullslast,updated_at.desc`, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`
+    }
+  });
 
-      if (currentNoteId) {
-        const still = allPageNotes.find(n => n.id === currentNoteId);
-        if (still) openNote(still.id);
-        else closeNoteEditor();
-      }
+  const serverNotes = await res.json();
+  allPageNotes = Array.isArray(serverNotes) ? serverNotes : [];
+
+  allPageNotes = allPageNotes.map(note => {
+    try {
+      const pending = JSON.parse(localStorage.getItem(`tp_note_pending_${user.id}_${note.id}`) || 'null');
+      return pending ? { ...note, ...pending } : note;
+    } catch (err) {
+      return note;
+    }
+  });
+
+  let needsOrderSave = false;
+
+  allPageNotes = allPageNotes.map((note, index) => {
+    if (note.sort_order === null || note.sort_order === undefined) {
+      needsOrderSave = true;
+      return { ...note, sort_order: index };
     }
 
+    return note;
+  });
+
+  localStorage.setItem(`tp_notes_cache_${user.id}`, JSON.stringify(allPageNotes));
+  renderNotesList();
+
+  if (needsOrderSave) {
+    saveNoteOrder().catch(console.warn);
+  }
+
+  if (currentNoteId) {
+    const still = allPageNotes.find(n => n.id === currentNoteId);
+    if (still) openNote(still.id);
+    else closeNoteEditor();
+  }
+}
         function renderNotesList() {
       const list = document.getElementById('notesList');
 
@@ -8786,74 +8855,93 @@ optimizeEditorContent(body);
       renderNotesList();
     }
 
-    function scheduleNoteSave() {
-  const status = document.getElementById('notesAutosaveStatus');
-  if (status) status.textContent = 'Saving...';
-
-  noteSaveVersion += 1;
-  const versionAtSchedule = noteSaveVersion;
-
-  clearTimeout(noteSaveTimer);
-  noteSaveTimer = setTimeout(() => {
-    saveCurrentNote(versionAtSchedule).catch(console.warn);
-  }, NOTE_SAVE_DEBOUNCE_MS);
-}
-
-async function saveCurrentNote(version = ++noteSaveVersion) {
+    function scheduleNoteSave(forceNow = false) {
   if (!currentNoteId) return;
 
   const noteId = currentNoteId;
   const title = document.getElementById('noteTitleInput').value.trim() || 'Untitled';
   const content = document.getElementById('noteBodyEditor').innerHTML;
   const updatedAt = new Date().toISOString();
+  const status = document.getElementById('notesAutosaveStatus');
 
-  noteSavePromise = noteSavePromise
-    .catch(() => {})
-    .then(async () => {
-      if (currentNoteId === noteId && version !== noteSaveVersion) return;
+  const note = allPageNotes.find(n => n.id === noteId);
+  const titleChanged = note && note.title !== title;
 
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/notes?id=eq.${noteId}`, {
-        method: 'PATCH',
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=minimal'
-        },
-        body: JSON.stringify({ title, content, updated_at: updatedAt })
-      });
+  if (note) {
+    note.title = title;
+    note.content = content;
+    note.updated_at = updatedAt;
+  }
 
-      if (!res.ok) throw new Error(`Note save failed: ${res.status}`);
+  try {
+    localStorage.setItem(`tp_notes_cache_${user.id}`, JSON.stringify(allPageNotes));
+    localStorage.setItem(`tp_note_pending_${user.id}_${noteId}`, JSON.stringify({ title, content, updated_at: updatedAt }));
+  } catch (err) {
+    console.warn('Local note cache failed:', err);
+  }
 
-      const note = allPageNotes.find(n => n.id === noteId);
-      const titleChanged = note && note.title !== title;
+  if (status) status.textContent = 'Saved locally';
 
-      if (note) {
-        note.title = title;
-        note.content = content;
-        note.updated_at = updatedAt;
-      }
+  if (titleChanged) renderNotesList();
 
-      if (titleChanged) renderNotesList();
-
-      if (currentNoteId === noteId && version === noteSaveVersion) {
-        const status = document.getElementById('notesAutosaveStatus');
-        if (status) {
-          status.textContent = 'Saved!';
-          setTimeout(() => {
-            if (status.textContent === 'Saved!') status.textContent = '';
-          }, 1200);
-        }
-      }
-    })
-    .catch(err => {
-      console.warn('Note save failed:', err);
-      const status = document.getElementById('notesAutosaveStatus');
-      if (status && currentNoteId === noteId) status.textContent = 'Save failed';
-    });
-
-  return noteSavePromise;
+  clearTimeout(noteSaveTimer);
+  noteSaveTimer = setTimeout(() => {
+    saveCurrentNote(noteId).catch(console.warn);
+  }, forceNow ? 0 : 150);
 }
+
+async function saveCurrentNote(noteId = currentNoteId) {
+  if (!noteId) return;
+
+  let payload = null;
+
+  try {
+    payload = JSON.parse(localStorage.getItem(`tp_note_pending_${user.id}_${noteId}`) || 'null');
+  } catch (err) {
+    payload = null;
+  }
+
+  if (!payload) return;
+
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/notes?id=eq.${noteId}`, {
+    method: 'PATCH',
+    keepalive: true,
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal'
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (!res.ok) throw new Error(`Note save failed: ${res.status}`);
+
+  localStorage.removeItem(`tp_note_pending_${user.id}_${noteId}`);
+
+  const status = document.getElementById('notesAutosaveStatus');
+  if (status && noteId === currentNoteId) {
+    status.textContent = 'Saved!';
+    setTimeout(() => {
+      if (status.textContent === 'Saved!') status.textContent = '';
+    }, 1000);
+  }
+}
+
+function flushCurrentNoteBeforeLeave() {
+  if (!currentNoteId) return;
+
+  scheduleNoteSave(true);
+  saveCurrentNote(currentNoteId).catch(console.warn);
+}
+
+window.addEventListener('pagehide', flushCurrentNoteBeforeLeave);
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') {
+    flushCurrentNoteBeforeLeave();
+  }
+});
 
         async function createNote() {
       allPageNotes = allPageNotes.map(n => ({
@@ -8905,22 +8993,26 @@ async function saveCurrentNote(version = ++noteSaveVersion) {
   if (!file) return;
 
   const editor = document.getElementById('noteBodyEditor');
+  const status = document.getElementById('notesAutosaveStatus');
 
   try {
-    const dataUrl = await resizeImageFileToDataUrl(file, 1400, 0.82);
+    if (status) status.textContent = 'Uploading image...';
+
+    const imageUrl = await uploadNoteImage(file, 'page-notes');
 
     editor.focus();
     document.execCommand(
       'insertHTML',
       false,
-      `<img src="${dataUrl}" ondblclick="openLightbox(this)"/><p><br></p>`
+      `<img src="${escapeHtml(imageUrl)}" ondblclick="openLightbox(this)"/><p><br></p>`
     );
 
     focusEditableAtEnd(editor);
     saveNotesCursor();
-    scheduleNoteSave();
+    scheduleNoteSave(true);
   } catch (err) {
     console.warn('Note image insert failed:', err);
+    if (status) status.textContent = 'Image upload failed';
   }
 
   e.target.value = '';
