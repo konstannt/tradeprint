@@ -8847,14 +8847,19 @@ async function loadNoteContent(note) {
   note.content = cachedContent;
 
   document.getElementById('notesEditorEmpty').style.display = 'none';
-  document.getElementById('notesEditorInner').style.display = 'flex';
+  const inner = document.getElementById('notesEditorInner');
+  inner.style.display = 'flex';
   document.getElementById('noteTitleInput').value = note.title || '';
 
   const body = document.getElementById('noteBodyEditor');
-  body.innerHTML = note.content || '';
 
-  ensureEditableTypingSpace(body);
-  optimizeEditorContent(body);
+  // Only update DOM if content actually changed
+  if (body.dataset.loadedNoteId !== id) {
+    body.innerHTML = cachedContent;
+    body.dataset.loadedNoteId = id;
+    ensureEditableTypingSpace(body);
+    optimizeEditorContent(body);
+  }
 
   document.getElementById('notesAutosaveStatus').textContent = '';
   renderNotesList();
@@ -8880,19 +8885,16 @@ async function loadNoteContent(note) {
 
   body.onkeyup = () => {
     saveNotesCursor();
-    scheduleNoteSave();
     updateNotesToolbarState();
   };
 
   body.onkeydown = (e) => {
     if (e.key === 'Enter') {
       const sel = window.getSelection();
-
       if (sel && sel.rangeCount > 0) {
         const range = sel.getRangeAt(0);
         const text = range.startContainer.textContent || '';
         const before = text.substring(0, range.startOffset);
-
         if (before.endsWith('--')) {
           e.preventDefault();
           document.execCommand('delete', false, null);
@@ -8904,28 +8906,28 @@ async function loadNoteContent(note) {
     }
   };
 
-  loadNoteContent(note)
-    .then(freshNote => {
-      if (!freshNote || currentNoteId !== id) return;
+  // Background fetch only if no cache
+  if (!cachedContent) {
+    loadNoteContent(note)
+      .then(freshNote => {
+        if (!freshNote || currentNoteId !== id) return;
 
-      const pending = localStorage.getItem(`tp_note_pending_${user.id}_${id}`);
-      if (pending) return;
+        const index = allPageNotes.findIndex(n => n.id === id);
+        if (index >= 0) allPageNotes[index] = freshNote;
 
-      const index = allPageNotes.findIndex(n => n.id === id);
-      if (index >= 0) allPageNotes[index] = freshNote;
-
-      const isEditing = document.activeElement === body;
-    if (!isEditing && freshNote.content !== body.innerHTML) {
-        body.innerHTML = freshNote.content || '';
-        ensureEditableTypingSpace(body);
-        optimizeEditorContent(body);
-      }
-    })
-    .catch(err => {
-      console.warn('Note background refresh failed:', err);
-    });
+        const isEditing = document.activeElement === body;
+        if (!isEditing && body.dataset.loadedNoteId === id && freshNote.content !== body.innerHTML) {
+          body.innerHTML = freshNote.content || '';
+          body.dataset.loadedNoteId = id;
+          ensureEditableTypingSpace(body);
+          optimizeEditorContent(body);
+        }
+      })
+      .catch(err => {
+        console.warn('Note background refresh failed:', err);
+      });
+  }
 }
-
     function closeNoteEditor() {
       currentNoteId = null;
       document.getElementById('notesEditorEmpty').style.display = 'flex';
@@ -8952,21 +8954,23 @@ async function loadNoteContent(note) {
   }
 
   try {
-    localStorage.setItem(`tp_notes_cache_${user.id}`, JSON.stringify(allPageNotes));
-    localStorage.setItem(`tp_note_pending_${user.id}_${noteId}`, JSON.stringify({ title, content, updated_at: updatedAt }));
     writeNoteContentCache(noteId, content);
+    localStorage.setItem(`tp_note_pending_${user.id}_${noteId}`, JSON.stringify({ title, content, updated_at: updatedAt }));
   } catch (err) {
     console.warn('Local note cache failed:', err);
   }
 
   if (status) status.textContent = 'Saving...';
 
-  if (titleChanged) renderNotesList();
+  if (titleChanged) {
+    clearTimeout(scheduleNoteSave._titleTimer);
+    scheduleNoteSave._titleTimer = setTimeout(() => renderNotesList(), 600);
+  }
 
   clearTimeout(noteSaveTimer);
   noteSaveTimer = setTimeout(() => {
     saveCurrentNote(noteId).catch(console.warn);
-  }, forceNow ? 0 : 150);
+  }, forceNow ? 0 : 800);
 }
 
 async function saveCurrentNote(noteId = currentNoteId) {
