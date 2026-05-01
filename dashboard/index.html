@@ -6485,17 +6485,15 @@ renderDayTrades();
 
 document.getElementById('dayModal').classList.add('active');
 
-if (dayNoteContentCache.has(dateStr)) {
-  applyDayNote(dayNoteContentCache.get(dateStr));
-}
+try {
+  const note = dayNoteContentCache.has(dateStr)
+    ? dayNoteContentCache.get(dateStr)
+    : await loadDayNoteContent(dateStr);
 
-  try {
-    const note = await loadDayNoteContent(dateStr);
+  if (selectedDate !== dateStr) return;
 
-    if (selectedDate !== dateStr) return;
-
-    applyDayNote(note);
-  } catch (err) {
+  applyDayNote(note);
+} catch (err) {
     console.warn('Day note load failed:', err);
 
     if (selectedDate === dateStr) {
@@ -8916,7 +8914,8 @@ async function loadNoteContent(note) {
       const index = allPageNotes.findIndex(n => n.id === id);
       if (index >= 0) allPageNotes[index] = freshNote;
 
-      if (freshNote.content !== body.innerHTML) {
+      const isEditing = document.activeElement === body;
+    if (!isEditing && freshNote.content !== body.innerHTML) {
         body.innerHTML = freshNote.content || '';
         ensureEditableTypingSpace(body);
         optimizeEditorContent(body);
@@ -8960,7 +8959,7 @@ async function loadNoteContent(note) {
     console.warn('Local note cache failed:', err);
   }
 
-  if (status) status.textContent = 'Saved locally';
+  if (status) status.textContent = 'Saving...';
 
   if (titleChanged) renderNotesList();
 
@@ -9001,10 +9000,10 @@ async function saveCurrentNote(noteId = currentNoteId) {
 
   const status = document.getElementById('notesAutosaveStatus');
   if (status && noteId === currentNoteId) {
-    status.textContent = 'Saved!';
+    status.textContent = 'Saved ✓';
     setTimeout(() => {
-      if (status.textContent === 'Saved!') status.textContent = '';
-    }, 1000);
+      if (status.textContent === 'Saved ✓') status.textContent = '';
+    }, 1500);
   }
 }
 
