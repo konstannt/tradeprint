@@ -1764,7 +1764,44 @@ select.tp-native-select {
     .notes-format-btn:hover { background: var(--border); color: var(--text); }
     .notes-format-btn.active { background: var(--border); color: var(--text); }
     .notes-format-divider { width: 1px; height: 18px; background: var(--border); margin: 0 2px; }
-    .notes-autosave { font-size: 11px; color: var(--text2); margin-left: auto; }
+    .notes-autosave {
+  font-size: 11px;
+  color: var(--text2);
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.notes-autosave.unsaved { color: #f59e0b; }
+.notes-autosave.saving { color: var(--accent); }
+.notes-autosave.saved { color: var(--success); }
+.notes-autosave.error { color: var(--danger); }
+
+.notion-note-toolbar .note-save-status {
+  margin-left: auto;
+}
+
+.note-load-placeholder,
+.note-render-error {
+  color: var(--text2);
+  font-size: 14px;
+  padding: 12px 0;
+}
+
+.note-render-error {
+  color: var(--danger);
+}
+
+.notion-note > *,
+.note-body-editor > * {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 32px;
+}
+
+.notion-note img[data-src],
+.note-body-editor img[data-src] {
+  min-height: 160px;
+  background: var(--bg);
+}
     .notes-delete-btn { background: none; border: none; color: var(--text2); padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 13px; transition: color 0.15s; margin-left: 4px; }
     .notes-delete-btn:hover { color: var(--danger); }
     .note-title-input { width: 100%; background: none; border: none; outline: none; font-size: 32px; font-weight: 800; color: var(--text); font-family: inherit; padding: 28px 36px 12px; letter-spacing: -0.5px; }
@@ -3564,6 +3601,7 @@ select::-ms-expand {
           <button class="notion-tool" onclick="insertHR()">— Divider</button>
           <button class="notion-tool" onclick="document.getElementById('noteImgInput').click()">↑ Image</button>
           <input type="file" id="noteImgInput" accept="image/*" style="display:none" onchange="insertImage(event)"/>
+<span class="notes-autosave note-save-status" id="dayNoteSaveStatus" aria-live="polite"></span>
         </div>
         <div class="notion-note" id="noteEditor" contenteditable="true" tabindex="0" placeholder="Write anything about this day — market observations, mindset, what you noticed..."></div>
       </div>
@@ -4767,17 +4805,23 @@ document.getElementById('calGrid')?.addEventListener('pointerup', handleCalendar
     return dayNoteContentCache.get(dateStr);
   }
 
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/day_notes?user_id=eq.${user.id}&date=eq.${dateStr}&select=id,user_id,date,content&limit=1`, {
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${token}`
+  const data = await fetchJsonLogged(
+    `${SUPABASE_URL}/rest/v1/day_notes?user_id=eq.${user.id}&date=eq.${dateStr}&select=id,user_id,date,content&limit=1`,
+    {
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${token}`
+      }
+    },
+    {
+      event: 'day_note_load',
+      date: dateStr
     }
-  });
+  );
 
-  const data = await res.json();
   const note = Array.isArray(data) && data[0] ? data[0] : null;
-
   dayNoteContentCache.set(dateStr, note);
+
   return note;
 }
 
@@ -4822,13 +4866,25 @@ function renderCalendarFromLoadedTrades() {
   updateNavButtons();
 }
     let noteAutosaveTimer = null;
-    const MIN_DATE = new Date(2026, 0, 1);
-    let allPageNotes = [];
-    let currentNoteId = null;
-    let noteSaveTimer = null;
+let dayNoteSavePromise = Promise.resolve();
+let dayNoteSaveVersion = 0;
+let dayNoteLoadToken = 0;
+
+const DAY_NOTE_SAVE_DEBOUNCE_MS = 800;
+const NOTE_SAVE_DEBOUNCE_MS = 800;
+const NOTE_LOCAL_CACHE_MAX_BYTES = 120000;
+const KEEPALIVE_MAX_BYTES = 60000;
+const EDITOR_PLACEHOLDER_SRC = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%221%22 height=%221%22/%3E';
+
+const MIN_DATE = new Date(2026, 0, 1);
+let allPageNotes = [];
+let currentNoteId = null;
+let noteSaveTimer = null;
 let noteSavePromise = Promise.resolve();
 let noteSaveVersion = 0;
-const NOTE_SAVE_DEBOUNCE_MS = 120;
+let noteOpenToken = 0;
+const pendingNoteSaves = new Map();
+const memoryNoteContentCache = new Map();
     let editingTradeId = null;
     let editingTradeOriginalDate = null;
     let logFromPage = false;
@@ -5982,6 +6038,10 @@ if (typeof renderPrintsFeed === 'function') renderPrintsFeed();
 
 async function showPage(name, el) {
   const tok = ++pageSwitchToken;
+  await Promise.allSettled([
+  flushCurrentNote('tab switch'),
+  selectedDate ? flushDayNoteSave(selectedDate, selectedNoteId, ++dayNoteSaveVersion, 'tab switch') : Promise.resolve()
+]);
 
   closeMobileSidebar();
 
@@ -6463,6 +6523,7 @@ async function uploadNoteImage(file, folder = 'notes') {
 }
 
     async function openDayModal(dateStr) {
+  const openToken = ++dayNoteLoadToken;
   selectedDate = dateStr;
 
   const date = new Date(dateStr + 'T12:00:00');
@@ -6473,158 +6534,244 @@ async function uploadNoteImage(file, folder = 'notes') {
   document.getElementById('dayStats').innerHTML = '';
   document.getElementById('dayTradesList').innerHTML = '';
 
+  setSaveStatus('dayNoteSaveStatus', 'Saved', 'Loading...');
+
   editor.dataset.loadingNote = 'true';
-editor.dataset.dirty = 'false';
-editor.classList.add('is-loading');
-editor.setAttribute('contenteditable', 'false');
-editor.removeAttribute('tabindex');
-editor.innerHTML = '<div style="color:var(--text2);padding:12px 0;">Loading notes...</div>';
+  editor.dataset.dirty = 'false';
+  editor.dataset.noteDate = dateStr;
+  editor.classList.add('is-loading');
+  editor.setAttribute('contenteditable', 'false');
+  editor.removeAttribute('tabindex');
+  editor.innerHTML = '<div class="note-load-placeholder">Loading notes...</div>';
 
-dayTrades = calTradesCache.filter(t => t.date === dateStr);
-renderDayTrades();
+  dayTrades = calTradesCache.filter(t => t.date === dateStr);
+  renderDayTrades();
 
-document.getElementById('dayModal').classList.add('active');
+  document.getElementById('dayModal').classList.add('active');
 
-try {
-  const note = dayNoteContentCache.has(dateStr)
-    ? dayNoteContentCache.get(dateStr)
-    : await loadDayNoteContent(dateStr);
+  await nextFrame();
 
-  if (selectedDate !== dateStr) return;
+  loadDayNoteContent(dateStr)
+    .then(note => {
+      if (selectedDate !== dateStr || openToken !== dayNoteLoadToken) return;
+      applyDayNote(note, openToken);
+    })
+    .catch(err => {
+      tpLog('error', {
+        event: 'day_note_load_failed',
+        date: dateStr,
+        message: err.message
+      });
 
-  applyDayNote(note);
-} catch (err) {
-    console.warn('Day note load failed:', err);
-
-    if (selectedDate === dateStr) {
-      applyDayNote(null);
-    }
-  }
+      if (selectedDate === dateStr && openToken === dayNoteLoadToken) {
+        applyDayNote(null, openToken);
+        setSaveStatus('dayNoteSaveStatus', 'Error', 'Error');
+      }
+    });
 
   if (!calTradesCache.length) {
     loadDayTrades().catch(console.warn);
   }
 }
-  
-    function getNoteContent() {
-  const editor = document.getElementById('noteEditor');
 
-  if (editor.dataset.loadingNote === 'true') return '';
-
-  const raw = editor.innerHTML;
-  const empty = raw
-    .replace(/<br\s*\/?>/gi, '')
-    .replace(/<div><\/div>/gi, '')
-    .replace(/<p><\/p>/gi, '')
-    .replace(/<p><br><\/p>/gi, '')
-    .trim() === '';
-
-  return empty ? '' : raw;
+function getNoteContent() {
+  return serializeEditorHtml(document.getElementById('noteEditor'));
 }
 
-    async function saveDayNoteNow(dateStr, content, noteId = selectedNoteId) {
+async function saveDayNoteNow(dateStr, content, noteId = selectedNoteId, reason = 'save') {
   if (!dateStr) return null;
 
-  const payload = { user_id: user.id, date: dateStr, content };
+  const payload = {
+    user_id: user.id,
+    date: dateStr,
+    content: content || ''
+  };
 
-  if (noteId) {
-    if (!content) {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/day_notes?id=eq.${noteId}`, {
+  if (noteId && !content) {
+    await saveFetchLogged(
+      `${SUPABASE_URL}/rest/v1/day_notes?id=eq.${noteId}`,
+      {
         method: 'DELETE',
         headers: {
           'apikey': SUPABASE_KEY,
           'Authorization': `Bearer ${token}`
         }
-      });
-
-      if (res.ok && selectedNoteId === noteId) selectedNoteId = null;
-      return null;
-    }
-
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/day_notes?id=eq.${noteId}`, {
-      method: 'PATCH',
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=minimal'
       },
-      body: JSON.stringify(payload)
-    });
+      {
+        event: 'day_note_delete',
+        date: dateStr,
+        noteId,
+        reason
+      }
+    );
 
-    return res.ok ? noteId : null;
+    return null;
+  }
+
+  if (noteId) {
+    await saveFetchLogged(
+      `${SUPABASE_URL}/rest/v1/day_notes?id=eq.${noteId}`,
+      {
+        method: 'PATCH',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify(payload)
+      },
+      {
+        event: 'day_note_save',
+        date: dateStr,
+        noteId,
+        reason
+      }
+    );
+
+    return noteId;
   }
 
   if (!content) return null;
 
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/day_notes`, {
-    method: 'POST',
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=representation'
-    },
-    body: JSON.stringify(payload)
-  });
+  try {
+    const data = await saveFetchLogged(
+      `${SUPABASE_URL}/rest/v1/day_notes`,
+      {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation'
+        },
+        body: JSON.stringify(payload)
+      },
+      {
+        event: 'day_note_create',
+        date: dateStr,
+        reason
+      }
+    );
 
-  const data = await res.json();
+    return data?.[0]?.id || null;
+  } catch (err) {
+    const existing = await loadDayNoteContent(dateStr);
 
-  if (data && data[0]?.id) {
-    selectedNoteId = data[0].id;
-    return data[0].id;
+    if (existing?.id) {
+      return saveDayNoteNow(dateStr, content, existing.id, 'conflict retry');
+    }
+
+    throw err;
   }
-
-  return null;
 }
 
-    async function closeDayModal() {
+function updateDayNoteLocalState(dateStr, savedId, content, oldNoteId = selectedNoteId) {
+  const existingIndex = calNotesCache.findIndex(n => n.date === dateStr);
+
+  if (content) {
+    const nextNote = {
+      id: savedId || oldNoteId,
+      user_id: user.id,
+      date: dateStr,
+      content
+    };
+
+    dayNoteContentCache.set(dateStr, nextNote);
+
+    if (existingIndex >= 0) calNotesCache[existingIndex] = nextNote;
+    else calNotesCache.push(nextNote);
+  } else {
+    dayNoteContentCache.set(dateStr, null);
+
+    if (existingIndex >= 0) {
+      calNotesCache.splice(existingIndex, 1);
+    }
+  }
+
+  invalidateCalendarCacheForDate(dateStr);
+  renderCalendarFromLoadedTrades();
+}
+
+function scheduleDayNoteSave(forceNow = false, reason = 'input') {
+  const editor = document.getElementById('noteEditor');
+
+  if (!selectedDate || editor.dataset.loadingNote === 'true') return;
+
+  editor.dataset.dirty = 'true';
+  setSaveStatus('dayNoteSaveStatus', 'Unsaved', 'Unsaved');
+
+  const dateAtSave = selectedDate;
+  const noteIdAtSave = selectedNoteId;
+  const version = ++dayNoteSaveVersion;
+
+  clearTimeout(noteAutosaveTimer);
+  noteAutosaveTimer = setTimeout(() => {
+    flushDayNoteSave(dateAtSave, noteIdAtSave, version, reason).catch(console.warn);
+  }, forceNow ? 0 : DAY_NOTE_SAVE_DEBOUNCE_MS);
+}
+
+async function flushDayNoteSave(dateStr = selectedDate, noteId = selectedNoteId, version = ++dayNoteSaveVersion, reason = 'flush') {
+  const editor = document.getElementById('noteEditor');
+
+  if (!dateStr || editor.dataset.loadingNote === 'true') return;
+
+  clearTimeout(noteAutosaveTimer);
+
+  const content = getNoteContent();
+  setSaveStatus('dayNoteSaveStatus', 'Saving', 'Saving');
+
+  dayNoteSavePromise = dayNoteSavePromise.catch(() => {}).then(async () => {
+    try {
+      const savedId = await saveDayNoteNow(dateStr, content, noteId, reason);
+
+      if (selectedDate === dateStr) {
+        selectedNoteId = savedId;
+      }
+
+      updateDayNoteLocalState(dateStr, savedId, content, noteId);
+
+      if (version === dayNoteSaveVersion) {
+        editor.dataset.dirty = 'false';
+        setSaveStatus('dayNoteSaveStatus', 'Saved', 'Saved');
+        setTimeout(() => {
+          const status = document.getElementById('dayNoteSaveStatus');
+          if (status?.textContent === 'Saved') setSaveStatus(status, '', '');
+        }, 1500);
+      }
+    } catch (err) {
+      setSaveStatus('dayNoteSaveStatus', 'Error', 'Error');
+
+      tpLog('error', {
+        event: 'day_note_save_failed',
+        date: dateStr,
+        reason,
+        message: err.message
+      });
+
+      throw err;
+    }
+  });
+
+  return dayNoteSavePromise;
+}
+
+async function closeDayModal() {
   clearTimeout(noteAutosaveTimer);
 
   const editor = document.getElementById('noteEditor');
-const dateToSave = selectedDate;
-const noteIdToSave = selectedNoteId;
-const isStillLoading = editor?.dataset.loadingNote === 'true';
-const content = isStillLoading ? null : getNoteContent();
+  const dateToSave = selectedDate;
+  const noteIdToSave = selectedNoteId;
+  const isStillLoading = editor?.dataset.loadingNote === 'true';
 
-document.getElementById('dayModal').classList.remove('active');
+  document.getElementById('dayModal').classList.remove('active');
 
-selectedDate = null;
-selectedNoteId = null;
+  selectedDate = null;
+  selectedNoteId = null;
 
-if (isStillLoading) {
-  return;
-}
-
-  saveDayNoteNow(dateToSave, content, noteIdToSave)
-    .then((savedId) => {
-      const existingIndex = calNotesCache.findIndex(n => n.date === dateToSave);
-
-      if (content) {
-        const nextNote = {
-          id: savedId || noteIdToSave,
-          user_id: user.id,
-          date: dateToSave,
-          content
-        };
-
-        dayNoteContentCache.set(dateToSave, nextNote);
-
-        if (existingIndex >= 0) calNotesCache[existingIndex] = nextNote;
-        else calNotesCache.push(nextNote);
-      } else {
-        dayNoteContentCache.set(dateToSave, null);
-
-        if (existingIndex >= 0) {
-          calNotesCache.splice(existingIndex, 1);
-        }
-      }
-
-      invalidateCalendarCacheForDate(dateToSave);
-      renderCalendarFromLoadedTrades();
-      loadCalendarData().catch(console.warn);
-    })
-    .catch(console.warn);
+  if (!isStillLoading && dateToSave) {
+    flushDayNoteSave(dateToSave, noteIdToSave, ++dayNoteSaveVersion, 'modal close').catch(console.warn);
+  }
 }
 
     async function loadDayTrades() {
@@ -6715,19 +6862,24 @@ if (isStillLoading) {
   pageLoaded.trades = true;
 }
 
-    function applyDayNote(note) {
+    async function applyDayNote(note, openToken = dayNoteLoadToken) {
   const editor = document.getElementById('noteEditor');
 
   selectedNoteId = note?.id || null;
-  editor.innerHTML = note?.content || '';
-  editor.classList.remove('is-loading');
-editor.setAttribute('contenteditable', 'true');
-editor.setAttribute('tabindex', '0');
 
-ensureEditableTypingSpace(editor);
-optimizeEditorContent(editor);
-editor.dataset.loadingNote = 'false';
-editor.dataset.dirty = 'false';
+  editor.setAttribute('tabindex', '0');
+
+  const rendered = await renderEditorHtmlLazy(editor, note?.content || '', 'day note');
+
+  if (!rendered || openToken !== dayNoteLoadToken) return;
+
+  editor.dataset.loadingNote = 'false';
+  editor.dataset.dirty = 'false';
+  setSaveStatus('dayNoteSaveStatus', 'Saved', 'Saved');
+  setTimeout(() => {
+    const status = document.getElementById('dayNoteSaveStatus');
+    if (status?.textContent === 'Saved') setSaveStatus(status, '', '');
+  }, 1200);
 
   editor.ondblclick = (e) => {
     if (e.target.tagName === 'IMG') openLightbox(e.target);
@@ -6737,50 +6889,36 @@ editor.dataset.dirty = 'false';
     handleEditableBlankClick(e, 'noteEditor');
   };
 
-  const trigger = () => {
-  if (editor.dataset.loadingNote === 'true') return;
+  editor.oninput = () => {
+    scheduleDayNoteSave(false, 'input');
+  };
 
-  editor.dataset.dirty = 'true';
-  clearTimeout(noteAutosaveTimer);
+  editor.onblur = () => {
+    scheduleDayNoteSave(true, 'blur');
+  };
 
-  const dateAtSave = selectedDate;
-
-  noteAutosaveTimer = setTimeout(async () => {
-    const savedId = await saveDayNoteNow(dateAtSave, getNoteContent());
-
-    if (savedId && selectedDate === dateAtSave) {
-      selectedNoteId = savedId;
-    }
-
-    editor.dataset.dirty = 'false';
-  }, 180);
-};
-  editor.oninput = trigger;
-
-  editor.onkeyup = (e) => {
-    trigger();
+  editor.onkeyup = () => {
     updateToolbarState();
   };
 
   editor.onmouseup = updateToolbarState;
 
   editor.onkeydown = (e) => {
-    if (e.key === 'Enter') {
-      const sel = window.getSelection();
+    if (e.key !== 'Enter') return;
 
-      if (sel && sel.rangeCount > 0) {
-        const range = sel.getRangeAt(0);
-        const text = range.startContainer.textContent || '';
-        const before = text.substring(0, range.startOffset);
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
 
-        if (before.endsWith('--')) {
-          e.preventDefault();
-          document.execCommand('delete', false, null);
-          document.execCommand('delete', false, null);
-          document.execCommand('insertHTML', false, '<hr/><br/>');
-          trigger();
-        }
-      }
+    const range = sel.getRangeAt(0);
+    const text = range.startContainer.textContent || '';
+    const before = text.substring(0, range.startOffset);
+
+    if (before.endsWith('--')) {
+      e.preventDefault();
+      document.execCommand('delete', false, null);
+      document.execCommand('delete', false, null);
+      document.execCommand('insertHTML', false, '<hr/><br/>');
+      scheduleDayNoteSave(false, 'divider shortcut');
     }
   };
 }
@@ -6790,8 +6928,17 @@ async function loadDayNote() {
   applyDayNote(note);
 }
 
-    function noteFormat(cmd) { document.getElementById('noteEditor').focus(); document.execCommand(cmd, false, null); }
-    function insertHR() { document.getElementById('noteEditor').focus(); document.execCommand('insertHTML', false, '<hr/>'); }
+    function noteFormat(cmd) {
+  document.getElementById('noteEditor').focus();
+  document.execCommand(cmd, false, null);
+  scheduleDayNoteSave(false, 'format');
+}
+
+function insertHR() {
+  document.getElementById('noteEditor').focus();
+  document.execCommand('insertHTML', false, '<hr/><br/>');
+  scheduleDayNoteSave(false, 'divider');
+}
     async function insertImage(e) {
   const file = e.target.files[0];
   if (!file) return;
@@ -6809,7 +6956,8 @@ async function loadDayNote() {
     );
 
     focusEditableAtEnd(editor);
-    await saveDayNoteNow(selectedDate, getNoteContent());
+hydrateLazyImages(editor);
+scheduleDayNoteSave(true, 'image insert');
   } catch (err) {
     console.warn('Image insert failed:', err);
   }
@@ -8261,6 +8409,246 @@ function escapeHtml(value) {
     .replace(/'/g, '&#039;');
 }
 
+function tpByteSize(value) {
+  return new Blob([String(value ?? '')]).size;
+}
+
+function tpLog(level, details = {}) {
+  const payload = {
+    area: 'notes-calendar',
+    at: new Date().toISOString(),
+    ...details
+  };
+
+  if (level === 'error' || level === 'warn') {
+    console.warn('[Tradeprint notes]', payload);
+  } else {
+    console.info('[Tradeprint notes]', payload);
+  }
+}
+
+function setSaveStatus(id, state, detail = '') {
+  const el = typeof id === 'string' ? document.getElementById(id) : id;
+  if (!el) return;
+
+  const key = String(state || '').toLowerCase();
+  el.className = `notes-autosave ${key}`;
+  el.textContent = detail || state || '';
+}
+
+function nextFrame() {
+  return new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+}
+
+function normalizeEditorHtml(html) {
+  const template = document.createElement('template');
+  template.innerHTML = html || '';
+
+  template.content.querySelectorAll('.note-load-placeholder,.note-render-error').forEach(el => el.remove());
+
+  const hasRealNode = !!template.content.querySelector('img,hr,.note-trade-card');
+  const text = template.content.textContent.replace(/\u00a0/g, '').trim();
+
+  return hasRealNode || text ? template.innerHTML : '';
+}
+
+function serializeEditorHtml(editor) {
+  if (!editor || editor.dataset.loadingNote === 'true') return '';
+
+  const clone = editor.cloneNode(true);
+
+  clone.querySelectorAll('img').forEach(img => {
+    const deferredSrc = img.getAttribute('data-src');
+    if (deferredSrc) {
+      img.setAttribute('src', deferredSrc);
+      img.removeAttribute('data-src');
+    }
+
+    img.setAttribute('loading', 'lazy');
+    img.setAttribute('decoding', 'async');
+    img.classList.remove('lazy-note-image');
+  });
+
+  return normalizeEditorHtml(clone.innerHTML);
+}
+
+let noteImageObserver = null;
+
+function hydrateLazyImages(editor) {
+  if (!editor) return;
+
+  if (!noteImageObserver && 'IntersectionObserver' in window) {
+    noteImageObserver = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+
+        const img = entry.target;
+        const src = img.getAttribute('data-src');
+
+        noteImageObserver.unobserve(img);
+
+        if (!src) return;
+
+        img.loading = 'lazy';
+        img.decoding = 'async';
+        img.onerror = () => {
+          tpLog('warn', {
+            event: 'image_load_failed',
+            srcBytes: tpByteSize(src)
+          });
+        };
+
+        img.setAttribute('src', src);
+        img.removeAttribute('data-src');
+      });
+    }, { rootMargin: '700px 0px' });
+  }
+
+  editor.querySelectorAll('img').forEach(img => {
+    img.loading = 'lazy';
+    img.decoding = 'async';
+    img.ondblclick = () => openLightbox(img);
+
+    if (img.getAttribute('data-src')) {
+      if (noteImageObserver) noteImageObserver.observe(img);
+      else {
+        img.setAttribute('src', img.getAttribute('data-src'));
+        img.removeAttribute('data-src');
+      }
+    }
+  });
+}
+
+function prepareEditorFragment(html) {
+  const template = document.createElement('template');
+  template.innerHTML = html || '';
+
+  template.content.querySelectorAll('img').forEach(img => {
+    const src = img.getAttribute('src') || img.getAttribute('data-src');
+
+    if (src) {
+      img.setAttribute('data-src', src);
+      img.setAttribute('src', EDITOR_PLACEHOLDER_SRC);
+    }
+
+    img.setAttribute('loading', 'lazy');
+    img.setAttribute('decoding', 'async');
+    img.classList.add('lazy-note-image');
+  });
+
+  return template.content;
+}
+
+async function renderEditorHtmlLazy(editor, html, label) {
+  if (!editor) return false;
+
+  const started = performance.now();
+  const bytes = tpByteSize(html);
+  const renderToken = `${Date.now()}-${Math.random()}`;
+
+  editor.dataset.renderToken = renderToken;
+  editor.dataset.loadingNote = 'true';
+  editor.classList.add('is-loading');
+  editor.setAttribute('contenteditable', 'false');
+  editor.innerHTML = '<div class="note-load-placeholder">Loading...</div>';
+
+  await nextFrame();
+
+  try {
+    const fragment = prepareEditorFragment(html || '');
+    const nodes = Array.from(fragment.childNodes);
+
+    if (editor.dataset.renderToken !== renderToken) return false;
+
+    editor.textContent = '';
+
+    const batchSize = bytes > 300000 ? 10 : 35;
+
+    for (let i = 0; i < nodes.length; i += batchSize) {
+      if (editor.dataset.renderToken !== renderToken) return false;
+
+      const batch = document.createDocumentFragment();
+      nodes.slice(i, i + batchSize).forEach(node => batch.appendChild(node));
+      editor.appendChild(batch);
+
+      if (nodes.length > batchSize) {
+        await new Promise(resolve => requestAnimationFrame(resolve));
+      }
+    }
+
+    ensureEditableTypingSpace(editor);
+    hydrateLazyImages(editor);
+
+    editor.dataset.loadingNote = 'false';
+    editor.classList.remove('is-loading');
+    editor.setAttribute('contenteditable', 'true');
+
+    tpLog('info', {
+      event: 'editor_render',
+      editor: editor.id,
+      label,
+      bytes,
+      images: editor.querySelectorAll('img').length,
+      ms: Math.round(performance.now() - started)
+    });
+
+    return true;
+  } catch (err) {
+    editor.dataset.loadingNote = 'false';
+    editor.classList.remove('is-loading');
+    editor.setAttribute('contenteditable', 'true');
+    editor.innerHTML = '<div class="note-render-error">This note could not be rendered safely. The original content is still saved.</div>';
+
+    tpLog('error', {
+      event: 'editor_render_error',
+      editor: editor.id,
+      label,
+      bytes,
+      message: err.message
+    });
+
+    return false;
+  }
+}
+
+async function fetchJsonLogged(url, options = {}, meta = {}) {
+  const started = performance.now();
+  const res = await fetch(url, options);
+  const text = await res.text();
+
+  tpLog(res.ok ? 'info' : 'warn', {
+    event: meta.event || 'api_load',
+    status: res.status,
+    responseBytes: tpByteSize(text),
+    ms: Math.round(performance.now() - started),
+    ...meta
+  });
+
+  if (!res.ok) throw new Error(text || `Request failed: ${res.status}`);
+
+  return text ? JSON.parse(text) : null;
+}
+
+async function saveFetchLogged(url, options = {}, meta = {}) {
+  const started = performance.now();
+  const body = options.body || '';
+  const res = await fetch(url, options);
+  const text = await res.text().catch(() => '');
+
+  tpLog(res.ok ? 'info' : 'warn', {
+    event: meta.event || 'api_save',
+    status: res.status,
+    payloadBytes: tpByteSize(body),
+    responseBytes: tpByteSize(text),
+    ms: Math.round(performance.now() - started),
+    ...meta
+  });
+
+  if (!res.ok) throw new Error(text || `Save failed: ${res.status}`);
+
+  return text ? JSON.parse(text) : null;
+}
+
     function enhanceSelect(select) {
   if (!select || select.dataset.enhanced === 'true' || select.multiple) return;
 
@@ -8524,353 +8912,70 @@ function insertTradeIntoNote(tradeId) {
 }
 
 function readNoteContentCache(noteId) {
+  if (memoryNoteContentCache.has(noteId)) return memoryNoteContentCache.get(noteId);
+
   try {
-    return localStorage.getItem(getNoteContentCacheKey(noteId));
+    const value = localStorage.getItem(getNoteContentCacheKey(noteId));
+    if (value !== null) memoryNoteContentCache.set(noteId, value);
+    return value;
   } catch (err) {
     return null;
   }
 }
 
 function writeNoteContentCache(noteId, content) {
-  try {
-    localStorage.setItem(getNoteContentCacheKey(noteId), content || '');
-  } catch (err) {
-    console.warn('Note content cache failed:', err);
-  }
-}
-        async function initNotes() {
-  const list = document.getElementById('notesList');
+  memoryNoteContentCache.set(noteId, content || '');
 
   try {
-    const cached = JSON.parse(localStorage.getItem(`tp_notes_cache_${user.id}`) || '[]');
-
-    if (Array.isArray(cached) && cached.length) {
-      allPageNotes = cached;
-      renderNotesList();
-    } else if (list) {
-      list.innerHTML = '<div class="note-list-empty">Loading notes...</div>';
-    }
-  } catch (err) {}
-
-  try {
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/notes?user_id=eq.${user.id}&select=id,user_id,title,updated_at,sort_order&order=updated_at.desc`,
-      {
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${token}`
-        }
-      }
-    );
-
-    if (!res.ok) throw new Error(`Notes load failed: ${res.status}`);
-
-    const serverNotes = await res.json();
-    allPageNotes = Array.isArray(serverNotes) ? serverNotes : [];
-
-    allPageNotes.sort((a, b) => {
-      const aOrder = a.sort_order;
-      const bOrder = b.sort_order;
-
-      if (aOrder !== null && aOrder !== undefined && bOrder !== null && bOrder !== undefined) {
-        return aOrder - bOrder;
-      }
-
-      return new Date(b.updated_at || 0) - new Date(a.updated_at || 0);
-    });
-
-    localStorage.setItem(
-  `tp_notes_cache_${user.id}`,
-  JSON.stringify(allPageNotes.map(({ content, ...note }) => note))
-);
-
-allPageNotes.forEach(note => {
-  if (note.content !== undefined) writeNoteContentCache(note.id, note.content);
-});
-    renderNotesList();
-
-    if (currentNoteId) {
-      const still = allPageNotes.find(n => n.id === currentNoteId);
-      if (still) openNote(still.id);
-      else closeNoteEditor();
+    const key = getNoteContentCacheKey(noteId);
+    if (tpByteSize(content) <= NOTE_LOCAL_CACHE_MAX_BYTES) {
+      localStorage.setItem(key, content || '');
+    } else {
+      localStorage.removeItem(key);
     }
   } catch (err) {
-    console.warn('Notes load failed:', err);
-
-    if (!allPageNotes.length && list) {
-      list.innerHTML = '<div class="note-list-empty">Could not load notes. Refresh and try again.</div>';
-    }
+    tpLog('warn', { event: 'note_cache_failed', noteId, message: err.message });
   }
-}
-        function renderNotesList() {
-      const list = document.getElementById('notesList');
-
-      if (!allPageNotes.length) {
-        list.innerHTML = '<div class="note-list-empty">No notes yet. Hit + to create one.</div>';
-        return;
-      }
-
-      list.innerHTML = `
-        <div class="notes-sort-hint">Press and hold a note to rearrange.</div>
-        ${allPageNotes.map(n => {
-          const date = new Date(n.updated_at).toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric'
-          });
-
-          return `
-  <div class="note-list-item${n.id === currentNoteId ? ' active' : ''}" data-note-id="${n.id}" onclick="handleNoteListClick('${n.id}')">
-    <div class="note-list-title">${escapeHtml(n.title || 'Untitled')}</div>
-    <div class="note-list-date">${date}</div>
-    <span class="note-drag-handle" aria-hidden="true">≡</span>
-  </div>
-`;
-        }).join('')}
-      `;
-
-      attachNoteDragHandlers();
-    }
-
-    let noteDrag = {
-  active: false,
-  started: false,
-  noteId: null,
-  pointerId: null,
-  timer: null,
-  moved: false
-};
-
-function handleNoteListClick(id) {
-  if (noteDrag.moved) {
-    noteDrag.moved = false;
-    return;
-  }
-
-  openNote(id);
-}
-
-function attachNoteDragHandlers() {
-  document.querySelectorAll('.note-list-item[data-note-id]').forEach(item => {
-    item.onpointerdown = startNotePointer;
-    item.onpointermove = moveNotePointer;
-    item.onpointerup = endNotePointer;
-    item.onpointercancel = cancelNotePointer;
-  });
-}
-
-function startNotePointer(e) {
-  const item = e.currentTarget;
-  const noteId = item.dataset.noteId;
-  const isTouch = e.pointerType === 'touch';
-  const isHandle = !!e.target.closest('.note-drag-handle');
-
-  noteDrag.active = false;
-  noteDrag.started = true;
-  noteDrag.noteId = noteId;
-  noteDrag.pointerId = e.pointerId;
-  noteDrag.moved = false;
-  noteDrag.startX = e.clientX;
-  noteDrag.startY = e.clientY;
-  noteDrag.pointerType = e.pointerType;
-
-  if (isTouch && !isHandle) {
-    return;
-  }
-
-  if (isTouch) {
-    e.preventDefault();
-    item.setPointerCapture?.(e.pointerId);
-
-    noteDrag.timer = setTimeout(() => {
-      noteDrag.active = true;
-      item.classList.add('dragging');
-
-      if (navigator.vibrate) {
-        navigator.vibrate(12);
-      }
-    }, 260);
-
-    return;
-  }
-
-  noteDrag.active = true;
-  item.classList.add('dragging');
-  item.setPointerCapture?.(e.pointerId);
-  e.preventDefault();
-}
-
-function moveNotePointer(e) {
-  if (!noteDrag.started) return;
-
-  const isTouch = noteDrag.pointerType === 'touch';
-  const dx = Math.abs(e.clientX - (noteDrag.startX || e.clientX));
-  const dy = Math.abs(e.clientY - (noteDrag.startY || e.clientY));
-
-  if (!noteDrag.active) {
-    if (isTouch && (dy > 12 || dx > 12)) {
-      clearTimeout(noteDrag.timer);
-      noteDrag.started = false;
-    }
-    return;
-  }
-
-  e.preventDefault();
-
-  const list = document.getElementById('notesList');
-  const dragging = list.querySelector(`.note-list-item[data-note-id="${noteDrag.noteId}"]`);
-  const target = document.elementFromPoint(e.clientX, e.clientY)?.closest('.note-list-item[data-note-id]');
-
-  if (!dragging || !target || dragging === target) return;
-
-  document.querySelectorAll('.note-list-item.drag-over').forEach(el => el.classList.remove('drag-over'));
-
-  const targetRect = target.getBoundingClientRect();
-  const insertAfter = e.clientY > targetRect.top + targetRect.height / 2;
-
-  target.classList.add('drag-over');
-
-  if (insertAfter) {
-    target.after(dragging);
-  } else {
-    target.before(dragging);
-  }
-
-  noteDrag.moved = true;
-}
-
-async function endNotePointer() {
-  clearTimeout(noteDrag.timer);
-
-  const wasDragging = noteDrag.active;
-
-  document.querySelectorAll('.note-list-item.dragging, .note-list-item.drag-over').forEach(el => {
-    el.classList.remove('dragging', 'drag-over');
-  });
-
-    noteDrag.active = false;
-  noteDrag.started = false;
-  noteDrag.pointerId = null;
-  noteDrag.startX = null;
-  noteDrag.startY = null;
-  noteDrag.pointerType = null;
-
-  if (wasDragging) {
-    applyNoteDomOrder();
-    await saveNoteOrder();
-    renderNotesList();
-  }
-}
-
-function cancelNotePointer() {
-  clearTimeout(noteDrag.timer);
-
-  document.querySelectorAll('.note-list-item.dragging, .note-list-item.drag-over').forEach(el => {
-    el.classList.remove('dragging', 'drag-over');
-  });
-
-  noteDrag.active = false;
-  noteDrag.started = false;
-  noteDrag.noteId = null;
-  noteDrag.pointerId = null;
-}
-
-function applyNoteDomOrder() {
-  const ids = Array.from(document.querySelectorAll('.note-list-item[data-note-id]')).map(el => el.dataset.noteId);
-
-  allPageNotes = ids
-    .map((id, index) => {
-      const note = allPageNotes.find(n => n.id === id);
-      return note ? { ...note, sort_order: index } : null;
-    })
-    .filter(Boolean);
-}
-
-async function saveNoteOrder() {
-  await Promise.all(allPageNotes.map((note, index) => {
-    note.sort_order = index;
-
-    return fetch(`${SUPABASE_URL}/rest/v1/notes?id=eq.${note.id}`, {
-      method: 'PATCH',
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=minimal'
-      },
-      body: JSON.stringify({ sort_order: index })
-    });
-  }));
 }
 
 async function loadNoteContent(note) {
   if (!note) return note;
 
-  try {
-    const pending = JSON.parse(localStorage.getItem(`tp_note_pending_${user.id}_${note.id}`) || 'null');
-    if (pending?.content !== undefined) return { ...note, ...pending };
-  } catch (err) {}
-
-  const cachedContent = readNoteContentCache(note.id);
-  if (cachedContent !== null) return { ...note, content: cachedContent };
-
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/notes?id=eq.${note.id}&select=content&limit=1`, {
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${token}`
+  const data = await fetchJsonLogged(
+    `${SUPABASE_URL}/rest/v1/notes?id=eq.${note.id}&select=content&limit=1`,
+    {
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${token}`
+      }
+    },
+    {
+      event: 'note_content_load',
+      noteId: note.id
     }
-  });
+  );
 
-  if (!res.ok) throw new Error(`Note content load failed: ${res.status}`);
-
-  const data = await res.json();
   const content = data?.[0]?.content || '';
   writeNoteContentCache(note.id, content);
 
   return { ...note, content };
 }
-    
-    function openNote(id) {
-  if (currentNoteId && currentNoteId !== id) {
-    clearTimeout(noteSaveTimer);
-    saveCurrentNote().catch(console.warn);
-  } else {
-    clearTimeout(noteSaveTimer);
-  }
 
-  const note = allPageNotes.find(n => n.id === id);
-  if (!note) return;
-
-  currentNoteId = id;
-
-  const cachedContent = note.content ?? readNoteContentCache(id) ?? '';
-  note.content = cachedContent;
-
-  document.getElementById('notesEditorEmpty').style.display = 'none';
-  const inner = document.getElementById('notesEditorInner');
-  inner.style.display = 'flex';
-  document.getElementById('noteTitleInput').value = note.title || '';
-
+function bindNoteEditorHandlers() {
   const body = document.getElementById('noteBodyEditor');
-
-  // Only update DOM if content actually changed
-  if (body.dataset.loadedNoteId !== id) {
-    body.innerHTML = cachedContent;
-    body.dataset.loadedNoteId = id;
-    ensureEditableTypingSpace(body);
-    optimizeEditorContent(body);
-  }
-
-  document.getElementById('notesAutosaveStatus').textContent = '';
-  renderNotesList();
-
-  body.ondblclick = (e) => {
-    if (e.target.tagName === 'IMG') openLightbox(e.target);
-  };
+  const title = document.getElementById('noteTitleInput');
 
   body.oninput = () => {
     saveNotesCursor();
-    scheduleNoteSave();
+    scheduleNoteSave(false, 'input');
+  };
+
+  body.onblur = () => {
+    scheduleNoteSave(true, 'editor blur');
+  };
+
+  title.onblur = () => {
+    scheduleNoteSave(true, 'title blur');
   };
 
   body.onmouseup = () => {
@@ -8889,63 +8994,119 @@ async function loadNoteContent(note) {
   };
 
   body.onkeydown = (e) => {
-    if (e.key === 'Enter') {
-      const sel = window.getSelection();
-      if (sel && sel.rangeCount > 0) {
-        const range = sel.getRangeAt(0);
-        const text = range.startContainer.textContent || '';
-        const before = text.substring(0, range.startOffset);
-        if (before.endsWith('--')) {
-          e.preventDefault();
-          document.execCommand('delete', false, null);
-          document.execCommand('delete', false, null);
-          document.execCommand('insertHTML', false, '<hr/><br/>');
-          scheduleNoteSave();
-        }
-      }
+    if (e.key !== 'Enter') return;
+
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+
+    const range = sel.getRangeAt(0);
+    const text = range.startContainer.textContent || '';
+    const before = text.substring(0, range.startOffset);
+
+    if (before.endsWith('--')) {
+      e.preventDefault();
+      document.execCommand('delete', false, null);
+      document.execCommand('delete', false, null);
+      document.execCommand('insertHTML', false, '<hr/><br/>');
+      scheduleNoteSave(false, 'divider shortcut');
     }
   };
 
-  // Background fetch only if no cache
-  if (!cachedContent) {
-    loadNoteContent(note)
-      .then(freshNote => {
-        if (!freshNote || currentNoteId !== id) return;
-
-        const index = allPageNotes.findIndex(n => n.id === id);
-        if (index >= 0) allPageNotes[index] = freshNote;
-
-        const isEditing = document.activeElement === body;
-        if (!isEditing && body.dataset.loadedNoteId === id && freshNote.content !== body.innerHTML) {
-          body.innerHTML = freshNote.content || '';
-          body.dataset.loadedNoteId = id;
-          ensureEditableTypingSpace(body);
-          optimizeEditorContent(body);
-        }
-      })
-      .catch(err => {
-        console.warn('Note background refresh failed:', err);
-      });
-  }
+  body.ondblclick = (e) => {
+    if (e.target.tagName === 'IMG') openLightbox(e.target);
+  };
 }
-    function closeNoteEditor() {
-      currentNoteId = null;
-      document.getElementById('notesEditorEmpty').style.display = 'flex';
-      document.getElementById('notesEditorInner').style.display = 'none';
-      renderNotesList();
-    }
 
-    function scheduleNoteSave(forceNow = false) {
+function openNote(id) {
+  if (currentNoteId && currentNoteId !== id) {
+    flushCurrentNote('note switch').catch(console.warn);
+  } else {
+    clearTimeout(noteSaveTimer);
+  }
+
+  const note = allPageNotes.find(n => n.id === id);
+  if (!note) return;
+
+  const openToken = ++noteOpenToken;
+  currentNoteId = id;
+
+  document.getElementById('notesEditorEmpty').style.display = 'none';
+
+  const inner = document.getElementById('notesEditorInner');
+  inner.style.display = 'flex';
+
+  document.getElementById('noteTitleInput').value = note.title || '';
+
+  const body = document.getElementById('noteBodyEditor');
+  body.dataset.loadedNoteId = id;
+  body.dataset.dirty = 'false';
+  body.dataset.loadingNote = 'true';
+
+  setSaveStatus('notesAutosaveStatus', 'Saved', 'Loading...');
+  renderNotesList();
+  bindNoteEditorHandlers();
+
+  const cachedContent = note.content ?? readNoteContentCache(id);
+
+  if (cachedContent !== null && cachedContent !== undefined) {
+    renderEditorHtmlLazy(body, cachedContent, 'note cached').then(rendered => {
+      if (!rendered || currentNoteId !== id || openToken !== noteOpenToken) return;
+      note.content = cachedContent;
+      setSaveStatus('notesAutosaveStatus', 'Saved', 'Saved');
+      setTimeout(() => setSaveStatus('notesAutosaveStatus', '', ''), 1200);
+    });
+  }
+
+  loadNoteContent(note)
+    .then(freshNote => {
+      if (!freshNote || currentNoteId !== id || openToken !== noteOpenToken) return;
+
+      const index = allPageNotes.findIndex(n => n.id === id);
+      if (index >= 0) allPageNotes[index] = freshNote;
+
+      const currentHtml = serializeEditorHtml(body);
+      const userIsEditing = body.dataset.dirty === 'true' || document.activeElement === body;
+
+      if (!userIsEditing && freshNote.content !== currentHtml) {
+        renderEditorHtmlLazy(body, freshNote.content || '', 'note server').then(() => {
+          if (currentNoteId === id) {
+            body.dataset.dirty = 'false';
+            setSaveStatus('notesAutosaveStatus', 'Saved', 'Saved');
+            setTimeout(() => setSaveStatus('notesAutosaveStatus', '', ''), 1200);
+          }
+        });
+      }
+    })
+    .catch(err => {
+      tpLog('error', {
+        event: 'note_content_load_failed',
+        noteId: id,
+        message: err.message
+      });
+
+      if (currentNoteId === id && cachedContent === null) {
+        body.dataset.loadingNote = 'false';
+        body.setAttribute('contenteditable', 'true');
+        body.innerHTML = '<div class="note-render-error">Could not load this note. Try refreshing.</div>';
+        setSaveStatus('notesAutosaveStatus', 'Error', 'Error');
+      }
+    });
+}
+
+function scheduleNoteSave(forceNow = false, reason = 'input') {
   if (!currentNoteId) return;
 
   const noteId = currentNoteId;
   const title = document.getElementById('noteTitleInput').value.trim() || 'Untitled';
-  const content = document.getElementById('noteBodyEditor').innerHTML;
-  const updatedAt = new Date().toISOString();
-  const status = document.getElementById('notesAutosaveStatus');
-
+  const body = document.getElementById('noteBodyEditor');
   const note = allPageNotes.find(n => n.id === noteId);
-  const titleChanged = note && note.title !== title;
+  const content = body.dataset.loadingNote === 'true'
+    ? (note?.content ?? readNoteContentCache(noteId) ?? '')
+    : serializeEditorHtml(body);
+
+  const updatedAt = new Date().toISOString();
+  const version = ++noteSaveVersion;
+  const payload = { title, content, updated_at: updatedAt };
 
   if (note) {
     note.title = title;
@@ -8953,71 +9114,145 @@ async function loadNoteContent(note) {
     note.updated_at = updatedAt;
   }
 
+  body.dataset.dirty = 'true';
+  writeNoteContentCache(noteId, content);
+
+  pendingNoteSaves.set(noteId, {
+    payload,
+    version,
+    reason
+  });
+
   try {
-    writeNoteContentCache(noteId, content);
-    localStorage.setItem(`tp_note_pending_${user.id}_${noteId}`, JSON.stringify({ title, content, updated_at: updatedAt }));
+    if (tpByteSize(JSON.stringify(payload)) <= NOTE_LOCAL_CACHE_MAX_BYTES) {
+      localStorage.setItem(`tp_note_pending_${user.id}_${noteId}`, JSON.stringify({ payload, version, reason }));
+    } else {
+      localStorage.removeItem(`tp_note_pending_${user.id}_${noteId}`);
+    }
   } catch (err) {
-    console.warn('Local note cache failed:', err);
+    tpLog('warn', { event: 'note_pending_cache_failed', noteId, message: err.message });
   }
 
-  if (status) status.textContent = 'Saving...';
-
-  if (titleChanged) {
-    clearTimeout(scheduleNoteSave._titleTimer);
-    scheduleNoteSave._titleTimer = setTimeout(() => renderNotesList(), 600);
-  }
+  setSaveStatus('notesAutosaveStatus', 'Unsaved', 'Unsaved');
 
   clearTimeout(noteSaveTimer);
   noteSaveTimer = setTimeout(() => {
     saveCurrentNote(noteId).catch(console.warn);
-  }, forceNow ? 0 : 800);
+  }, forceNow ? 0 : NOTE_SAVE_DEBOUNCE_MS);
+
+  clearTimeout(scheduleNoteSave._titleTimer);
+  scheduleNoteSave._titleTimer = setTimeout(() => renderNotesList(), 500);
 }
 
-async function saveCurrentNote(noteId = currentNoteId) {
+async function saveCurrentNote(noteId = currentNoteId, options = {}) {
   if (!noteId) return;
 
-  let payload = null;
+  let pending = pendingNoteSaves.get(noteId);
 
-  try {
-    payload = JSON.parse(localStorage.getItem(`tp_note_pending_${user.id}_${noteId}`) || 'null');
-  } catch (err) {
-    payload = null;
+  if (!pending) {
+    try {
+      const cached = JSON.parse(localStorage.getItem(`tp_note_pending_${user.id}_${noteId}`) || 'null');
+      if (cached?.payload) pending = cached;
+    } catch (err) {}
   }
 
-  if (!payload) return;
+  if (!pending?.payload) return;
 
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/notes?id=eq.${noteId}`, {
-    method: 'PATCH',
-    keepalive: true,
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=minimal'
-    },
-    body: JSON.stringify(payload)
+  const bodyText = JSON.stringify(pending.payload);
+  const useKeepalive = !!options.keepalive && tpByteSize(bodyText) <= KEEPALIVE_MAX_BYTES;
+
+  setSaveStatus('notesAutosaveStatus', 'Saving', 'Saving');
+
+  noteSavePromise = noteSavePromise.catch(() => {}).then(async () => {
+    try {
+      await saveFetchLogged(
+        `${SUPABASE_URL}/rest/v1/notes?id=eq.${noteId}`,
+        {
+          method: 'PATCH',
+          keepalive: useKeepalive,
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal'
+          },
+          body: bodyText
+        },
+        {
+          event: 'note_save',
+          noteId,
+          reason: pending.reason,
+          keepalive: useKeepalive
+        }
+      );
+
+      const latest = pendingNoteSaves.get(noteId);
+      if (latest && latest.version > pending.version) {
+        setSaveStatus('notesAutosaveStatus', 'Unsaved', 'Unsaved');
+        return;
+      }
+
+      pendingNoteSaves.delete(noteId);
+      localStorage.removeItem(`tp_note_pending_${user.id}_${noteId}`);
+
+      const body = document.getElementById('noteBodyEditor');
+      if (noteId === currentNoteId) {
+        body.dataset.dirty = 'false';
+        setSaveStatus('notesAutosaveStatus', 'Saved', 'Saved');
+        setTimeout(() => {
+          const status = document.getElementById('notesAutosaveStatus');
+          if (status?.textContent === 'Saved') setSaveStatus(status, '', '');
+        }, 1500);
+      }
+    } catch (err) {
+      tpLog('error', {
+        event: 'note_save_failed',
+        noteId,
+        reason: pending.reason,
+        message: err.message
+      });
+
+      if (noteId === currentNoteId) {
+        setSaveStatus('notesAutosaveStatus', 'Error', 'Error');
+      }
+
+      throw err;
+    }
   });
 
-  if (!res.ok) throw new Error(`Note save failed: ${res.status}`);
+  return noteSavePromise;
+}
 
-  localStorage.removeItem(`tp_note_pending_${user.id}_${noteId}`);
+async function flushCurrentNote(reason = 'flush') {
+  if (!currentNoteId) return;
 
-  const status = document.getElementById('notesAutosaveStatus');
-  if (status && noteId === currentNoteId) {
-    status.textContent = 'Saved ✓';
-    setTimeout(() => {
-      if (status.textContent === 'Saved ✓') status.textContent = '';
-    }, 1500);
+  clearTimeout(noteSaveTimer);
+
+  if (!pendingNoteSaves.has(currentNoteId)) {
+    scheduleNoteSave(true, reason);
+  }
+
+  await saveCurrentNote(currentNoteId, { reason });
+}
+
+function flushCurrentNoteBeforeLeave(event) {
+  if (!currentNoteId) return;
+
+  scheduleNoteSave(true, 'before unload');
+
+  const pending = pendingNoteSaves.get(currentNoteId);
+  const bytes = pending ? tpByteSize(JSON.stringify(pending.payload)) : 0;
+
+  saveCurrentNote(currentNoteId, { keepalive: true, reason: 'before unload' }).catch(console.warn);
+
+  if (event?.type === 'beforeunload' && bytes > KEEPALIVE_MAX_BYTES) {
+    event.preventDefault();
+    event.returnValue = '';
+    return '';
   }
 }
 
-function flushCurrentNoteBeforeLeave() {
-  if (!currentNoteId) return;
-
-  scheduleNoteSave(true);
-  saveCurrentNote(currentNoteId).catch(console.warn);
-}
-
+window.addEventListener('beforeunload', flushCurrentNoteBeforeLeave);
 window.addEventListener('pagehide', flushCurrentNoteBeforeLeave);
 
 document.addEventListener('visibilitychange', () => {
