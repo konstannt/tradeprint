@@ -3500,6 +3500,40 @@ select::-ms-expand {
   user-select: none;
   pointer-events: none;
 }
+
+.note-image-placeholder {
+  width: 100%;
+  max-width: 788px;
+  min-height: 170px;
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  margin: 12px 0;
+  padding: 14px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text2);
+  font-size: 13px;
+}
+
+.note-image-placeholder img {
+  max-width: 100%;
+  max-height: 240px;
+  object-fit: contain;
+  border: 0 !important;
+  margin: 0 !important;
+}
+
+.note-image-progress {
+  font-size: 12px;
+  color: var(--text2);
+}
+
+.note-upload-error {
+  color: var(--danger);
+  border-color: var(--danger);
+}
     
   </style>
 </head>
@@ -4871,7 +4905,7 @@ let dayNoteSaveVersion = 0;
 let dayNoteLoadToken = 0;
 
 const DAY_NOTE_SAVE_DEBOUNCE_MS = 800;
-const NOTE_SAVE_DEBOUNCE_MS = 800;
+const NOTE_SAVE_DEBOUNCE_MS = 900;
 const NOTE_LOCAL_CACHE_MAX_BYTES = 120000;
 const KEEPALIVE_MAX_BYTES = 60000;
 const EDITOR_PLACEHOLDER_SRC = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%221%22 height=%221%22/%3E';
@@ -4880,11 +4914,18 @@ const MIN_DATE = new Date(2026, 0, 1);
 let allPageNotes = [];
 let currentNoteId = null;
 let noteSaveTimer = null;
-let noteSavePromise = Promise.resolve();
 let noteSaveVersion = 0;
 let noteOpenToken = 0;
+let noteSaveInFlight = false;
+let noteSaveDrainPromise = Promise.resolve();
+
 const pendingNoteSaves = new Map();
 const memoryNoteContentCache = new Map();
+const noteUploadControllers = new Set();
+const noteObjectUrls = new Set();
+
+const NOTE_IMAGE_MAX_WIDTH = 1400;
+const NOTE_IMAGE_QUALITY = 0.82;
     let editingTradeId = null;
     let editingTradeOriginalDate = null;
     let logFromPage = false;
@@ -5028,7 +5069,7 @@ loadProfile()
   loadStrategies().then(() => { pageLoaded.strategies = true; }).catch(console.warn);
   loadCalendarData().then(() => { pageLoaded.calendar = true; }).catch(console.warn);
   loadTrades().then(() => { pageLoaded.trades = true; }).catch(console.warn);
-  initNotes().then(() => { pageLoaded.notes = true; }).catch(console.warn);
+  // Notes are lazy-loaded only when opened so large note state cannot slow app boot/navigation.
 
   printsWarmPromise = ensureSubscriptionLoaded()
     .then((isPro) => {
@@ -6038,10 +6079,16 @@ if (typeof renderPrintsFeed === 'function') renderPrintsFeed();
 
 async function showPage(name, el) {
   const tok = ++pageSwitchToken;
+  const leavingNotes = name !== 'notes' && !!currentNoteId;
+
   await Promise.allSettled([
-  flushCurrentNote('tab switch'),
-  selectedDate ? flushDayNoteSave(selectedDate, selectedNoteId, ++dayNoteSaveVersion, 'tab switch') : Promise.resolve()
-]);
+    flushCurrentNote('tab switch'),
+    selectedDate ? flushDayNoteSave(selectedDate, selectedNoteId, ++dayNoteSaveVersion, 'tab switch') : Promise.resolve()
+  ]);
+
+  if (leavingNotes) {
+    cleanupNotesRoute('tab switch');
+  }
 
   closeMobileSidebar();
 
@@ -6060,7 +6107,6 @@ async function showPage(name, el) {
   if (page) page.classList.add('active');
 
   if (el) el.classList.add('active');
-
   if (tok !== pageSwitchToken) return;
 
   try {
@@ -6467,54 +6513,113 @@ function optimizeEditorContent(editor) {
   });
 }
 
-function resizeImageFileToBlob(file, maxWidth = 1400, quality = 0.82) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-
-    reader.onload = () => {
-      const img = new Image();
-
-      img.onload = () => {
-        const scale = Math.min(1, maxWidth / img.width);
-        const width = Math.round(img.width * scale);
-        const height = Math.round(img.height * scale);
-
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, width, height);
-
-        canvas.toBlob(
-          blob => blob ? resolve(blob) : reject(new Error('Image resize failed.')),
-          'image/jpeg',
-          quality
-        );
-      };
-
-      img.onerror = reject;
-      img.src = reader.result;
-    };
-
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
+function makeAbortError() {
+  try { return new DOMException('Aborted', 'AbortError'); }
+  catch (err) {
+    const abortErr = new Error('Aborted');
+    abortErr.name = 'AbortError';
+    return abortErr;
+  }
 }
 
-async function uploadNoteImage(file, folder = 'notes') {
-  const blob = await resizeImageFileToBlob(file, 1400, 0.82);
+async function decodeImageFile(file) {
+  const objectUrl = URL.createObjectURL(file);
+
+  try {
+    if ('createImageBitmap' in window) {
+      const bitmap = await createImageBitmap(file).catch(() => null);
+      if (bitmap) {
+        return {
+          source: bitmap,
+          width: bitmap.width,
+          height: bitmap.height,
+          cleanup: () => {
+            bitmap.close?.();
+            URL.revokeObjectURL(objectUrl);
+          }
+        };
+      }
+    }
+
+    const img = await new Promise((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => resolve(image);
+      image.onerror = reject;
+      image.src = objectUrl;
+    });
+
+    return {
+      source: img,
+      width: img.naturalWidth || img.width,
+      height: img.naturalHeight || img.height,
+      cleanup: () => URL.revokeObjectURL(objectUrl)
+    };
+  } catch (err) {
+    URL.revokeObjectURL(objectUrl);
+    throw err;
+  }
+}
+
+async function resizeImageFileToBlob(file, maxWidth = NOTE_IMAGE_MAX_WIDTH, quality = NOTE_IMAGE_QUALITY, signal = null) {
+  if (signal?.aborted) throw makeAbortError();
+
+  const decoded = await decodeImageFile(file);
+
+  try {
+    if (signal?.aborted) throw makeAbortError();
+
+    const scale = Math.min(1, maxWidth / decoded.width);
+    const width = Math.max(1, Math.round(decoded.width * scale));
+    const height = Math.max(1, Math.round(decoded.height * scale));
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(decoded.source, 0, 0, width, height);
+
+    return await new Promise((resolve, reject) => {
+      canvas.toBlob(
+        blob => blob ? resolve(blob) : reject(new Error('Image resize failed.')),
+        'image/jpeg',
+        quality
+      );
+    });
+  } finally {
+    decoded.cleanup();
+  }
+}
+
+async function uploadNoteImage(file, folder = 'notes', options = {}) {
+  const signal = options.signal || null;
+  const started = performance.now();
+  const originalBytes = file.size || 0;
+
+  const blob = await resizeImageFileToBlob(file, NOTE_IMAGE_MAX_WIDTH, NOTE_IMAGE_QUALITY, signal);
+  if (signal?.aborted) throw makeAbortError();
+
   const id = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
   const path = `${user.id}/${folder}/${id}.jpg`;
 
   const res = await fetch(`${SUPABASE_URL}/storage/v1/object/note-images/${path}`, {
     method: 'POST',
+    signal,
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'image/jpeg',
       'x-upsert': 'false'
     },
     body: blob
+  });
+
+  tpLog(res.ok ? 'info' : 'warn', {
+    event: 'note_image_upload',
+    folder,
+    originalBytes,
+    uploadedBytes: blob.size,
+    compressionRatio: originalBytes ? Number((blob.size / originalBytes).toFixed(3)) : null,
+    ms: Math.round(performance.now() - started)
   });
 
   if (!res.ok) throw new Error('Note image upload failed.');
@@ -6892,6 +6997,7 @@ async function closeDayModal() {
   editor.oninput = () => {
     scheduleDayNoteSave(false, 'input');
   };
+    editor.onpaste = (event) => handleNotePaste(event, 'day');
 
   editor.onblur = () => {
     scheduleDayNoteSave(true, 'blur');
@@ -6944,23 +7050,7 @@ function insertHR() {
   if (!file) return;
 
   const editor = document.getElementById('noteEditor');
-
-  try {
-    const imageUrl = await uploadNoteImage(file, 'day-notes');
-
-    editor.focus();
-    document.execCommand(
-      'insertHTML',
-      false,
-      `<img src="${escapeHtml(imageUrl)}" ondblclick="openLightbox(this)"/><p><br></p>`
-    );
-
-    focusEditableAtEnd(editor);
-hydrateLazyImages(editor);
-scheduleDayNoteSave(true, 'image insert');
-  } catch (err) {
-    console.warn('Image insert failed:', err);
-  }
+  insertImageFileIntoEditor(file, editor, 'day-notes', 'day', 'file input');
 
   e.target.value = '';
 }
@@ -8457,13 +8547,29 @@ function serializeEditorHtml(editor) {
 
   const clone = editor.cloneNode(true);
 
+  clone.querySelectorAll('.note-image-placeholder,.note-upload-error,.note-load-placeholder,.note-render-error').forEach(el => el.remove());
+
   clone.querySelectorAll('img').forEach(img => {
     const deferredSrc = img.getAttribute('data-src');
-    if (deferredSrc) {
-      img.setAttribute('src', deferredSrc);
-      img.removeAttribute('data-src');
+    const src = deferredSrc || img.getAttribute('src') || '';
+
+    if (
+      !src ||
+      src === EDITOR_PLACEHOLDER_SRC ||
+      src.startsWith('data:') ||
+      src.startsWith('blob:')
+    ) {
+      tpLog('warn', {
+        event: 'blocked_embedded_image_from_save',
+        srcBytes: tpByteSize(src)
+      });
+      img.remove();
+      return;
     }
 
+    img.setAttribute('src', src);
+    img.removeAttribute('data-src');
+    img.removeAttribute('srcset');
     img.setAttribute('loading', 'lazy');
     img.setAttribute('decoding', 'async');
     img.classList.remove('lazy-note-image');
@@ -8647,6 +8753,302 @@ async function saveFetchLogged(url, options = {}, meta = {}) {
   if (!res.ok) throw new Error(text || `Save failed: ${res.status}`);
 
   return text ? JSON.parse(text) : null;
+}
+
+function stripNoteMeta(note) {
+  if (!note) return note;
+  const { content, ...meta } = note;
+  return meta;
+}
+
+function getNoteImageStatsFromHtml(html) {
+  const matches = String(html || '').match(/<img\b/gi) || [];
+  const dataMatches = String(html || '').match(/<img[^>]+src=["']data:/gi) || [];
+
+  return {
+    images: matches.length,
+    embeddedBase64Images: dataMatches.length
+  };
+}
+
+function logNotesMemorySnapshot(event, extra = {}) {
+  const memory = performance.memory ? {
+    usedJSHeapSize: performance.memory.usedJSHeapSize,
+    totalJSHeapSize: performance.memory.totalJSHeapSize,
+    jsHeapSizeLimit: performance.memory.jsHeapSizeLimit
+  } : {};
+
+  tpLog('info', {
+    event,
+    currentNoteId,
+    noteCacheEntries: memoryNoteContentCache.size,
+    pendingSaves: pendingNoteSaves.size,
+    pendingUploads: noteUploadControllers.size,
+    objectUrls: noteObjectUrls.size,
+    ...memory,
+    ...extra
+  });
+}
+
+function sanitizePastedHtml(html) {
+  const template = document.createElement('template');
+  template.innerHTML = html || '';
+
+  template.content.querySelectorAll('script,style,iframe,object,embed,link,meta').forEach(el => el.remove());
+
+  template.content.querySelectorAll('*').forEach(el => {
+    Array.from(el.attributes).forEach(attr => {
+      if (attr.name.startsWith('on')) el.removeAttribute(attr.name);
+    });
+  });
+
+  template.content.querySelectorAll('img').forEach(img => {
+    const src = img.getAttribute('src') || '';
+
+    if (src.startsWith('data:') || src.startsWith('blob:')) {
+      tpLog('warn', {
+        event: 'blocked_pasted_base64_image',
+        srcBytes: tpByteSize(src)
+      });
+      img.remove();
+      return;
+    }
+
+    img.removeAttribute('srcset');
+    img.setAttribute('loading', 'lazy');
+    img.setAttribute('decoding', 'async');
+  });
+
+  return template.innerHTML;
+}
+
+function selectionIsInsideEditor(editor) {
+  const sel = window.getSelection();
+  if (!editor || !sel || sel.rangeCount === 0) return false;
+  return editor.contains(sel.getRangeAt(0).commonAncestorContainer);
+}
+
+function moveCursorAfterNode(node) {
+  const range = document.createRange();
+  range.setStartAfter(node);
+  range.collapse(true);
+
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+}
+
+function insertNodeAtSelection(editor, node) {
+  editor.focus();
+
+  const sel = window.getSelection();
+
+  if (sel && sel.rangeCount && selectionIsInsideEditor(editor)) {
+    const range = sel.getRangeAt(0);
+    range.deleteContents();
+    range.insertNode(node);
+    moveCursorAfterNode(node);
+    return;
+  }
+
+  editor.appendChild(node);
+  moveCursorAfterNode(node);
+}
+
+function insertHtmlAtSelection(editor, html) {
+  const template = document.createElement('template');
+  template.innerHTML = html || '';
+
+  const fragment = template.content;
+  const lastNode = fragment.lastChild;
+
+  editor.focus();
+
+  const sel = window.getSelection();
+
+  if (sel && sel.rangeCount && selectionIsInsideEditor(editor)) {
+    const range = sel.getRangeAt(0);
+    range.deleteContents();
+    range.insertNode(fragment);
+
+    if (lastNode) moveCursorAfterNode(lastNode);
+    return;
+  }
+
+  editor.appendChild(fragment);
+  if (lastNode) moveCursorAfterNode(lastNode);
+}
+
+function insertTextAtSelection(editor, text) {
+  insertHtmlAtSelection(editor, escapeHtml(text || '').replace(/\n/g, '<br>'));
+}
+
+function scheduleEditorSaveForKind(kind, forceNow, reason) {
+  if (kind === 'day') scheduleDayNoteSave(forceNow, reason);
+  else scheduleNoteSave(forceNow, reason);
+}
+
+function createImagePlaceholder(file) {
+  const objectUrl = URL.createObjectURL(file);
+  noteObjectUrls.add(objectUrl);
+
+  const placeholder = document.createElement('div');
+  placeholder.className = 'note-image-placeholder';
+  placeholder.contentEditable = 'false';
+  placeholder.dataset.uploading = 'true';
+
+  placeholder.innerHTML = `
+    <img src="${objectUrl}" alt="upload preview"/>
+    <div class="note-image-progress">Uploading image...</div>
+  `;
+
+  return { placeholder, objectUrl };
+}
+
+async function insertImageFileIntoEditor(file, editor, folder, kind, reason = 'image') {
+  if (!file || !editor) return;
+
+  const { placeholder, objectUrl } = createImagePlaceholder(file);
+  const spacer = document.createElement('p');
+  spacer.innerHTML = '<br>';
+
+  insertNodeAtSelection(editor, placeholder);
+  placeholder.after(spacer);
+  moveCursorAfterNode(spacer);
+
+  const controller = new AbortController();
+  noteUploadControllers.add(controller);
+
+  tpLog('info', {
+    event: 'note_image_upload_queued',
+    folder,
+    fileBytes: file.size || 0,
+    pendingUploads: noteUploadControllers.size
+  });
+
+  try {
+    const imageUrl = await uploadNoteImage(file, folder, { signal: controller.signal });
+
+    if (!placeholder.isConnected || controller.signal.aborted) return;
+
+    const img = document.createElement('img');
+    img.src = imageUrl;
+    img.loading = 'lazy';
+    img.decoding = 'async';
+    img.ondblclick = () => openLightbox(img);
+
+    placeholder.replaceWith(img);
+    hydrateLazyImages(editor);
+
+    scheduleEditorSaveForKind(kind, true, `${reason} uploaded`);
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      placeholder.remove();
+      return;
+    }
+
+    placeholder.classList.add('note-upload-error');
+    placeholder.innerHTML = '<div class="note-image-progress">Image upload failed. Try again.</div>';
+
+    tpLog('error', {
+      event: 'note_image_upload_failed',
+      message: err.message,
+      fileBytes: file.size || 0
+    });
+  } finally {
+    noteUploadControllers.delete(controller);
+    URL.revokeObjectURL(objectUrl);
+    noteObjectUrls.delete(objectUrl);
+  }
+}
+
+function handleNotePaste(event, kind = 'page') {
+  const editor = kind === 'day'
+    ? document.getElementById('noteEditor')
+    : document.getElementById('noteBodyEditor');
+
+  if (!editor || editor.dataset.loadingNote === 'true') return;
+
+  const clipboard = event.clipboardData;
+  if (!clipboard) return;
+
+  const imageFiles = Array.from(clipboard.items || [])
+    .filter(item => item.kind === 'file' && item.type.startsWith('image/'))
+    .map(item => item.getAsFile())
+    .filter(Boolean);
+
+  const html = clipboard.getData('text/html');
+  const text = clipboard.getData('text/plain');
+
+  event.preventDefault();
+
+  if (html) {
+    insertHtmlAtSelection(editor, sanitizePastedHtml(html));
+  } else if (text) {
+    insertTextAtSelection(editor, text);
+  }
+
+  if (imageFiles.length) {
+    const folder = kind === 'day' ? 'day-notes' : 'page-notes';
+    imageFiles.forEach(file => insertImageFileIntoEditor(file, editor, folder, kind, 'paste'));
+  }
+
+  hydrateLazyImages(editor);
+  scheduleEditorSaveForKind(kind, false, imageFiles.length ? 'paste with images' : 'paste text');
+
+  tpLog('info', {
+    event: 'note_paste',
+    kind,
+    textBytes: tpByteSize(text || html || ''),
+    imageCount: imageFiles.length,
+    imagePayloadBytes: imageFiles.reduce((sum, file) => sum + (file.size || 0), 0)
+  });
+}
+
+function cleanupNotesRoute(reason = 'cleanup') {
+  clearTimeout(noteSaveTimer);
+  clearTimeout(scheduleNoteSave._titleTimer);
+
+  noteUploadControllers.forEach(controller => controller.abort());
+  noteUploadControllers.clear();
+
+  noteObjectUrls.forEach(url => URL.revokeObjectURL(url));
+  noteObjectUrls.clear();
+
+  const body = document.getElementById('noteBodyEditor');
+  const title = document.getElementById('noteTitleInput');
+  const toolbar = document.getElementById('floatToolbar');
+
+  if (body) {
+    body.oninput = null;
+    body.onblur = null;
+    body.onmouseup = null;
+    body.onclick = null;
+    body.onkeyup = null;
+    body.onkeydown = null;
+    body.ondblclick = null;
+    body.onpaste = null;
+    body.innerHTML = '';
+    body.dataset.loadedNoteId = '';
+    body.dataset.dirty = 'false';
+    body.dataset.loadingNote = 'false';
+  }
+
+  if (title) {
+    title.oninput = null;
+    title.onblur = null;
+    title.value = '';
+  }
+
+  if (toolbar) toolbar.classList.remove('visible');
+
+  savedNotesRange = null;
+  currentNoteId = null;
+  memoryNoteContentCache.clear();
+  allPageNotes = allPageNotes.map(stripNoteMeta);
+
+  closeNoteEditor();
+  logNotesMemorySnapshot('notes_cleanup', { reason });
 }
 
     function enhanceSelect(select) {
@@ -8914,7 +9316,7 @@ function insertTradeIntoNote(tradeId) {
     const cached = JSON.parse(localStorage.getItem(`tp_notes_cache_${user.id}`) || '[]');
 
     if (Array.isArray(cached) && cached.length) {
-      allPageNotes = cached;
+      allPageNotes = cached.map(stripNoteMeta);
       renderNotesList();
     } else if (list) {
       list.innerHTML = '<div class="note-list-empty">Loading notes...</div>';
@@ -8935,7 +9337,7 @@ function insertTradeIntoNote(tradeId) {
     if (!res.ok) throw new Error(`Notes load failed: ${res.status}`);
 
     const serverNotes = await res.json();
-    allPageNotes = Array.isArray(serverNotes) ? serverNotes : [];
+    allPageNotes = Array.isArray(serverNotes) ? serverNotes.map(stripNoteMeta) : [];
 
     allPageNotes.sort((a, b) => {
       const aOrder = a.sort_order;
@@ -8949,14 +9351,7 @@ function insertTradeIntoNote(tradeId) {
     });
 
     localStorage.setItem(`tp_notes_cache_${user.id}`, JSON.stringify(allPageNotes));
-
     renderNotesList();
-
-    if (currentNoteId) {
-      const still = allPageNotes.find(n => n.id === currentNoteId);
-      if (still) openNote(still.id);
-      else closeNoteEditor();
-    }
   } catch (err) {
     console.warn('Notes load failed:', err);
 
@@ -9161,9 +9556,22 @@ async function saveNoteOrder() {
 
 function closeNoteEditor() {
   currentNoteId = null;
+  savedNotesRange = null;
 
   document.getElementById('notesEditorEmpty').style.display = 'flex';
   document.getElementById('notesEditorInner').style.display = 'none';
+
+  const body = document.getElementById('noteBodyEditor');
+  const title = document.getElementById('noteTitleInput');
+
+  if (body) {
+    body.innerHTML = '';
+    body.dataset.loadedNoteId = '';
+    body.dataset.dirty = 'false';
+    body.dataset.loadingNote = 'false';
+  }
+
+  if (title) title.value = '';
 
   renderNotesList();
 }
@@ -9219,7 +9627,7 @@ async function loadNoteContent(note) {
   const content = data?.[0]?.content || '';
   writeNoteContentCache(note.id, content);
 
-  return { ...note, content };
+  return { ...stripNoteMeta(note), content };
 }
 
 function bindNoteEditorHandlers() {
@@ -9231,8 +9639,14 @@ function bindNoteEditorHandlers() {
     scheduleNoteSave(false, 'input');
   };
 
+  body.onpaste = (event) => handleNotePaste(event, 'page');
+
   body.onblur = () => {
     scheduleNoteSave(true, 'editor blur');
+  };
+
+  title.oninput = () => {
+    scheduleNoteSave(false, 'title input');
   };
 
   title.onblur = () => {
@@ -9307,12 +9721,12 @@ function openNote(id) {
   renderNotesList();
   bindNoteEditorHandlers();
 
-  const cachedContent = note.content ?? readNoteContentCache(id);
+  const cachedContent = readNoteContentCache(id);
 
   if (cachedContent !== null && cachedContent !== undefined) {
     renderEditorHtmlLazy(body, cachedContent, 'note cached').then(rendered => {
       if (!rendered || currentNoteId !== id || openToken !== noteOpenToken) return;
-      note.content = cachedContent;
+
       setSaveStatus('notesAutosaveStatus', 'Saved', 'Saved');
       setTimeout(() => setSaveStatus('notesAutosaveStatus', '', ''), 1200);
     });
@@ -9321,9 +9735,6 @@ function openNote(id) {
   loadNoteContent(note)
     .then(freshNote => {
       if (!freshNote || currentNoteId !== id || openToken !== noteOpenToken) return;
-
-      const index = allPageNotes.findIndex(n => n.id === id);
-      if (index >= 0) allPageNotes[index] = freshNote;
 
       const currentHtml = serializeEditorHtml(body);
       const userIsEditing = body.dataset.dirty === 'true' || document.activeElement === body;
@@ -9358,41 +9769,27 @@ function scheduleNoteSave(forceNow = false, reason = 'input') {
   if (!currentNoteId) return;
 
   const noteId = currentNoteId;
-  const title = document.getElementById('noteTitleInput').value.trim() || 'Untitled';
   const body = document.getElementById('noteBodyEditor');
-  const note = allPageNotes.find(n => n.id === noteId);
-  const content = body.dataset.loadingNote === 'true'
-    ? (note?.content ?? readNoteContentCache(noteId) ?? '')
-    : serializeEditorHtml(body);
 
+  if (body.dataset.loadingNote === 'true') return;
+
+  const title = document.getElementById('noteTitleInput').value.trim() || 'Untitled';
   const updatedAt = new Date().toISOString();
   const version = ++noteSaveVersion;
-  const payload = { title, content, updated_at: updatedAt };
+  const note = allPageNotes.find(n => n.id === noteId);
 
   if (note) {
     note.title = title;
-    note.content = content;
     note.updated_at = updatedAt;
   }
 
   body.dataset.dirty = 'true';
-  writeNoteContentCache(noteId, content);
 
   pendingNoteSaves.set(noteId, {
-    payload,
     version,
-    reason
+    reason,
+    updated_at: updatedAt
   });
-
-  try {
-    if (tpByteSize(JSON.stringify(payload)) <= NOTE_LOCAL_CACHE_MAX_BYTES) {
-      localStorage.setItem(`tp_note_pending_${user.id}_${noteId}`, JSON.stringify({ payload, version, reason }));
-    } else {
-      localStorage.removeItem(`tp_note_pending_${user.id}_${noteId}`);
-    }
-  } catch (err) {
-    tpLog('warn', { event: 'note_pending_cache_failed', noteId, message: err.message });
-  }
 
   setSaveStatus('notesAutosaveStatus', 'Unsaved', 'Unsaved');
 
@@ -9405,27 +9802,63 @@ function scheduleNoteSave(forceNow = false, reason = 'input') {
   scheduleNoteSave._titleTimer = setTimeout(() => renderNotesList(), 500);
 }
 
+function buildCurrentNotePayload(noteId, pending = {}) {
+  const body = document.getElementById('noteBodyEditor');
+  const titleInput = document.getElementById('noteTitleInput');
+  const note = allPageNotes.find(n => n.id === noteId);
+
+  const isOpen = noteId === currentNoteId && body?.dataset.loadedNoteId === noteId;
+  const content = isOpen && body.dataset.loadingNote !== 'true'
+    ? serializeEditorHtml(body)
+    : readNoteContentCache(noteId) || '';
+
+  const title = isOpen
+    ? titleInput.value.trim() || 'Untitled'
+    : note?.title || 'Untitled';
+
+  const payload = {
+    title,
+    content,
+    updated_at: pending.updated_at || new Date().toISOString()
+  };
+
+  writeNoteContentCache(noteId, content);
+
+  return payload;
+}
+
 async function saveCurrentNote(noteId = currentNoteId, options = {}) {
   if (!noteId) return;
 
-  let pending = pendingNoteSaves.get(noteId);
-
-  if (!pending) {
-    try {
-      const cached = JSON.parse(localStorage.getItem(`tp_note_pending_${user.id}_${noteId}`) || 'null');
-      if (cached?.payload) pending = cached;
-    } catch (err) {}
+  if (noteSaveInFlight) {
+    return noteSaveDrainPromise;
   }
 
-  if (!pending?.payload) return;
+  noteSaveInFlight = true;
 
-  const bodyText = JSON.stringify(pending.payload);
-  const useKeepalive = !!options.keepalive && tpByteSize(bodyText) <= KEEPALIVE_MAX_BYTES;
+  noteSaveDrainPromise = (async () => {
+    while (true) {
+      const pending = pendingNoteSaves.get(noteId);
+      if (!pending) break;
 
-  setSaveStatus('notesAutosaveStatus', 'Saving', 'Saving');
+      const payload = pending.payload || buildCurrentNotePayload(noteId, pending);
+      const bodyText = JSON.stringify(payload);
+      const bytes = tpByteSize(bodyText);
+      const useKeepalive = !!options.keepalive && bytes <= KEEPALIVE_MAX_BYTES;
+      const imageStats = getNoteImageStatsFromHtml(payload.content);
 
-  noteSavePromise = noteSavePromise.catch(() => {}).then(async () => {
-    try {
+      setSaveStatus('notesAutosaveStatus', 'Saving', 'Saving');
+
+      tpLog('info', {
+        event: 'note_save_start',
+        noteId,
+        reason: pending.reason,
+        revision: pending.version,
+        pendingSaves: pendingNoteSaves.size,
+        payloadBytes: bytes,
+        ...imageStats
+      });
+
       await saveFetchLogged(
         `${SUPABASE_URL}/rest/v1/notes?id=eq.${noteId}`,
         {
@@ -9443,68 +9876,102 @@ async function saveCurrentNote(noteId = currentNoteId, options = {}) {
           event: 'note_save',
           noteId,
           reason: pending.reason,
-          keepalive: useKeepalive
+          revision: pending.version,
+          pendingSaves: pendingNoteSaves.size,
+          keepalive: useKeepalive,
+          ...imageStats
         }
       );
 
       const latest = pendingNoteSaves.get(noteId);
+
       if (latest && latest.version > pending.version) {
-        setSaveStatus('notesAutosaveStatus', 'Unsaved', 'Unsaved');
-        return;
+        tpLog('info', {
+          event: 'note_save_stale_ignored',
+          noteId,
+          savedRevision: pending.version,
+          latestRevision: latest.version
+        });
+        continue;
       }
 
       pendingNoteSaves.delete(noteId);
       localStorage.removeItem(`tp_note_pending_${user.id}_${noteId}`);
 
-      const body = document.getElementById('noteBodyEditor');
       if (noteId === currentNoteId) {
+        const body = document.getElementById('noteBodyEditor');
         body.dataset.dirty = 'false';
+
         setSaveStatus('notesAutosaveStatus', 'Saved', 'Saved');
         setTimeout(() => {
           const status = document.getElementById('notesAutosaveStatus');
           if (status?.textContent === 'Saved') setSaveStatus(status, '', '');
         }, 1500);
       }
-    } catch (err) {
-      tpLog('error', {
-        event: 'note_save_failed',
-        noteId,
-        reason: pending.reason,
-        message: err.message
-      });
 
-      if (noteId === currentNoteId) {
-        setSaveStatus('notesAutosaveStatus', 'Error', 'Error');
-      }
-
-      throw err;
+      break;
     }
+  })().catch(err => {
+    tpLog('error', {
+      event: 'note_save_failed',
+      noteId,
+      message: err.message,
+      pendingSaves: pendingNoteSaves.size
+    });
+
+    if (noteId === currentNoteId) {
+      setSaveStatus('notesAutosaveStatus', 'Error', 'Error');
+    }
+
+    throw err;
+  }).finally(() => {
+    noteSaveInFlight = false;
+    logNotesMemorySnapshot('note_save_drain_finished');
   });
 
-  return noteSavePromise;
+  return noteSaveDrainPromise;
 }
 
 async function flushCurrentNote(reason = 'flush') {
   if (!currentNoteId) return;
 
-  clearTimeout(noteSaveTimer);
+  const noteId = currentNoteId;
+  const body = document.getElementById('noteBodyEditor');
+  const isDirty = body?.dataset.dirty === 'true';
 
-  if (!pendingNoteSaves.has(currentNoteId)) {
-    scheduleNoteSave(true, reason);
+  if (!pendingNoteSaves.has(noteId) && isDirty) {
+    scheduleNoteSave(false, reason);
   }
 
-  await saveCurrentNote(currentNoteId, { reason });
+  clearTimeout(noteSaveTimer);
+
+  if (pendingNoteSaves.has(noteId)) {
+    await saveCurrentNote(noteId, { reason });
+  }
 }
 
 function flushCurrentNoteBeforeLeave(event) {
   if (!currentNoteId) return;
 
-  scheduleNoteSave(true, 'before unload');
+  const noteId = currentNoteId;
+  const body = document.getElementById('noteBodyEditor');
 
-  const pending = pendingNoteSaves.get(currentNoteId);
-  const bytes = pending ? tpByteSize(JSON.stringify(pending.payload)) : 0;
+  if (body?.dataset.dirty !== 'true' && !pendingNoteSaves.has(noteId)) return;
 
-  saveCurrentNote(currentNoteId, { keepalive: true, reason: 'before unload' }).catch(console.warn);
+  if (!pendingNoteSaves.has(noteId)) {
+    scheduleNoteSave(false, 'before unload');
+  }
+
+  clearTimeout(noteSaveTimer);
+
+  const pending = pendingNoteSaves.get(noteId);
+  if (!pending) return;
+
+  pending.payload = buildCurrentNotePayload(noteId, pending);
+
+  const bytes = tpByteSize(JSON.stringify(pending.payload));
+
+  saveCurrentNote(noteId, { keepalive: true, reason: 'before unload' }).catch(console.warn);
 
   if (event?.type === 'beforeunload' && bytes > KEEPALIVE_MAX_BYTES) {
     event.preventDefault();
@@ -9512,15 +9979,6 @@ function flushCurrentNoteBeforeLeave(event) {
     return '';
   }
 }
-
-window.addEventListener('beforeunload', flushCurrentNoteBeforeLeave);
-window.addEventListener('pagehide', flushCurrentNoteBeforeLeave);
-
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden') {
-    flushCurrentNoteBeforeLeave();
-  }
-});
 
         async function createNote() {
       allPageNotes = allPageNotes.map(n => ({
@@ -9563,39 +10021,36 @@ document.addEventListener('visibilitychange', () => {
       closeNoteEditor();
     }
 
-    function notesFormat(cmd) { document.getElementById('noteBodyEditor').focus(); document.execCommand(cmd, false, null); updateNotesToolbarState(); }
-    function notesFormatH1() { document.getElementById('noteBodyEditor').focus(); document.execCommand('formatBlock', false, 'H1'); updateNotesToolbarState(); }
-    function notesInsertHR() { document.getElementById('noteBodyEditor').focus(); document.execCommand('insertHTML', false, '<hr/><br/>'); }
+    function notesFormat(cmd) {
+  document.getElementById('noteBodyEditor').focus();
+  document.execCommand(cmd, false, null);
+  updateNotesToolbarState();
+  scheduleNoteSave(false, 'format');
+}
+
+function notesFormatH1() {
+  document.getElementById('noteBodyEditor').focus();
+  document.execCommand('formatBlock', false, 'H1');
+  updateNotesToolbarState();
+  scheduleNoteSave(false, 'heading');
+}
+
+function notesInsertHR() {
+  document.getElementById('noteBodyEditor').focus();
+  document.execCommand('insertHTML', false, '<hr/><br/>');
+  scheduleNoteSave(false, 'divider');
+}
 
     async function notesInsertImage(e) {
   const file = e.target.files[0];
   if (!file) return;
 
   const editor = document.getElementById('noteBodyEditor');
-  const status = document.getElementById('notesAutosaveStatus');
-
-  try {
-    if (status) status.textContent = 'Uploading image...';
-
-    const imageUrl = await uploadNoteImage(file, 'page-notes');
-
-    editor.focus();
-    document.execCommand(
-      'insertHTML',
-      false,
-      `<img src="${escapeHtml(imageUrl)}" ondblclick="openLightbox(this)"/><p><br></p>`
-    );
-
-    focusEditableAtEnd(editor);
-    saveNotesCursor();
-    scheduleNoteSave(true);
-  } catch (err) {
-    console.warn('Note image insert failed:', err);
-    if (status) status.textContent = 'Image upload failed';
-  }
+  insertImageFileIntoEditor(file, editor, 'page-notes', 'page', 'file input');
 
   e.target.value = '';
 }
+
 
     function updateNotesToolbarState() {
       document.querySelectorAll('.notes-format-btn[data-ncmd]').forEach(btn => { btn.classList.toggle('active', document.queryCommandState(btn.getAttribute('data-ncmd'))); });
