@@ -1551,14 +1551,45 @@ select.tp-native-select {
   font-size: 11px;
 }
 
-.trade-direction.long {
-  color: var(--success);
-  font-weight: 800;
+.trade-direction.long,
+.trade-direction.short {
+  color: var(--text);
+  font-weight: 400;
 }
 
-.trade-direction.short {
+.trade-cell-empty {
+  color: var(--text2);
+}
+
+.trade-rules-heading {
+  text-align: center;
+}
+
+.trades-table-cell.trade-rules-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.trade-rules-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.trade-rules-icon.yes {
+  color: var(--success);
+}
+
+.trade-rules-icon.no {
   color: var(--danger);
-  font-weight: 800;
+  font-size: 11px;
 }
 
 .trades-mobile-meta {
@@ -1960,6 +1991,25 @@ select.tp-native-select {
   display: none;
 }
 
+#page-trades .trades-search-filter {
+  flex: 1 1 220px;
+  min-width: 200px;
+  max-width: 320px;
+  min-height: 38px;
+  padding: 9px 12px;
+  font-size: 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg2);
+  color: var(--text);
+  outline: none;
+  font-family: inherit;
+}
+
+#page-trades .trades-search-filter:focus {
+  border-color: var(--accent);
+}
+
 #page-trades .trades-clear-filter {
   min-height: 38px;
 }
@@ -1971,6 +2021,7 @@ select.tp-native-select {
 
   #page-trades .trades-filters > .tp-select,
   #page-trades .trades-filter-account,
+  #page-trades .trades-search-filter,
   #page-trades .trades-clear-filter {
     flex: 1 1 100%;
     width: 100%;
@@ -1994,8 +2045,8 @@ select.tp-native-select {
 }
     .trades-table-header {
   display: grid;
-  grid-template-columns: 92px minmax(125px, 1.1fr) 84px 78px 64px 86px 54px 104px 76px 78px minmax(110px, 0.85fr) 52px;
-  min-width: 1060px;
+  grid-template-columns: minmax(135px, 1.05fr) minmax(105px, 0.8fr) 64px 82px 58px 94px 78px 88px 72px minmax(112px, 0.78fr) 48px minmax(150px, 1fr) 52px;
+  min-width: 1220px;
   padding: 12px 20px;
   border-bottom: 1px solid var(--border);
   gap: 12px;
@@ -2004,8 +2055,8 @@ select.tp-native-select {
 
 .trades-table-row {
   display: grid;
-  grid-template-columns: 92px minmax(125px, 1.1fr) 84px 78px 64px 86px 54px 104px 76px 78px minmax(110px, 0.85fr) 52px;
-  min-width: 1060px;
+  grid-template-columns: minmax(135px, 1.05fr) minmax(105px, 0.8fr) 64px 82px 58px 94px 78px 88px 72px minmax(112px, 0.78fr) 48px minmax(150px, 1fr) 52px;
+  min-width: 1220px;
   padding: 14px 20px;
   border-bottom: 1px solid var(--border);
   gap: 12px;
@@ -2015,8 +2066,8 @@ select.tp-native-select {
 
 .trades-table.all-accounts .trades-table-header,
 .trades-table.all-accounts .trades-table-row {
-  grid-template-columns: 92px minmax(115px, 1fr) minmax(95px, 0.75fr) 84px 78px 64px 86px 54px 104px 76px 78px minmax(95px, 0.7fr) 52px;
-  min-width: 1160px;
+  grid-template-columns: minmax(135px, 1.05fr) minmax(105px, 0.8fr) 64px 82px 58px 94px 78px 88px 72px minmax(112px, 0.78fr) 48px minmax(150px, 1fr) 52px;
+  min-width: 1220px;
 }
 
     .trades-table-row:last-child { border-bottom: none; }
@@ -2048,22 +2099,16 @@ select.tp-native-select {
   .trades-table.all-accounts .trades-table-row {
     min-width: 0;
     grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-rows: auto auto;
+    grid-template-rows: auto;
     gap: 6px 12px;
     padding: 14px 16px;
   }
 
-  .trades-table-row .trades-table-cell:nth-child(n+3):not(.trade-row-actions) {
+  .trades-table-row .trades-table-cell:nth-child(n+2):not(.trade-row-actions) {
     display: none;
   }
 
   .trades-table-row .trades-table-cell:nth-child(1) {
-    grid-column: 1;
-    grid-row: 2;
-    font-size: 12px;
-  }
-
-  .trades-table-row .trades-table-cell:nth-child(2) {
     grid-column: 1;
     grid-row: 1;
     white-space: normal;
@@ -2072,7 +2117,7 @@ select.tp-native-select {
   .trades-table-row .trade-row-actions {
     display: flex !important;
     grid-column: 2;
-    grid-row: 1 / span 2;
+    grid-row: 1;
     align-self: center;
   }
           }
@@ -4660,6 +4705,13 @@ select::-ms-expand {
     <option value="">All Strategies</option>
   </select>
 
+  <select id="filterResult" onchange="filterTrades()">
+    <option value="">All Results</option>
+    <option value="win">Win</option>
+    <option value="loss">Loss</option>
+    <option value="breakeven">Breakeven</option>
+  </select>
+
   <select id="filterType" onchange="filterTrades()">
     <option value="">All Trade Types</option>
     <option value="Stock/ETF">Stock/ETF</option>
@@ -4675,12 +4727,13 @@ select::-ms-expand {
     <option value="short">Short</option>
   </select>
 
-  <select id="filterResult" onchange="filterTrades()">
-    <option value="">All Results</option>
-    <option value="win">Win</option>
-    <option value="loss">Loss</option>
-    <option value="breakeven">Breakeven</option>
-  </select>
+  <input
+    class="trades-search-filter"
+    id="filterSearch"
+    type="search"
+    placeholder="Search trades..."
+    oninput="filterTrades()"
+  />
 
   <select id="filterSort" onchange="filterTrades()">
     <option value="date_desc">Newest First</option>
@@ -9157,6 +9210,12 @@ pageLoaded.tradeprint = hasPro;
   const typeFilter = document.getElementById('filterType')?.value || '';
   const directionFilter = document.getElementById('filterDirection')?.value || '';
   const sort = document.getElementById('filterSort').value;
+  const searchRaw = String(document.getElementById('filterSearch')?.value || '').trim().toLowerCase();
+
+  const normalizeSearch = value =>
+    String(value ?? '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+
+  const searchNormalized = normalizeSearch(searchRaw);
 
   filteredTrades = allTrades.filter(t => {
     const typeValue = String(t.type || '').trim();
@@ -9170,6 +9229,37 @@ pageLoaded.tradeprint = hasPro;
 
     if (directionFilter === '__missing' && directionValue) return false;
     if (directionFilter && directionFilter !== '__missing' && directionValue !== directionFilter) return false;
+
+    if (searchRaw) {
+      const accountName = t.broker_accounts?.name || (t.account_id ? getAccountName(t.account_id) : '');
+      const directionText = directionValue ? formatTradeDirection(directionValue) : '';
+      const confluenceText = Array.isArray(t.confluences_used) ? t.confluences_used.join(' ') : '';
+      const timeText = t.trade_time ? formatDisplayTime(t.trade_time) : '';
+      const resultText = t.result === 'breakeven' ? 'breakeven be' : (t.result || '');
+
+      const searchTextRaw = [
+        t.asset,
+        t.strategies?.name,
+        accountName,
+        resultText,
+        t.type,
+        directionValue,
+        directionText,
+        t.trade_time,
+        timeText,
+        confluenceText,
+        t.notes
+      ].join(' ').toLowerCase();
+
+      const searchTextNormalized = normalizeSearch(searchTextRaw);
+
+      if (
+        !searchTextRaw.includes(searchRaw) &&
+        (!searchNormalized || !searchTextNormalized.includes(searchNormalized))
+      ) {
+        return false;
+      }
+    }
 
     return true;
   });
@@ -9186,13 +9276,16 @@ pageLoaded.tradeprint = hasPro;
   renderTradesList();
 }
 
-    function clearTradeFilters() {
+function clearTradeFilters() {
   document.getElementById('filterStrategy').value = '';
   document.getElementById('filterResult').value = '';
   document.getElementById('filterSort').value = 'date_desc';
-document.getElementById('filterType').value = '';
-document.getElementById('filterDirection').value = '';
-      
+  document.getElementById('filterType').value = '';
+  document.getElementById('filterDirection').value = '';
+
+  const searchInput = document.getElementById('filterSearch');
+  if (searchInput) searchInput.value = '';
+
   syncPrettySelects();
   filterTrades();
 }
@@ -9226,42 +9319,63 @@ document.getElementById('filterDirection').value = '';
     return;
   }
 
-  const showAccountColumn = !isSingleAccountActive();
+  const dash = '<span class="trade-cell-empty">—</span>';
 
   const rows = filteredTrades.map(t => {
-    const pnl = parseFloat(t.pnl) || 0;
+    const hasPnl = t.pnl !== null && t.pnl !== undefined && t.pnl !== '';
+    const pnl = hasPnl ? (parseFloat(t.pnl) || 0) : 0;
     const pnlColor = pnl > 0 ? 'var(--success)' : pnl < 0 ? 'var(--danger)' : 'var(--text)';
-    const date = new Date(t.date + 'T12:00:00');
-    const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    const accountName = t.broker_accounts?.name || getAccountName(t.account_id);
-    const strategy = t.strategies?.name || '-';
-    const result = t.result === 'breakeven' ? 'be' : (t.result || '-');
-    const rr = t.actual_rr ? `${t.actual_rr}R` : '—';
-    const confluences = t.confluences_used?.length ? `${t.confluences_used.length} confluences` : '—';
-    const timeStr = t.trade_time ? formatDisplayTime(t.trade_time) : '—';
-    const asset = t.asset || '—';
-    const typeDisplay = t.type ? formatTradeType(t.type) : '—';
+    const accountName = t.broker_accounts?.name || (t.account_id ? getAccountName(t.account_id) : '');
+    const strategy = t.strategies?.name || '';
+    const resultValue = String(t.result || '').trim();
+    const resultLabel = resultValue === 'breakeven' ? 'be' : resultValue;
+    const resultHtml = resultLabel
+      ? `<span class="trades-badge ${escapeHtml(resultValue)}">${escapeHtml(resultLabel)}</span>`
+      : dash;
+    const rrText = t.actual_rr !== null && t.actual_rr !== undefined && t.actual_rr !== '' ? `${t.actual_rr}R` : '';
+    const confluenceText = Array.isArray(t.confluences_used) && t.confluences_used.length ? `${t.confluences_used.length} confluences` : '';
+    const timeText = t.trade_time ? formatDisplayTime(t.trade_time) : '';
+    const assetText = t.asset || '';
+    const typeText = t.type ? formatTradeType(t.type) : '';
     const directionValue = normalizeDirection(t.direction);
-    const directionDisplay = directionValue ? formatTradeDirection(directionValue) : '—';
-    const followed = t.followed_rules ? '' : '<span style="color:var(--danger);font-size:11px;">✗</span>';
-    const notes = t.notes ? `"${escapeHtml(t.notes)}"` : followed || '—';
+    const directionText = directionValue ? formatTradeDirection(directionValue) : '';
+
+    let rulesHtml = dash;
+    if (t.followed_rules === true) {
+      rulesHtml = '<span class="trade-rules-icon yes">✓</span>';
+    } else if (t.followed_rules === false) {
+      rulesHtml = '<span class="trade-rules-icon no">✗</span>';
+    }
+
+    const notesHtml = t.notes ? escapeHtml(t.notes) : dash;
+
+    const mobileMeta = [
+      accountName,
+      resultLabel,
+      hasPnl ? formatPnl(pnl) : '',
+      rrText,
+      typeText,
+      directionText,
+      timeText,
+      assetText
+    ].filter(Boolean).join(' · ');
 
     return `<div class="trades-table-row">
-      <div class="trades-table-cell muted">${dateStr}</div>
       <div class="trades-table-cell">
-        ${escapeHtml(strategy)}
-        <div class="trades-mobile-meta">${escapeHtml(typeDisplay)} · ${escapeHtml(directionDisplay)} · ${escapeHtml(result)} · ${formatPnl(pnl)}</div>
+        ${strategy ? escapeHtml(strategy) : dash}
+        <div class="trades-mobile-meta">${escapeHtml(mobileMeta)}</div>
       </div>
-      ${showAccountColumn ? `<div class="trades-table-cell muted">${escapeHtml(accountName)}</div>` : ''}
-      <div class="trades-table-cell muted">${escapeHtml(typeDisplay)}</div>
-      <div class="trades-table-cell trade-direction ${directionValue}">${escapeHtml(directionDisplay)}</div>
-      <div class="trades-table-cell"><span class="trades-badge ${t.result || '-'}">${escapeHtml(result)}</span></div>
-      <div class="trades-table-cell" style="color:${pnlColor};font-weight:700;">${formatPnl(pnl)}</div>
-      <div class="trades-table-cell muted">${rr}</div>
-      <div class="trades-table-cell muted">${confluences}</div>
-      <div class="trades-table-cell muted">${timeStr}</div>
-      <div class="trades-table-cell muted">${escapeHtml(asset)}</div>
-      <div class="trades-table-cell muted">${notes}</div>
+      <div class="trades-table-cell muted">${accountName ? escapeHtml(accountName) : dash}</div>
+      <div class="trades-table-cell">${resultHtml}</div>
+      <div class="trades-table-cell" style="color:${hasPnl ? pnlColor : 'var(--text2)'};font-weight:${hasPnl ? '700' : '400'};">${hasPnl ? formatPnl(pnl) : dash}</div>
+      <div class="trades-table-cell muted">${rrText ? escapeHtml(rrText) : dash}</div>
+      <div class="trades-table-cell muted">${typeText ? escapeHtml(typeText) : dash}</div>
+      <div class="trades-table-cell trade-direction ${directionValue}">${directionText ? escapeHtml(directionText) : dash}</div>
+      <div class="trades-table-cell muted">${timeText ? escapeHtml(timeText) : dash}</div>
+      <div class="trades-table-cell muted">${assetText ? escapeHtml(assetText) : dash}</div>
+      <div class="trades-table-cell muted">${confluenceText ? escapeHtml(confluenceText) : dash}</div>
+      <div class="trades-table-cell trade-rules-cell">${rulesHtml}</div>
+      <div class="trades-table-cell muted">${notesHtml}</div>
       <div class="trades-table-cell trade-row-actions" style="display:flex;gap:4px;align-items:center;">
         <button class="trade-edit-btn" onclick="openEditTradeFromList('${t.id}')">
           <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -9273,19 +9387,19 @@ document.getElementById('filterDirection').value = '';
     </div>`;
   }).join('');
 
-  container.innerHTML = `<div class="trades-table${showAccountColumn ? ' all-accounts' : ''}">
+  container.innerHTML = `<div class="trades-table">
     <div class="trades-table-header">
-      <div>Date</div>
       <div>Strategy</div>
-      ${showAccountColumn ? '<div>Account</div>' : ''}
-      <div>Type</div>
-      <div>Direction</div>
+      <div>Account</div>
       <div>Result</div>
       <div>PNL</div>
       <div>R:R</div>
-      <div>Confluences</div>
+      <div>Type</div>
+      <div>Direction</div>
       <div>Time</div>
       <div>Asset</div>
+      <div>Confluences</div>
+      <div class="trade-rules-heading">Rules</div>
       <div>Notes</div>
       <div></div>
     </div>
