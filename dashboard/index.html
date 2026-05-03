@@ -4186,7 +4186,7 @@ select::-ms-expand {
 
   <div class="form-field">
     <label>Trade Type</label>
-    <select id="tradeType" style="width:100%;padding:10px 14px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;">
+    <select id="tradeType" onchange="updateTradeAssetPlaceholder()" style="width:100%;padding:10px 14px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;">
       <option value="">Select trade type...</option>
       <option value="Stock/ETF">Stock/ETF</option>
       <option value="Futures">Futures</option>
@@ -5583,6 +5583,23 @@ let tradeChartImages = [];
 function formatTradeType(value) {
   const type = String(value || '').trim();
   return type || 'Unknown';
+}
+
+function updateTradeAssetPlaceholder() {
+  const assetInput = document.getElementById('tradeAsset');
+  const tradeType = document.getElementById('tradeType')?.value || '';
+
+  if (!assetInput) return;
+
+  const placeholders = {
+    'Stock/ETF': 'e.g. SPY, QQQ, AAPL, META',
+    'Futures': 'e.g. NQ, ES, GC',
+    'Options': 'e.g. SPX, NDX, TSLA, NVDA',
+    'Forex': 'e.g. EURUSD, GBPUSD, XAUUSD',
+    'Crypto': 'e.g. BTC, SOL, ETH, XRP'
+  };
+
+  assetInput.placeholder = placeholders[tradeType] || 'e.g. NQ, ES, BTC, AAPL';
 }
 
 function formatTradeDirection(value) {
@@ -7827,6 +7844,7 @@ populateTradeAccountSelect();
       resetConfluenceSection();
       document.getElementById('tradeAsset').value = '';
       document.getElementById('tradeType').value = '';
+      updateTradeAssetPlaceholder();
 setTradeDirection('');
 resetTradeCharts();
       document.getElementById('tradePnl').value = '';
@@ -7857,6 +7875,7 @@ populateTradeAccountSelect();
       resetConfluenceSection();
       document.getElementById('tradeAsset').value = '';
       document.getElementById('tradeType').value = '';
+      updateTradeAssetPlaceholder();
 setTradeDirection('');
 resetTradeCharts();
       document.getElementById('tradePnl').value = '';
@@ -7897,6 +7916,7 @@ document.getElementById('tradeAccount').value = t.account_id || '';
       document.getElementById('tradeResult').value = t.result || 'win';
       document.getElementById('tradeAsset').value = t.asset || '';
       document.getElementById('tradeType').value = t.type || '';
+      updateTradeAssetPlaceholder();
 setTradeDirection(t.direction || '');
 setTradeChartImages(Array.isArray(t.chart_images) ? t.chart_images : []);
       document.getElementById('tradePnl').value = t.pnl || '';
