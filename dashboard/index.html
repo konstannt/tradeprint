@@ -2075,10 +2075,19 @@ select.tp-native-select {
     grid-row: 1 / span 2;
     align-self: center;
   }
-     }
+          }
+
     .notes-layout {
-    
-    .notes-layout { display: flex; height: calc(100vh - 80px); gap: 0; background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+      display: flex;
+      height: calc(100vh - 80px);
+      min-height: calc(100vh - 80px);
+      gap: 0;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
     .notes-sidebar { width: 260px; flex-shrink: 0; border-right: 1px solid var(--border); display: flex; flex-direction: column; }
     .notes-sidebar-header {
   height: 61px;
@@ -2339,8 +2348,10 @@ select.tp-native-select {
     .note-body-editor::-webkit-scrollbar { width: 6px; }
     .note-body-editor::-webkit-scrollbar-track { background: transparent; }
     .note-body-editor::-webkit-scrollbar-thumb { background: var(--border); border-radius: 6px; }
-    .float-toolbar { display: none; position: fixed; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 4px 6px; gap: 2px; z-index: 200; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
-    .float-toolbar.visible { display: flex; }
+    .float-toolbar,
+.float-toolbar.visible {
+  display: none !important;
+}
     .float-btn { background: none; border: none; color: var(--text2); padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 13px; transition: all 0.15s; }
     .float-btn:hover { background: var(--border); color: var(--text); }
     .float-btn.active { background: var(--accent); color: #fff; }
@@ -2413,6 +2424,51 @@ select.tp-native-select {
     padding: 4px 16px 240px;
   }
 }
+
+#page-notes .notes-editor-area {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#page-notes #notesEditorInner {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  flex-direction: column;
+  scroll-padding-bottom: 180px;
+}
+
+#page-notes .notes-top-bar {
+  flex: 0 0 61px;
+  height: 61px;
+  min-height: 61px;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+#page-notes .note-title-input {
+  flex: 0 0 auto;
+  padding: 28px 36px 12px;
+}
+
+#page-notes .note-body-editor {
+  flex: 1 0 auto;
+  min-height: calc(100vh - 320px);
+  overflow: visible;
+  padding: 4px 36px 220px;
+}
+  
     .calc-layout {
   width: 100%;
   max-width: 1320px;
@@ -4595,15 +4651,14 @@ select::-ms-expand {
     <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
     Log Trade
   </button>
-  </div>
+  <div id="tradesAccountControls"></div>
+</div>
 </div>
       <div class="stats-grid" id="tradesStatsGrid" style="margin-bottom:24px;"></div>
       <div class="trades-filters">
   <select id="filterStrategy" onchange="filterTrades()">
     <option value="">All Strategies</option>
   </select>
-
-  <div class="trades-filter-account" id="tradesAccountControls"></div>
 
   <select id="filterType" onchange="filterTrades()">
     <option value="">All Trade Types</option>
@@ -4612,14 +4667,12 @@ select::-ms-expand {
     <option value="Options">Options</option>
     <option value="Forex">Forex</option>
     <option value="Crypto">Crypto</option>
-    <option value="__missing">Unknown</option>
   </select>
 
   <select id="filterDirection" onchange="filterTrades()">
     <option value="">All Directions</option>
     <option value="long">Long</option>
     <option value="short">Short</option>
-    <option value="__missing">Unknown</option>
   </select>
 
   <select id="filterResult" onchange="filterTrades()">
