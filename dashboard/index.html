@@ -1355,6 +1355,244 @@ select.tp-native-select {
   flex: 0 0 16px;
   accent-color: var(--accent);
 }
+
+.trade-asset-type-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 160px;
+  gap: 16px;
+}
+
+.direction-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.direction-btn {
+  min-height: 44px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+
+.direction-btn:hover {
+  border-color: var(--accent);
+}
+
+.direction-btn.long.active {
+  color: var(--success);
+  border-color: rgba(34,197,94,0.45);
+  background: rgba(34,197,94,0.12);
+}
+
+.direction-btn.short.active {
+  color: var(--danger);
+  border-color: rgba(239,68,68,0.45);
+  background: rgba(239,68,68,0.12);
+}
+
+.confluence-toggle {
+  width: 100%;
+  min-height: 38px;
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.confluence-toggle:hover {
+  border-color: var(--accent);
+}
+
+.confluence-toggle-chevron {
+  width: 8px;
+  height: 8px;
+  border-right: 1.5px solid var(--text2);
+  border-bottom: 1.5px solid var(--text2);
+  transform: rotate(-45deg);
+  transition: transform 0.15s;
+}
+
+.confluence-editor.edit-mode .confluence-toggle {
+  display: flex;
+}
+
+.confluence-editor.edit-mode #confluenceLabel {
+  display: none;
+}
+
+.confluence-editor.edit-mode #confluenceChecklist {
+  display: none;
+  margin-top: 10px;
+}
+
+.confluence-editor.edit-mode.expanded #confluenceChecklist {
+  display: block;
+}
+
+.confluence-editor.edit-mode.expanded .confluence-toggle-chevron {
+  transform: rotate(45deg);
+}
+
+.trade-chart-upload-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.trade-chart-upload-btn {
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.trade-chart-upload-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.trade-chart-hint {
+  color: var(--text2);
+  font-size: 12px;
+}
+
+.trade-chart-preview-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.trade-chart-thumb {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+}
+
+.trade-chart-thumb img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  display: block;
+  object-fit: cover;
+  cursor: zoom-in;
+}
+
+.trade-chart-remove {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  min-width: 24px;
+  height: 24px;
+  border: 1px solid rgba(239,68,68,0.45);
+  border-radius: 6px;
+  background: rgba(10,10,10,0.78);
+  color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.trade-chart-status {
+  padding: 6px 8px;
+  color: var(--text2);
+  font-size: 11px;
+}
+
+.trade-direction.long {
+  color: var(--success);
+  font-weight: 800;
+}
+
+.trade-direction.short {
+  color: var(--danger);
+  font-weight: 800;
+}
+
+.trades-mobile-meta {
+  display: none;
+}
+
+.tradeprint-breakdown-list {
+  display: grid;
+  gap: 10px;
+}
+
+.tradeprint-breakdown-item {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.tradeprint-breakdown-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+}
+
+.tradeprint-breakdown-name {
+  font-size: 15px;
+  font-weight: 950;
+  color: var(--text);
+}
+
+.tradeprint-breakdown-pnl {
+  font-size: 14px;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.tradeprint-breakdown-pnl.green { color: var(--success); }
+.tradeprint-breakdown-pnl.red { color: var(--danger); }
+
+.tradeprint-breakdown-meta {
+  margin-top: 7px;
+  color: var(--text2);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .trade-asset-type-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .trades-mobile-meta {
+    display: block;
+    margin-top: 4px;
+    color: var(--text2);
+    font-size: 12px;
+    line-height: 1.4;
+    white-space: normal;
+  }
+}
+
+    
     .form-field input:focus, .form-field textarea:focus { border-color: var(--accent); }
     .form-field textarea { resize: vertical; min-height: 80px; }
     .confluence-input-row { display: flex; gap: 8px; margin-bottom: 12px; }
@@ -1638,10 +1876,16 @@ select.tp-native-select {
     .trades-filters { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
     .trades-filters select { padding: 8px 14px; font-size: 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg2); color: var(--text); outline: none; cursor: pointer; transition: border-color 0.2s; }
     .trades-filters select:focus { border-color: var(--accent); }
-    .trades-table { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .trades-table {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow-x: auto;
+}
     .trades-table-header {
   display: grid;
-  grid-template-columns: 100px minmax(150px, 1.4fr) 70px 90px 60px 110px 80px 70px minmax(120px, 1fr) 52px;
+  grid-template-columns: 92px minmax(125px, 1.1fr) 84px 78px 64px 86px 54px 104px 76px 78px minmax(110px, 0.85fr) 52px;
+  min-width: 1060px;
   padding: 12px 20px;
   border-bottom: 1px solid var(--border);
   gap: 12px;
@@ -1650,7 +1894,8 @@ select.tp-native-select {
 
 .trades-table-row {
   display: grid;
-  grid-template-columns: 100px minmax(150px, 1.4fr) 70px 90px 60px 110px 80px 70px minmax(120px, 1fr) 52px;
+  grid-template-columns: 92px minmax(125px, 1.1fr) 84px 78px 64px 86px 54px 104px 76px 78px minmax(110px, 0.85fr) 52px;
+  min-width: 1060px;
   padding: 14px 20px;
   border-bottom: 1px solid var(--border);
   gap: 12px;
@@ -1660,8 +1905,10 @@ select.tp-native-select {
 
 .trades-table.all-accounts .trades-table-header,
 .trades-table.all-accounts .trades-table-row {
-  grid-template-columns: 100px minmax(140px, 1.25fr) minmax(110px, 0.75fr) 70px 90px 60px 110px 80px 70px minmax(120px, 1fr) 52px;
+  grid-template-columns: 92px minmax(115px, 1fr) minmax(95px, 0.75fr) 84px 78px 64px 86px 54px 104px 76px 78px minmax(95px, 0.7fr) 52px;
+  min-width: 1160px;
 }
+
     .trades-table-row:last-child { border-bottom: none; }
     .trades-table-row:hover { background: rgba(255,255,255,0.02); }
     .trades-table-cell { font-size: 14px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -1679,11 +1926,46 @@ select.tp-native-select {
     .trade-edit-btn:hover { color: var(--accent); }
     .trade-edit-btn svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     @media (max-width: 768px) {
-      .trades-table-header { display: none; }
-      .trades-table-row { grid-template-columns: 1fr auto; grid-template-rows: auto auto; gap: 6px; padding: 14px 16px; }
-      .trades-table-row .trades-table-cell:nth-child(n+3) { display: none; }
-      .trades-table-row .trades-table-cell:nth-child(2) { grid-column: 1; }
-      .trades-table-row .trades-table-cell:nth-child(4) { grid-column: 2; grid-row: 1; }
+  .trades-table {
+    overflow: hidden;
+  }
+
+  .trades-table-header {
+    display: none;
+  }
+
+  .trades-table-row,
+  .trades-table.all-accounts .trades-table-row {
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    gap: 6px 12px;
+    padding: 14px 16px;
+  }
+
+  .trades-table-row .trades-table-cell:nth-child(n+3):not(.trade-row-actions) {
+    display: none;
+  }
+
+  .trades-table-row .trades-table-cell:nth-child(1) {
+    grid-column: 1;
+    grid-row: 2;
+    font-size: 12px;
+  }
+
+  .trades-table-row .trades-table-cell:nth-child(2) {
+    grid-column: 1;
+    grid-row: 1;
+    white-space: normal;
+  }
+
+  .trades-table-row .trade-row-actions {
+    display: flex !important;
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: center;
+  }
+}
       .trade-delete-btn { grid-column: 2; grid-row: 2; }
     }
     .notes-layout { display: flex; height: calc(100vh - 80px); gap: 0; background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
@@ -3665,13 +3947,41 @@ select::-ms-expand {
     <option value="">Select a strategy...</option>
   </select>
 </div>
-<div class="form-field" id="confluenceSection" style="display:none;">
-  <label>Confluences Present</label>
+<div class="form-field confluence-editor" id="confluenceSection" style="display:none;">
+  <button class="confluence-toggle" id="confluenceToggle" type="button" onclick="toggleConfluenceChecklist()">
+    <span>Confluences</span>
+    <span class="confluence-toggle-chevron"></span>
+  </button>
+  <label id="confluenceLabel">Confluences Present</label>
   <div id="confluenceChecklist"></div>
 </div>
+
+<div class="trade-asset-type-grid">
+  <div class="form-field">
+    <label>Asset</label>
+    <input type="text" id="tradeAsset" placeholder="e.g. NQ, ES, BTC, AAPL" />
+  </div>
+
+  <div class="form-field">
+    <label>Type</label>
+    <select id="tradeType" style="width:100%;padding:10px 14px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;">
+      <option value="">Select type...</option>
+      <option value="Stock/ETF">Stock/ETF</option>
+      <option value="Futures">Futures</option>
+      <option value="Options">Options</option>
+      <option value="Forex">Forex</option>
+      <option value="Crypto">Crypto</option>
+    </select>
+  </div>
+</div>
+
 <div class="form-field">
-  <label>Asset</label>
-  <input type="text" id="tradeAsset" placeholder="e.g. NQ, ES, BTC, AAPL" />
+  <label>Direction</label>
+  <input type="hidden" id="tradeDirection" value="" />
+  <div class="direction-buttons" id="tradeDirectionButtons">
+    <button class="direction-btn long" type="button" data-direction="long" onclick="selectTradeDirection('long')">Long</button>
+    <button class="direction-btn short" type="button" data-direction="short" onclick="selectTradeDirection('short')">Short</button>
+  </div>
 </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
         <div class="form-field">
@@ -3713,6 +4023,15 @@ select::-ms-expand {
       No
     </label>
   </div>
+</div>
+      <div class="form-field">
+  <label>Chart Screenshots (optional)</label>
+  <input type="file" id="tradeChartInput" accept="image/png,image/jpeg,image/webp" multiple style="display:none" onchange="handleTradeChartSelect(event)"/>
+  <div class="trade-chart-upload-row">
+    <button class="trade-chart-upload-btn" type="button" onclick="document.getElementById('tradeChartInput').click()">Add Charts</button>
+    <span class="trade-chart-hint" id="tradeChartHint">No charts added</span>
+  </div>
+  <div class="trade-chart-preview-list" id="tradeChartPreviewList"></div>
 </div>
       <div class="form-field">
         <label>Trade Notes (optional)</label>
@@ -4098,6 +4417,16 @@ select::-ms-expand {
       <div id="tradeprintBestTime"></div>
     </div>
 
+<div class="tradeprint-panel">
+  <div class="tradeprint-panel-title">Performance by Type</div>
+  <div id="tradeprintByType"></div>
+</div>
+
+<div class="tradeprint-panel">
+  <div class="tradeprint-panel-title">Performance by Direction</div>
+  <div id="tradeprintByDirection"></div>
+</div>
+    
 <div class="tradeprint-panel tradeprint-panel-wide">
       <div class="tradeprint-panel-heading">
         <div>
@@ -4192,6 +4521,22 @@ select::-ms-expand {
       <div class="trades-filters">
         <select id="filterStrategy" onchange="filterTrades()"><option value="">All Strategies</option></select>
         <select id="filterResult" onchange="filterTrades()">
+          <select id="filterType" onchange="filterTrades()">
+  <option value="">All Types</option>
+  <option value="Stock/ETF">Stock/ETF</option>
+  <option value="Futures">Futures</option>
+  <option value="Options">Options</option>
+  <option value="Forex">Forex</option>
+  <option value="Crypto">Crypto</option>
+  <option value="__missing">Unknown</option>
+</select>
+
+<select id="filterDirection" onchange="filterTrades()">
+  <option value="">All Directions</option>
+  <option value="long">Long</option>
+  <option value="short">Short</option>
+  <option value="__missing">Unknown</option>
+</select>
           <option value="">All Results</option>
           <option value="win">Win</option>
           <option value="loss">Loss</option>
@@ -4939,6 +5284,13 @@ let subscriptionLoaded = false;
 let currentSubscription = null;
 const PRO_STATUSES = ['active', 'trialing', 'completed'];
 
+const TRADE_TYPES = ['Stock/ETF', 'Futures', 'Options', 'Forex', 'Crypto'];
+const TRADE_DIRECTIONS = ['long', 'short'];
+const TRADE_CHART_BUCKET = 'trade-charts';
+const TRADE_CHART_MAX_MB = 8;
+
+let tradeChartImages = [];
+
     const pageLoaded = {
   dashboard: false,
   tradeprint: false,
@@ -4985,6 +5337,176 @@ const PRO_STATUSES = ['active', 'trialing', 'completed'];
       const h12 = h % 12 || 12;
       return `${h12}:${String(m).padStart(2,'0')} ${ampm}`;
     }
+
+    function normalizeDirection(value) {
+  const direction = String(value || '').toLowerCase();
+  return TRADE_DIRECTIONS.includes(direction) ? direction : '';
+}
+
+function formatTradeType(value) {
+  const type = String(value || '').trim();
+  return type || 'Unknown';
+}
+
+function formatTradeDirection(value) {
+  const direction = normalizeDirection(value);
+  if (direction === 'long') return 'Long';
+  if (direction === 'short') return 'Short';
+  return 'Unknown';
+}
+
+function selectTradeDirection(direction) {
+  setTradeDirection(direction);
+}
+
+function setTradeDirection(direction = '') {
+  const normalized = normalizeDirection(direction);
+  const input = document.getElementById('tradeDirection');
+
+  if (input) input.value = normalized;
+
+  document.querySelectorAll('#tradeDirectionButtons .direction-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.direction === normalized);
+  });
+}
+
+function resetTradeCharts() {
+  tradeChartImages.forEach(item => {
+    if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
+  });
+
+  tradeChartImages = [];
+
+  const input = document.getElementById('tradeChartInput');
+  if (input) input.value = '';
+
+  renderTradeChartPreviews();
+}
+
+function setTradeChartImages(urls = []) {
+  resetTradeCharts();
+
+  tradeChartImages = (Array.isArray(urls) ? urls : [])
+    .filter(Boolean)
+    .map(url => ({
+      id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
+      url,
+      source: 'saved'
+    }));
+
+  renderTradeChartPreviews();
+}
+
+function handleTradeChartSelect(event) {
+  const files = Array.from(event.target.files || []);
+  const msg = document.getElementById('tradeMsg');
+
+  files.forEach(file => {
+    if (!file.type.startsWith('image/')) return;
+
+    if (file.size > TRADE_CHART_MAX_MB * 1024 * 1024) {
+      if (msg) {
+        msg.textContent = `Chart images must be under ${TRADE_CHART_MAX_MB}MB.`;
+        msg.className = 'modal-msg error';
+      }
+      return;
+    }
+
+    tradeChartImages.push({
+      id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
+      file,
+      previewUrl: URL.createObjectURL(file),
+      source: 'pending',
+      status: 'ready'
+    });
+  });
+
+  event.target.value = '';
+  renderTradeChartPreviews();
+}
+
+function removeTradeChartImage(id) {
+  const item = tradeChartImages.find(chart => chart.id === id);
+  if (item?.previewUrl) URL.revokeObjectURL(item.previewUrl);
+
+  tradeChartImages = tradeChartImages.filter(chart => chart.id !== id);
+  renderTradeChartPreviews();
+}
+
+function renderTradeChartPreviews() {
+  const list = document.getElementById('tradeChartPreviewList');
+  const hint = document.getElementById('tradeChartHint');
+
+  if (!list || !hint) return;
+
+  hint.textContent = tradeChartImages.length
+    ? `${tradeChartImages.length} chart${tradeChartImages.length !== 1 ? 's' : ''} attached`
+    : 'No charts added';
+
+  list.innerHTML = tradeChartImages.map(item => {
+    const src = item.url || item.previewUrl || '';
+    const status = item.status === 'uploading' ? '<div class="trade-chart-status">Uploading...</div>' : '';
+
+    return `
+      <div class="trade-chart-thumb">
+        <img src="${escapeHtml(src)}" alt="trade chart" onclick="openLightbox(this)"/>
+        <button class="trade-chart-remove" type="button" onclick="removeTradeChartImage('${item.id}')">×</button>
+        ${status}
+      </div>
+    `;
+  }).join('');
+}
+
+async function uploadTradeChartImage(file) {
+  const blob = await resizeImageFileToBlob(file, NOTE_IMAGE_MAX_WIDTH, NOTE_IMAGE_QUALITY);
+  const id = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  const path = `${user.id}/${id}.jpg`;
+
+  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/${TRADE_CHART_BUCKET}/${path}`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'image/jpeg',
+      'x-upsert': 'false'
+    },
+    body: blob
+  });
+
+  if (!res.ok) throw new Error('Trade chart upload failed.');
+
+  return `${SUPABASE_URL}/storage/v1/object/public/${TRADE_CHART_BUCKET}/${path}`;
+}
+
+async function uploadPendingTradeCharts() {
+  const urls = [];
+
+  for (const item of tradeChartImages) {
+    if (item.url) {
+      urls.push(item.url);
+      continue;
+    }
+
+    if (!item.file) continue;
+
+    item.status = 'uploading';
+    renderTradeChartPreviews();
+
+    const url = await uploadTradeChartImage(item.file);
+    urls.push(url);
+
+    if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
+
+    item.url = url;
+    item.previewUrl = '';
+    item.file = null;
+    item.status = 'saved';
+    item.source = 'saved';
+  }
+
+  renderTradeChartPreviews();
+
+  return urls;
+}
 
     async function loadProfile() {
   if (!user) return;
@@ -7065,7 +7587,11 @@ populateTradeAccountSelect();
       document.getElementById('tradeStrategy').innerHTML = '<option value="">Select a strategy...</option>' + allStrategies.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
       document.getElementById('confluenceSection').style.display = 'none';
       document.getElementById('confluenceChecklist').innerHTML = '';
+      resetConfluenceSection();
       document.getElementById('tradeAsset').value = '';
+      document.getElementById('tradeType').value = '';
+setTradeDirection('');
+resetTradeCharts();
       document.getElementById('tradePnl').value = '';
       document.getElementById('tradeNotes').value = '';
       document.getElementById('tradeTime').value = '';
@@ -7091,7 +7617,11 @@ populateTradeAccountSelect();
       document.getElementById('tradeStrategy').innerHTML = '<option value="">Select a strategy...</option>' + allStrategies.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
       document.getElementById('confluenceSection').style.display = 'none';
       document.getElementById('confluenceChecklist').innerHTML = '';
+      resetConfluenceSection();
       document.getElementById('tradeAsset').value = '';
+      document.getElementById('tradeType').value = '';
+setTradeDirection('');
+resetTradeCharts();
       document.getElementById('tradePnl').value = '';
       document.getElementById('tradeNotes').value = '';
       document.getElementById('tradeTime').value = '';
@@ -7104,6 +7634,7 @@ populateTradeAccountSelect();
       document.getElementById('tradeMsg').textContent = '';
       document.getElementById('saveTradeBtn').textContent = 'Save Trade';
       document.getElementById('logTradeTitle').textContent = 'Log Trade';
+      syncPrettySelects();
       document.getElementById('logTradeModal').classList.add('active');
     }
 
@@ -7121,13 +7652,16 @@ populateTradeAccountSelect();
       if (!allAccounts.length) await loadAccounts();
 populateTradeAccountSelect();
 document.getElementById('tradeAccount').value = t.account_id || '';
-      loadStrategyConfluences();
-      setTimeout(() => {
-        const checks = document.querySelectorAll('#confluenceChecklist input');
-        checks.forEach(cb => { cb.checked = t.confluences_used?.includes(cb.value) || false; });
-      }, 50);
+            loadStrategyConfluences({
+        selected: Array.isArray(t.confluences_used) ? t.confluences_used : [],
+        editMode: true,
+        expand: false
+      });
       document.getElementById('tradeResult').value = t.result || 'win';
       document.getElementById('tradeAsset').value = t.asset || '';
+      document.getElementById('tradeType').value = t.type || '';
+setTradeDirection(t.direction || '');
+setTradeChartImages(Array.isArray(t.chart_images) ? t.chart_images : []);
       document.getElementById('tradePnl').value = t.pnl || '';
       document.getElementById('tradeActualRR').value = t.actual_rr || '';
       document.getElementById('tradeNotes').value = t.notes || '';
@@ -7157,6 +7691,10 @@ document.getElementById('tradeAccount').value = t.account_id || '';
     saveBtn.textContent = 'Save Trade';
   }
 
+  setTradeDirection('');
+  resetTradeCharts();
+  resetConfluenceSection();
+      
   editingTradeId = null;
   editingTradeOriginalDate = null;
 }
@@ -7168,19 +7706,61 @@ document.getElementById('tradeAccount').value = t.account_id || '';
       if (result === 'win' && pnlInput.value && parseFloat(pnlInput.value) < 0) pnlInput.value = Math.abs(parseFloat(pnlInput.value));
     }
 
-    function loadStrategyConfluences() {
-      const stratId = document.getElementById('tradeStrategy').value;
-      const strat = allStrategies.find(s => s.id === stratId);
-      const section = document.getElementById('confluenceSection');
-      const checklist = document.getElementById('confluenceChecklist');
-      if (!strat || !strat.confluences?.length) { section.style.display = 'none'; return; }
-      section.style.display = 'block';
-      checklist.innerHTML = strat.confluences.map((c, i) => `<div class="confluence-check"><input type="checkbox" id="conf${i}" value="${c}"/><label for="conf${i}">${c}</label></div>`).join('');
-    }
+    function resetConfluenceSection() {
+  const section = document.getElementById('confluenceSection');
+  const checklist = document.getElementById('confluenceChecklist');
+
+  if (!section || !checklist) return;
+
+  section.style.display = 'none';
+  section.classList.remove('edit-mode', 'expanded');
+  checklist.innerHTML = '';
+}
+
+function toggleConfluenceChecklist() {
+  const section = document.getElementById('confluenceSection');
+  if (!section) return;
+
+  section.classList.toggle('expanded');
+}
+
+function loadStrategyConfluences(options = {}) {
+  const stratId = document.getElementById('tradeStrategy').value;
+  const strat = allStrategies.find(s => s.id === stratId);
+  const section = document.getElementById('confluenceSection');
+  const checklist = document.getElementById('confluenceChecklist');
+
+  if (!section || !checklist) return;
+
+  const selected = Array.isArray(options.selected)
+    ? options.selected
+    : Array.from(document.querySelectorAll('#confluenceChecklist input:checked')).map(cb => cb.value);
+
+  if (!strat || !strat.confluences?.length) {
+    resetConfluenceSection();
+    return;
+  }
+
+  const editMode = options.editMode ?? !!editingTradeId;
+  const expanded = editMode ? options.expand === true : true;
+
+  section.style.display = 'block';
+  section.classList.toggle('edit-mode', editMode);
+  section.classList.toggle('expanded', expanded);
+
+  checklist.innerHTML = strat.confluences.map((c, i) => `
+    <div class="confluence-check">
+      <input type="checkbox" id="conf${i}" value="${escapeHtml(c)}" ${selected.includes(c) ? 'checked' : ''}/>
+      <label for="conf${i}">${escapeHtml(c)}</label>
+    </div>
+  `).join('');
+}
 
     async function saveTrade() {
   const strategyId = document.getElementById('tradeStrategy').value;
       const accountId = document.getElementById('tradeAccount').value;
+      const tradeType = document.getElementById('tradeType').value;
+const direction = document.getElementById('tradeDirection').value;
   const result = document.getElementById('tradeResult').value;
   let pnl = parseFloat(document.getElementById('tradePnl').value) || 0;
 
@@ -7228,25 +7808,34 @@ document.getElementById('tradeAccount').value = t.account_id || '';
   const savedDate = tradeDate;
   const selectedDateAtSave = selectedDate;
 
-  saveBtn.disabled = true;
+    saveBtn.disabled = true;
   saveBtn.textContent = wasEditing ? 'Updating...' : 'Saving...';
 
-  const payload = {
-    user_id: user.id,
-    account_id: accountId,
-    strategy_id: strategyId,
-    date: tradeDate,
-    result,
-    pnl,
-    asset,
-    actual_rr: actualRR,
-    notes,
-    followed_rules: followedRules,
-    confluences_used: confluencesUsed,
-    trade_time: tradeTime
-  };
-
   try {
+    saveBtn.textContent = tradeChartImages.some(item => item.file)
+      ? 'Uploading charts...'
+      : wasEditing ? 'Updating...' : 'Saving...';
+
+    const chartImages = await uploadPendingTradeCharts();
+
+    const payload = {
+      user_id: user.id,
+      account_id: accountId,
+      strategy_id: strategyId,
+      date: tradeDate,
+      result,
+      pnl,
+      asset,
+      type: tradeType,
+      direction,
+      actual_rr: actualRR,
+      notes,
+      followed_rules: followedRules,
+      confluences_used: confluencesUsed,
+      chart_images: chartImages,
+      trade_time: tradeTime
+    };
+
     let res;
 
     if (tradeIdToUpdate) {
@@ -8019,6 +8608,86 @@ function getBestTimeWindow(trades) {
   return ranked[0] || null;
 }
 
+function getTradeprintBreakdownRows(trades, field) {
+  const groups = {};
+
+  trades.forEach(t => {
+    const raw = field === 'direction'
+      ? normalizeDirection(t.direction)
+      : String(t[field] || '').trim();
+
+    const key = raw || 'Unknown';
+    const label = field === 'direction'
+      ? formatTradeDirection(raw)
+      : formatTradeType(raw);
+
+    if (!groups[key]) groups[key] = { key, label, trades: [] };
+    groups[key].trades.push(t);
+  });
+
+  return Object.values(groups).map(group => {
+    const summary = getTradeSummary(group.trades);
+
+    return {
+      ...group,
+      tradeCount: group.trades.length,
+      winRate: summary.winRate ?? 0,
+      totalPnl: summary.totalPnl,
+      avgPnl: group.trades.length ? summary.totalPnl / group.trades.length : 0,
+      avgRR: summary.avgRR
+    };
+  }).sort((a, b) =>
+    (a.label === 'Unknown') - (b.label === 'Unknown') ||
+    b.totalPnl - a.totalPnl ||
+    b.winRate - a.winRate ||
+    b.tradeCount - a.tradeCount
+  );
+}
+
+function renderTradeprintBreakdown(containerId, rows, emptyText) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+
+  if (!rows.length) {
+    el.innerHTML = `<div class="tradeprint-empty">${emptyText}</div>`;
+    return;
+  }
+
+  el.innerHTML = `
+    <div class="tradeprint-breakdown-list">
+      ${rows.map(row => {
+        const cls = row.totalPnl > 0 ? 'green' : row.totalPnl < 0 ? 'red' : '';
+
+        return `
+          <div class="tradeprint-breakdown-item">
+            <div class="tradeprint-breakdown-top">
+              <div class="tradeprint-breakdown-name">${escapeHtml(row.label)}</div>
+              <div class="tradeprint-breakdown-pnl ${cls}">${formatPnl(row.totalPnl)}</div>
+            </div>
+            <div class="tradeprint-breakdown-meta">
+              ${row.tradeCount} trade${row.tradeCount !== 1 ? 's' : ''} · ${row.winRate}% WR · Avg ${formatPnl(row.avgPnl)} · Avg R:R ${row.avgRR !== null ? row.avgRR.toFixed(2) : '—'}
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+function renderTradeprintTypeDirectionBreakdowns(trades) {
+  renderTradeprintBreakdown(
+    'tradeprintByType',
+    getTradeprintBreakdownRows(trades, 'type'),
+    'Add trade types to see performance by market.'
+  );
+
+  renderTradeprintBreakdown(
+    'tradeprintByDirection',
+    getTradeprintBreakdownRows(trades, 'direction'),
+    'Add long/short direction to see directional performance.'
+  );
+}
+    
 function renderTradeprint() {
   const page = document.getElementById('page-tradeprint');
   if (!page) return;
@@ -8038,6 +8707,7 @@ renderTradeprintRanks(ranks);
 renderTradeprintRules(summary);
 renderTradeprintBestDay(bestDay, worstDay);
 renderTradeprintBestTime(bestTime, worstTime);
+  renderTradeprintTypeDirectionBreakdowns(trades);
 renderTradeprintReviewFocus({ trades, summary, ranks, bestDay, worstDay, bestTime, worstTime });
 renderTradeprintConfluences(strategies, trades);
 renderTradeprintCoach({ trades, summary, clarity, bestStrategy, bestDay, bestTime });
@@ -8329,30 +8999,47 @@ pageLoaded.tradeprint = hasPro;
 }
 
     function filterTrades() {
-      const stratFilter = document.getElementById('filterStrategy').value;
-      const resultFilter = document.getElementById('filterResult').value;
-      const sort = document.getElementById('filterSort').value;
-      filteredTrades = allTrades.filter(t => {
-        if (stratFilter && t.strategies?.name !== stratFilter) return false;
-        if (resultFilter && t.result !== resultFilter) return false;
-        return true;
-      });
-      filteredTrades.sort((a, b) => {
-        if (sort === 'date_desc') return new Date(b.date) - new Date(a.date);
-        if (sort === 'date_asc') return new Date(a.date) - new Date(b.date);
-        if (sort === 'pnl_desc') return (parseFloat(b.pnl)||0) - (parseFloat(a.pnl)||0);
-        if (sort === 'pnl_asc') return (parseFloat(a.pnl)||0) - (parseFloat(b.pnl)||0);
-        return 0;
-      });
-      renderTradesStats();
-      renderTradesList();
-    }
+  const stratFilter = document.getElementById('filterStrategy').value;
+  const resultFilter = document.getElementById('filterResult').value;
+  const typeFilter = document.getElementById('filterType')?.value || '';
+  const directionFilter = document.getElementById('filterDirection')?.value || '';
+  const sort = document.getElementById('filterSort').value;
+
+  filteredTrades = allTrades.filter(t => {
+    const typeValue = String(t.type || '').trim();
+    const directionValue = normalizeDirection(t.direction);
+
+    if (stratFilter && t.strategies?.name !== stratFilter) return false;
+    if (resultFilter && t.result !== resultFilter) return false;
+
+    if (typeFilter === '__missing' && typeValue) return false;
+    if (typeFilter && typeFilter !== '__missing' && typeValue !== typeFilter) return false;
+
+    if (directionFilter === '__missing' && directionValue) return false;
+    if (directionFilter && directionFilter !== '__missing' && directionValue !== directionFilter) return false;
+
+    return true;
+  });
+
+  filteredTrades.sort((a, b) => {
+    if (sort === 'date_desc') return new Date(b.date) - new Date(a.date);
+    if (sort === 'date_asc') return new Date(a.date) - new Date(b.date);
+    if (sort === 'pnl_desc') return (parseFloat(b.pnl)||0) - (parseFloat(a.pnl)||0);
+    if (sort === 'pnl_asc') return (parseFloat(a.pnl)||0) - (parseFloat(b.pnl)||0);
+    return 0;
+  });
+
+  renderTradesStats();
+  renderTradesList();
+}
 
     function clearTradeFilters() {
   document.getElementById('filterStrategy').value = '';
   document.getElementById('filterResult').value = '';
   document.getElementById('filterSort').value = 'date_desc';
-
+document.getElementById('filterType').value = '';
+document.getElementById('filterDirection').value = '';
+      
   syncPrettySelects();
   filterTrades();
 }
@@ -8400,21 +9087,29 @@ pageLoaded.tradeprint = hasPro;
     const confluences = t.confluences_used?.length ? `${t.confluences_used.length} confluences` : '—';
     const timeStr = t.trade_time ? formatDisplayTime(t.trade_time) : '—';
     const asset = t.asset || '—';
+    const typeDisplay = t.type ? formatTradeType(t.type) : '—';
+    const directionValue = normalizeDirection(t.direction);
+    const directionDisplay = directionValue ? formatTradeDirection(directionValue) : '—';
     const followed = t.followed_rules ? '' : '<span style="color:var(--danger);font-size:11px;">✗</span>';
-    const notes = t.notes ? `"${t.notes}"` : followed || '—';
+    const notes = t.notes ? `"${escapeHtml(t.notes)}"` : followed || '—';
 
     return `<div class="trades-table-row">
       <div class="trades-table-cell muted">${dateStr}</div>
-      <div class="trades-table-cell">${escapeHtml(strategy)}</div>
+      <div class="trades-table-cell">
+        ${escapeHtml(strategy)}
+        <div class="trades-mobile-meta">${escapeHtml(typeDisplay)} · ${escapeHtml(directionDisplay)} · ${escapeHtml(result)} · ${formatPnl(pnl)}</div>
+      </div>
       ${showAccountColumn ? `<div class="trades-table-cell muted">${escapeHtml(accountName)}</div>` : ''}
-      <div class="trades-table-cell"><span class="trades-badge ${t.result || '-'}">${result}</span></div>
+      <div class="trades-table-cell muted">${escapeHtml(typeDisplay)}</div>
+      <div class="trades-table-cell trade-direction ${directionValue}">${escapeHtml(directionDisplay)}</div>
+      <div class="trades-table-cell"><span class="trades-badge ${t.result || '-'}">${escapeHtml(result)}</span></div>
       <div class="trades-table-cell" style="color:${pnlColor};font-weight:700;">${formatPnl(pnl)}</div>
       <div class="trades-table-cell muted">${rr}</div>
       <div class="trades-table-cell muted">${confluences}</div>
       <div class="trades-table-cell muted">${timeStr}</div>
-      <div class="trades-table-cell muted">${asset}</div>
+      <div class="trades-table-cell muted">${escapeHtml(asset)}</div>
       <div class="trades-table-cell muted">${notes}</div>
-      <div class="trades-table-cell" style="display:flex;gap:4px;align-items:center;">
+      <div class="trades-table-cell trade-row-actions" style="display:flex;gap:4px;align-items:center;">
         <button class="trade-edit-btn" onclick="openEditTradeFromList('${t.id}')">
           <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         </button>
@@ -8430,6 +9125,8 @@ pageLoaded.tradeprint = hasPro;
       <div>Date</div>
       <div>Strategy</div>
       ${showAccountColumn ? '<div>Account</div>' : ''}
+      <div>Type</div>
+      <div>Direction</div>
       <div>Result</div>
       <div>PNL</div>
       <div>R:R</div>
