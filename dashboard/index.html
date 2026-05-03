@@ -1356,20 +1356,33 @@ select.tp-native-select {
   accent-color: var(--accent);
 }
 
-.trade-asset-type-grid {
+#logTradeModal .trade-asset-type-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 160px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 16px;
 }
 
-.direction-buttons {
+#logTradeModal .trade-asset-type-grid .form-field {
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  #logTradeModal .trade-asset-type-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
+
+#logTradeModal .direction-buttons {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 10px;
 }
 
-.direction-btn {
-  min-height: 44px;
+#logTradeModal .direction-btn {
+  height: 38px;
+  min-height: 38px;
+  padding: 0 12px;
   border-radius: 8px;
   border: 1px solid var(--border);
   background: var(--bg);
@@ -1381,22 +1394,39 @@ select.tp-native-select {
   transition: border-color 0.15s, background 0.15s, color 0.15s;
 }
 
-.direction-btn:hover {
+#logTradeModal .direction-btn:hover {
   border-color: var(--accent);
 }
 
-.direction-btn.long.active {
+#logTradeModal .direction-btn.long.active {
   color: var(--success);
   border-color: rgba(34,197,94,0.45);
   background: rgba(34,197,94,0.12);
 }
 
-.direction-btn.short.active {
+#logTradeModal .direction-btn.short.active {
   color: var(--danger);
   border-color: rgba(239,68,68,0.45);
   background: rgba(239,68,68,0.12);
 }
 
+#logTradeModal .modal-box {
+  overflow-x: hidden;
+}
+
+#logTradeModal .tp-select {
+  min-width: 0;
+  max-width: 100%;
+}
+
+#logTradeModal .tp-select-menu {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+    
 .confluence-toggle {
   width: 100%;
   min-height: 38px;
@@ -1873,9 +1903,89 @@ select.tp-native-select {
     .img-lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 300; align-items: center; justify-content: center; cursor: zoom-out; }
     .img-lightbox.active { display: flex; }
     .img-lightbox img { max-width: 90vw; max-height: 90vh; border-radius: 12px; object-fit: contain; }
-    .trades-filters { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
-    .trades-filters select { padding: 8px 14px; font-size: 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg2); color: var(--text); outline: none; cursor: pointer; transition: border-color 0.2s; }
-    .trades-filters select:focus { border-color: var(--accent); }
+    #page-trades .trades-filters {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+#page-trades .trades-filters select {
+  min-height: 38px;
+  padding: 9px 38px 9px 12px;
+  font-size: 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background-color: var(--bg2);
+  color: var(--text);
+  outline: none;
+  cursor: pointer;
+}
+
+#page-trades .trades-filters > .tp-select {
+  flex: 0 1 170px;
+  min-width: 150px;
+  max-width: 220px;
+}
+
+#page-trades .trades-filters .tp-select-btn {
+  background: var(--bg2);
+}
+
+#page-trades .trades-filters .tp-select-menu {
+  width: 100%;
+  min-width: 100%;
+  max-width: 260px;
+  overflow-x: hidden;
+  background: var(--bg2);
+}
+
+#page-trades .trades-filter-account {
+  flex: 0 1 210px;
+  min-width: 180px;
+}
+
+#page-trades .trades-filter-account .account-controls {
+  flex-wrap: nowrap;
+  gap: 8px;
+}
+
+#page-trades .trades-filter-account .account-picker {
+  width: 100%;
+  min-width: 0;
+}
+
+#page-trades .trades-filter-account .account-manage-btn {
+  display: none;
+}
+
+#page-trades .trades-clear-filter {
+  min-height: 38px;
+}
+
+@media (max-width: 768px) {
+  #page-trades .trades-filters {
+    align-items: stretch;
+  }
+
+  #page-trades .trades-filters > .tp-select,
+  #page-trades .trades-filter-account,
+  #page-trades .trades-clear-filter {
+    flex: 1 1 100%;
+    width: 100%;
+    max-width: none;
+  }
+
+  #page-trades .trades-filter-account .account-controls {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  #page-trades .trades-filter-account .account-picker {
+    width: 100%;
+  }
+}
     .trades-table {
   background: var(--bg2);
   border: 1px solid var(--border);
@@ -1965,9 +2075,9 @@ select.tp-native-select {
     grid-row: 1 / span 2;
     align-self: center;
   }
-}
-      .trade-delete-btn { grid-column: 2; grid-row: 2; }
-    }
+     }
+    .notes-layout {
+    
     .notes-layout { display: flex; height: calc(100vh - 80px); gap: 0; background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
     .notes-sidebar { width: 260px; flex-shrink: 0; border-right: 1px solid var(--border); display: flex; flex-direction: column; }
     .notes-sidebar-header {
@@ -2235,26 +2345,42 @@ select.tp-native-select {
     .float-btn:hover { background: var(--border); color: var(--text); }
     .float-btn.active { background: var(--accent); color: #fff; }
     @media (max-width: 768px) {
-      .notes-layout {
-        flex-direction: column;
-        height: calc(100vh - 100px);
-        min-height: calc(100vh - 100px);
-      }
+  .notes-layout {
+    flex-direction: column;
+    height: calc(100vh - 100px);
+    min-height: calc(100vh - 100px);
+  }
 
-      .notes-sidebar {
-        width: 100%;
-        height: 220px;
-        min-height: 220px;
-        max-height: 220px;
-        border-right: none;
-        border-bottom: 1px solid var(--border);
-      }
+  .notes-sidebar {
+    width: 100%;
+    height: 220px;
+    min-height: 220px;
+    max-height: 220px;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
 
-.note-drag-handle {
-  display: none;
-}
+  .notes-list {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
 
-@media (max-width: 768px) {
+  .note-list-item {
+    position: relative;
+    padding-right: 48px;
+    touch-action: pan-y;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  .note-list-item.dragging {
+    touch-action: none;
+  }
+
   .note-drag-handle {
     display: flex;
     align-items: center;
@@ -2278,60 +2404,15 @@ select.tp-native-select {
     cursor: grabbing;
   }
 
-  .note-drag-handle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: absolute;
-  right: 8px;
-  top: 0;
-  bottom: 0;
-  width: 44px;
-  color: var(--text2);
-  font-size: 18px;
-  line-height: 1;
-  cursor: grab;
-  touch-action: none;
-  user-select: none;
-  -webkit-user-select: none;
-  -webkit-touch-callout: none;
+  .note-title-input {
+    padding: 16px 16px 8px;
+    font-size: 24px;
+  }
+
+  .note-body-editor {
+    padding: 4px 16px 240px;
+  }
 }
-
-.note-list-item.dragging .note-drag-handle {
-  cursor: grabbing;
-}
-}
-      
-      .notes-list {
-        flex: 1;
-        min-height: 0;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-        overscroll-behavior: contain;
-      }
-
-      .note-list-item {
-        position: relative;
-        padding-right: 48px;
-        touch-action: pan-y;
-        user-select: none;
-        -webkit-user-select: none;
-        -webkit-touch-callout: none;
-      }
-
-      .note-list-item.dragging {
-        touch-action: none;
-      }
-
-      .note-title-input {
-        padding: 16px 16px 8px;
-        font-size: 24px;
-      }
-
-      .note-body-editor {
-  padding: 4px 16px 240px;
-}
-    }
     .calc-layout {
   width: 100%;
   max-width: 1320px;
@@ -3963,7 +4044,7 @@ select::-ms-expand {
   </div>
 
   <div class="form-field">
-    <label>Type</label>
+    <label>Trade Type</label>
     <select id="tradeType" style="width:100%;padding:10px 14px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;">
       <option value="">Select type...</option>
       <option value="Stock/ETF">Stock/ETF</option>
@@ -4514,42 +4595,49 @@ select::-ms-expand {
     <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
     Log Trade
   </button>
-  <div id="tradesAccountControls"></div>
   </div>
 </div>
       <div class="stats-grid" id="tradesStatsGrid" style="margin-bottom:24px;"></div>
       <div class="trades-filters">
-        <select id="filterStrategy" onchange="filterTrades()"><option value="">All Strategies</option></select>
-        <select id="filterResult" onchange="filterTrades()">
-          <select id="filterType" onchange="filterTrades()">
-  <option value="">All Types</option>
-  <option value="Stock/ETF">Stock/ETF</option>
-  <option value="Futures">Futures</option>
-  <option value="Options">Options</option>
-  <option value="Forex">Forex</option>
-  <option value="Crypto">Crypto</option>
-  <option value="__missing">Unknown</option>
-</select>
+  <select id="filterStrategy" onchange="filterTrades()">
+    <option value="">All Strategies</option>
+  </select>
 
-<select id="filterDirection" onchange="filterTrades()">
-  <option value="">All Directions</option>
-  <option value="long">Long</option>
-  <option value="short">Short</option>
-  <option value="__missing">Unknown</option>
-</select>
-          <option value="">All Results</option>
-          <option value="win">Win</option>
-          <option value="loss">Loss</option>
-          <option value="breakeven">Breakeven</option>
-        </select>
-        <select id="filterSort" onchange="filterTrades()">
-          <option value="date_desc">Newest First</option>
-          <option value="date_asc">Oldest First</option>
-          <option value="pnl_desc">Highest PNL</option>
-          <option value="pnl_asc">Lowest PNL</option>
-        </select>
-        <button class="btn-secondary" onclick="clearTradeFilters()">Clear</button>
-      </div>
+  <div class="trades-filter-account" id="tradesAccountControls"></div>
+
+  <select id="filterType" onchange="filterTrades()">
+    <option value="">All Trade Types</option>
+    <option value="Stock/ETF">Stock/ETF</option>
+    <option value="Futures">Futures</option>
+    <option value="Options">Options</option>
+    <option value="Forex">Forex</option>
+    <option value="Crypto">Crypto</option>
+    <option value="__missing">Unknown</option>
+  </select>
+
+  <select id="filterDirection" onchange="filterTrades()">
+    <option value="">All Directions</option>
+    <option value="long">Long</option>
+    <option value="short">Short</option>
+    <option value="__missing">Unknown</option>
+  </select>
+
+  <select id="filterResult" onchange="filterTrades()">
+    <option value="">All Results</option>
+    <option value="win">Win</option>
+    <option value="loss">Loss</option>
+    <option value="breakeven">Breakeven</option>
+  </select>
+
+  <select id="filterSort" onchange="filterTrades()">
+    <option value="date_desc">Newest First</option>
+    <option value="date_asc">Oldest First</option>
+    <option value="pnl_desc">Highest PNL</option>
+    <option value="pnl_asc">Lowest PNL</option>
+  </select>
+
+  <button class="btn-secondary trades-clear-filter" onclick="clearTradeFilters()">Clear</button>
+</div>
       <div id="tradesListContainer"></div>
     </div>
 
@@ -7789,6 +7877,18 @@ const direction = document.getElementById('tradeDirection').value;
 
       if (!accountId) {
   msg.textContent = 'Please select an account.';
+  msg.className = 'modal-msg error';
+  return;
+}
+
+if (!tradeType) {
+  msg.textContent = 'Select trade type.';
+  msg.className = 'modal-msg error';
+  return;
+}
+
+if (!direction) {
+  msg.textContent = 'Select direction.';
   msg.className = 'modal-msg error';
   return;
 }
