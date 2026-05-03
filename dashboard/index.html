@@ -1551,9 +1551,10 @@ select.tp-native-select {
   font-size: 11px;
 }
 
+.trade-direction,
 .trade-direction.long,
 .trade-direction.short {
-  color: var(--text);
+  color: var(--text2);
   font-weight: 400;
 }
 
@@ -2045,8 +2046,8 @@ select.tp-native-select {
 }
     .trades-table-header {
   display: grid;
-  grid-template-columns: minmax(135px, 1.05fr) minmax(105px, 0.8fr) 64px 82px 58px 94px 78px 88px 72px minmax(112px, 0.78fr) 48px minmax(150px, 1fr) 52px;
-  min-width: 1220px;
+  grid-template-columns: 92px minmax(135px, 1.05fr) minmax(105px, 0.8fr) 64px 82px 58px 94px 78px 88px 72px minmax(112px, 0.78fr) 48px minmax(150px, 1fr) 52px;
+  min-width: 1310px;
   padding: 12px 20px;
   border-bottom: 1px solid var(--border);
   gap: 12px;
@@ -2055,8 +2056,8 @@ select.tp-native-select {
 
 .trades-table-row {
   display: grid;
-  grid-template-columns: minmax(135px, 1.05fr) minmax(105px, 0.8fr) 64px 82px 58px 94px 78px 88px 72px minmax(112px, 0.78fr) 48px minmax(150px, 1fr) 52px;
-  min-width: 1220px;
+  grid-template-columns: 92px minmax(135px, 1.05fr) minmax(105px, 0.8fr) 64px 82px 58px 94px 78px 88px 72px minmax(112px, 0.78fr) 48px minmax(150px, 1fr) 52px;
+  min-width: 1310px;
   padding: 14px 20px;
   border-bottom: 1px solid var(--border);
   gap: 12px;
@@ -2066,8 +2067,8 @@ select.tp-native-select {
 
 .trades-table.all-accounts .trades-table-header,
 .trades-table.all-accounts .trades-table-row {
-  grid-template-columns: minmax(135px, 1.05fr) minmax(105px, 0.8fr) 64px 82px 58px 94px 78px 88px 72px minmax(112px, 0.78fr) 48px minmax(150px, 1fr) 52px;
-  min-width: 1220px;
+  grid-template-columns: 92px minmax(135px, 1.05fr) minmax(105px, 0.8fr) 64px 82px 58px 94px 78px 88px 72px minmax(112px, 0.78fr) 48px minmax(150px, 1fr) 52px;
+  min-width: 1310px;
 }
 
     .trades-table-row:last-child { border-bottom: none; }
@@ -4727,20 +4728,20 @@ select::-ms-expand {
     <option value="short">Short</option>
   </select>
 
-  <input
-    class="trades-search-filter"
-    id="filterSearch"
-    type="search"
-    placeholder="Search trades..."
-    oninput="filterTrades()"
-  />
-
   <select id="filterSort" onchange="filterTrades()">
-    <option value="date_desc">Newest First</option>
-    <option value="date_asc">Oldest First</option>
-    <option value="pnl_desc">Highest PNL</option>
-    <option value="pnl_asc">Lowest PNL</option>
-  </select>
+  <option value="date_desc">Newest First</option>
+  <option value="date_asc">Oldest First</option>
+  <option value="pnl_desc">Highest PNL</option>
+  <option value="pnl_asc">Lowest PNL</option>
+</select>
+
+<input
+  class="trades-search-filter"
+  id="filterSearch"
+  type="search"
+  placeholder="Search trades..."
+  oninput="filterTrades()"
+/>
 
   <button class="btn-secondary trades-clear-filter" onclick="clearTradeFilters()">Clear</button>
 </div>
@@ -9325,8 +9326,10 @@ function clearTradeFilters() {
     const hasPnl = t.pnl !== null && t.pnl !== undefined && t.pnl !== '';
     const pnl = hasPnl ? (parseFloat(t.pnl) || 0) : 0;
     const pnlColor = pnl > 0 ? 'var(--success)' : pnl < 0 ? 'var(--danger)' : 'var(--text)';
-    const accountName = t.broker_accounts?.name || (t.account_id ? getAccountName(t.account_id) : '');
-    const strategy = t.strategies?.name || '';
+    const date = new Date(t.date + 'T12:00:00');
+const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+const accountName = t.broker_accounts?.name || (t.account_id ? getAccountName(t.account_id) : '');
+const strategy = t.strategies?.name || '';
     const resultValue = String(t.result || '').trim();
     const resultLabel = resultValue === 'breakeven' ? 'be' : resultValue;
     const resultHtml = resultLabel
@@ -9361,6 +9364,7 @@ function clearTradeFilters() {
     ].filter(Boolean).join(' · ');
 
     return `<div class="trades-table-row">
+      <div class="trades-table-cell muted">${dateStr}</div>
       <div class="trades-table-cell">
         ${strategy ? escapeHtml(strategy) : dash}
         <div class="trades-mobile-meta">${escapeHtml(mobileMeta)}</div>
@@ -9389,6 +9393,7 @@ function clearTradeFilters() {
 
   container.innerHTML = `<div class="trades-table">
     <div class="trades-table-header">
+      <div>Date</div>
       <div>Strategy</div>
       <div>Account</div>
       <div>Result</div>
