@@ -1479,6 +1479,45 @@ select.tp-native-select {
   transform: rotate(45deg);
 }
 
+.trade-rules-chart-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(180px, 0.85fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.trade-rules-chart-grid .form-field {
+  min-width: 0;
+}
+
+.trade-rules-field .rule-radio-row {
+  min-height: 38px;
+  align-items: center;
+}
+
+.trade-rules-field {
+  padding-left: 4px;
+}
+
+.trade-rules-chart-grid .trade-chart-preview-list {
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+}
+
+@media (max-width: 560px) {
+  .trade-rules-chart-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .trade-rules-field {
+    padding-left: 0;
+  }
+
+  .trade-rules-chart-grid .trade-chart-preview-list {
+    grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  }
+}
+    
 .trade-chart-upload-row {
   display: flex;
   align-items: center;
@@ -4193,28 +4232,31 @@ select::-ms-expand {
         </div>
         <div class="form-field"><label>R:R</label><input type="number" id="tradeActualRR" placeholder="e.g. 2.5" step="0.1"/></div>
       </div>
-      <div class="form-field">
-  <label>Did you follow your rules?</label>
-  <div class="rule-radio-row">
-    <label class="rule-radio-option">
-      <input type="radio" name="followedRules" value="true" checked/>
-      Yes
-    </label>
+      <div class="trade-rules-chart-grid">
+  <div class="form-field trade-chart-field">
+    <label>Chart Screenshots (optional)</label>
+    <input type="file" id="tradeChartInput" accept="image/png,image/jpeg,image/webp" multiple style="display:none" onchange="handleTradeChartSelect(event)"/>
+    <div class="trade-chart-upload-row">
+      <button class="trade-chart-upload-btn" type="button" onclick="document.getElementById('tradeChartInput').click()">Add Charts</button>
+      <span class="trade-chart-hint" id="tradeChartHint">No charts added</span>
+    </div>
+    <div class="trade-chart-preview-list" id="tradeChartPreviewList"></div>
+  </div>
 
-    <label class="rule-radio-option">
-      <input type="radio" name="followedRules" value="false"/>
-      No
-    </label>
+  <div class="form-field trade-rules-field">
+    <label>Did you follow your rules?</label>
+    <div class="rule-radio-row">
+      <label class="rule-radio-option">
+        <input type="radio" name="followedRules" value="true" checked/>
+        Yes
+      </label>
+
+      <label class="rule-radio-option">
+        <input type="radio" name="followedRules" value="false"/>
+        No
+      </label>
+    </div>
   </div>
-</div>
-      <div class="form-field">
-  <label>Chart Screenshots (optional)</label>
-  <input type="file" id="tradeChartInput" accept="image/png,image/jpeg,image/webp" multiple style="display:none" onchange="handleTradeChartSelect(event)"/>
-  <div class="trade-chart-upload-row">
-    <button class="trade-chart-upload-btn" type="button" onclick="document.getElementById('tradeChartInput').click()">Add Charts</button>
-    <span class="trade-chart-hint" id="tradeChartHint">No charts added</span>
-  </div>
-  <div class="trade-chart-preview-list" id="tradeChartPreviewList"></div>
 </div>
       <div class="form-field">
         <label>Trade Notes (optional)</label>
