@@ -1795,6 +1795,49 @@ select.tp-native-select {
       border-color: var(--accent-hover);
       color: #fff;
     }
+
+#page-settings {
+  max-width: 1180px;
+}
+
+.settings-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 560px) minmax(320px, 420px);
+  gap: 24px;
+  align-items: start;
+}
+
+.settings-main-column,
+.settings-side-column {
+  min-width: 0;
+}
+
+#page-settings .settings-layout .settings-section {
+  max-width: none;
+}
+
+.settings-side-column {
+  position: sticky;
+  top: 20px;
+}
+
+.settings-defaults-copy {
+  color: var(--text2);
+  font-size: 13px;
+  line-height: 1.55;
+  margin-bottom: 18px;
+}
+
+@media (max-width: 980px) {
+  .settings-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-side-column {
+    position: static;
+  }
+}
+    
     .settings-section-title { font-size: 15px; font-weight: 700; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
     .settings-field { margin-bottom: 18px; }
     .settings-field label { display: block; font-size: 12px; color: var(--text2); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.4px; }
@@ -5077,7 +5120,11 @@ select::-ms-expand {
 <div class="page" id="page-settings">
       <div class="page-title">Settings</div>
       <div class="page-subtitle">Manage your account and preferences.</div>
+
+      <div class="settings-layout">
+        <div class="settings-main-column">
       <div class="settings-section">
+
         <div class="settings-section-title">Profile</div>
         <div class="avatar-upload">
           <div class="avatar-large" id="settingsAvatar">?</div>
@@ -5152,10 +5199,44 @@ select::-ms-expand {
         <div id="proSettingsActions"></div>
       </div>
   
-      <div class="settings-section">
+            <div class="settings-section">
         <div class="settings-section-title" style="color:var(--danger)">Danger Zone</div>
         <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">Log out of your Tradeprint account.</p>
         <button class="danger-btn" onclick="logout()">Log Out</button>
+      </div>
+        </div>
+
+        <div class="settings-side-column">
+          <div class="settings-section">
+            <div class="settings-section-title">Log Trade Defaults</div>
+
+            <div class="settings-defaults-copy">
+              Choose what should be pre-selected whenever you open a new Log Trade modal.
+            </div>
+
+            <div class="settings-field">
+              <label>Default Strategy</label>
+              <select id="defaultTradeStrategy">
+                <option value="">No default strategy</option>
+              </select>
+            </div>
+
+            <div class="settings-field">
+              <label>Default Trade Type</label>
+              <select id="defaultTradeType">
+                <option value="">No default trade type</option>
+                <option value="Stock/ETF">Stock/ETF</option>
+                <option value="Futures">Futures</option>
+                <option value="Options">Options</option>
+                <option value="Forex">Forex</option>
+                <option value="Crypto">Crypto</option>
+              </select>
+            </div>
+
+            <button class="save-btn" onclick="saveTradeDefaults()">Save Defaults</button>
+            <div class="msg" id="tradeDefaultsMsg"></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -5600,6 +5681,82 @@ function updateTradeAssetPlaceholder() {
   };
 
   assetInput.placeholder = placeholders[tradeType] || 'e.g. NQ, ES, BTC, AAPL';
+}
+
+    function getSavedTradeDefaults() {
+  return {
+    strategyId: localStorage.getItem('tp_default_trade_strategy') || '',
+    tradeType: localStorage.getItem('tp_default_trade_type') || ''
+  };
+}
+
+function syncTradeDefaultsInputs() {
+  const strategySelect = document.getElementById('defaultTradeStrategy');
+  const typeSelect = document.getElementById('defaultTradeType');
+  const saved = getSavedTradeDefaults();
+
+  if (strategySelect) {
+    const validStrategy = allStrategies.some(s => s.id === saved.strategyId);
+
+    strategySelect.innerHTML =
+      '<option value="">No default strategy</option>' +
+      allStrategies.map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
+
+    strategySelect.value = validStrategy ? saved.strategyId : '';
+  }
+
+  if (typeSelect) {
+    typeSelect.value = TRADE_TYPES.includes(saved.tradeType) ? saved.tradeType : '';
+  }
+
+  syncPrettySelects();
+}
+
+function saveTradeDefaults() {
+  const strategyId = document.getElementById('defaultTradeStrategy')?.value || '';
+  const tradeType = document.getElementById('defaultTradeType')?.value || '';
+  const msg = document.getElementById('tradeDefaultsMsg');
+
+  if (strategyId) {
+    localStorage.setItem('tp_default_trade_strategy', strategyId);
+  } else {
+    localStorage.removeItem('tp_default_trade_strategy');
+  }
+
+  if (tradeType) {
+    localStorage.setItem('tp_default_trade_type', tradeType);
+  } else {
+    localStorage.removeItem('tp_default_trade_type');
+  }
+
+  if (msg) {
+    msg.textContent = 'Log trade defaults saved.';
+    msg.className = 'msg success';
+
+    setTimeout(() => {
+      if (msg.textContent === 'Log trade defaults saved.') {
+        msg.textContent = '';
+      }
+    }, 2000);
+  }
+}
+
+function applyLogTradeDefaults() {
+  const saved = getSavedTradeDefaults();
+  const strategySelect = document.getElementById('tradeStrategy');
+  const typeSelect = document.getElementById('tradeType');
+
+  if (strategySelect && saved.strategyId && allStrategies.some(s => s.id === saved.strategyId)) {
+    strategySelect.value = saved.strategyId;
+    loadStrategyConfluences();
+  }
+
+  if (typeSelect && TRADE_TYPES.includes(saved.tradeType)) {
+    typeSelect.value = saved.tradeType;
+  }
+
+  updateTradeAssetPlaceholder();
+  syncPrettySelects();
 }
 
 function formatTradeDirection(value) {
@@ -6384,7 +6541,8 @@ async function loadStrategies() {
   await loadStrategyAnalyticsTrades();
 
   renderStrategies(allStrategies);
-  renderStrategyConfluenceAnalytics(allStrategies, getActiveAccountTrades());
+renderStrategyConfluenceAnalytics(allStrategies, getActiveAccountTrades());
+syncTradeDefaultsInputs();
 }
 
 async function loadStrategyAnalyticsTrades() {
@@ -6897,9 +7055,11 @@ async function showPage(name, el) {
       if (name === 'prints') await (printsWarmPromise || loadPrints());
 
       if (name === 'settings') {
-        await ensureSubscriptionLoaded();
-        renderProSettings();
-      }
+  if (!allStrategies.length) await loadStrategies();
+  await ensureSubscriptionLoaded();
+  renderProSettings();
+  syncTradeDefaultsInputs();
+}
 
       pageLoaded[name] = true;
     }
@@ -7855,7 +8015,8 @@ resetTradeCharts();
       document.getElementById('tradeResult').value = 'win';
       document.getElementById('tradeDateField').style.display = 'none';
       document.querySelector('input[name="followedRules"][value="true"]').checked = true;
-      document.getElementById('tradeMsg').textContent = '';
+applyLogTradeDefaults();
+document.getElementById('tradeMsg').textContent = '';
       document.getElementById('saveTradeBtn').textContent = 'Save Trade';
       document.getElementById('logTradeTitle').textContent = `Log Trade — ${document.getElementById('dayModalTitle').textContent}`;
       syncPrettySelects();
@@ -7887,7 +8048,8 @@ resetTradeCharts();
       document.getElementById('tradeDateField').style.display = 'block';
       document.getElementById('tradeDate').value = new Date().toISOString().split('T')[0];
       document.querySelector('input[name="followedRules"][value="true"]').checked = true;
-      document.getElementById('tradeMsg').textContent = '';
+applyLogTradeDefaults();
+document.getElementById('tradeMsg').textContent = '';
       document.getElementById('saveTradeBtn').textContent = 'Save Trade';
       document.getElementById('logTradeTitle').textContent = 'Log Trade';
       syncPrettySelects();
