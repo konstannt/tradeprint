@@ -6011,6 +6011,7 @@ const TRADE_CHART_DEBUG = true;
 
 let tradeChartImages = [];
 const tradeChartSignedUrlCache = new Map();
+    const tradeChartObjectUrlCache = new Map();
 
     const pageLoaded = {
   dashboard: false,
@@ -6332,6 +6333,40 @@ async function createSignedTradeChartUrl(path, bucket = TRADE_CHART_BUCKET) {
   return url;
 }
 
+    async function createAuthenticatedTradeChartObjectUrl(path, bucket = TRADE_CHART_BUCKET) {
+  if (!path) return '';
+
+  const cacheKey = `${bucket}:${path}`;
+  const cached = tradeChartObjectUrlCache.get(cacheKey);
+  if (cached) return cached;
+
+  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/${bucket}/${encodeStoragePath(path)}`, {
+    method: 'GET',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`
+    }
+  });
+
+  if (!res.ok) {
+    console.warn('[Trade chart] authenticated image fetch failed', {
+      bucket,
+      path,
+      status: res.status,
+      text: await res.text().catch(() => '')
+    });
+
+    return '';
+  }
+
+  const blob = await res.blob();
+  const objectUrl = URL.createObjectURL(blob);
+
+  tradeChartObjectUrlCache.set(cacheKey, objectUrl);
+
+  return objectUrl;
+}
+
 function getImmediateTradeChartSrc(chart, mode = 'preview') {
   const urlKeys = mode === 'full'
     ? ['fullUrl', 'full_url', 'originalUrl', 'original_url', 'url', 'publicUrl', 'public_url', 'signedUrl', 'signed_url']
@@ -6350,14 +6385,28 @@ function getImmediateTradeChartSrc(chart, mode = 'preview') {
 
 async function resolveTradeChartSrc(chart, mode = 'preview') {
   const direct = getImmediateTradeChartSrc(chart, mode);
-  if (direct) return direct;
+
+  if (direct && isTemporaryImageUrl(direct)) {
+    return direct;
+  }
 
   const ref = getTradeChartStorageRef(chart, mode);
-  if (!ref?.path) return '';
 
-  return TRADE_CHART_BUCKET_IS_PUBLIC
-    ? getPublicTradeChartUrl(ref.bucket, ref.path)
-    : createSignedTradeChartUrl(ref.path, ref.bucket);
+  if (!ref?.path) {
+    return direct || '';
+  }
+
+  const authedBlobUrl = await createAuthenticatedTradeChartObjectUrl(ref.path, ref.bucket);
+
+  if (authedBlobUrl) {
+    return authedBlobUrl;
+  }
+
+  if (TRADE_CHART_BUCKET_IS_PUBLIC) {
+    return getPublicTradeChartUrl(ref.bucket, ref.path);
+  }
+
+  return direct || createSignedTradeChartUrl(ref.path, ref.bucket);
 }
 
 async function resolveTradeChartPreviewSrc(chart) {
@@ -6384,11 +6433,11 @@ function serializeTradeChartForSave(item) {
 
   if (!path) return null;
 
-  const publicUrl =
-    item.url ||
-    item.public_url ||
-    item.publicUrl ||
-    getPublicTradeChartUrl(bucket, path);
+  const savedUrl = item.url || item.public_url || item.publicUrl || '';
+
+const publicUrl = savedUrl && !isTemporaryImageUrl(savedUrl)
+  ? savedUrl
+  : getPublicTradeChartUrl(bucket, path);
 
   return {
     bucket,
