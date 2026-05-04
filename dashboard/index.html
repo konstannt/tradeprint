@@ -7509,20 +7509,20 @@ function renderStrategyPlaybook() {
         <div class="strategy-playbook-status" id="strategyPlaybookStatus"></div>
       </div>
 
-      <div class="strategy-playbook-section">
+            <div class="strategy-playbook-section">
         <div class="strategy-playbook-section-title">Rules</div>
                 <div class="strategy-playbook-grid">
-          ${playbookTextarea('Entry Criteria / Required Confirmations', 'strategy_entry_criteria', s.strategy_entry_criteria)}
-          ${playbookTextarea('Invalidation / When Not To Take It', 'strategy_invalidation', s.strategy_invalidation)}
-          ${playbookTextarea('Target / Exit Logic', 'strategy_targets', s.strategy_targets)}
-          ${playbookTextarea('Risk Management Notes', 'strategy_risk_notes', s.strategy_risk_notes)}
+          ${playbookTextarea('Entry Criteria / Required Confirmations', 'strategy_entry_criteria', s.strategy_entry_criteria, 'e.g. Liquidity sweep of untested high/low + VIX confirmation + SMT + reaction at key level')}
+          ${playbookTextarea('Invalidation / When Not To Take It', 'strategy_invalidation', s.strategy_invalidation, 'e.g. Break of structure against bias, no reaction at level, VIX not confirming, low volume conditions')}
+          ${playbookTextarea('Target / Exit Logic', 'strategy_targets', s.strategy_targets, 'e.g. Partial at 2R, final target at PDH/PDL or next liquidity level, trail runner based on structure')}
+          ${playbookTextarea('Risk Management Notes', 'strategy_risk_notes', s.strategy_risk_notes, 'e.g. Risk 1R per trade, stop below/above sweep wick, reduce size in choppy conditions')}
         </div>
       </div>
 
-      <div class="strategy-playbook-section">
+      <div class="strategy-playbook-section" style="border-top:none;">
         <div class="strategy-playbook-grid">
-          ${playbookTextarea('Avoid / Mistakes', 'strategy_avoid_notes', s.strategy_avoid_notes)}
-          ${playbookTextarea('General Notes', 'strategy_general_notes', s.strategy_general_notes)}
+          ${playbookTextarea('Avoid / Mistakes', 'strategy_avoid_notes', s.strategy_avoid_notes, 'e.g. Avoid during low volume sessions, no VIX alignment, forcing trades without full confluence')}
+          ${playbookTextarea('General Notes', 'strategy_general_notes', s.strategy_general_notes, 'e.g. Best performance during NY AM session, works best on NQ 1m, avoid overtrading after first win')}
         </div>
       </div>
 
@@ -7559,11 +7559,11 @@ function renderStrategyPlaybook() {
   `;
 }
 
-function playbookTextarea(label, field, value = '') {
+function playbookTextarea(label, field, value = '', placeholder = '') {
   return `
     <div class="strategy-playbook-field">
       <label>${escapeHtml(label)}</label>
-      <textarea data-playbook-field="${field}" oninput="scheduleStrategyPlaybookSave()" onblur="saveStrategyPlaybookNow()">${escapeHtml(value || '')}</textarea>
+      <textarea data-playbook-field="${field}" placeholder="${escapeHtml(placeholder)}" oninput="scheduleStrategyPlaybookSave()" onblur="saveStrategyPlaybookNow()">${escapeHtml(value || '')}</textarea>
     </div>
   `;
 }
