@@ -1790,6 +1790,14 @@ select.tp-native-select {
   line-height: 1;
 }
 
+.trade-chart-error {
+  display: none;
+  min-height: 84px;
+  place-items: center;
+  text-align: center;
+  color: var(--danger);
+}
+    
 .trade-chart-status {
   padding: 6px 8px;
   color: var(--text2);
@@ -6185,42 +6193,107 @@ function resetTradeCharts() {
   renderTradeChartPreviews();
 }
 
-function normalizeImageRecord(item) {
-  if (!item) return { thumbnailUrl: '', fullUrl: '' };
+function isTemporaryImageUrl(src) {
+  return String(src || '').startsWith('blob:') || String(src || '').startsWith('data:');
+}
 
-  if (typeof item === 'string') {
-    return {
-      thumbnailUrl: item,
-      fullUrl: item
-    };
+function normalizeTradeChartUrl(value) {
+  const raw = String(value || '').trim();
+
+  if (!raw || raw === '[object Object]') return '';
+
+  if (
+    raw.startsWith('http://') ||
+    raw.startsWith('https://') ||
+    raw.startsWith('blob:') ||
+    raw.startsWith('data:')
+  ) {
+    return raw;
   }
 
-  const thumbnailUrl =
-    item.thumbnail_url ||
-    item.thumbnailUrl ||
-    item.thumb_url ||
-    item.thumbUrl ||
-    item.url ||
-    item.image_url ||
-    item.full_url ||
-    item.fullUrl ||
-    '';
+  if (raw.startsWith('/storage/v1/object/')) {
+    return `${SUPABASE_URL}${raw}`;
+  }
 
-  const fullUrl =
-    item.full_url ||
-    item.fullUrl ||
-    item.original_url ||
-    item.originalUrl ||
-    item.url ||
-    item.image_url ||
-    thumbnailUrl;
+  let path = raw.replace(/^\/+/, '');
+
+  if (path.startsWith(`${TRADE_CHART_BUCKET}/`)) {
+    path = path.slice(TRADE_CHART_BUCKET.length + 1);
+  }
+
+  return `${SUPABASE_URL}/storage/v1/object/public/${TRADE_CHART_BUCKET}/${path}`;
+}
+
+function getTradeChartValue(chart, keys) {
+  if (!chart) return '';
+
+  if (typeof chart === 'string') return chart;
+
+  for (const key of keys) {
+    if (chart[key]) return chart[key];
+  }
+
+  return '';
+}
+
+function getTradeChartPreviewSrc(chart) {
+  return normalizeTradeChartUrl(getTradeChartValue(chart, [
+    'thumbnailUrl',
+    'thumbnail_url',
+    'previewUrl',
+    'preview_url',
+    'thumbUrl',
+    'thumb_url',
+    'url',
+    'imageUrl',
+    'image_url',
+    'fullImageUrl',
+    'full_image_url',
+    'originalUrl',
+    'original_url',
+    'fullUrl',
+    'full_url',
+    'publicUrl',
+    'public_url',
+    'signedUrl',
+    'signed_url',
+    'path'
+  ]));
+}
+
+function getTradeChartFullSrc(chart) {
+  return normalizeTradeChartUrl(getTradeChartValue(chart, [
+    'fullImageUrl',
+    'full_image_url',
+    'originalUrl',
+    'original_url',
+    'fullUrl',
+    'full_url',
+    'url',
+    'imageUrl',
+    'image_url',
+    'publicUrl',
+    'public_url',
+    'signedUrl',
+    'signed_url',
+    'thumbnailUrl',
+    'thumbnail_url',
+    'previewUrl',
+    'preview_url',
+    'path'
+  ]));
+}
+
+function normalizeImageRecord(item) {
+  const thumbnailUrl = getTradeChartPreviewSrc(item);
+  const fullUrl = getTradeChartFullSrc(item) || thumbnailUrl;
 
   return {
     thumbnailUrl,
     fullUrl
   };
 }
-    
+
 function setTradeChartImages(urls = []) {
   resetTradeCharts();
 
@@ -6273,6 +6346,13 @@ function removeTradeChartImage(id) {
   renderTradeChartPreviews();
 }
 
+function handleTradeChartPreviewError(img) {
+  img.style.display = 'none';
+
+  const fallback = img.closest('.trade-chart-thumb')?.querySelector('.trade-chart-error');
+  if (fallback) fallback.style.display = 'block';
+}
+
 function renderTradeChartPreviews() {
   const list = document.getElementById('tradeChartPreviewList');
   const hint = document.getElementById('tradeChartHint');
@@ -6284,15 +6364,32 @@ function renderTradeChartPreviews() {
     : 'No charts added';
 
   list.innerHTML = tradeChartImages.map(item => {
-    const src = item.url || item.previewUrl || '';
-    const fullSrc = item.fullUrl || src;
+    const src = getTradeChartPreviewSrc(item);
+    const fullSrc = getTradeChartFullSrc(item) || src;
     const status = item.status === 'uploading'
       ? '<div class="trade-chart-status">Uploading...</div>'
       : '';
 
+    if (!src) {
+      return `
+        <div class="trade-chart-thumb">
+          <div class="trade-chart-status trade-chart-error" style="display:block;">Image failed to load</div>
+          <button class="trade-chart-remove" type="button" onclick="removeTradeChartImage('${item.id}')">×</button>
+          ${status}
+        </div>
+      `;
+    }
+
     return `
       <div class="trade-chart-thumb">
-        <img src="${escapeHtml(src)}" data-full-src="${escapeHtml(fullSrc)}" alt="trade chart" onclick="openLightbox(this)"/>
+        <img
+          src="${escapeHtml(src)}"
+          data-full-src="${escapeHtml(fullSrc)}"
+          alt=""
+          onclick="openLightbox(this)"
+          onerror="handleTradeChartPreviewError(this)"
+        />
+        <div class="trade-chart-status trade-chart-error" style="display:none;">Image failed to load</div>
         <button class="trade-chart-remove" type="button" onclick="removeTradeChartImage('${item.id}')">×</button>
         ${status}
       </div>
@@ -6323,16 +6420,17 @@ async function uploadPendingTradeCharts() {
   const images = [];
 
   for (const item of tradeChartImages) {
-    if (item.url && item.fullUrl) {
-      images.push({
-        thumbnail_url: item.url,
-        full_url: item.fullUrl
-      });
-      continue;
-    }
+    if (item.source === 'saved') {
+      const previewSrc = getTradeChartPreviewSrc(item);
+      const fullSrc = getTradeChartFullSrc(item) || previewSrc;
 
-    if (item.url) {
-      images.push(item.url);
+      if (previewSrc && !isTemporaryImageUrl(previewSrc)) {
+        images.push({
+          thumbnail_url: previewSrc,
+          full_url: !isTemporaryImageUrl(fullSrc) ? fullSrc : previewSrc
+        });
+      }
+
       continue;
     }
 
