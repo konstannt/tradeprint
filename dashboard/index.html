@@ -1465,15 +1465,38 @@ select.tp-native-select {
   padding: 14px;
 }
 
-.strategy-example-card img {
+.strategy-example-images {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.strategy-example-images img {
   width: 100%;
-  max-height: 260px;
+  height: 180px;
   object-fit: contain;
   border-radius: 8px;
   border: 1px solid var(--border);
   background: var(--bg2);
-  margin-top: 10px;
   cursor: zoom-in;
+}
+
+.strategy-example-edit-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .strategy-example-images {
+    grid-template-columns: 1fr;
+  }
+
+  .strategy-example-images img {
+    height: auto;
+    max-height: 260px;
+  }
 }
 
 .strategy-example-head {
@@ -6847,10 +6870,11 @@ async function deleteBrokerAccount(id) {
 
     let selectedStrategyPlaybookId = null;
 let strategyPlaybookSaveTimer = null;
-let strategyExampleImageFile = null;
-let strategyExamplePreviewUrl = '';
+let strategyExampleImages = [];
+let editingStrategyExampleId = null;
 const STRATEGY_EXAMPLE_BUCKET = 'strategy-examples';
 const STRATEGY_EXAMPLE_MAX_MB = 8;
+const STRATEGY_EXAMPLE_MAX_IMAGES = 3;
 
 
 async function loadStrategies() {
@@ -7007,10 +7031,13 @@ function renderStrategyPlaybook() {
             <div class="strategy-playbook-field"><label>Date optional</label><input id="strategyExampleDate" type="date"/></div>
           </div>
           <div class="strategy-playbook-field"><label>Notes / why this was good</label><textarea id="strategyExampleNotes" placeholder="What made this setup clean?"></textarea></div>
-          <input type="file" id="strategyExampleImageInput" accept="image/png,image/jpeg,image/webp" style="display:none" onchange="handleStrategyExampleImageSelect(event)"/>
-          <button class="btn-secondary" type="button" onclick="document.getElementById('strategyExampleImageInput').click()">Add Screenshot</button>
-          <div id="strategyExamplePreview"></div>
-          <button class="btn-primary" type="button" onclick="saveStrategyExample()">Save Example</button>
+          <input type="file" id="strategyExampleImageInput" accept="image/png,image/jpeg,image/webp" multiple style="display:none" onchange="handleStrategyExampleImageSelect(event)"/>
+<button class="btn-secondary" type="button" onclick="document.getElementById('strategyExampleImageInput').click()">Add Screenshots</button>
+<div id="strategyExamplePreview"></div>
+<div class="strategy-example-edit-actions">
+  <button class="btn-primary" id="strategyExampleSaveBtn" type="button" onclick="saveStrategyExample()">Save Example</button>
+  <button class="btn-secondary" id="strategyExampleCancelEditBtn" type="button" onclick="cancelStrategyExampleEdit()" style="display:none;">Cancel Edit</button>
+</div>
         </div>
         <div class="strategy-example-list">
           ${examples.length ? examples.map(renderStrategyExample).join('') : '<div class="strategy-playbook-sub">No saved examples yet.</div>'}
@@ -7086,7 +7113,15 @@ async function saveStrategyPlaybookNow() {
   setTimeout(() => setStrategyPlaybookStatus(''), 1300);
 }
 
+function getStrategyExampleImages(example) {
+  if (Array.isArray(example?.image_urls)) return example.image_urls.filter(Boolean);
+  if (example?.image_url) return [example.image_url];
+  return [];
+}
+
 function renderStrategyExample(example) {
+  const images = getStrategyExampleImages(example);
+
   return `
     <div class="strategy-example-card">
       <div class="strategy-example-head">
@@ -7094,40 +7129,92 @@ function renderStrategyExample(example) {
           <div class="strategy-example-title">${escapeHtml(example.title || 'Untitled example')}</div>
           ${example.date ? `<div class="strategy-example-meta">${escapeHtml(example.date)}</div>` : ''}
         </div>
-        <button class="account-delete-btn" onclick="removeStrategyExample('${example.id}')">Remove</button>
+        <div class="strategy-example-edit-actions">
+          <button class="account-delete-btn" onclick="editStrategyExample('${example.id}')">Edit</button>
+          <button class="account-delete-btn" onclick="removeStrategyExample('${example.id}')">Remove</button>
+        </div>
       </div>
       ${example.notes ? `<div class="strategy-example-notes">${escapeHtml(example.notes)}</div>` : ''}
-      ${example.image_url ? `<img src="${escapeHtml(example.image_url)}" alt="strategy example" onclick="openLightbox(this)"/>` : ''}
+      ${images.length ? `
+        <div class="strategy-example-images">
+          ${images.map(url => `<img src="${escapeHtml(url)}" alt="strategy example" onclick="openLightbox(this)"/>`).join('')}
+        </div>
+      ` : ''}
     </div>
   `;
 }
 
 function clearStrategyExampleDraft() {
-  strategyExampleImageFile = null;
-  if (strategyExamplePreviewUrl) URL.revokeObjectURL(strategyExamplePreviewUrl);
-  strategyExamplePreviewUrl = '';
+  strategyExampleImages.forEach(item => {
+    if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
+  });
+
+  strategyExampleImages = [];
+  editingStrategyExampleId = null;
+}
+
+function renderStrategyExampleDraftPreview() {
+  const preview = document.getElementById('strategyExamplePreview');
+  if (!preview) return;
+
+  if (!strategyExampleImages.length) {
+    preview.innerHTML = '';
+    return;
+  }
+
+  preview.innerHTML = `
+    <div class="strategy-example-card">
+      <div class="strategy-example-meta">${strategyExampleImages.length}/${STRATEGY_EXAMPLE_MAX_IMAGES} screenshots selected</div>
+      <div class="strategy-example-images">
+        ${strategyExampleImages.map(item => `
+          <div>
+            <img src="${escapeHtml(item.url || item.previewUrl)}" alt="preview" onclick="openLightbox(this)"/>
+            <button class="account-delete-btn" type="button" onclick="removeStrategyExampleDraftImage('${item.id}')">Remove</button>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function removeStrategyExampleDraftImage(id) {
+  const item = strategyExampleImages.find(img => img.id === id);
+  if (item?.previewUrl) URL.revokeObjectURL(item.previewUrl);
+
+  strategyExampleImages = strategyExampleImages.filter(img => img.id !== id);
+  renderStrategyExampleDraftPreview();
 }
 
 function handleStrategyExampleImageSelect(event) {
-  const file = event.target.files?.[0];
-  const preview = document.getElementById('strategyExamplePreview');
+  const files = Array.from(event.target.files || []);
 
-  if (!file || !preview) return;
+  if (!files.length) return;
 
-  if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
-    setStrategyPlaybookStatus('Use PNG, JPG, or WEBP.', 'error');
-    return;
+  for (const file of files) {
+    if (strategyExampleImages.length >= STRATEGY_EXAMPLE_MAX_IMAGES) {
+      setStrategyPlaybookStatus(`Max ${STRATEGY_EXAMPLE_MAX_IMAGES} screenshots per example.`, 'error');
+      break;
+    }
+
+    if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
+      setStrategyPlaybookStatus('Use PNG, JPG, or WEBP.', 'error');
+      continue;
+    }
+
+    if (file.size > STRATEGY_EXAMPLE_MAX_MB * 1024 * 1024) {
+      setStrategyPlaybookStatus(`Screenshot must be under ${STRATEGY_EXAMPLE_MAX_MB}MB.`, 'error');
+      continue;
+    }
+
+    strategyExampleImages.push({
+      id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
+      file,
+      previewUrl: URL.createObjectURL(file)
+    });
   }
 
-  if (file.size > STRATEGY_EXAMPLE_MAX_MB * 1024 * 1024) {
-    setStrategyPlaybookStatus(`Screenshot must be under ${STRATEGY_EXAMPLE_MAX_MB}MB.`, 'error');
-    return;
-  }
-
-  clearStrategyExampleDraft();
-  strategyExampleImageFile = file;
-  strategyExamplePreviewUrl = URL.createObjectURL(file);
-  preview.innerHTML = `<div class="strategy-example-card"><img src="${strategyExamplePreviewUrl}" alt="preview"/></div>`;
+  event.target.value = '';
+  renderStrategyExampleDraftPreview();
 }
 
 function blobToDataUrl(blob) {
@@ -7155,32 +7242,106 @@ async function saveStrategyExample() {
   const date = document.getElementById('strategyExampleDate')?.value || '';
   const notes = document.getElementById('strategyExampleNotes')?.value.trim() || '';
 
-  if (!title && !notes && !strategyExampleImageFile) {
+  if (!title && !notes && !strategyExampleImages.length) {
     setStrategyPlaybookStatus('Add a title, notes, or screenshot first.', 'error');
     return;
   }
 
-  setStrategyPlaybookStatus(strategyExampleImageFile ? 'Preparing screenshot...' : 'Saving example...');
-  let imageUrl = '';
+  setStrategyPlaybookStatus(strategyExampleImages.some(item => item.file) ? 'Preparing screenshots...' : 'Saving example...');
+
+  let imageUrls = [];
 
   try {
-    imageUrl = await uploadStrategyExampleImage(s.id, strategyExampleImageFile);
+    imageUrls = await Promise.all(strategyExampleImages.map(item => {
+      if (item.url) return item.url;
+      return uploadStrategyExampleImage(s.id, item.file);
+    }));
   } catch (err) {
-    setStrategyPlaybookStatus('Could not upload screenshot.', 'error');
+    setStrategyPlaybookStatus('Could not prepare screenshots.', 'error');
     return;
   }
 
   const examples = getStrategyExamples(s);
+
+  if (editingStrategyExampleId) {
+    const nextExamples = examples.map(example => {
+      if (example.id !== editingStrategyExampleId) return example;
+
+      return {
+        ...example,
+        title,
+        date,
+        notes,
+        image_urls: imageUrls,
+        image_url: imageUrls[0] || '',
+        updated_at: new Date().toISOString()
+      };
+    });
+
+    await saveStrategyExamples(nextExamples);
+    return;
+  }
+
   const nextExamples = [{
     id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
     title,
     date,
     notes,
-    image_url: imageUrl,
+    image_urls: imageUrls,
+    image_url: imageUrls[0] || '',
     created_at: new Date().toISOString()
   }, ...examples];
 
   await saveStrategyExamples(nextExamples);
+}
+
+function editStrategyExample(exampleId) {
+  const s = getSelectedStrategyPlaybook();
+  if (!s) return;
+
+  const example = getStrategyExamples(s).find(item => item.id === exampleId);
+  if (!example) return;
+
+  clearStrategyExampleDraft();
+
+  editingStrategyExampleId = exampleId;
+
+  document.getElementById('strategyExampleTitle').value = example.title || '';
+  document.getElementById('strategyExampleDate').value = example.date || '';
+  document.getElementById('strategyExampleNotes').value = example.notes || '';
+
+  strategyExampleImages = getStrategyExampleImages(example).slice(0, STRATEGY_EXAMPLE_MAX_IMAGES).map(url => ({
+    id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
+    url
+  }));
+
+  const saveBtn = document.getElementById('strategyExampleSaveBtn');
+  const cancelBtn = document.getElementById('strategyExampleCancelEditBtn');
+
+  if (saveBtn) saveBtn.textContent = 'Update Example';
+  if (cancelBtn) cancelBtn.style.display = 'inline-flex';
+
+  renderStrategyExampleDraftPreview();
+  setStrategyPlaybookStatus('Editing example');
+}
+
+function cancelStrategyExampleEdit() {
+  clearStrategyExampleDraft();
+
+  document.getElementById('strategyExampleTitle').value = '';
+  document.getElementById('strategyExampleDate').value = '';
+  document.getElementById('strategyExampleNotes').value = '';
+
+  const input = document.getElementById('strategyExampleImageInput');
+  const saveBtn = document.getElementById('strategyExampleSaveBtn');
+  const cancelBtn = document.getElementById('strategyExampleCancelEditBtn');
+
+  if (input) input.value = '';
+  if (saveBtn) saveBtn.textContent = 'Save Example';
+  if (cancelBtn) cancelBtn.style.display = 'none';
+
+  renderStrategyExampleDraftPreview();
+  setStrategyPlaybookStatus('');
 }
 
 async function removeStrategyExample(exampleId) {
