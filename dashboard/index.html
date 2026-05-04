@@ -6280,6 +6280,13 @@ function getTradeChartStorageRef(chart, mode = 'preview') {
   return parseTradeChartStorageRef(getTradeChartValue(chart, urlKeys), bucket);
 }
 
+function encodeStoragePath(path) {
+  return String(path || '')
+    .split('/')
+    .map(part => encodeURIComponent(part))
+    .join('/');
+}
+    
 function getPublicTradeChartUrl(bucket, path) {
   return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${encodeStoragePath(path)}`;
 }
@@ -6534,8 +6541,10 @@ function renderTradeChartPreviews() {
     const previewSrc = getTradeChartPreviewSrc(item) || EDITOR_PLACEHOLDER_SRC;
     const fullSrc = getTradeChartFullSrc(item) || previewSrc;
     const status = item.status === 'uploading'
-      ? '<div class="trade-chart-status">Uploading...</div>'
-      : '';
+  ? '<div class="trade-chart-status">Uploading...</div>'
+  : item.status === 'error'
+  ? '<div class="trade-chart-status" style="color:var(--danger);">Upload failed</div>'
+  : '';
 
     tradeChartLog('render queued', item, {
       previewSrc,
@@ -6629,7 +6638,8 @@ async function uploadPendingTradeCharts() {
 
   for (const item of tradeChartImages) {
     if (item.source === 'saved') {
-      images.push(serializeTradeChartForSave(item) || item.raw || item);
+      const saved = serializeTradeChartForSave(item);
+      if (saved) images.push(saved);
       continue;
     }
 
@@ -6638,20 +6648,34 @@ async function uploadPendingTradeCharts() {
     item.status = 'uploading';
     renderTradeChartPreviews();
 
-    const uploaded = await uploadTradeChartImage(item.file);
-    images.push(serializeTradeChartForSave(uploaded));
+    try {
+      const uploaded = await uploadTradeChartImage(item.file);
+      const saved = serializeTradeChartForSave(uploaded);
 
-    if (item.previewUrl?.startsWith('blob:')) URL.revokeObjectURL(item.previewUrl);
+      if (!saved) {
+        throw new Error('Chart upload returned an invalid image reference.');
+      }
 
-    Object.assign(item, uploaded, {
-      file: null,
-      status: 'saved',
-      source: 'saved'
-    });
+      images.push(saved);
+
+      if (item.previewUrl?.startsWith('blob:')) {
+        URL.revokeObjectURL(item.previewUrl);
+      }
+
+      Object.assign(item, uploaded, {
+        file: null,
+        status: 'saved',
+        source: 'saved'
+      });
+    } catch (err) {
+      item.status = 'error';
+      renderTradeChartPreviews();
+      throw err;
+    }
   }
 
   renderTradeChartPreviews();
-  return images.filter(Boolean);
+  return images;
 }
 
     async function loadProfile() {
@@ -9588,11 +9612,10 @@ if (!direction) {
       ? 'Uploading charts...'
       : wasEditing ? 'Updating...' : 'Saving...';
 
-    const chartImages = await uploadPendingTradeCharts();
-    console.log('[Trade chart] save payload chart_images:', chartImages);
-console.log('[Trade chart] full trade save payload:', payload);
-    
-    const payload = {
+    cconst chartImages = await uploadPendingTradeCharts();
+
+const payload = {
+
       user_id: user.id,
       account_id: accountId,
       strategy_id: strategyId,
@@ -9609,6 +9632,11 @@ console.log('[Trade chart] full trade save payload:', payload);
       chart_images: chartImages,
       trade_time: tradeTime
     };
+
+    if (TRADE_CHART_DEBUG) {
+  console.log('[Trade chart] save payload chart_images:', chartImages);
+  console.log('[Trade chart] full trade save payload:', payload);
+}
     
     let res;
 
