@@ -7512,10 +7512,10 @@ function renderStrategyPlaybook() {
             <div class="strategy-playbook-section">
         <div class="strategy-playbook-section-title">Rules</div>
                 <div class="strategy-playbook-grid">
-          ${playbookTextarea('Entry Criteria / Required Confirmations', 'strategy_entry_criteria', s.strategy_entry_criteria, 'e.g. Liquidity sweep + Break of Structure + SMT')}
+          ${playbookTextarea('Entry Criteria / Required Confirmations', 'strategy_entry_criteria', s.strategy_entry_criteria, 'e.g. Liquidity sweep, Break of Structure, SMT')}
           ${playbookTextarea('Invalidation / When Not To Take It', 'strategy_invalidation', s.strategy_invalidation, 'e.g. Break of structure against bias, no reaction at level, low volume')}
-          ${playbookTextarea('Target / Exit Logic', 'strategy_targets', s.strategy_targets, 'e.g. Partial at 2R, final target at PDH/PDL or next liquidity level')}
-          ${playbookTextarea('Risk Management Notes', 'strategy_risk_notes', s.strategy_risk_notes, 'e.g. Risk 1R per trade, stop below/above sweep wick, reduce size in choppy conditions')}
+          ${playbookTextarea('Target / Exit Logic', 'strategy_targets', s.strategy_targets, 'e.g. Partial at 2R, final target at next liquidity level')}
+          ${playbookTextarea('Risk Management Notes', 'strategy_risk_notes', s.strategy_risk_notes, 'e.g. Risk 1R per trade, reduce size in choppy conditions')}
         </div>
       </div>
 
