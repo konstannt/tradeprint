@@ -6004,7 +6004,10 @@ const PRO_STATUSES = ['active', 'trialing', 'completed'];
 const TRADE_TYPES = ['Stock/ETF', 'Futures', 'Options', 'Forex', 'Crypto'];
 const TRADE_DIRECTIONS = ['long', 'short'];
 const TRADE_CHART_BUCKET = 'trade-charts';
+const TRADE_CHART_BUCKET_IS_PUBLIC = false; // set true only if trade-charts bucket is public
+const TRADE_CHART_SIGNED_URL_TTL_SECONDS = 3600;
 const TRADE_CHART_MAX_MB = 8;
+const TRADE_CHART_DEBUG = true;
 
 let tradeChartImages = [];
 const tradeChartSignedUrlCache = new Map();
@@ -6181,9 +6184,35 @@ function setTradeDirection(direction = '') {
   });
 }
 
+function makeTradeChartId() {
+  return crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
+}
+
+function tradeChartLog(label, chart, extra = {}) {
+  if (!TRADE_CHART_DEBUG) return;
+  console.log(`[Trade chart] ${label}`, { raw: chart?.raw ?? chart, ...extra });
+}
+
+function getTradeChartSrcType(value) {
+  if (value === null) return 'null';
+  if (value === undefined) return 'undefined';
+  if (typeof value === 'object') return 'object';
+
+  const src = String(value || '').trim();
+  if (!src) return 'empty';
+  if (src === '[object Object]') return 'object-string';
+  if (src.startsWith('blob:')) return 'blob URL';
+  if (src.startsWith('data:')) return 'base64';
+  if (src.includes('/storage/v1/object/sign/')) return 'signed URL';
+  if (src.includes('/storage/v1/object/public/')) return 'public URL';
+  if (/^https?:\/\//i.test(src)) return 'URL';
+  if (src.includes('/')) return 'storage path';
+  return 'string';
+}
+
 function resetTradeCharts() {
   tradeChartImages.forEach(item => {
-    if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
+    if (item.previewUrl?.startsWith('blob:')) URL.revokeObjectURL(item.previewUrl);
   });
 
   tradeChartImages = [];
@@ -6198,232 +6227,173 @@ function isTemporaryImageUrl(src) {
   return String(src || '').startsWith('blob:') || String(src || '').startsWith('data:');
 }
 
-function normalizeTradeChartUrl(value) {
-  const raw = String(value || '').trim();
+function getTradeChartValue(chart, keys) {
+  const sources = [chart, chart?.raw].filter(Boolean);
 
-  if (!raw || raw === '[object Object]') return '';
+  for (const source of sources) {
+    if (typeof source === 'string') return source;
 
-  if (
-    raw.startsWith('http://') ||
-    raw.startsWith('https://') ||
-    raw.startsWith('blob:') ||
-    raw.startsWith('data:')
-  ) {
-    return raw;
-  }
-
-  if (raw.startsWith('/storage/v1/object/')) {
-    return `${SUPABASE_URL}${raw}`;
-  }
-
-  let path = raw.replace(/^\/+/, '');
-
-  if (path.startsWith(`${TRADE_CHART_BUCKET}/`)) {
-    path = path.slice(TRADE_CHART_BUCKET.length + 1);
-  }
-
-  return `${SUPABASE_URL}/storage/v1/object/public/${TRADE_CHART_BUCKET}/${path}`;
-}
-
- function encodeStoragePath(path) {
-  return String(path || '')
-    .split('/')
-    .map(part => encodeURIComponent(part))
-    .join('/');
-}
-
-function getTradeChartStoragePath(value, mode = 'preview') {
-  if (!value) return '';
-
-  if (typeof value === 'object') {
-    const directPath = mode === 'full'
-      ? (value.full_path || value.fullPath || value.original_path || value.originalPath || value.path)
-      : (value.thumbnail_path || value.thumbnailPath || value.thumb_path || value.thumbPath || value.preview_path || value.previewPath || value.path);
-
-    if (directPath) {
-      let cleaned = String(directPath).trim().replace(/^\/+/, '');
-      const bucketPrefix = `${TRADE_CHART_BUCKET}/`;
-      if (cleaned.startsWith(bucketPrefix)) cleaned = cleaned.slice(bucketPrefix.length);
-      return decodeURIComponent(cleaned);
+    if (typeof source === 'object') {
+      for (const key of keys) {
+        if (source[key]) return source[key];
+      }
     }
-
-    value = mode === 'full' ? getTradeChartFullSrc(value) : getTradeChartPreviewSrc(value);
-  }
-
-  const raw = String(value || '').trim();
-  if (!raw || raw === '[object Object]' || raw.startsWith('blob:') || raw.startsWith('data:')) return '';
-
-  let path = raw.split('?')[0];
-
-  try {
-    path = new URL(raw).pathname;
-  } catch (err) {}
-
-  const publicMarker = `/storage/v1/object/public/${TRADE_CHART_BUCKET}/`;
-  const signedMarker = `/storage/v1/object/sign/${TRADE_CHART_BUCKET}/`;
-  const objectMarker = `/storage/v1/object/${TRADE_CHART_BUCKET}/`;
-
-  if (path.includes(publicMarker)) return decodeURIComponent(path.split(publicMarker)[1] || '');
-  if (path.includes(signedMarker)) return decodeURIComponent(path.split(signedMarker)[1] || '');
-  if (path.includes(objectMarker)) return decodeURIComponent(path.split(objectMarker)[1] || '');
-
-  path = raw.replace(/^\/+/, '').split('?')[0];
-
-  if (path.startsWith(`${TRADE_CHART_BUCKET}/`)) {
-    path = path.slice(TRADE_CHART_BUCKET.length + 1);
-  }
-
-  if (path.startsWith(`${user.id}/`) || path.startsWith('thumb/') || path.startsWith('full/')) {
-    return decodeURIComponent(path);
   }
 
   return '';
 }
 
-async function createSignedTradeChartUrl(path) {
-  if (!path) return '';
+function parseTradeChartStorageRef(value, fallbackBucket = TRADE_CHART_BUCKET) {
+  const raw = String(value || '').trim();
+  if (!raw || raw === '[object Object]' || raw.startsWith('blob:') || raw.startsWith('data:')) return null;
 
-  const cached = tradeChartSignedUrlCache.get(path);
-  if (cached && cached.expiresAt > Date.now() + 60000) {
-    return cached.url;
+  try {
+    const url = new URL(raw);
+    const match = url.pathname.match(/\/storage\/v1\/object\/(?:public|sign)\/([^/]+)\/(.+)$/);
+    if (match) return { bucket: match[1], path: decodeURIComponent(match[2]) };
+  } catch (err) {}
+
+  let path = raw.replace(/^\/+/, '').split('?')[0];
+  if (!path || /^https?:\/\//i.test(path)) return null;
+
+  if (path.startsWith(`${fallbackBucket}/`)) {
+    path = path.slice(fallbackBucket.length + 1);
   }
 
-  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/sign/${TRADE_CHART_BUCKET}/${encodeStoragePath(path)}`, {
+  return path.includes('/') ? { bucket: fallbackBucket, path: decodeURIComponent(path) } : null;
+}
+
+function getTradeChartStorageRef(chart, mode = 'preview') {
+  const bucket = chart?.bucket || chart?.bucket_id || chart?.raw?.bucket || chart?.raw?.bucket_id || TRADE_CHART_BUCKET;
+
+  const pathKeys = mode === 'full'
+    ? ['full_path', 'fullPath', 'original_path', 'originalPath', 'path']
+    : ['thumbnail_path', 'thumbnailPath', 'thumb_path', 'thumbPath', 'preview_path', 'previewPath', 'path'];
+
+  const directPath = getTradeChartValue(chart, pathKeys);
+  if (directPath) return parseTradeChartStorageRef(directPath, bucket);
+
+  const urlKeys = mode === 'full'
+    ? ['fullUrl', 'full_url', 'originalUrl', 'original_url', 'url', 'publicUrl', 'public_url', 'signedUrl', 'signed_url']
+    : ['previewUrl', 'preview_url', 'thumbnailUrl', 'thumbnail_url', 'thumbUrl', 'thumb_url', 'url', 'publicUrl', 'public_url', 'signedUrl', 'signed_url'];
+
+  return parseTradeChartStorageRef(getTradeChartValue(chart, urlKeys), bucket);
+}
+
+function getPublicTradeChartUrl(bucket, path) {
+  return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${encodeStoragePath(path)}`;
+}
+
+async function createSignedTradeChartUrl(path, bucket = TRADE_CHART_BUCKET) {
+  if (!path) return '';
+
+  const cacheKey = `${bucket}:${path}`;
+  const cached = tradeChartSignedUrlCache.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now() + 60000) return cached.url;
+
+  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/sign/${bucket}/${encodeStoragePath(path)}`, {
     method: 'POST',
     headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${token}`,
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ expiresIn: 3600 })
+    body: JSON.stringify({ expiresIn: TRADE_CHART_SIGNED_URL_TTL_SECONDS })
   });
 
-  if (!res.ok) return '';
+  if (!res.ok) {
+    console.warn('[Trade chart] signed URL failed', { bucket, path, status: res.status, text: await res.text().catch(() => '') });
+    return '';
+  }
 
   const data = await res.json();
   const signed = data.signedURL || data.signedUrl || data.url || '';
   const url = signed.startsWith('http') ? signed : `${SUPABASE_URL}${signed}`;
 
-  tradeChartSignedUrlCache.set(path, {
+  tradeChartSignedUrlCache.set(cacheKey, {
     url,
-    expiresAt: Date.now() + 55 * 60 * 1000
+    expiresAt: Date.now() + (TRADE_CHART_SIGNED_URL_TTL_SECONDS - 60) * 1000
   });
 
   return url;
 }
 
-async function getSignedTradeChartSrc(item, mode = 'preview') {
-  const path = getTradeChartStoragePath(item, mode);
+function getImmediateTradeChartSrc(chart, mode = 'preview') {
+  const urlKeys = mode === 'full'
+    ? ['fullUrl', 'full_url', 'originalUrl', 'original_url', 'url', 'publicUrl', 'public_url', 'signedUrl', 'signed_url']
+    : ['previewUrl', 'preview_url', 'thumbnailUrl', 'thumbnail_url', 'thumbUrl', 'thumb_url', 'url', 'publicUrl', 'public_url', 'signedUrl', 'signed_url'];
 
-  if (path) {
-    return createSignedTradeChartUrl(path);
-  }
+  const raw = getTradeChartValue(chart, urlKeys);
+  if (!raw) return '';
 
-  const src = mode === 'full'
-    ? getTradeChartFullSrc(item)
-    : getTradeChartPreviewSrc(item);
-
-  return isTemporaryImageUrl(src) ? '' : src;
-}
-
-function getTradeChartValue(chart, keys) {
-  if (!chart) return '';
-
-  if (typeof chart === 'string') return chart;
-
-  for (const key of keys) {
-    if (chart[key]) return chart[key];
-  }
+  const type = getTradeChartSrcType(raw);
+  if (type === 'blob URL' || type === 'base64') return raw;
+  if (type === 'URL' && !parseTradeChartStorageRef(raw)) return raw;
+  if (TRADE_CHART_BUCKET_IS_PUBLIC && parseTradeChartStorageRef(raw)) return raw;
 
   return '';
 }
 
+async function resolveTradeChartSrc(chart, mode = 'preview') {
+  const direct = getImmediateTradeChartSrc(chart, mode);
+  if (direct) return direct;
+
+  const ref = getTradeChartStorageRef(chart, mode);
+  if (!ref?.path) return '';
+
+  return TRADE_CHART_BUCKET_IS_PUBLIC
+    ? getPublicTradeChartUrl(ref.bucket, ref.path)
+    : createSignedTradeChartUrl(ref.path, ref.bucket);
+}
+
+async function resolveTradeChartPreviewSrc(chart) {
+  return resolveTradeChartSrc(chart, 'preview');
+}
+
+async function resolveTradeChartFullSrc(chart) {
+  return resolveTradeChartSrc(chart, 'full');
+}
+
 function getTradeChartPreviewSrc(chart) {
-  return normalizeTradeChartUrl(getTradeChartValue(chart, [
-    'thumbnail_path',
-    'thumbnailPath',
-    'thumb_path',
-    'thumbPath',
-    'preview_path',
-    'previewPath',
-    'thumbnailUrl',
-    'thumbnail_url',
-    'previewUrl',
-    'preview_url',
-    'thumbUrl',
-    'thumb_url',
-    'url',
-    'imageUrl',
-    'image_url',
-    'fullImageUrl',
-    'full_image_url',
-    'originalUrl',
-    'original_url',
-    'fullUrl',
-    'full_url',
-    'publicUrl',
-    'public_url',
-    'signedUrl',
-    'signed_url',
-    'path'
-  ]));
+  return getImmediateTradeChartSrc(chart, 'preview');
 }
 
 function getTradeChartFullSrc(chart) {
-  return normalizeTradeChartUrl(getTradeChartValue(chart, [
-    'full_path',
-    'fullPath',
-    'original_path',
-    'originalPath',
-    'fullImageUrl',
-    'full_image_url',
-    'originalUrl',
-    'original_url',
-    'fullUrl',
-    'full_url',
-    'url',
-    'imageUrl',
-    'image_url',
-    'publicUrl',
-    'public_url',
-    'signedUrl',
-    'signed_url',
-    'thumbnail_path',
-    'thumbnailPath',
-    'thumbnailUrl',
-    'thumbnail_url',
-    'previewUrl',
-    'preview_url',
-    'path'
-  ]));
+  return getImmediateTradeChartSrc(chart, 'full');
 }
 
-function normalizeImageRecord(item) {
-  const thumbnailPath = getTradeChartStoragePath(item, 'preview');
-  const fullPath = getTradeChartStoragePath(item, 'full') || thumbnailPath;
-  const thumbnailUrl = getTradeChartPreviewSrc(item);
-  const fullUrl = getTradeChartFullSrc(item) || thumbnailUrl;
+function serializeTradeChartForSave(item) {
+  const previewRef = getTradeChartStorageRef(item, 'preview');
+  const fullRef = getTradeChartStorageRef(item, 'full') || previewRef;
 
-  return {
-    thumbnailUrl,
-    fullUrl,
-    thumbnailPath,
-    fullPath
-  };
+  if (previewRef?.path || fullRef?.path) {
+    return {
+      bucket: previewRef?.bucket || fullRef?.bucket || TRADE_CHART_BUCKET,
+      thumbnail_path: previewRef?.path || fullRef?.path || '',
+      full_path: fullRef?.path || previewRef?.path || '',
+      content_type: item.content_type || item.contentType || 'image/jpeg'
+    };
+  }
+
+  const url = getTradeChartValue(item, ['url', 'publicUrl', 'public_url', 'previewUrl', 'preview_url']);
+  const fullUrl = getTradeChartValue(item, ['fullUrl', 'full_url', 'originalUrl', 'original_url']);
+
+  if (url && !isTemporaryImageUrl(url) && getTradeChartSrcType(url) !== 'signed URL') {
+    return { url, full_url: fullUrl || url };
+  }
+
+  return null;
 }
 
-function setTradeChartImages(urls = []) {
+function setTradeChartImages(charts = []) {
   resetTradeCharts();
 
-  tradeChartImages = (Array.isArray(urls) ? urls : [])
-    .map(normalizeImageRecord)
-    .filter(item => item.thumbnailUrl || item.fullUrl)
-    .map(item => ({
-      id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
-      url: item.thumbnailUrl || item.fullUrl,
-      fullUrl: item.fullUrl || item.thumbnailUrl,
-      source: 'saved'
-    }));
+  tradeChartImages = (Array.isArray(charts) ? charts : []).map(chart => ({
+    ...(typeof chart === 'object' && chart !== null ? chart : { url: chart }),
+    id: makeTradeChartId(),
+    raw: chart,
+    source: 'saved'
+  }));
 
   renderTradeChartPreviews();
 }
@@ -6433,7 +6403,13 @@ function handleTradeChartSelect(event) {
   const msg = document.getElementById('tradeMsg');
 
   files.forEach(file => {
-    if (!file.type.startsWith('image/')) return;
+    if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
+      if (msg) {
+        msg.textContent = 'Use PNG, JPG, or WEBP chart images.';
+        msg.className = 'modal-msg error';
+      }
+      return;
+    }
 
     if (file.size > TRADE_CHART_MAX_MB * 1024 * 1024) {
       if (msg) {
@@ -6444,7 +6420,7 @@ function handleTradeChartSelect(event) {
     }
 
     tradeChartImages.push({
-      id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
+      id: makeTradeChartId(),
       file,
       previewUrl: URL.createObjectURL(file),
       source: 'pending',
@@ -6458,54 +6434,92 @@ function handleTradeChartSelect(event) {
 
 function removeTradeChartImage(id) {
   const item = tradeChartImages.find(chart => chart.id === id);
-  if (item?.previewUrl) URL.revokeObjectURL(item.previewUrl);
+  if (item?.previewUrl?.startsWith('blob:')) URL.revokeObjectURL(item.previewUrl);
 
   tradeChartImages = tradeChartImages.filter(chart => chart.id !== id);
   renderTradeChartPreviews();
 }
 
-async function handleTradeChartPreviewError(img, id) {
+function handleTradeChartPreviewLoad(img, id) {
+  if (img.src === EDITOR_PLACEHOLDER_SRC) return;
+
+  const item = tradeChartImages.find(chart => chart.id === id);
+  tradeChartLog('image load success', item, {
+    src: img.currentSrc || img.src,
+    srcType: getTradeChartSrcType(img.currentSrc || img.src),
+    fullSrc: img.dataset.fullSrc || ''
+  });
+}
+
+async function handleTradeChartPreviewError(img, id, event = null) {
   const item = tradeChartImages.find(chart => chart.id === id);
 
-  if (item && img.dataset.signedRetry !== 'true') {
-    img.dataset.signedRetry = 'true';
+  tradeChartLog('image load failure', item, {
+    failedSrc: img.currentSrc || img.src,
+    failedSrcType: getTradeChartSrcType(img.currentSrc || img.src),
+    browserEventType: event?.type || 'error'
+  });
 
-    const signedPreview = await getSignedTradeChartSrc(item, 'preview');
-    const signedFull = await getSignedTradeChartSrc(item, 'full');
+  if (item && img.dataset.retryResolved !== 'true') {
+    img.dataset.retryResolved = 'true';
 
-    if (signedPreview) {
-      img.dataset.fullSrc = signedFull || signedPreview;
-      img.src = signedPreview;
+    const previewSrc = await resolveTradeChartPreviewSrc(item);
+    const fullSrc = await resolveTradeChartFullSrc(item);
+
+    tradeChartLog('retry resolved', item, {
+      previewSrc,
+      fullSrc,
+      previewSrcType: getTradeChartSrcType(previewSrc),
+      fullSrcType: getTradeChartSrcType(fullSrc)
+    });
+
+    if (previewSrc && previewSrc !== img.src) {
+      img.dataset.fullSrc = fullSrc || previewSrc;
+      img.src = previewSrc;
       return;
     }
   }
 
   img.style.display = 'none';
-
   const fallback = img.closest('.trade-chart-thumb')?.querySelector('.trade-chart-error');
-  if (fallback) fallback.style.display = 'block';
+  if (fallback) {
+    fallback.textContent = 'Image unavailable';
+    fallback.style.display = 'grid';
+  }
 }
 
 async function hydrateTradeChartPreviewImage(img, id) {
   const item = tradeChartImages.find(chart => chart.id === id);
-  if (!img || !item || item.source !== 'saved' || img.dataset.signedHydrated === 'true') return;
+  if (!img || !item || img.dataset.hydrated === 'true') return;
 
-  img.dataset.signedHydrated = 'true';
+  img.dataset.hydrated = 'true';
 
-  const signedPreview = await getSignedTradeChartSrc(item, 'preview');
-  const signedFull = await getSignedTradeChartSrc(item, 'full');
+  const previewSrc = await resolveTradeChartPreviewSrc(item);
+  const fullSrc = await resolveTradeChartFullSrc(item);
+
+  tradeChartLog('render resolved', item, {
+    previewSrc,
+    fullSrc,
+    previewSrcType: getTradeChartSrcType(previewSrc),
+    fullSrcType: getTradeChartSrcType(fullSrc)
+  });
 
   if (!img.isConnected) return;
 
-  if (signedFull || signedPreview) {
-    img.dataset.fullSrc = signedFull || signedPreview;
+  if (!previewSrc) {
+    img.style.display = 'none';
+    const fallback = img.closest('.trade-chart-thumb')?.querySelector('.trade-chart-error');
+    if (fallback) {
+      fallback.textContent = 'Image unavailable';
+      fallback.style.display = 'grid';
+    }
+    return;
   }
 
-  if (signedPreview) {
-    img.src = signedPreview;
-  }
+  img.dataset.fullSrc = fullSrc || previewSrc;
+  if (img.src !== previewSrc) img.src = previewSrc;
 }
-    
+
 function renderTradeChartPreviews() {
   const list = document.getElementById('tradeChartPreviewList');
   const hint = document.getElementById('tradeChartHint');
@@ -6517,62 +6531,97 @@ function renderTradeChartPreviews() {
     : 'No charts added';
 
   list.innerHTML = tradeChartImages.map(item => {
-    const src = getTradeChartPreviewSrc(item);
-    const fullSrc = getTradeChartFullSrc(item) || src;
+    const previewSrc = getTradeChartPreviewSrc(item) || EDITOR_PLACEHOLDER_SRC;
+    const fullSrc = getTradeChartFullSrc(item) || previewSrc;
     const status = item.status === 'uploading'
       ? '<div class="trade-chart-status">Uploading...</div>'
       : '';
 
-    if (!src) {
-      return `
-        <div class="trade-chart-thumb">
-          <div class="trade-chart-status trade-chart-error" style="display:block;">Image failed to load</div>
-          <button class="trade-chart-remove" type="button" onclick="removeTradeChartImage('${item.id}')">×</button>
-          ${status}
-        </div>
-      `;
-    }
+    tradeChartLog('render queued', item, {
+      previewSrc,
+      fullSrc,
+      previewSrcType: getTradeChartSrcType(previewSrc),
+      fullSrcType: getTradeChartSrcType(fullSrc)
+    });
 
     return `
       <div class="trade-chart-thumb">
         <img
-  src="${escapeHtml(src)}"
-  data-chart-id="${escapeHtml(item.id)}"
-  data-full-src="${escapeHtml(fullSrc)}"
-  alt=""
-  onclick="openLightbox(this)"
-  onerror="handleTradeChartPreviewError(this, '${item.id}')"
-/>
-        <div class="trade-chart-status trade-chart-error" style="display:none;">Image failed to load</div>
+          src="${escapeHtml(previewSrc)}"
+          data-chart-id="${escapeHtml(item.id)}"
+          data-full-src="${escapeHtml(fullSrc)}"
+          alt=""
+          onclick="openLightbox(this)"
+          onload="handleTradeChartPreviewLoad(this, '${item.id}')"
+          onerror="handleTradeChartPreviewError(this, '${item.id}', event)"
+        />
+        <div class="trade-chart-status trade-chart-error" style="display:none;">Image unavailable</div>
         <button class="trade-chart-remove" type="button" onclick="removeTradeChartImage('${item.id}')">×</button>
         ${status}
       </div>
     `;
   }).join('');
-    list.querySelectorAll('img[data-chart-id]').forEach(img => {
+
+  list.querySelectorAll('img[data-chart-id]').forEach(img => {
     hydrateTradeChartPreviewImage(img, img.dataset.chartId).catch(console.warn);
   });
 }
 
+function loadImageForValidation(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(true);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
+async function uploadTradeBlobToStorage(path, blob) {
+  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/${TRADE_CHART_BUCKET}/${encodeStoragePath(path)}`, {
+    method: 'POST',
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'image/jpeg',
+      'x-upsert': 'false'
+    },
+    body: blob
+  });
+
+  if (!res.ok) throw new Error(await res.text().catch(() => `Upload failed: ${res.status}`));
+  return path;
+}
+
+async function getTradeChartDisplayUrl(path) {
+  return TRADE_CHART_BUCKET_IS_PUBLIC
+    ? getPublicTradeChartUrl(TRADE_CHART_BUCKET, path)
+    : createSignedTradeChartUrl(path, TRADE_CHART_BUCKET);
+}
+
 async function uploadTradeChartImage(file) {
-  const id = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  const id = makeTradeChartId();
   const thumbPath = `${user.id}/thumb/${id}.jpg`;
   const fullPath = `${user.id}/full/${id}.jpg`;
 
   const thumbBlob = await resizeImageFileToBlob(file, TRADE_IMAGE_THUMB_MAX_WIDTH, TRADE_IMAGE_THUMB_QUALITY);
   const fullBlob = await resizeImageFileToBlob(file, TRADE_IMAGE_FULL_MAX_WIDTH, TRADE_IMAGE_FULL_QUALITY);
 
-  const [thumbnailUrl, fullUrl] = await Promise.all([
-    uploadBlobToStorage(TRADE_CHART_BUCKET, thumbPath, thumbBlob),
-    uploadBlobToStorage(TRADE_CHART_BUCKET, fullPath, fullBlob)
-  ]);
+  await uploadTradeBlobToStorage(thumbPath, thumbBlob);
+  await uploadTradeBlobToStorage(fullPath, fullBlob);
+
+  const previewUrl = await getTradeChartDisplayUrl(thumbPath);
+  const fullUrl = await getTradeChartDisplayUrl(fullPath);
+
+  await loadImageForValidation(previewUrl);
 
   return {
-  thumbnail_url: thumbnailUrl,
-  full_url: fullUrl,
-  thumbnail_path: thumbPath,
-  full_path: fullPath
-};
+    bucket: TRADE_CHART_BUCKET,
+    thumbnail_path: thumbPath,
+    full_path: fullPath,
+    previewUrl,
+    fullUrl,
+    content_type: 'image/jpeg'
+  };
 }
 
 async function uploadPendingTradeCharts() {
@@ -6580,22 +6629,9 @@ async function uploadPendingTradeCharts() {
 
   for (const item of tradeChartImages) {
     if (item.source === 'saved') {
-  const previewPath = getTradeChartStoragePath(item, 'preview');
-  const fullPath = getTradeChartStoragePath(item, 'full') || previewPath;
-  const previewSrc = previewPath ? normalizeTradeChartUrl(previewPath) : getTradeChartPreviewSrc(item);
-  const fullSrc = fullPath ? normalizeTradeChartUrl(fullPath) : (getTradeChartFullSrc(item) || previewSrc);
-
-  if (previewSrc || previewPath) {
-    images.push({
-      thumbnail_url: previewSrc,
-      full_url: fullSrc || previewSrc,
-      thumbnail_path: previewPath,
-      full_path: fullPath
-    });
-  }
-
-  continue;
-}
+      images.push(serializeTradeChartForSave(item) || item.raw || item);
+      continue;
+    }
 
     if (!item.file) continue;
 
@@ -6603,21 +6639,19 @@ async function uploadPendingTradeCharts() {
     renderTradeChartPreviews();
 
     const uploaded = await uploadTradeChartImage(item.file);
-    images.push(uploaded);
+    images.push(serializeTradeChartForSave(uploaded));
 
-    if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
+    if (item.previewUrl?.startsWith('blob:')) URL.revokeObjectURL(item.previewUrl);
 
-    item.url = uploaded.thumbnail_url;
-    item.fullUrl = uploaded.full_url;
-    item.previewUrl = '';
-    item.file = null;
-    item.status = 'saved';
-    item.source = 'saved';
+    Object.assign(item, uploaded, {
+      file: null,
+      status: 'saved',
+      source: 'saved'
+    });
   }
 
   renderTradeChartPreviews();
-
-  return images;
+  return images.filter(Boolean);
 }
 
     async function loadProfile() {
@@ -9555,6 +9589,7 @@ if (!direction) {
       : wasEditing ? 'Updating...' : 'Saving...';
 
     const chartImages = await uploadPendingTradeCharts();
+    console.log('[Trade chart] save payload chart_images:', chartImages);
 
     const payload = {
       user_id: user.id,
@@ -9573,7 +9608,8 @@ if (!direction) {
       chart_images: chartImages,
       trade_time: tradeTime
     };
-
+console.log('[Trade chart] full trade save payload:', payload);
+    
     let res;
 
     if (tradeIdToUpdate) {
