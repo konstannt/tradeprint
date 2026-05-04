@@ -2199,7 +2199,16 @@ select.tp-native-select {
     .day-modal-box::-webkit-scrollbar-thumb:hover { background: var(--text2); }
     .img-lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 300; align-items: center; justify-content: center; cursor: zoom-out; }
     .img-lightbox.active { display: flex; }
-    .img-lightbox img { max-width: 90vw; max-height: 90vh; border-radius: 12px; object-fit: contain; }
+    .img-lightbox img {
+  max-width: 98vw;
+  max-height: 96vh;
+  width: auto;
+  height: auto;
+  border-radius: 12px;
+  object-fit: contain;
+  transform: scale(1.06);
+}
+
     #page-trades .trades-filters {
   display: flex;
   align-items: flex-start;
@@ -7134,7 +7143,7 @@ function blobToDataUrl(blob) {
 async function uploadStrategyExampleImage(strategyId, file) {
   if (!file) return '';
 
-  const blob = await resizeImageFileToBlob(file, 900, 0.72);
+  const blob = await resizeImageFileToBlob(file, 1400, 0.82);
   return blobToDataUrl(blob);
 }
 
