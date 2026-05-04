@@ -2220,16 +2220,49 @@ select.tp-native-select {
     .day-modal-box::-webkit-scrollbar-track { background: var(--bg2); border-radius: 8px; }
     .day-modal-box::-webkit-scrollbar-thumb { background: var(--border); border-radius: 8px; }
     .day-modal-box::-webkit-scrollbar-thumb:hover { background: var(--text2); }
-    .img-lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 300; align-items: center; justify-content: center; cursor: zoom-out; }
-    .img-lightbox.active { display: flex; }
-    .img-lightbox img {
+    .img-lightbox {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.94);
+  z-index: 300;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.img-lightbox.active {
+  display: flex;
+}
+
+.img-lightbox img {
   max-width: 98vw;
-  max-height: 96vh;
+  max-height: 94vh;
   width: auto;
   height: auto;
   border-radius: 12px;
   object-fit: contain;
-  transform: scale(1.06);
+  background: #050505;
+}
+
+.img-lightbox-close {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 301;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(10,10,10,0.72);
+  color: #fff;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.img-lightbox-close:hover {
+  border-color: rgba(255,255,255,0.4);
 }
 
     #page-trades .trades-filters {
@@ -4782,9 +4815,10 @@ select::-ms-expand {
   </div>
 
   <!-- IMAGE LIGHTBOX -->
-  <div class="img-lightbox" id="imgLightbox" onclick="closeLightbox()">
-    <img id="lightboxImg" src="" alt=""/>
-  </div>
+<div class="img-lightbox" id="imgLightbox" onclick="handleLightboxBackdropClick(event)">
+  <button class="img-lightbox-close" type="button" onclick="closeLightbox(event)" aria-label="Close image">×</button>
+  <img id="lightboxImg" src="" alt="" onclick="event.stopPropagation()"/>
+</div>
 
   <!-- MOBILE TOP BAR -->
   <div class="mobile-topbar">
@@ -5932,8 +5966,19 @@ const memoryNoteContentCache = new Map();
 const noteUploadControllers = new Set();
 const noteObjectUrls = new Set();
 
-const NOTE_IMAGE_MAX_WIDTH = 1400;
-const NOTE_IMAGE_QUALITY = 0.82;
+const NOTE_IMAGE_THUMB_MAX_WIDTH = 1100;
+const NOTE_IMAGE_THUMB_QUALITY = 0.74;
+const NOTE_IMAGE_FULL_MAX_WIDTH = 2200;
+const NOTE_IMAGE_FULL_QUALITY = 0.9;
+
+const NOTE_IMAGE_MAX_WIDTH = NOTE_IMAGE_THUMB_MAX_WIDTH;
+const NOTE_IMAGE_QUALITY = NOTE_IMAGE_THUMB_QUALITY;
+
+const TRADE_IMAGE_THUMB_MAX_WIDTH = 1000;
+const TRADE_IMAGE_THUMB_QUALITY = 0.74;
+const TRADE_IMAGE_FULL_MAX_WIDTH = 2200;
+const TRADE_IMAGE_FULL_QUALITY = 0.9;
+
     let editingTradeId = null;
     let editingTradeOriginalDate = null;
     let logFromPage = false;
@@ -6139,14 +6184,52 @@ function resetTradeCharts() {
   renderTradeChartPreviews();
 }
 
+function normalizeImageRecord(item) {
+  if (!item) return { thumbnailUrl: '', fullUrl: '' };
+
+  if (typeof item === 'string') {
+    return {
+      thumbnailUrl: item,
+      fullUrl: item
+    };
+  }
+
+  const thumbnailUrl =
+    item.thumbnail_url ||
+    item.thumbnailUrl ||
+    item.thumb_url ||
+    item.thumbUrl ||
+    item.url ||
+    item.image_url ||
+    item.full_url ||
+    item.fullUrl ||
+    '';
+
+  const fullUrl =
+    item.full_url ||
+    item.fullUrl ||
+    item.original_url ||
+    item.originalUrl ||
+    item.url ||
+    item.image_url ||
+    thumbnailUrl;
+
+  return {
+    thumbnailUrl,
+    fullUrl
+  };
+}
+    
 function setTradeChartImages(urls = []) {
   resetTradeCharts();
 
   tradeChartImages = (Array.isArray(urls) ? urls : [])
-    .filter(Boolean)
-    .map(url => ({
+    .map(normalizeImageRecord)
+    .filter(item => item.thumbnailUrl || item.fullUrl)
+    .map(item => ({
       id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
-      url,
+      url: item.thumbnailUrl || item.fullUrl,
+      fullUrl: item.fullUrl || item.thumbnailUrl,
       source: 'saved'
     }));
 
@@ -6201,11 +6284,14 @@ function renderTradeChartPreviews() {
 
   list.innerHTML = tradeChartImages.map(item => {
     const src = item.url || item.previewUrl || '';
-    const status = item.status === 'uploading' ? '<div class="trade-chart-status">Uploading...</div>' : '';
+    const fullSrc = item.fullUrl || src;
+    const status = item.status === 'uploading'
+      ? '<div class="trade-chart-status">Uploading...</div>'
+      : '';
 
     return `
       <div class="trade-chart-thumb">
-        <img src="${escapeHtml(src)}" alt="trade chart" onclick="openLightbox(this)"/>
+        <img src="${escapeHtml(src)}" data-full-src="${escapeHtml(fullSrc)}" alt="trade chart" onclick="openLightbox(this)"/>
         <button class="trade-chart-remove" type="button" onclick="removeTradeChartImage('${item.id}')">×</button>
         ${status}
       </div>
@@ -6214,31 +6300,38 @@ function renderTradeChartPreviews() {
 }
 
 async function uploadTradeChartImage(file) {
-  const blob = await resizeImageFileToBlob(file, NOTE_IMAGE_MAX_WIDTH, NOTE_IMAGE_QUALITY);
   const id = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-  const path = `${user.id}/${id}.jpg`;
+  const thumbPath = `${user.id}/thumb/${id}.jpg`;
+  const fullPath = `${user.id}/full/${id}.jpg`;
 
-  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/${TRADE_CHART_BUCKET}/${path}`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'image/jpeg',
-      'x-upsert': 'false'
-    },
-    body: blob
-  });
+  const thumbBlob = await resizeImageFileToBlob(file, TRADE_IMAGE_THUMB_MAX_WIDTH, TRADE_IMAGE_THUMB_QUALITY);
+  const fullBlob = await resizeImageFileToBlob(file, TRADE_IMAGE_FULL_MAX_WIDTH, TRADE_IMAGE_FULL_QUALITY);
 
-  if (!res.ok) throw new Error('Trade chart upload failed.');
+  const [thumbnailUrl, fullUrl] = await Promise.all([
+    uploadBlobToStorage(TRADE_CHART_BUCKET, thumbPath, thumbBlob),
+    uploadBlobToStorage(TRADE_CHART_BUCKET, fullPath, fullBlob)
+  ]);
 
-  return `${SUPABASE_URL}/storage/v1/object/public/${TRADE_CHART_BUCKET}/${path}`;
+  return {
+    thumbnail_url: thumbnailUrl,
+    full_url: fullUrl
+  };
 }
 
 async function uploadPendingTradeCharts() {
-  const urls = [];
+  const images = [];
 
   for (const item of tradeChartImages) {
+    if (item.url && item.fullUrl) {
+      images.push({
+        thumbnail_url: item.url,
+        full_url: item.fullUrl
+      });
+      continue;
+    }
+
     if (item.url) {
-      urls.push(item.url);
+      images.push(item.url);
       continue;
     }
 
@@ -6247,12 +6340,13 @@ async function uploadPendingTradeCharts() {
     item.status = 'uploading';
     renderTradeChartPreviews();
 
-    const url = await uploadTradeChartImage(item.file);
-    urls.push(url);
+    const uploaded = await uploadTradeChartImage(item.file);
+    images.push(uploaded);
 
     if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
 
-    item.url = url;
+    item.url = uploaded.thumbnail_url;
+    item.fullUrl = uploaded.full_url;
     item.previewUrl = '';
     item.file = null;
     item.status = 'saved';
@@ -6261,7 +6355,7 @@ async function uploadPendingTradeCharts() {
 
   renderTradeChartPreviews();
 
-  return urls;
+  return images;
 }
 
     async function loadProfile() {
@@ -8348,13 +8442,29 @@ function ensureEditableTypingSpace(editor) {
   }
 }
 
+function bindImageLightbox(img) {
+  if (!img) return;
+
+  img.onclick = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    openLightbox(img);
+  };
+
+  img.ondblclick = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    openLightbox(img);
+  };
+}
+    
 function optimizeEditorContent(editor) {
   if (!editor) return;
 
   editor.querySelectorAll('img').forEach(img => {
     img.loading = 'lazy';
     img.decoding = 'async';
-    img.ondblclick = () => openLightbox(img);
+    bindImageLightbox(img);
   });
 }
 
@@ -8436,21 +8546,16 @@ async function resizeImageFileToBlob(file, maxWidth = NOTE_IMAGE_MAX_WIDTH, qual
   }
 }
 
-async function uploadNoteImage(file, folder = 'notes', options = {}) {
-  const signal = options.signal || null;
-  const started = performance.now();
-  const originalBytes = file.size || 0;
+function getPublicStorageUrl(bucket, path) {
+  return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${path}`;
+}
 
-  const blob = await resizeImageFileToBlob(file, NOTE_IMAGE_MAX_WIDTH, NOTE_IMAGE_QUALITY, signal);
-  if (signal?.aborted) throw makeAbortError();
-
-  const id = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-  const path = `${user.id}/${folder}/${id}.jpg`;
-
-  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/note-images/${path}`, {
+async function uploadBlobToStorage(bucket, path, blob, signal = null) {
+  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/${bucket}/${path}`, {
     method: 'POST',
     signal,
     headers: {
+      'apikey': SUPABASE_KEY,
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'image/jpeg',
       'x-upsert': 'false'
@@ -8458,18 +8563,49 @@ async function uploadNoteImage(file, folder = 'notes', options = {}) {
     body: blob
   });
 
-  tpLog(res.ok ? 'info' : 'warn', {
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(text || `Image upload failed: ${res.status}`);
+  }
+
+  return getPublicStorageUrl(bucket, path);
+}
+
+async function uploadNoteImage(file, folder = 'notes', options = {}) {
+  const signal = options.signal || null;
+  const started = performance.now();
+  const originalBytes = file.size || 0;
+
+  const id = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  const thumbPath = `${user.id}/${folder}/thumb/${id}.jpg`;
+  const fullPath = `${user.id}/${folder}/full/${id}.jpg`;
+
+  const thumbBlob = await resizeImageFileToBlob(file, NOTE_IMAGE_THUMB_MAX_WIDTH, NOTE_IMAGE_THUMB_QUALITY, signal);
+  if (signal?.aborted) throw makeAbortError();
+
+  const fullBlob = await resizeImageFileToBlob(file, NOTE_IMAGE_FULL_MAX_WIDTH, NOTE_IMAGE_FULL_QUALITY, signal);
+  if (signal?.aborted) throw makeAbortError();
+
+  const [thumbnailUrl, fullUrl] = await Promise.all([
+    uploadBlobToStorage('note-images', thumbPath, thumbBlob, signal),
+    uploadBlobToStorage('note-images', fullPath, fullBlob, signal)
+  ]);
+
+  tpLog('info', {
     event: 'note_image_upload',
     folder,
     originalBytes,
-    uploadedBytes: blob.size,
-    compressionRatio: originalBytes ? Number((blob.size / originalBytes).toFixed(3)) : null,
+    thumbnailBytes: thumbBlob.size,
+    fullBytes: fullBlob.size,
+    thumbnailRatio: originalBytes ? Number((thumbBlob.size / originalBytes).toFixed(3)) : null,
+    fullRatio: originalBytes ? Number((fullBlob.size / originalBytes).toFixed(3)) : null,
     ms: Math.round(performance.now() - started)
   });
 
-  if (!res.ok) throw new Error('Note image upload failed.');
-
-  return `${SUPABASE_URL}/storage/v1/object/public/note-images/${path}`;
+  return {
+    thumbnailUrl,
+    fullUrl
+  };
 }
 
     async function openDayModal(dateStr) {
@@ -10654,6 +10790,7 @@ function serializeEditorHtml(editor) {
   clone.querySelectorAll('img').forEach(img => {
     const deferredSrc = img.getAttribute('data-src');
     const src = deferredSrc || img.getAttribute('src') || '';
+    const fullSrc = img.getAttribute('data-full-src') || '';
 
     if (
       !src ||
@@ -10675,6 +10812,17 @@ function serializeEditorHtml(editor) {
     img.setAttribute('loading', 'lazy');
     img.setAttribute('decoding', 'async');
     img.classList.remove('lazy-note-image');
+
+    if (
+      fullSrc &&
+      fullSrc !== EDITOR_PLACEHOLDER_SRC &&
+      !fullSrc.startsWith('data:') &&
+      !fullSrc.startsWith('blob:')
+    ) {
+      img.setAttribute('data-full-src', fullSrc);
+    } else {
+      img.removeAttribute('data-full-src');
+    }
   });
 
   return normalizeEditorHtml(clone.innerHTML);
@@ -10708,6 +10856,7 @@ function hydrateLazyImages(editor) {
 
         img.setAttribute('src', src);
         img.removeAttribute('data-src');
+        bindImageLightbox(img);
       });
     }, { rootMargin: '700px 0px' });
   }
@@ -10715,7 +10864,7 @@ function hydrateLazyImages(editor) {
   editor.querySelectorAll('img').forEach(img => {
     img.loading = 'lazy';
     img.decoding = 'async';
-    img.ondblclick = () => openLightbox(img);
+    bindImageLightbox(img);
 
     if (img.getAttribute('data-src')) {
       if (noteImageObserver) noteImageObserver.observe(img);
@@ -10905,21 +11054,26 @@ function sanitizePastedHtml(html) {
   });
 
   template.content.querySelectorAll('img').forEach(img => {
-    const src = img.getAttribute('src') || '';
+  const src = img.getAttribute('src') || '';
+  const fullSrc = img.getAttribute('data-full-src') || '';
 
-    if (src.startsWith('data:') || src.startsWith('blob:')) {
-      tpLog('warn', {
-        event: 'blocked_pasted_base64_image',
-        srcBytes: tpByteSize(src)
-      });
-      img.remove();
-      return;
-    }
+  if (src.startsWith('data:') || src.startsWith('blob:')) {
+    tpLog('warn', {
+      event: 'blocked_pasted_base64_image',
+      srcBytes: tpByteSize(src)
+    });
+    img.remove();
+    return;
+  }
 
-    img.removeAttribute('srcset');
-    img.setAttribute('loading', 'lazy');
-    img.setAttribute('decoding', 'async');
-  });
+  if (fullSrc.startsWith('data:') || fullSrc.startsWith('blob:')) {
+    img.removeAttribute('data-full-src');
+  }
+
+  img.removeAttribute('srcset');
+  img.setAttribute('loading', 'lazy');
+  img.setAttribute('decoding', 'async');
+});
 
   return template.innerHTML;
 }
@@ -11029,15 +11183,20 @@ async function insertImageFileIntoEditor(file, editor, folder, kind, reason = 'i
   });
 
   try {
-    const imageUrl = await uploadNoteImage(file, folder, { signal: controller.signal });
+    const uploaded = await uploadNoteImage(file, folder, { signal: controller.signal });
 
     if (!placeholder.isConnected || controller.signal.aborted) return;
 
+    const thumbnailUrl = typeof uploaded === 'string' ? uploaded : uploaded.thumbnailUrl;
+    const fullUrl = typeof uploaded === 'string' ? uploaded : uploaded.fullUrl || uploaded.thumbnailUrl;
+
     const img = document.createElement('img');
-    img.src = imageUrl;
+    img.src = thumbnailUrl;
+    img.dataset.fullSrc = fullUrl;
     img.loading = 'lazy';
     img.decoding = 'async';
-    img.ondblclick = () => openLightbox(img);
+
+    bindImageLightbox(img);
 
     placeholder.replaceWith(img);
     hydrateLazyImages(editor);
@@ -12177,8 +12336,52 @@ function notesInsertHR() {
       if (!document.getElementById('floatToolbar').contains(e.target)) document.getElementById('floatToolbar').classList.remove('visible');
     });
 
-    function openLightbox(img) { document.getElementById('lightboxImg').src = img.src; document.getElementById('imgLightbox').classList.add('active'); }
-    function closeLightbox() { document.getElementById('imgLightbox').classList.remove('active'); document.getElementById('lightboxImg').src = ''; }
+    function getLightboxImageSrc(imageOrUrl) {
+  if (typeof imageOrUrl === 'string') return imageOrUrl;
+
+  return (
+    imageOrUrl?.dataset?.fullSrc ||
+    imageOrUrl?.getAttribute?.('data-full-src') ||
+    imageOrUrl?.getAttribute?.('data-src') ||
+    imageOrUrl?.currentSrc ||
+    imageOrUrl?.src ||
+    ''
+  );
+}
+
+function openLightbox(imageOrUrl) {
+  const src = getLightboxImageSrc(imageOrUrl);
+  if (!src) return;
+
+  const lightbox = document.getElementById('imgLightbox');
+  const img = document.getElementById('lightboxImg');
+
+  img.src = src;
+  lightbox.classList.add('active');
+
+  document.addEventListener('keydown', handleLightboxKeydown);
+}
+
+function closeLightbox(event = null) {
+  event?.stopPropagation?.();
+
+  document.getElementById('imgLightbox').classList.remove('active');
+  document.getElementById('lightboxImg').src = '';
+
+  document.removeEventListener('keydown', handleLightboxKeydown);
+}
+
+function handleLightboxBackdropClick(event) {
+  if (event.target === event.currentTarget) {
+    closeLightbox();
+  }
+}
+
+function handleLightboxKeydown(event) {
+  if (event.key === 'Escape') {
+    closeLightbox();
+  }
+}
     function updateToolbarState() {
       document.querySelectorAll('.notion-tool[data-cmd]').forEach(btn => { btn.classList.toggle('active', document.queryCommandState(btn.getAttribute('data-cmd'))); });
     }
