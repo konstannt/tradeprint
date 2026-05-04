@@ -6608,28 +6608,61 @@ async function getTradeChartDisplayUrl(path) {
 }
 
 async function uploadTradeChartImage(file) {
-  const id = makeTradeChartId();
-  const thumbPath = `${user.id}/thumb/${id}.jpg`;
-  const fullPath = `${user.id}/full/${id}.jpg`;
+  if (!file) {
+    throw new Error('No chart file selected.');
+  }
 
-  const thumbBlob = await resizeImageFileToBlob(file, TRADE_IMAGE_THUMB_MAX_WIDTH, TRADE_IMAGE_THUMB_QUALITY);
-  const fullBlob = await resizeImageFileToBlob(file, TRADE_IMAGE_FULL_MAX_WIDTH, TRADE_IMAGE_FULL_QUALITY);
+  if (!user?.id || !token) {
+    throw new Error('You are not signed in. Refresh and log in again.');
+  }
 
-  await uploadTradeBlobToStorage(thumbPath, thumbBlob);
-  await uploadTradeBlobToStorage(fullPath, fullBlob);
+  const bucket = 'trade-charts';
+  const ext =
+    file.type === 'image/png' ? 'png' :
+    file.type === 'image/webp' ? 'webp' :
+    'jpg';
 
-  const previewUrl = await getTradeChartDisplayUrl(thumbPath);
-  const fullUrl = await getTradeChartDisplayUrl(fullPath);
+  const path = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+  const encodedPath = path.split('/').map(encodeURIComponent).join('/');
 
-  await loadImageForValidation(previewUrl);
+  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/${bucket}/${encodedPath}`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': file.type || 'application/octet-stream',
+      'x-upsert': 'true'
+    },
+    body: file
+  });
+
+  const responseText = await res.text().catch(() => '');
+
+  if (!res.ok) {
+    console.error('[Trade chart] upload failed:', {
+      status: res.status,
+      statusText: res.statusText,
+      body: responseText
+    });
+
+    throw new Error(`Chart upload failed (${res.status}): ${responseText || res.statusText}`);
+  }
+
+  const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${encodedPath}`;
 
   return {
-    bucket: TRADE_CHART_BUCKET,
-    thumbnail_path: thumbPath,
-    full_path: fullPath,
-    previewUrl,
-    fullUrl,
-    content_type: 'image/jpeg'
+    id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
+    source: 'saved',
+    bucket,
+    path,
+    storage_path: path,
+    storagePath: path,
+    url: publicUrl,
+    public_url: publicUrl,
+    publicUrl,
+    name: file.name || 'chart',
+    type: file.type || '',
+    size: file.size || 0
   };
 }
 
