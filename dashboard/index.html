@@ -7511,14 +7511,21 @@ function renderStrategyPlaybook() {
 
       <div class="strategy-playbook-section">
         <div class="strategy-playbook-section-title">Rules</div>
-        <div class="strategy-playbook-grid">
-          ${playbookTextarea('Entry criteria', 'strategy_entry_criteria', s.strategy_entry_criteria)}
-          ${playbookTextarea('Required confirmations', 'strategy_confirmations', s.strategy_confirmations)}
-          ${playbookTextarea('Invalidation / when not to take it', 'strategy_invalidation', s.strategy_invalidation)}
-          ${playbookTextarea('Target / exit logic', 'strategy_targets', s.strategy_targets)}
-          ${playbookTextarea('Risk management notes', 'strategy_risk_notes', s.strategy_risk_notes)}
+                <div class="strategy-playbook-grid">
+          ${playbookTextarea('Entry Criteria / Required Confirmations', 'strategy_entry_criteria', s.strategy_entry_criteria)}
+          ${playbookTextarea('Invalidation / When Not To Take It', 'strategy_invalidation', s.strategy_invalidation)}
+          ${playbookTextarea('Target / Exit Logic', 'strategy_targets', s.strategy_targets)}
+          ${playbookTextarea('Risk Management Notes', 'strategy_risk_notes', s.strategy_risk_notes)}
         </div>
       </div>
+
+      <div class="strategy-playbook-section">
+        <div class="strategy-playbook-grid">
+          ${playbookTextarea('Avoid / Mistakes', 'strategy_avoid_notes', s.strategy_avoid_notes)}
+          ${playbookTextarea('General Notes', 'strategy_general_notes', s.strategy_general_notes)}
+        </div>
+      </div>
+
 
       <div class="strategy-playbook-section">
         <div class="strategy-playbook-section-title">Confluences</div>
@@ -7547,16 +7554,6 @@ function renderStrategyPlaybook() {
         <div class="strategy-example-list">
           ${examples.length ? examples.map(renderStrategyExample).join('') : '<div class="strategy-playbook-sub">No saved examples yet.</div>'}
         </div>
-      </div>
-
-      <div class="strategy-playbook-section">
-        <div class="strategy-playbook-section-title">Avoid / Mistakes</div>
-        ${playbookTextarea('Anti-setup notes, common mistakes, bad conditions, emotional triggers, sessions to avoid', 'strategy_avoid_notes', s.strategy_avoid_notes)}
-      </div>
-
-      <div class="strategy-playbook-section">
-        <div class="strategy-playbook-section-title">General Notes</div>
-        ${playbookTextarea('Freeform refinement notes', 'strategy_general_notes', s.strategy_general_notes)}
       </div>
     </div>
   `;
