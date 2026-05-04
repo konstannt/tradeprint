@@ -6288,7 +6288,14 @@ function encodeStoragePath(path) {
 }
     
 function getPublicTradeChartUrl(bucket, path) {
-  return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${encodeStoragePath(path)}`;
+  if (!bucket || !path) return '';
+
+  const encodedPath = String(path)
+    .split('/')
+    .map(part => encodeURIComponent(part))
+    .join('/');
+
+  return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${encodedPath}`;
 }
 
 async function createSignedTradeChartUrl(path, bucket = TRADE_CHART_BUCKET) {
@@ -6370,28 +6377,30 @@ function getTradeChartFullSrc(chart) {
 }
 
 function serializeTradeChartForSave(item) {
-  const previewRef = getTradeChartStorageRef(item, 'preview');
-  const fullRef = getTradeChartStorageRef(item, 'full') || previewRef;
+  if (!item) return null;
 
-  if (previewRef?.path || fullRef?.path) {
-    return {
-      bucket: previewRef?.bucket || fullRef?.bucket || TRADE_CHART_BUCKET,
-      thumbnail_path: previewRef?.path || fullRef?.path || '',
-      full_path: fullRef?.path || previewRef?.path || '',
-      content_type: item.content_type || item.contentType || 'image/jpeg'
-    };
-  }
+  const bucket = item.bucket || 'trade-charts';
+  const path = item.path || item.storage_path || item.storagePath || '';
 
-  const url = getTradeChartValue(item, ['url', 'publicUrl', 'public_url', 'previewUrl', 'preview_url']);
-  const fullUrl = getTradeChartValue(item, ['fullUrl', 'full_url', 'originalUrl', 'original_url']);
+  if (!path) return null;
 
-  if (url && !isTemporaryImageUrl(url) && getTradeChartSrcType(url) !== 'signed URL') {
-    return { url, full_url: fullUrl || url };
-  }
+  const publicUrl =
+    item.url ||
+    item.public_url ||
+    item.publicUrl ||
+    getPublicTradeChartUrl(bucket, path);
 
-  return null;
+  return {
+    bucket,
+    path,
+    storage_path: path,
+    url: publicUrl,
+    public_url: publicUrl,
+    name: item.name || 'chart',
+    type: item.type || '',
+    size: item.size || 0
+  };
 }
-
 function setTradeChartImages(charts = []) {
   resetTradeCharts();
 
