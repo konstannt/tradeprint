@@ -5190,7 +5190,7 @@ select::-ms-expand {
           <div class="calc-input-grid">
             <div class="calc-field">
               <label>Ticker</label>
-              <select id="calcTicker" onchange="runCalc()">
+              <select id="calcTicker" onchange="handleCalcTickerChange()">
                 <option value="MNQ">MNQ</option>
                 <option value="NQ">NQ</option>
                 <option value="MES">MES</option>
@@ -5207,7 +5207,7 @@ select::-ms-expand {
 
             <div class="calc-field">
               <label>Entry Price</label>
-              <input type="number" id="calcEntry" placeholder="e.g. 25236" step="0.01" oninput="runCalc()"/>
+              <input type="number" id="calcEntry" placeholder="e.g. 25235.50" step="0.01" oninput="runCalc()"/>
             </div>
 
             <div class="calc-field">
@@ -5217,7 +5217,7 @@ select::-ms-expand {
 
             <div class="calc-field">
               <label>Target Price</label>
-              <input type="number" id="calcTP" placeholder="e.g. 25598" step="0.01" oninput="runCalc()"/>
+              <input type="number" id="calcTP" placeholder="e.g. 25598.75" step="0.01" oninput="runCalc()"/>
             </div>
           </div>
 
@@ -7704,6 +7704,66 @@ function syncCalcDefaultsInputs() {
     defaultContracts.value = localStorage.getItem('tp_contracts') || '';
   }
 }
+
+const CALC_PRICE_PLACEHOLDERS = {
+  DEFAULT: {
+    entry: 'e.g. 100',
+    stop: 'e.g. 95',
+    exit: 'e.g. 110'
+  },
+  MNQ: {
+    entry: 'e.g. 18025',
+    stop: 'e.g. 17980',
+    exit: 'e.g. 18120'
+  },
+  NQ: {
+    entry: 'e.g. 18025',
+    stop: 'e.g. 17980',
+    exit: 'e.g. 18120'
+  },
+  MES: {
+    entry: 'e.g. 6951',
+    stop: 'e.g. 6943.25',
+    exit: 'e.g. 7010.75'
+  },
+  ES: {
+    entry: 'e.g. 6951',
+    stop: 'e.g. 6943.25',
+    exit: 'e.g. 7010.75'
+  },
+  MGC: {
+    entry: 'e.g. 5191.8',
+    stop: 'e.g. 5167.7',
+    exit: 'e.g. 5258'
+  },
+  GC: {
+    entry: 'e.g. 5191.8',
+    stop: 'e.g. 5167.7',
+    exit: 'e.g. 5258'
+  }
+};
+
+function getCalcTickerKey(value) {
+  return String(value || '').trim().toUpperCase().replace(/\s+/g, '');
+}
+
+function updateCalcPricePlaceholders(tickerValue = document.getElementById('calcTicker')?.value) {
+  const ticker = getCalcTickerKey(tickerValue);
+  const placeholders = CALC_PRICE_PLACEHOLDERS[ticker] || CALC_PRICE_PLACEHOLDERS.DEFAULT;
+
+  const entry = document.getElementById('calcEntry');
+  const stop = document.getElementById('calcSL');
+  const exit = document.getElementById('calcTP');
+
+  if (entry) entry.placeholder = placeholders.entry;
+  if (stop) stop.placeholder = placeholders.stop;
+  if (exit) exit.placeholder = placeholders.exit;
+}
+
+function handleCalcTickerChange() {
+  updateCalcPricePlaceholders();
+  runCalc();
+}
     
     function initCalcPage() {
   if (!hasPro) return;
@@ -7714,11 +7774,12 @@ function syncCalcDefaultsInputs() {
   syncCalcDefaultsInputs();
 
   document.getElementById('calcTicker').value = defaultTicker;
-  document.getElementById('calcContracts').value = defaultContracts;
-  document.getElementById('calcEntry').value = '';
-  document.getElementById('calcSL').value = '';
-  document.getElementById('calcTP').value = '';
-  document.getElementById('calcResultsCard').style.display = 'none';
+document.getElementById('calcContracts').value = defaultContracts;
+document.getElementById('calcEntry').value = '';
+document.getElementById('calcSL').value = '';
+document.getElementById('calcTP').value = '';
+updateCalcPricePlaceholders(defaultTicker);
+document.getElementById('calcResultsCard').style.display = 'none';
 
   document.getElementById('pointsCalcTicker').value = defaultTicker;
   document.getElementById('pointsCalcContracts').value = defaultContracts;
@@ -7729,6 +7790,7 @@ function syncCalcDefaultsInputs() {
 
 function runCalc() {
   const ticker = document.getElementById('calcTicker').value;
+  updateCalcPricePlaceholders(ticker);
   const contracts = parseFloat(document.getElementById('calcContracts').value) || 0;
   const entry = parseFloat(document.getElementById('calcEntry').value);
   const sl = parseFloat(document.getElementById('calcSL').value);
