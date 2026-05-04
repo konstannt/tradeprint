@@ -7598,8 +7598,7 @@ if (typeof renderPrintsFeed === 'function') renderPrintsFeed();
 
   if (calcTicker) calcTicker.value = ticker;
   if (pointsCalcTicker) pointsCalcTicker.value = ticker;
-updateCalcPriceSteps(ticker);
-updatePointsCalcSteps(ticker);
+updateAllCalcSteps();
       
   if (applyContracts) {
     if (calcContracts) calcContracts.value = contracts;
@@ -7615,11 +7614,13 @@ updatePointsCalcSteps(ticker);
 
 function handleCalcTickerChange() {
   updateCalcPricePlaceholders();
+  updateMainCalcPriceSteps();
   syncPrettySelects();
   runCalc();
 }
 
 function handlePointsCalcTickerChange() {
+  updatePointsCalcSteps();
   syncPrettySelects();
   runPointsCalc();
 }
@@ -7732,22 +7733,20 @@ function syncCalcDefaultsInputs() {
   }
 }
 
-const CALC_TICKER_STEPS = {
-  MNQ: '0.25',
-  NQ: '0.25',
-  MES: '0.25',
-  ES: '0.25',
-  MGC: '0.1',
-  GC: '0.1'
-};
+const CALC_DEFAULT_PRICE_STEP = '0.01';
 
-function getCalcTickerStep(tickerValue) {
-  const ticker = getCalcTickerKey(tickerValue);
-  return CALC_TICKER_STEPS[ticker] || '0.01';
+function getPriceStepForTicker(ticker) {
+  const normalized = getCalcTickerKey(ticker);
+
+  if (['MNQ', 'NQ', 'MES', 'ES'].includes(normalized)) return '0.25';
+  if (['MGC', 'GC'].includes(normalized)) return '0.1';
+
+  return CALC_DEFAULT_PRICE_STEP;
 }
 
-function updateCalcPriceSteps(tickerValue = document.getElementById('calcTicker')?.value) {
-  const step = getCalcTickerStep(tickerValue);
+function updateMainCalcPriceSteps() {
+  const ticker = document.getElementById('calcTicker')?.value;
+  const step = getPriceStepForTicker(ticker);
 
   ['calcEntry', 'calcSL', 'calcTP'].forEach(id => {
     const input = document.getElementById(id);
@@ -7755,13 +7754,19 @@ function updateCalcPriceSteps(tickerValue = document.getElementById('calcTicker'
   });
 }
 
-function updatePointsCalcSteps(tickerValue = document.getElementById('pointsCalcTicker')?.value) {
-  const step = getCalcTickerStep(tickerValue);
+function updatePointsCalcSteps() {
+  const ticker = document.getElementById('pointsCalcTicker')?.value;
+  const step = getPriceStepForTicker(ticker);
 
   ['pointsCalcSL', 'pointsCalcTP'].forEach(id => {
     const input = document.getElementById(id);
     if (input) input.step = step;
   });
+}
+
+function updateAllCalcSteps() {
+  updateMainCalcPriceSteps();
+  updatePointsCalcSteps();
 }
     
 const CALC_PRICE_PLACEHOLDERS = {
@@ -7829,11 +7834,9 @@ function handleCalcTickerChange() {
 
   const defaultTicker = localStorage.getItem('tp_ticker') || 'MNQ';
   const defaultContracts = localStorage.getItem('tp_contracts') || '';
-updateCalcPricePlaceholders(defaultTicker);
-updateCalcPriceSteps(defaultTicker);
-updatePointsCalcSteps(defaultTicker);
+updateCalcPricePlaceholders();
+updateAllCalcSteps();
 syncPrettySelects();
-
       
   syncCalcDefaultsInputs();
 
@@ -7857,6 +7860,7 @@ syncPrettySelects();
 function runCalc() {
   const ticker = document.getElementById('calcTicker').value;
   updateCalcPricePlaceholders(ticker);
+  updateMainCalcPriceSteps();
   const contracts = parseFloat(document.getElementById('calcContracts').value) || 0;
   const entry = parseFloat(document.getElementById('calcEntry').value);
   const sl = parseFloat(document.getElementById('calcSL').value);
@@ -7889,6 +7893,7 @@ function resetCalc() {
 
 function runPointsCalc() {
   const ticker = document.getElementById('pointsCalcTicker').value;
+  updatePointsCalcSteps();
   const contracts = parseFloat(document.getElementById('pointsCalcContracts').value) || 0;
   const slPoints = parseFloat(document.getElementById('pointsCalcSL').value);
   const tpPoints = parseFloat(document.getElementById('pointsCalcTP').value);
