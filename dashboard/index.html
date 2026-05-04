@@ -11581,7 +11581,36 @@ function getPrintPnlDisplay(postOrSnapshot) {
 
 function toggleSelectedPrintHidePnl() {
   selectedPrintHidePnl = !selectedPrintHidePnl;
-  renderPrintConfirm();
+
+  const trade = allTrades.find(t => t.id === selectedPrintTradeId);
+  const pnlChip = document.getElementById('selectedPrintPnlChip');
+  const toggleBtn = document.getElementById('selectedPrintPnlToggle');
+
+  if (!trade || !pnlChip || !toggleBtn) return;
+
+  const pnl = parseFloat(trade.pnl) || 0;
+
+  pnlChip.textContent = selectedPrintHidePnl
+    ? (pnl < 0 ? '-$*****' : pnl > 0 ? '+$*****' : '$*****')
+    : formatPnl(pnl);
+
+  toggleBtn.classList.toggle('active', selectedPrintHidePnl);
+  toggleBtn.title = selectedPrintHidePnl ? 'Show real PNL' : 'Hide PNL';
+  toggleBtn.setAttribute('aria-label', toggleBtn.title);
+
+  toggleBtn.innerHTML = selectedPrintHidePnl ? `
+    <svg viewBox="0 0 24 24">
+      <path d="M3 3l18 18"/>
+      <path d="M10.58 10.58a2 2 0 0 0 2.83 2.83"/>
+      <path d="M9.36 5.37A9.97 9.97 0 0 1 12 5c7 0 10 7 10 7a17.46 17.46 0 0 1-5.06 5.94"/>
+      <path d="M6.23 6.23C3.5 8.11 2 12 2 12s3 7 10 7a9.8 9.8 0 0 0 2.77-.39"/>
+    </svg>
+  ` : `
+    <svg viewBox="0 0 24 24">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+      <circle cx="12" cy="12" r="3"/>
+    </svg>
+  `;
 }
 
 function getPrintLeaderboardRows() {
@@ -11946,11 +11975,13 @@ function renderPrintConfirm() {
           <div class="print-meta">${trade.date || ''}${escapeHtml(rr)}${escapeHtml(time)} · ${trade.confluences_used?.length || 0} confluences</div>
         </div>
                 <div class="print-pnl-row">
-          <div class="print-pnl-chip ${tone}">${pnlDisplay}</div>
+          <div class="print-pnl-chip ${tone}" id="selectedPrintPnlChip">${pnlDisplay}</div>
 
           <button
-            class="print-pnl-toggle ${selectedPrintHidePnl ? 'active' : ''}"
-            type="button"
+  class="print-pnl-toggle ${selectedPrintHidePnl ? 'active' : ''}"
+  id="selectedPrintPnlToggle"
+  type="button"
+  aria-label="${selectedPrintHidePnl ? 'Show real PNL' : 'Hide PNL'}"
             onclick="toggleSelectedPrintHidePnl()"
             title="${selectedPrintHidePnl ? 'Show real PNL' : 'Hide PNL'}"
           >
