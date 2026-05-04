@@ -3710,6 +3710,144 @@ select.tp-native-select {
   vertical-align: middle;
 }
 
+.print-you-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 0 7px;
+  border-radius: 8px;
+  border: 1px solid rgba(34,197,94,0.4);
+  background: rgba(34,197,94,0.14);
+  color: var(--success);
+  font-size: 10px;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  vertical-align: middle;
+}
+
+.prints-profile-click {
+  cursor: pointer;
+}
+
+.prints-leaderboard-settings {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  display: grid;
+  gap: 10px;
+}
+
+.prints-leaderboard-copy,
+.prints-setting-note {
+  color: var(--text2);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.prints-setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.prints-setting-title {
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--text);
+}
+
+.prints-mini-switch {
+  position: relative;
+  width: 40px;
+  height: 22px;
+  flex: 0 0 40px;
+}
+
+.prints-mini-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.prints-mini-switch span {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: var(--border);
+  cursor: pointer;
+}
+
+.prints-mini-switch span::before {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  left: 3px;
+  top: 3px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.15s;
+}
+
+.prints-mini-switch input:checked + span {
+  background: var(--accent);
+}
+
+.prints-mini-switch input:checked + span::before {
+  transform: translateX(18px);
+}
+
+.prints-mini-switch input:disabled + span {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.print-leaderboard-controls {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.print-leaderboard-segmented {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.print-leaderboard-segment {
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.print-leaderboard-segment.active {
+  border-color: var(--accent);
+  background: rgba(99,102,241,0.14);
+  color: var(--accent);
+}
+
+.print-leaderboard-main {
+  min-width: 0;
+}
+
+.print-leaderboard-value {
+  font-size: 15px;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.print-leaderboard-value.green { color: var(--success); }
+.print-leaderboard-value.red { color: var(--danger); }
+.print-leaderboard-value.flat { color: var(--text2); }
+
 @media (max-width: 900px) {
   .prints-layout {
     grid-template-columns: 1fr;
@@ -5055,30 +5193,36 @@ select::-ms-expand {
     </div>
 
     <div class="prints-side">
-      <button class="prints-profile-card prints-profile-button" onclick="openPrintProfile(user.id)">
-        <div class="prints-side-title">Prints Profile</div>
-        <div class="prints-profile-row">
-          <div class="avatar prints-profile-avatar" id="printsMyAvatar">?</div>
-          <div>
-            <div class="prints-profile-name" id="printsMyName">—</div>
-            <div class="prints-profile-sub" id="printsMyBio">Add a bio in Settings.</div>
-          </div>
-        </div>
+      <div class="prints-profile-card prints-profile-button">
+  <div class="prints-side-title">Prints Profile</div>
 
-        <div class="prints-network">
-          <span onclick="event.stopPropagation(); openPrintNetwork('followers', user.id)">
-            <strong id="printsFollowersCount">0</strong>
-            <small>Followers</small>
-          </span>
-          <span onclick="event.stopPropagation(); openPrintNetwork('following', user.id)">
-            <strong id="printsFollowingCount">0</strong>
-            <small>Following</small>
-          </span>
-          <span>
-            <strong id="printsMyPostCount">0</strong>
-            <small>Prints</small>
-          </span>
-        </div>
+  <div class="prints-profile-click" onclick="openPrintProfile(user.id)">
+    <div class="prints-profile-row">
+      <div class="avatar prints-profile-avatar" id="printsMyAvatar">?</div>
+      <div>
+        <div class="prints-profile-name" id="printsMyName">—</div>
+        <div class="prints-profile-sub" id="printsMyBio">Add a bio in Settings.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="prints-network">
+    <span onclick="event.stopPropagation(); openPrintNetwork('followers', user.id)">
+      <strong id="printsFollowersCount">0</strong>
+      <small>Followers</small>
+    </span>
+    <span onclick="event.stopPropagation(); openPrintNetwork('following', user.id)">
+      <strong id="printsFollowingCount">0</strong>
+      <small>Following</small>
+    </span>
+    <span>
+      <strong id="printsMyPostCount">0</strong>
+      <small>Prints</small>
+    </span>
+  </div>
+
+  <div class="prints-leaderboard-settings" id="printsLeaderboardSettings"></div>
+</div>
       </button>
 
       <div class="prints-profile-card">
@@ -11296,6 +11440,18 @@ let selectedPrintHidePnl = false;
 let activeReplyPostId = null;
 let activePrintNetworkType = 'followers';
 let activePrintNetworkUserId = null;
+    let leaderboardMetric = localStorage.getItem('tp_leaderboard_metric') || 'pnl';
+let leaderboardTimeframe = localStorage.getItem('tp_leaderboard_timeframe') || '1m';
+let leaderboardRows = [];
+let myLoggedTradeCount = 0;
+
+let myLeaderboardSettings = {
+  leaderboard_opt_in: false,
+  leaderboard_hide_stats: false,
+  leaderboard_anonymous: false
+};
+
+const LEADERBOARD_MIN_TRADES = 20;
 
 const PRINT_CAPTION_MAX = 280;
 const PRINT_REPLY_MAX = 240;
@@ -11303,10 +11459,173 @@ const FOUNDER_EMAIL = 'dean.tsi.198@gmail.com';
 
 let printsWarmPromise = null;
 
+async function loadMyLoggedTradeCount() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}&select=id`, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`,
+      'Prefer': 'count=exact',
+      'Range': '0-0'
+    }
+  });
+
+  const total = Number((res.headers.get('content-range') || '').split('/')[1]);
+  myLoggedTradeCount = Number.isFinite(total) ? total : 0;
+}
+
+async function loadMyLeaderboardSettings() {
+  await loadMyLoggedTradeCount();
+
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${user.id}&select=leaderboard_opt_in,leaderboard_hide_stats,leaderboard_anonymous&limit=1`, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`
+    }
+  });
+
+  const data = await res.json();
+  const p = Array.isArray(data) && data[0] ? data[0] : {};
+
+  myLeaderboardSettings = {
+    leaderboard_opt_in: !!p.leaderboard_opt_in,
+    leaderboard_hide_stats: !!p.leaderboard_hide_stats,
+    leaderboard_anonymous: !!p.leaderboard_anonymous
+  };
+}
+
+async function saveLeaderboardSettings(patch) {
+  myLeaderboardSettings = {
+    ...myLeaderboardSettings,
+    ...patch
+  };
+
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/profiles`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'resolution=merge-duplicates,return=minimal'
+    },
+    body: JSON.stringify({
+      id: user.id,
+      ...myLeaderboardSettings
+    })
+  });
+
+  if (!res.ok) throw new Error('Could not save leaderboard settings.');
+}
+
+function renderLeaderboardSettings() {
+  const el = document.getElementById('printsLeaderboardSettings');
+  if (!el) return;
+
+  const canJoin = myLoggedTradeCount >= LEADERBOARD_MIN_TRADES;
+  const optedIn = canJoin && myLeaderboardSettings.leaderboard_opt_in;
+
+  el.innerHTML = `
+    <div class="prints-leaderboard-copy">
+      Leaderboards use your logged trades, not shared prints. You need 20 logged trades to join.
+    </div>
+
+    <div class="prints-setting-row">
+      <div>
+        <div class="prints-setting-title">Show me on leaderboards</div>
+        ${canJoin ? '<div class="prints-setting-note">You can hide your stats or appear anonymous.</div>' : '<div class="prints-setting-note">You need 20 logged trades to join leaderboards.</div>'}
+      </div>
+      <label class="prints-mini-switch">
+        <input type="checkbox" ${optedIn ? 'checked' : ''} ${canJoin ? '' : 'disabled'} onchange="toggleLeaderboardOptIn(this.checked)"/>
+        <span></span>
+      </label>
+    </div>
+
+    ${optedIn ? `
+      <div class="prints-setting-row">
+        <div>
+          <div class="prints-setting-title">Hide my stats</div>
+          <div class="prints-setting-note">Your rank stays accurate, but PnL and WR show as Hidden.</div>
+        </div>
+        <label class="prints-mini-switch">
+          <input type="checkbox" ${myLeaderboardSettings.leaderboard_hide_stats ? 'checked' : ''} onchange="toggleLeaderboardPrivacy('leaderboard_hide_stats', this.checked)"/>
+          <span></span>
+        </label>
+      </div>
+
+      <div class="prints-setting-row">
+        <div>
+          <div class="prints-setting-title">Appear anonymous</div>
+          <div class="prints-setting-note">Others see Anonymous Trader. You still see a YOU badge.</div>
+        </div>
+        <label class="prints-mini-switch">
+          <input type="checkbox" ${myLeaderboardSettings.leaderboard_anonymous ? 'checked' : ''} onchange="toggleLeaderboardPrivacy('leaderboard_anonymous', this.checked)"/>
+          <span></span>
+        </label>
+      </div>
+    ` : ''}
+  `;
+}
+
+async function toggleLeaderboardOptIn(checked) {
+  if (checked && myLoggedTradeCount < LEADERBOARD_MIN_TRADES) {
+    renderLeaderboardSettings();
+    return;
+  }
+
+  await saveLeaderboardSettings({ leaderboard_opt_in: checked });
+  renderLeaderboardSettings();
+  await loadLeaderboardRows();
+  renderPrintsFeed();
+}
+
+async function toggleLeaderboardPrivacy(key, checked) {
+  await saveLeaderboardSettings({ [key]: checked });
+  renderLeaderboardSettings();
+  await loadLeaderboardRows();
+  renderPrintsFeed();
+}
+
+async function loadLeaderboardRows() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_prints_leaderboard`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      metric: leaderboardMetric,
+      timeframe: leaderboardTimeframe
+    })
+  });
+
+  const data = await res.json();
+  leaderboardRows = Array.isArray(data) ? data : [];
+}
+
+async function setLeaderboardMetric(metric) {
+  leaderboardMetric = metric === 'win_rate' ? 'win_rate' : 'pnl';
+  localStorage.setItem('tp_leaderboard_metric', leaderboardMetric);
+  await loadLeaderboardRows();
+  renderPrintsFeed();
+}
+
+async function setLeaderboardTimeframe(timeframe) {
+  leaderboardTimeframe = ['1d', '1w', '1m', '3m', '1y', 'all'].includes(timeframe) ? timeframe : '1m';
+  localStorage.setItem('tp_leaderboard_timeframe', leaderboardTimeframe);
+  await loadLeaderboardRows();
+  renderPrintsFeed();
+}
+
 async function loadPrints() {
   await loadPrintFollows();
-  await loadPrintPosts();
-  await loadPrintReplies();
+  await Promise.all([
+    loadPrintPosts(),
+    loadMyLeaderboardSettings()
+  ]);
+  await Promise.all([
+    loadPrintReplies(),
+    loadLeaderboardRows()
+  ]);
 
   renderPrintsProfile();
   renderPrintsFeed();
@@ -11452,6 +11771,10 @@ function getFounderBadgeHtml(profile) {
   return isFounderProfile(profile) ? '<span class="founder-badge">Founder</span>' : '';
 }
 
+    function getYouBadgeHtml(isCurrentUser) {
+  return isCurrentUser ? '<span class="print-you-badge">YOU</span>' : '';
+}
+
 function formatPrintText(value) {
   return escapeHtml(value || '').replace(/\n/g, '<br>');
 }
@@ -11527,6 +11850,7 @@ function renderPrintsProfile() {
   followersEl.textContent = printFollows.filter(f => f.following_id === user.id).length;
   followingEl.textContent = printFollows.filter(f => f.follower_id === user.id).length;
   postsEl.textContent = getUserPrintPosts(user.id).length;
+  renderLeaderboardSettings();
 }
 
 function getVisiblePrintPosts() {
@@ -11613,65 +11937,121 @@ function toggleSelectedPrintHidePnl() {
   `;
 }
 
-function getPrintLeaderboardRows() {
-  const groups = {};
+function getLeaderboardAvatarHtml(row) {
+  if (row.is_anonymous || !row.avatar_url) {
+    return escapeHtml((row.display_name || 'Anonymous Trader')[0]?.toUpperCase() || '?');
+  }
 
-  printPosts.forEach(post => {
-    if (!post.user_id) return;
+  return `<img src="${escapeHtml(row.avatar_url)}" alt="avatar"/>`;
+}
 
-    if (!groups[post.user_id]) {
-      groups[post.user_id] = {
-        userId: post.user_id,
-        pnl: 0,
-        posts: 0,
-        wins: 0
-      };
-    }
+function getLeaderboardMetricDisplay(row) {
+  if (row.stats_hidden) return 'Hidden';
 
-    groups[post.user_id].pnl += getPrintPostPnl(post);
-    groups[post.user_id].posts += 1;
+  if (leaderboardMetric === 'win_rate') {
+    const wr = Number(row.visible_win_rate);
+    return Number.isFinite(wr) ? `${Math.round(wr)}% WR` : '—';
+  }
 
-    if (post.trade_snapshot?.result === 'win') {
-      groups[post.user_id].wins += 1;
-    }
-  });
+  const pnl = Number(row.visible_total_pnl);
+  return Number.isFinite(pnl) ? formatPnl(pnl) : '—';
+}
 
-  return Object.values(groups)
-    .sort((a, b) => b.pnl - a.pnl || b.posts - a.posts)
-    .slice(0, 50);
+function getLeaderboardMetricTone(row) {
+  if (row.stats_hidden || leaderboardMetric === 'win_rate') return 'flat';
+
+  const pnl = Number(row.visible_total_pnl);
+  return pnl > 0 ? 'green' : pnl < 0 ? 'red' : 'flat';
+}
+
+function getLeaderboardSupportStat(row) {
+  const trades = `${row.trade_count || 0} trade${row.trade_count === 1 ? '' : 's'}`;
+
+  if (row.stats_hidden) return trades;
+
+  if (leaderboardMetric === 'win_rate') {
+    const pnl = Number(row.visible_total_pnl);
+    return Number.isFinite(pnl) ? `${formatPnl(pnl)} · ${trades}` : trades;
+  }
+
+  const wr = Number(row.visible_win_rate);
+  return Number.isFinite(wr) ? `${Math.round(wr)}% WR · ${trades}` : trades;
 }
 
 function renderPrintLeaderboard(feed) {
-  const rows = getPrintLeaderboardRows();
+  const metricButtons = [
+    { value: 'pnl', label: 'Total PnL' },
+    { value: 'win_rate', label: 'Win Rate %' }
+  ];
 
-  if (!rows.length) {
-    feed.innerHTML = '<div class="prints-empty">No leaderboard yet. Published Prints will rank traders by shared PNL.</div>';
-    return;
+  const timeframeButtons = [
+    { value: '1d', label: '1D' },
+    { value: '1w', label: '1W' },
+    { value: '1m', label: '1M' },
+    { value: '3m', label: '3M' },
+    { value: '1y', label: '1Y' },
+    { value: 'all', label: 'All Time' }
+  ];
+
+  let emptyText = 'No eligible traders for this timeframe yet.';
+
+  if (myLoggedTradeCount < LEADERBOARD_MIN_TRADES) {
+    emptyText = 'Log 20 trades to join the leaderboard.';
+  } else if (!myLeaderboardSettings.leaderboard_opt_in) {
+    emptyText = 'Opt in to appear on leaderboards.';
   }
 
   feed.innerHTML = `
-    <div class="print-leaderboard">
-      ${rows.map((row, index) => {
-        const profile = getPrintProfile(row.userId);
-        const winRate = row.posts ? Math.round((row.wins / row.posts) * 100) : 0;
-        const tone = getPnlTone(row.pnl);
+    <div class="prints-profile-card">
+      <div class="prints-side-title">Leaderboard</div>
 
-        return `
-          <div class="print-leaderboard-row">
-            <div class="print-leaderboard-rank">${index + 1}</div>
+      <div class="print-leaderboard-controls">
+        <div class="print-leaderboard-segmented">
+          ${metricButtons.map(btn => `
+            <button class="print-leaderboard-segment ${leaderboardMetric === btn.value ? 'active' : ''}" type="button" onclick="setLeaderboardMetric('${btn.value}')">
+              ${btn.label}
+            </button>
+          `).join('')}
+        </div>
 
-            <div class="print-leaderboard-user" onclick="openPrintProfile('${row.userId}')">
-              <div class="avatar">${getPrintAvatarHtml(profile)}</div>
-              <div style="min-width:0;">
-                <div class="print-card-name">${escapeHtml(profile.username || 'Trader')} ${getFounderBadgeHtml(profile)}</div>
-                <div class="print-meta">${row.posts} Print${row.posts !== 1 ? 's' : ''} · ${winRate}% shared WR</div>
-              </div>
-            </div>
+        <div class="print-leaderboard-segmented">
+          ${timeframeButtons.map(btn => `
+            <button class="print-leaderboard-segment ${leaderboardTimeframe === btn.value ? 'active' : ''}" type="button" onclick="setLeaderboardTimeframe('${btn.value}')">
+              ${btn.label}
+            </button>
+          `).join('')}
+        </div>
+      </div>
 
-            <div class="print-pnl-chip ${tone}">${formatPnl(row.pnl)}</div>
+      <div class="print-leaderboard">
+        ${leaderboardRows.length ? leaderboardRows.map(renderPrintLeaderboardRow).join('') : `<div class="prints-empty">${emptyText}</div>`}
+      </div>
+    </div>
+  `;
+}
+
+function renderPrintLeaderboardRow(row) {
+  const canOpenProfile = !!row.profile_id;
+  const profile = { id: row.profile_id, is_founder: row.is_founder };
+  const tone = getLeaderboardMetricTone(row);
+
+  return `
+    <div class="print-leaderboard-row">
+      <div class="print-leaderboard-rank">${row.rank_position}</div>
+
+      <div class="print-leaderboard-user" ${canOpenProfile ? `onclick="openPrintProfile('${row.profile_id}')"` : ''}>
+        <div class="avatar">${getLeaderboardAvatarHtml(row)}</div>
+        <div class="print-leaderboard-main">
+          <div class="print-card-name">
+            ${escapeHtml(row.display_name || 'Trader')}
+            ${getFounderBadgeHtml(profile)}
+            ${getYouBadgeHtml(row.is_current_user)}
           </div>
-        `;
-      }).join('')}
+          <div class="print-meta">${getLeaderboardSupportStat(row)}</div>
+        </div>
+      </div>
+
+      <div class="print-leaderboard-value ${tone}">${getLeaderboardMetricDisplay(row)}</div>
     </div>
   `;
 }
@@ -11699,7 +12079,7 @@ function renderPrintCard(post) {
         <div class="print-card-user" onclick="openPrintProfile('${post.user_id}')">
           <div class="avatar">${avatarHtml}</div>
           <div>
-            <div class="print-card-name">${escapeHtml(username)} ${getFounderBadgeHtml(profile)}</div>
+            <div class="print-card-name">${escapeHtml(username)} ${getFounderBadgeHtml(profile)} ${getYouBadgeHtml(post.user_id === user.id)}</div>
             <div class="print-card-bio">${escapeHtml(bio || 'No bio yet.')}</div>
           </div>
         </div>
