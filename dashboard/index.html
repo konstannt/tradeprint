@@ -2243,6 +2243,7 @@ select.tp-native-select {
   border-radius: 12px;
   object-fit: contain;
   background: #050505;
+  cursor: zoom-out;
 }
 
 .img-lightbox-close {
@@ -4817,7 +4818,7 @@ select::-ms-expand {
   <!-- IMAGE LIGHTBOX -->
 <div class="img-lightbox" id="imgLightbox" onclick="handleLightboxBackdropClick(event)">
   <button class="img-lightbox-close" type="button" onclick="closeLightbox(event)" aria-label="Close image">×</button>
-  <img id="lightboxImg" src="" alt="" onclick="event.stopPropagation()"/>
+  <img id="lightboxImg" src="" alt="" onclick="closeLightbox(event)"/>
 </div>
 
   <!-- MOBILE TOP BAR -->
