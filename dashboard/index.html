@@ -1191,8 +1191,27 @@ select.tp-native-select {
     .coming-soon { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 60px; text-align: center; color: var(--text2); font-size: 15px; }
     .coming-soon span { display: block; font-size: 32px; margin-bottom: 12px; }
     .strategies-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
-    .strategy-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 20px; transition: border-color 0.2s; position: relative; }
-    .strategy-card:hover { border-color: var(--accent); }
+    .strategy-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.strategy-card * {
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.strategy-card:hover {
+  border-color: var(--accent);
+}
     .strategy-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
     .strategy-name { font-size: 16px; font-weight: 700; }
     .strategy-actions { display: flex; gap: 8px; }
@@ -1326,6 +1345,7 @@ select.tp-native-select {
 .strategy-card.selected {
   border-color: var(--accent);
   background: rgba(99,102,241,0.08);
+  box-shadow: inset 0 0 0 1px rgba(99,102,241,0.18);
 }
 
 .strategy-playbook {
@@ -6869,12 +6889,17 @@ async function loadStrategyAnalyticsTrades() {
 
 function renderStrategies(strategies) {
   const grid = document.getElementById('strategiesGrid');
+  if (!grid) return;
 
-  if (!strategies || strategies.length === 0) {
+  if (!strategies.length) {
     selectedStrategyPlaybookId = null;
-    grid.innerHTML = `<div class="empty-strategies"><span>⚡</span>No strategies yet. Hit "New Strategy" to get started.</div>`;
+    grid.innerHTML = '<div class="empty-strategies"><span>📚</span>No strategies yet. Create your first strategy.</div>';
     renderStrategyPlaybook();
     return;
+  }
+
+  if (!selectedStrategyPlaybookId || !strategies.some(s => s.id === selectedStrategyPlaybookId)) {
+    selectedStrategyPlaybookId = strategies[0].id;
   }
 
   grid.innerHTML = strategies.map(s => `
@@ -6905,8 +6930,8 @@ function renderStrategies(strategies) {
   `).join('');
 }
 
-    function selectStrategyPlaybook(id) {
-  selectedStrategyPlaybookId = id;
+    function selectStrategyPlaybook(strategyId) {
+  selectedStrategyPlaybookId = strategyId;
   renderStrategies(allStrategies);
   renderStrategyPlaybook();
 }
