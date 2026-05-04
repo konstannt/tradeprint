@@ -5251,7 +5251,7 @@ select::-ms-expand {
           <div class="calc-input-grid">
             <div class="calc-field">
               <label>Ticker</label>
-              <select id="pointsCalcTicker" onchange="runPointsCalc()">
+              <select id="pointsCalcTicker" onchange="handlePointsCalcTickerChange()">
                 <option value="MNQ">MNQ</option>
                 <option value="NQ">NQ</option>
                 <option value="MES">MES</option>
@@ -7587,13 +7587,9 @@ if (typeof renderPrintsFeed === 'function') renderPrintsFeed();
   localStorage.setItem('tp_theme', isLight ? 'light' : 'dark');
 }
 
-    function saveCalcDefaults() {
-  const ticker = document.getElementById('defaultTicker')?.value || 'MNQ';
-  const contracts = document.getElementById('defaultContracts')?.value || '';
-
-  localStorage.setItem('tp_ticker', ticker);
-  localStorage.setItem('tp_contracts', contracts);
-  localStorage.removeItem('tp_rr');
+    function applySavedCalcDefaults({ applyContracts = false } = {}) {
+  const ticker = String(localStorage.getItem('tp_ticker') || 'MNQ').trim().toUpperCase();
+  const contracts = localStorage.getItem('tp_contracts') || '';
 
   const calcTicker = document.getElementById('calcTicker');
   const pointsCalcTicker = document.getElementById('pointsCalcTicker');
@@ -7602,13 +7598,44 @@ if (typeof renderPrintsFeed === 'function') renderPrintsFeed();
 
   if (calcTicker) calcTicker.value = ticker;
   if (pointsCalcTicker) pointsCalcTicker.value = ticker;
-  if (calcContracts) calcContracts.value = contracts;
-  if (pointsCalcContracts) pointsCalcContracts.value = contracts;
+updateCalcPriceSteps(ticker);
+updatePointsCalcSteps(ticker);
+      
+  if (applyContracts) {
+    if (calcContracts) calcContracts.value = contracts;
+    if (pointsCalcContracts) pointsCalcContracts.value = contracts;
+  }
+
+  updateCalcPricePlaceholders(ticker);
+  syncPrettySelects();
 
   runCalc();
   runPointsCalc();
+}
+
+function handleCalcTickerChange() {
+  updateCalcPricePlaceholders();
+  syncPrettySelects();
+  runCalc();
+}
+
+function handlePointsCalcTickerChange() {
+  syncPrettySelects();
+  runPointsCalc();
+}
+
+    function saveCalcDefaults() {
+  const ticker = String(document.getElementById('defaultTicker')?.value || 'MNQ').trim().toUpperCase();
+  const contracts = document.getElementById('defaultContracts')?.value || '';
+
+  localStorage.setItem('tp_ticker', ticker);
+  localStorage.setItem('tp_contracts', contracts);
+  localStorage.removeItem('tp_rr');
+
+  applySavedCalcDefaults({ applyContracts: false });
 
   const msg = document.getElementById('calcMsg');
+
   if (msg) {
     msg.textContent = 'Defaults saved!';
     msg.className = 'msg success';
@@ -7705,6 +7732,38 @@ function syncCalcDefaultsInputs() {
   }
 }
 
+const CALC_TICKER_STEPS = {
+  MNQ: '0.25',
+  NQ: '0.25',
+  MES: '0.25',
+  ES: '0.25',
+  MGC: '0.1',
+  GC: '0.1'
+};
+
+function getCalcTickerStep(tickerValue) {
+  const ticker = getCalcTickerKey(tickerValue);
+  return CALC_TICKER_STEPS[ticker] || '0.01';
+}
+
+function updateCalcPriceSteps(tickerValue = document.getElementById('calcTicker')?.value) {
+  const step = getCalcTickerStep(tickerValue);
+
+  ['calcEntry', 'calcSL', 'calcTP'].forEach(id => {
+    const input = document.getElementById(id);
+    if (input) input.step = step;
+  });
+}
+
+function updatePointsCalcSteps(tickerValue = document.getElementById('pointsCalcTicker')?.value) {
+  const step = getCalcTickerStep(tickerValue);
+
+  ['pointsCalcSL', 'pointsCalcTP'].forEach(id => {
+    const input = document.getElementById(id);
+    if (input) input.step = step;
+  });
+}
+    
 const CALC_PRICE_PLACEHOLDERS = {
   DEFAULT: {
     entry: 'e.g. 100',
@@ -7770,7 +7829,12 @@ function handleCalcTickerChange() {
 
   const defaultTicker = localStorage.getItem('tp_ticker') || 'MNQ';
   const defaultContracts = localStorage.getItem('tp_contracts') || '';
+updateCalcPricePlaceholders(defaultTicker);
+updateCalcPriceSteps(defaultTicker);
+updatePointsCalcSteps(defaultTicker);
+syncPrettySelects();
 
+      
   syncCalcDefaultsInputs();
 
   document.getElementById('calcTicker').value = defaultTicker;
@@ -7782,6 +7846,8 @@ updateCalcPricePlaceholders(defaultTicker);
 document.getElementById('calcResultsCard').style.display = 'none';
 
   document.getElementById('pointsCalcTicker').value = defaultTicker;
+      updateCalcPricePlaceholders(defaultTicker);
+syncPrettySelects();
   document.getElementById('pointsCalcContracts').value = defaultContracts;
   document.getElementById('pointsCalcSL').value = '';
   document.getElementById('pointsCalcTP').value = '';
