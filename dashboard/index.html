@@ -9590,7 +9590,8 @@ if (!direction) {
 
     const chartImages = await uploadPendingTradeCharts();
     console.log('[Trade chart] save payload chart_images:', chartImages);
-
+console.log('[Trade chart] full trade save payload:', payload);
+    
     const payload = {
       user_id: user.id,
       account_id: accountId,
@@ -9608,7 +9609,6 @@ if (!direction) {
       chart_images: chartImages,
       trade_time: tradeTime
     };
-console.log('[Trade chart] full trade save payload:', payload);
     
     let res;
 
