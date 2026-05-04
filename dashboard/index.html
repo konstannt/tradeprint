@@ -7121,26 +7121,21 @@ function handleStrategyExampleImageSelect(event) {
   preview.innerHTML = `<div class="strategy-example-card"><img src="${strategyExamplePreviewUrl}" alt="preview"/></div>`;
 }
 
+function blobToDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => resolve(reader.result || '');
+    reader.onerror = () => reject(new Error('Image read failed.'));
+    reader.readAsDataURL(blob);
+  });
+}
+
 async function uploadStrategyExampleImage(strategyId, file) {
   if (!file) return '';
 
-  const blob = await resizeImageFileToBlob(file, NOTE_IMAGE_MAX_WIDTH, NOTE_IMAGE_QUALITY);
-  const id = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-  const path = `${user.id}/${strategyId}/${id}.jpg`;
-
-  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/${STRATEGY_EXAMPLE_BUCKET}/${path}`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'image/jpeg',
-      'x-upsert': 'false'
-    },
-    body: blob
-  });
-
-  if (!res.ok) throw new Error('Screenshot upload failed.');
-
-  return `${SUPABASE_URL}/storage/v1/object/public/${STRATEGY_EXAMPLE_BUCKET}/${path}`;
+  const blob = await resizeImageFileToBlob(file, 900, 0.72);
+  return blobToDataUrl(blob);
 }
 
 async function saveStrategyExample() {
@@ -7156,8 +7151,7 @@ async function saveStrategyExample() {
     return;
   }
 
-  setStrategyPlaybookStatus(strategyExampleImageFile ? 'Uploading screenshot...' : 'Saving example...');
-
+  setStrategyPlaybookStatus(strategyExampleImageFile ? 'Preparing screenshot...' : 'Saving example...');
   let imageUrl = '';
 
   try {
