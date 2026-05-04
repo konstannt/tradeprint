@@ -6232,7 +6232,24 @@ function normalizeTradeChartUrl(value) {
     .join('/');
 }
 
-function getTradeChartStoragePath(value) {
+function getTradeChartStoragePath(value, mode = 'preview') {
+  if (!value) return '';
+
+  if (typeof value === 'object') {
+    const directPath = mode === 'full'
+      ? (value.full_path || value.fullPath || value.original_path || value.originalPath || value.path)
+      : (value.thumbnail_path || value.thumbnailPath || value.thumb_path || value.thumbPath || value.preview_path || value.previewPath || value.path);
+
+    if (directPath) {
+      let cleaned = String(directPath).trim().replace(/^\/+/, '');
+      const bucketPrefix = `${TRADE_CHART_BUCKET}/`;
+      if (cleaned.startsWith(bucketPrefix)) cleaned = cleaned.slice(bucketPrefix.length);
+      return decodeURIComponent(cleaned);
+    }
+
+    value = mode === 'full' ? getTradeChartFullSrc(value) : getTradeChartPreviewSrc(value);
+  }
+
   const raw = String(value || '').trim();
   if (!raw || raw === '[object Object]' || raw.startsWith('blob:') || raw.startsWith('data:')) return '';
 
@@ -6244,14 +6261,11 @@ function getTradeChartStoragePath(value) {
 
   const publicMarker = `/storage/v1/object/public/${TRADE_CHART_BUCKET}/`;
   const signedMarker = `/storage/v1/object/sign/${TRADE_CHART_BUCKET}/`;
+  const objectMarker = `/storage/v1/object/${TRADE_CHART_BUCKET}/`;
 
-  if (path.includes(publicMarker)) {
-    return decodeURIComponent(path.split(publicMarker)[1] || '');
-  }
-
-  if (path.includes(signedMarker)) {
-    return decodeURIComponent(path.split(signedMarker)[1] || '');
-  }
+  if (path.includes(publicMarker)) return decodeURIComponent(path.split(publicMarker)[1] || '');
+  if (path.includes(signedMarker)) return decodeURIComponent(path.split(signedMarker)[1] || '');
+  if (path.includes(objectMarker)) return decodeURIComponent(path.split(objectMarker)[1] || '');
 
   path = raw.replace(/^\/+/, '').split('?')[0];
 
@@ -6299,13 +6313,18 @@ async function createSignedTradeChartUrl(path) {
 }
 
 async function getSignedTradeChartSrc(item, mode = 'preview') {
+  const path = getTradeChartStoragePath(item, mode);
+
+  if (path) {
+    return createSignedTradeChartUrl(path);
+  }
+
   const src = mode === 'full'
     ? getTradeChartFullSrc(item)
     : getTradeChartPreviewSrc(item);
 
-  const path = getTradeChartStoragePath(src);
-  return createSignedTradeChartUrl(path);
-}   
+  return isTemporaryImageUrl(src) ? '' : src;
+}
 
 function getTradeChartValue(chart, keys) {
   if (!chart) return '';
@@ -6321,6 +6340,12 @@ function getTradeChartValue(chart, keys) {
 
 function getTradeChartPreviewSrc(chart) {
   return normalizeTradeChartUrl(getTradeChartValue(chart, [
+    'thumbnail_path',
+    'thumbnailPath',
+    'thumb_path',
+    'thumbPath',
+    'preview_path',
+    'previewPath',
     'thumbnailUrl',
     'thumbnail_url',
     'previewUrl',
@@ -6346,6 +6371,10 @@ function getTradeChartPreviewSrc(chart) {
 
 function getTradeChartFullSrc(chart) {
   return normalizeTradeChartUrl(getTradeChartValue(chart, [
+    'full_path',
+    'fullPath',
+    'original_path',
+    'originalPath',
     'fullImageUrl',
     'full_image_url',
     'originalUrl',
@@ -6359,6 +6388,8 @@ function getTradeChartFullSrc(chart) {
     'public_url',
     'signedUrl',
     'signed_url',
+    'thumbnail_path',
+    'thumbnailPath',
     'thumbnailUrl',
     'thumbnail_url',
     'previewUrl',
@@ -6368,12 +6399,16 @@ function getTradeChartFullSrc(chart) {
 }
 
 function normalizeImageRecord(item) {
+  const thumbnailPath = getTradeChartStoragePath(item, 'preview');
+  const fullPath = getTradeChartStoragePath(item, 'full') || thumbnailPath;
   const thumbnailUrl = getTradeChartPreviewSrc(item);
   const fullUrl = getTradeChartFullSrc(item) || thumbnailUrl;
 
   return {
     thumbnailUrl,
-    fullUrl
+    fullUrl,
+    thumbnailPath,
+    fullPath
   };
 }
 
@@ -6451,6 +6486,26 @@ async function handleTradeChartPreviewError(img, id) {
   if (fallback) fallback.style.display = 'block';
 }
 
+async function hydrateTradeChartPreviewImage(img, id) {
+  const item = tradeChartImages.find(chart => chart.id === id);
+  if (!img || !item || item.source !== 'saved' || img.dataset.signedHydrated === 'true') return;
+
+  img.dataset.signedHydrated = 'true';
+
+  const signedPreview = await getSignedTradeChartSrc(item, 'preview');
+  const signedFull = await getSignedTradeChartSrc(item, 'full');
+
+  if (!img.isConnected) return;
+
+  if (signedFull || signedPreview) {
+    img.dataset.fullSrc = signedFull || signedPreview;
+  }
+
+  if (signedPreview) {
+    img.src = signedPreview;
+  }
+}
+    
 function renderTradeChartPreviews() {
   const list = document.getElementById('tradeChartPreviewList');
   const hint = document.getElementById('tradeChartHint');
@@ -6481,18 +6536,22 @@ function renderTradeChartPreviews() {
     return `
       <div class="trade-chart-thumb">
         <img
-          src="${escapeHtml(src)}"
-          data-full-src="${escapeHtml(fullSrc)}"
-          alt=""
-          onclick="openLightbox(this)"
-          onerror="handleTradeChartPreviewError(this, '${item.id}')"
-        />
+  src="${escapeHtml(src)}"
+  data-chart-id="${escapeHtml(item.id)}"
+  data-full-src="${escapeHtml(fullSrc)}"
+  alt=""
+  onclick="openLightbox(this)"
+  onerror="handleTradeChartPreviewError(this, '${item.id}')"
+/>
         <div class="trade-chart-status trade-chart-error" style="display:none;">Image failed to load</div>
         <button class="trade-chart-remove" type="button" onclick="removeTradeChartImage('${item.id}')">×</button>
         ${status}
       </div>
     `;
   }).join('');
+    list.querySelectorAll('img[data-chart-id]').forEach(img => {
+    hydrateTradeChartPreviewImage(img, img.dataset.chartId).catch(console.warn);
+  });
 }
 
 async function uploadTradeChartImage(file) {
@@ -6521,18 +6580,22 @@ async function uploadPendingTradeCharts() {
 
   for (const item of tradeChartImages) {
     if (item.source === 'saved') {
-      const previewSrc = getTradeChartPreviewSrc(item);
-      const fullSrc = getTradeChartFullSrc(item) || previewSrc;
+  const previewPath = getTradeChartStoragePath(item, 'preview');
+  const fullPath = getTradeChartStoragePath(item, 'full') || previewPath;
+  const previewSrc = previewPath ? normalizeTradeChartUrl(previewPath) : getTradeChartPreviewSrc(item);
+  const fullSrc = fullPath ? normalizeTradeChartUrl(fullPath) : (getTradeChartFullSrc(item) || previewSrc);
 
-      if (previewSrc && !isTemporaryImageUrl(previewSrc)) {
-        images.push({
-          thumbnail_url: previewSrc,
-          full_url: !isTemporaryImageUrl(fullSrc) ? fullSrc : previewSrc
-        });
-      }
+  if (previewSrc || previewPath) {
+    images.push({
+      thumbnail_url: previewSrc,
+      full_url: fullSrc || previewSrc,
+      thumbnail_path: previewPath,
+      full_path: fullPath
+    });
+  }
 
-      continue;
-    }
+  continue;
+}
 
     if (!item.file) continue;
 
