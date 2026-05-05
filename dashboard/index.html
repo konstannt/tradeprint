@@ -448,6 +448,10 @@ select.tp-native-select {
   color: var(--danger);
 }
 
+.strategy-example-card .account-delete-btn:first-child:hover {
+  color: var(--accent);
+}
+
 .cal-header-right {
   display: flex;
   align-items: center;
@@ -7551,6 +7555,7 @@ function renderStrategyPlaybook() {
   <button class="btn-secondary" id="strategyExampleCancelEditBtn" type="button" onclick="cancelStrategyExampleEdit()" style="display:none;">Cancel Edit</button>
 </div>
         </div>
+        <div style="border-top:1px solid var(--border);margin:18px 0 14px;"></div>
         <div class="strategy-example-list">
           ${examples.length ? examples.map(renderStrategyExample).join('') : '<div class="strategy-playbook-sub">No saved examples yet.</div>'}
         </div>
