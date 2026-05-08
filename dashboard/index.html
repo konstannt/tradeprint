@@ -1216,6 +1216,59 @@ select.tp-native-select {
 .strategy-card:hover {
   border-color: var(--accent);
 }
+
+.strategy-card.dragging {
+  opacity: 0.55;
+  border-color: var(--accent);
+  background: rgba(99,102,241,0.12);
+}
+
+.strategy-card.drag-over-before::before,
+.strategy-card.drag-over-after::after {
+  content: '';
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 2px;
+}
+
+.strategy-card.drag-over-before::before {
+  top: -2px;
+}
+
+.strategy-card.drag-over-after::after {
+  bottom: -2px;
+}
+
+.strategy-card-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.strategy-card-header-left .strategy-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.strategy-drag-handle {
+  flex: 0 0 auto;
+  width: 24px;
+  color: var(--text2);
+  font-size: 18px;
+  line-height: 1;
+  cursor: grab !important;
+}
+
+.strategy-card.dragging .strategy-drag-handle {
+  cursor: grabbing !important;
+}
+    
     .strategy-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
     .strategy-name { font-size: 16px; font-weight: 700; }
     .strategy-actions { display: flex; gap: 8px; }
@@ -2431,6 +2484,74 @@ select.tp-native-select {
     .trade-edit-btn:hover { color: var(--accent); }
     .trade-edit-btn svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     @media (max-width: 768px) {
+  .trades-mobile-card {
+  display: none;
+}
+
+.trades-desktop-strategy {
+  display: inline;
+}
+
+.trades-mobile-top,
+.trades-mobile-sub,
+.trades-mobile-chips {
+  min-width: 0;
+}
+
+.trades-mobile-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+}
+
+.trades-mobile-strategy {
+  min-width: 0;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 900;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trades-mobile-pnl {
+  flex: 0 0 auto;
+  font-size: 14px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.trades-mobile-pnl.green { color: var(--success); }
+.trades-mobile-pnl.red { color: var(--danger); }
+.trades-mobile-pnl.flat { color: var(--text2); }
+
+.trades-mobile-sub {
+  color: var(--text2);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.trades-mobile-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.trades-mobile-chip {
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 3px 8px;
+  color: var(--text2);
+  background: var(--bg);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.trades-mobile-chip.win { color: var(--success); }
+.trades-mobile-chip.loss { color: var(--danger); }
+
+@media (max-width: 768px) {
   .trades-table {
     overflow: hidden;
   }
@@ -2444,27 +2565,43 @@ select.tp-native-select {
     min-width: 0;
     grid-template-columns: minmax(0, 1fr) auto;
     grid-template-rows: auto;
-    gap: 6px 12px;
+    gap: 8px 12px;
     padding: 14px 16px;
   }
 
-  .trades-table-row .trades-table-cell:nth-child(n+2):not(.trade-row-actions) {
+  .trades-table-row .trades-table-cell:nth-child(1) {
     display: none;
   }
 
-  .trades-table-row .trades-table-cell:nth-child(1) {
+  .trades-table-row .trades-table-cell:nth-child(n+3):not(.trade-row-actions) {
+    display: none;
+  }
+
+  .trades-table-row .trade-strategy-cell {
+    display: block !important;
     grid-column: 1;
     grid-row: 1;
+    overflow: visible;
     white-space: normal;
+  }
+
+  .trades-desktop-strategy {
+    display: none;
+  }
+
+  .trades-mobile-card {
+    display: grid;
+    gap: 7px;
   }
 
   .trades-table-row .trade-row-actions {
     display: flex !important;
     grid-column: 2;
     grid-row: 1;
-    align-self: center;
+    align-self: start;
+    padding-top: 2px;
   }
-          }
+}
 
     .notes-layout {
       display: flex;
@@ -6633,9 +6770,17 @@ function renderTradeChartPreviews() {
     `;
   }).join('');
 
+  const hydrate = () => {
   list.querySelectorAll('img[data-chart-id]').forEach(img => {
     hydrateTradeChartPreviewImage(img, img.dataset.chartId).catch(console.warn);
   });
+};
+
+if ('requestIdleCallback' in window) {
+  requestIdleCallback(hydrate, { timeout: 700 });
+} else {
+  setTimeout(hydrate, 0);
+}
 }
 
 function loadImageForValidation(src) {
@@ -7227,6 +7372,7 @@ function refreshAccountScopedViews(options = {}) {
   const { keepPickerOpen = false, controlId = null } = options;
 
   calendarDataCache.clear();
+  clearTradeprintConfluenceCache();
 
   renderAccountControls();
 
@@ -7377,6 +7523,69 @@ async function deleteBrokerAccount(id) {
 
     let strategyAnalyticsTradesLoaded = false;
 
+    let strategiesLoaded = false;
+let strategiesLoading = false;
+let strategiesLoadPromise = null;
+
+let tradesLoaded = false;
+let tradesLoading = false;
+let tradesLoadPromise = null;
+
+let tradeprintConfluenceCache = { key: '', html: '' };
+
+function clearTradeprintConfluenceCache() {
+  tradeprintConfluenceCache = { key: '', html: '' };
+}
+
+function getStrategySortValue(strategy, fallbackIndex = 0) {
+  const explicit = Number(strategy?.sort_order ?? strategy?.strategy_order);
+
+  if (Number.isFinite(explicit)) return explicit;
+
+  const created = strategy?.created_at ? new Date(strategy.created_at).getTime() : NaN;
+  if (Number.isFinite(created)) return 1000000000000 + created;
+
+  return 2000000000000 + fallbackIndex;
+}
+
+function getOrderedStrategies(strategies = allStrategies) {
+  return [...(Array.isArray(strategies) ? strategies : [])]
+    .map((strategy, index) => ({ strategy, index }))
+    .sort((a, b) =>
+      getStrategySortValue(a.strategy, a.index) - getStrategySortValue(b.strategy, b.index) ||
+      String(a.strategy.name || '').localeCompare(String(b.strategy.name || '')) ||
+      a.index - b.index
+    )
+    .map(item => item.strategy);
+}
+
+function renderStrategiesLoading(message = 'Loading strategies...') {
+  const grid = document.getElementById('strategiesGrid');
+  if (grid) grid.innerHTML = `<div class="empty-strategies"><span>...</span>${escapeHtml(message)}</div>`;
+}
+
+async function fetchUserStrategiesOrdered() {
+  const headers = {
+    'apikey': SUPABASE_KEY,
+    'Authorization': `Bearer ${token}`
+  };
+
+  const baseUrl = `${SUPABASE_URL}/rest/v1/strategies?user_id=eq.${user.id}&select=*`;
+
+  let res = await fetch(`${baseUrl}&order=sort_order.asc.nullslast,created_at.asc,name.asc`, { headers });
+
+  if (!res.ok) {
+    res = await fetch(`${baseUrl}&order=created_at.asc,name.asc`, { headers });
+  }
+
+  if (!res.ok) {
+    throw new Error(await res.text().catch(() => 'Could not load strategies.'));
+  }
+
+  const data = await res.json();
+  return getOrderedStrategies(Array.isArray(data) ? data : []);
+}
+
     let selectedStrategyPlaybookId = null;
 let strategyPlaybookSaveTimer = null;
 let strategyExampleImages = [];
@@ -7386,27 +7595,44 @@ const STRATEGY_EXAMPLE_MAX_MB = 8;
 const STRATEGY_EXAMPLE_MAX_IMAGES = 3;
 
 
-async function loadStrategies() {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/strategies?user_id=eq.${user.id}&order=created_at.asc`, {
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${token}`
+async function loadStrategies(options = {}) {
+  const { renderLoading = true } = options;
+
+  if (strategiesLoadPromise) return strategiesLoadPromise;
+
+  strategiesLoading = true;
+
+  if (renderLoading && !allStrategies.length) {
+    renderStrategiesLoading();
+  }
+
+  strategiesLoadPromise = (async () => {
+    allStrategies = await fetchUserStrategiesOrdered();
+    strategiesLoaded = true;
+    clearTradeprintConfluenceCache();
+
+    await loadStrategyAnalyticsTrades();
+
+    if (!allStrategies.some(s => s.id === selectedStrategyPlaybookId)) {
+      selectedStrategyPlaybookId = allStrategies[0]?.id || null;
     }
+
+    renderStrategies(allStrategies);
+    renderStrategyPlaybook();
+    syncTradeDefaultsInputs();
+
+    if (hasPro && document.getElementById('page-tradeprint')?.classList.contains('active')) {
+      renderTradeprint();
+      pageLoaded.tradeprint = true;
+    }
+
+    return allStrategies;
+  })().finally(() => {
+    strategiesLoading = false;
+    strategiesLoadPromise = null;
   });
 
-  const data = await res.json();
-  allStrategies = Array.isArray(data) ? data : [];
-
-  await loadStrategyAnalyticsTrades();
-
-  renderStrategies(allStrategies);
-
-if (!allStrategies.some(s => s.id === selectedStrategyPlaybookId)) {
-  selectedStrategyPlaybookId = allStrategies[0]?.id || null;
-}
-
-renderStrategyPlaybook();
-syncTradeDefaultsInputs();
+  return strategiesLoadPromise;
 }
 
 async function loadStrategyAnalyticsTrades() {
@@ -7433,21 +7659,31 @@ function renderStrategies(strategies) {
   const grid = document.getElementById('strategiesGrid');
   if (!grid) return;
 
-  if (!strategies.length) {
+  const orderedStrategies = getOrderedStrategies(strategies);
+
+  if (strategiesLoading && !orderedStrategies.length) {
+    renderStrategiesLoading();
+    return;
+  }
+
+  if (!orderedStrategies.length) {
     selectedStrategyPlaybookId = null;
     grid.innerHTML = '<div class="empty-strategies"><span>📚</span>No strategies yet. Create your first strategy.</div>';
     renderStrategyPlaybook();
     return;
   }
 
-  if (!selectedStrategyPlaybookId || !strategies.some(s => s.id === selectedStrategyPlaybookId)) {
-    selectedStrategyPlaybookId = strategies[0].id;
+  if (!selectedStrategyPlaybookId || !orderedStrategies.some(s => s.id === selectedStrategyPlaybookId)) {
+    selectedStrategyPlaybookId = orderedStrategies[0].id;
   }
 
-  grid.innerHTML = strategies.map(s => `
-    <div class="strategy-card ${s.id === selectedStrategyPlaybookId ? 'selected' : ''}" onclick="selectStrategyPlaybook('${s.id}')">
+  grid.innerHTML = orderedStrategies.map(s => `
+    <div class="strategy-card ${s.id === selectedStrategyPlaybookId ? 'selected' : ''}" data-strategy-id="${s.id}" onclick="selectStrategyPlaybook('${s.id}')">
       <div class="strategy-card-header">
-        <div class="strategy-name">${escapeHtml(s.name)}</div>
+        <div class="strategy-card-header-left">
+          <span class="strategy-drag-handle" title="Drag to reorder">≡</span>
+          <div class="strategy-name">${escapeHtml(s.name)}</div>
+        </div>
         <div class="strategy-actions">
           <button class="strategy-action-btn" onclick="event.stopPropagation(); editStrategy('${s.id}')">
             <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -7470,12 +7706,219 @@ function renderStrategies(strategies) {
       <div class="confluence-count">${s.confluences ? s.confluences.length : 0} confluence${s.confluences?.length !== 1 ? 's' : ''}</div>
     </div>
   `).join('');
+
+  attachStrategyDragHandlers();
 }
 
-    function selectStrategyPlaybook(strategyId) {
+    let suppressStrategyClick = false;
+
+function selectStrategyPlaybook(strategyId) {
+  if (suppressStrategyClick) return;
+
   selectedStrategyPlaybookId = strategyId;
   renderStrategies(allStrategies);
   renderStrategyPlaybook();
+}
+
+    let strategyDrag = {
+  started: false,
+  active: false,
+  strategyId: null,
+  pointerId: null,
+  moved: false,
+  startX: 0,
+  startY: 0,
+  lastX: 0,
+  lastY: 0
+};
+
+let strategyDragDocumentHandlersBound = false;
+
+function attachStrategyDragHandlers() {
+  if (!strategyDragDocumentHandlersBound) {
+    document.addEventListener('pointerup', endStrategyPointer);
+    document.addEventListener('pointercancel', cancelStrategyPointer);
+    strategyDragDocumentHandlersBound = true;
+  }
+
+  document.querySelectorAll('#strategiesGrid .strategy-card[data-strategy-id]').forEach(card => {
+    card.onpointerdown = startStrategyPointer;
+    card.onpointermove = moveStrategyPointer;
+  });
+}
+
+function startStrategyPointer(e) {
+  if (e.button !== undefined && e.button !== 0) return;
+  if (e.target.closest('button,input,textarea,select,a')) return;
+
+  const card = e.currentTarget;
+
+  strategyDrag = {
+    started: true,
+    active: false,
+    strategyId: card.dataset.strategyId,
+    pointerId: e.pointerId,
+    moved: false,
+    startX: e.clientX,
+    startY: e.clientY,
+    lastX: e.clientX,
+    lastY: e.clientY
+  };
+
+  card.setPointerCapture?.(e.pointerId);
+}
+
+function moveStrategyPointer(e) {
+  if (!strategyDrag.started || e.pointerId !== strategyDrag.pointerId) return;
+
+  strategyDrag.lastX = e.clientX;
+  strategyDrag.lastY = e.clientY;
+
+  const dx = Math.abs(e.clientX - strategyDrag.startX);
+  const dy = Math.abs(e.clientY - strategyDrag.startY);
+
+  if (!strategyDrag.active && (dx > 6 || dy > 6)) {
+    const card = e.currentTarget;
+    strategyDrag.active = true;
+    card.classList.add('dragging');
+  }
+
+  if (!strategyDrag.active) return;
+
+  e.preventDefault();
+  moveStrategyDragToPoint(e.clientX, e.clientY);
+}
+
+function moveStrategyDragToPoint(clientX, clientY) {
+  const grid = document.getElementById('strategiesGrid');
+  if (!grid) return;
+
+  const dragging = Array.from(grid.querySelectorAll('.strategy-card[data-strategy-id]'))
+    .find(card => card.dataset.strategyId === strategyDrag.strategyId);
+
+  if (!dragging) return;
+
+  const items = Array.from(grid.querySelectorAll('.strategy-card[data-strategy-id]'))
+    .filter(card => card !== dragging);
+
+  if (!items.length) return;
+
+  document.querySelectorAll('.strategy-card.drag-over-before, .strategy-card.drag-over-after').forEach(card => {
+    card.classList.remove('drag-over-before', 'drag-over-after');
+  });
+
+  const first = items[0];
+  const last = items[items.length - 1];
+  const firstRect = first.getBoundingClientRect();
+  const lastRect = last.getBoundingClientRect();
+
+  if (clientY < firstRect.top) {
+    first.before(dragging);
+    first.classList.add('drag-over-before');
+    strategyDrag.moved = true;
+    return;
+  }
+
+  if (clientY > lastRect.bottom) {
+    last.after(dragging);
+    last.classList.add('drag-over-after');
+    strategyDrag.moved = true;
+    return;
+  }
+
+  let target = document.elementFromPoint(clientX, clientY)?.closest('.strategy-card[data-strategy-id]');
+  if (!target || target === dragging || !grid.contains(target)) {
+    target = items
+      .map(card => {
+        const rect = card.getBoundingClientRect();
+        return { card, distance: Math.abs(clientY - (rect.top + rect.height / 2)) };
+      })
+      .sort((a, b) => a.distance - b.distance)[0]?.card;
+  }
+
+  if (!target || target === dragging) return;
+
+  const rect = target.getBoundingClientRect();
+  const insertAfter = clientY > rect.top + rect.height / 2;
+
+  target.classList.add(insertAfter ? 'drag-over-after' : 'drag-over-before');
+
+  if (insertAfter) target.after(dragging);
+  else target.before(dragging);
+
+  strategyDrag.moved = true;
+}
+
+async function endStrategyPointer(e = null) {
+  if (!strategyDrag.started) return;
+  if (e && strategyDrag.pointerId !== null && e.pointerId !== strategyDrag.pointerId) return;
+
+  const wasDragging = strategyDrag.active;
+  const moved = strategyDrag.moved;
+
+  if (wasDragging) {
+    moveStrategyDragToPoint(strategyDrag.lastX, strategyDrag.lastY);
+  }
+
+  document.querySelectorAll('.strategy-card.dragging, .strategy-card.drag-over-before, .strategy-card.drag-over-after').forEach(card => {
+    card.classList.remove('dragging', 'drag-over-before', 'drag-over-after');
+  });
+
+  strategyDrag.started = false;
+  strategyDrag.active = false;
+  strategyDrag.pointerId = null;
+
+  if (wasDragging && moved) {
+    suppressStrategyClick = true;
+    setTimeout(() => { suppressStrategyClick = false; }, 0);
+
+    applyStrategyDomOrder();
+    await saveStrategyOrder();
+    renderStrategies(allStrategies);
+    renderStrategyPlaybook();
+  }
+}
+
+function cancelStrategyPointer() {
+  document.querySelectorAll('.strategy-card.dragging, .strategy-card.drag-over-before, .strategy-card.drag-over-after').forEach(card => {
+    card.classList.remove('dragging', 'drag-over-before', 'drag-over-after');
+  });
+
+  strategyDrag.started = false;
+  strategyDrag.active = false;
+  strategyDrag.pointerId = null;
+}
+
+function applyStrategyDomOrder() {
+  const ids = Array.from(document.querySelectorAll('#strategiesGrid .strategy-card[data-strategy-id]')).map(card => card.dataset.strategyId);
+
+  allStrategies = ids
+    .map((id, index) => {
+      const strategy = allStrategies.find(s => s.id === id);
+      return strategy ? { ...strategy, sort_order: index } : null;
+    })
+    .filter(Boolean);
+}
+
+async function saveStrategyOrder() {
+  const results = await Promise.all(allStrategies.map((strategy, index) => {
+    strategy.sort_order = index;
+
+    return fetch(`${SUPABASE_URL}/rest/v1/strategies?id=eq.${strategy.id}`, {
+      method: 'PATCH',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ sort_order: index })
+    }).catch(err => ({ ok: false, err }));
+  }));
+
+  if (results.some(res => !res.ok)) {
+    console.warn('Strategy order could not be fully persisted. Check that strategies.sort_order exists.');
+  }
 }
 
 function getSelectedStrategyPlaybook() {
@@ -8138,19 +8581,64 @@ function getMostCostlyMissingConfluence(confluences, trades) {
     }
 
     async function saveStrategy() {
-      const name = document.getElementById('strategyName').value.trim();
-      const desc = document.getElementById('strategyDesc').value.trim();
-      const msg = document.getElementById('strategyMsg');
-      if (!name) { msg.textContent = 'Please enter a strategy name.'; msg.className = 'modal-msg error'; return; }
-      let res;
-      if (editingStrategyId) {
-        res = await fetch(`${SUPABASE_URL}/rest/v1/strategies?id=eq.${editingStrategyId}`, { method: 'PATCH', headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' }, body: JSON.stringify({ name, description: desc, confluences }) });
-      } else {
-        res = await fetch(`${SUPABASE_URL}/rest/v1/strategies`, { method: 'POST', headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' }, body: JSON.stringify({ user_id: user.id, name, description: desc, confluences }) });
-      }
-      if (res.ok) { closeStrategyModal(); loadStrategies(); }
-      else { msg.textContent = 'Something went wrong.'; msg.className = 'modal-msg error'; }
-    }
+  const name = document.getElementById('strategyName').value.trim();
+  const desc = document.getElementById('strategyDesc').value.trim();
+  const msg = document.getElementById('strategyMsg');
+
+  if (!name) {
+    msg.textContent = 'Please enter a strategy name.';
+    msg.className = 'modal-msg error';
+    return;
+  }
+
+  let res;
+
+  if (editingStrategyId) {
+    res = await fetch(`${SUPABASE_URL}/rest/v1/strategies?id=eq.${editingStrategyId}`, {
+      method: 'PATCH',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        name,
+        description: desc,
+        confluences
+      })
+    });
+  } else {
+    const nextSortOrder = allStrategies.length
+      ? Math.max(...allStrategies.map(s => Number(s.sort_order ?? s.strategy_order ?? 0))) + 1
+      : 0;
+
+    res = await fetch(`${SUPABASE_URL}/rest/v1/strategies`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        user_id: user.id,
+        name,
+        description: desc,
+        confluences,
+        sort_order: nextSortOrder
+      })
+    });
+  }
+
+  if (res.ok) {
+    closeStrategyModal();
+    loadStrategies();
+  } else {
+    msg.textContent = 'Something went wrong.';
+    msg.className = 'modal-msg error';
+  }
+}
 
     function openCropper(e) {
       const file = e.target.files[0]; if (!file) return;
@@ -8355,9 +8843,11 @@ async function showPage(name, el) {
   if (tok !== pageSwitchToken) return;
 
   try {
-    if (!pageLoaded[name]) {
+    if (name === 'tradeprint') {
+      await loadTradeprint();
+      pageLoaded.tradeprint = true;
+    } else if (!pageLoaded[name]) {
       if (name === 'dashboard') await loadDashboard();
-      if (name === 'tradeprint') await loadTradeprint();
       if (name === 'strategies') await loadStrategies();
       if (name === 'calendar') await initCalendar();
       if (name === 'trades') await loadTrades();
@@ -9514,50 +10004,125 @@ document.getElementById('tradeMsg').textContent = '';
       document.getElementById('logTradeModal').classList.add('active');
     }
 
-    async function openEditTrade(id) {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/trades?id=eq.${id}&select=*,strategies(name),broker_accounts(name)`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } });
-      const data = await res.json();
-      if (!data || !data[0]) return;
-      const t = data[0];
-      editingTradeId = id;
-      editingTradeOriginalDate = t.date || null;
-      const stratRes = await fetch(`${SUPABASE_URL}/rest/v1/strategies?user_id=eq.${user.id}&select=*`, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } });
-      allStrategies = await stratRes.json();
-      document.getElementById('tradeStrategy').innerHTML = '<option value="">Select a strategy...</option>' + allStrategies.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
-      document.getElementById('tradeStrategy').value = t.strategy_id || '';
-      if (!allAccounts.length) await loadAccounts();
-populateTradeAccountSelect();
-document.getElementById('tradeAccount').value = t.account_id || '';
-            loadStrategyConfluences({
-        selected: Array.isArray(t.confluences_used) ? t.confluences_used : [],
-        editMode: true,
-        expand: false
-      });
-      document.getElementById('tradeResult').value = t.result || 'win';
-      document.getElementById('tradeAsset').value = t.asset || '';
-      document.getElementById('tradeType').value = t.type || '';
-      updateTradeAssetPlaceholder();
-setTradeDirection(t.direction || '');
-setTradeChartImages(Array.isArray(t.chart_images) ? t.chart_images : []);
-      document.getElementById('tradePnl').value = t.pnl || '';
-      document.getElementById('tradeActualRR').value = t.actual_rr || '';
-      document.getElementById('tradeNotes').value = t.notes || '';
-      document.getElementById('tradeDateField').style.display = logFromPage ? 'block' : 'none';
-      if (logFromPage) document.getElementById('tradeDate').value = t.date || '';
-      if (t.trade_time) {
-        const [h, m] = t.trade_time.split(':').map(Number);
-        const ampm = h >= 12 ? 'PM' : 'AM';
-        const h12 = h % 12 || 12;
-        document.getElementById('tradeTime').value = `${h12}:${String(m).padStart(2,'0')}`;
-        document.getElementById('tradeAmPm').value = ampm;
-      } else { document.getElementById('tradeTime').value = ''; document.getElementById('tradeAmPm').value = 'AM'; }
-      document.querySelector(`input[name="followedRules"][value="${t.followed_rules ? 'true' : 'false'}"]`).checked = true;
-      document.getElementById('tradeMsg').textContent = '';
-      document.getElementById('saveTradeBtn').textContent = 'Update Trade';
-      document.getElementById('logTradeTitle').textContent = 'Edit Trade';
-      syncPrettySelects();
-      document.getElementById('logTradeModal').classList.add('active');
+    function findCachedTradeById(id) {
+  return [...allTrades, ...filteredTrades, ...allLoadedTrades, ...dayTrades].find(t => t.id === id) || null;
+}
+
+async function ensureStrategiesForTradeModal() {
+  if (allStrategies.length) return allStrategies;
+
+  allStrategies = await fetchUserStrategiesOrdered();
+  strategiesLoaded = true;
+  syncTradeDefaultsInputs();
+
+  return allStrategies;
+}
+
+async function openEditTrade(id) {
+  editingTradeId = id;
+  editingTradeOriginalDate = null;
+
+  const modal = document.getElementById('logTradeModal');
+  const msg = document.getElementById('tradeMsg');
+  const saveBtn = document.getElementById('saveTradeBtn');
+
+  resetConfluenceSection();
+  resetTradeCharts();
+
+  document.getElementById('logTradeTitle').textContent = 'Edit Trade';
+  document.getElementById('tradeDateField').style.display = logFromPage ? 'block' : 'none';
+
+  msg.textContent = 'Loading trade...';
+  msg.className = 'modal-msg';
+
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Loading...';
+
+  modal.classList.add('active');
+
+  await nextFrame();
+
+  const cachedTrade = findCachedTradeById(id);
+
+  const tradePromise = cachedTrade
+    ? Promise.resolve(cachedTrade)
+    : fetch(`${SUPABASE_URL}/rest/v1/trades?id=eq.${id}&select=*,strategies(name),broker_accounts(name)`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
+      }).then(res => res.json()).then(data => data?.[0] || null);
+
+  try {
+    const [t] = await Promise.all([
+      tradePromise,
+      ensureStrategiesForTradeModal(),
+      allAccounts.length ? Promise.resolve(allAccounts) : loadAccounts()
+    ]);
+
+    if (!t || editingTradeId !== id || !modal.classList.contains('active')) return;
+
+    editingTradeOriginalDate = t.date || null;
+
+    document.getElementById('tradeStrategy').innerHTML =
+      '<option value="">Select a strategy...</option>' +
+      getOrderedStrategies(allStrategies).map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
+
+    document.getElementById('tradeStrategy').value = t.strategy_id || '';
+
+    populateTradeAccountSelect();
+    document.getElementById('tradeAccount').value = t.account_id || '';
+
+    loadStrategyConfluences({
+      selected: Array.isArray(t.confluences_used) ? t.confluences_used : [],
+      editMode: true,
+      expand: false
+    });
+
+    document.getElementById('tradeResult').value = t.result || 'win';
+    document.getElementById('tradeAsset').value = t.asset || '';
+    document.getElementById('tradeType').value = t.type || '';
+    updateTradeAssetPlaceholder();
+
+    setTradeDirection(t.direction || '');
+
+    document.getElementById('tradePnl').value = t.pnl || '';
+    document.getElementById('tradeActualRR').value = t.actual_rr || '';
+    document.getElementById('tradeNotes').value = t.notes || '';
+
+    if (logFromPage) document.getElementById('tradeDate').value = t.date || '';
+
+    if (t.trade_time) {
+      const [h, m] = t.trade_time.split(':').map(Number);
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      const h12 = h % 12 || 12;
+
+      document.getElementById('tradeTime').value = `${h12}:${String(m).padStart(2, '0')}`;
+      document.getElementById('tradeAmPm').value = ampm;
+    } else {
+      document.getElementById('tradeTime').value = '';
+      document.getElementById('tradeAmPm').value = 'AM';
     }
+
+    document.querySelector(`input[name="followedRules"][value="${t.followed_rules ? 'true' : 'false'}"]`).checked = true;
+
+    msg.textContent = '';
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Update Trade';
+
+    syncPrettySelects();
+
+    const charts = Array.isArray(t.chart_images) ? t.chart_images : [];
+    requestAnimationFrame(() => {
+      if (editingTradeId === id && modal.classList.contains('active')) {
+        setTradeChartImages(charts);
+      }
+    });
+  } catch (err) {
+    console.warn('Could not open trade for edit:', err);
+    msg.textContent = 'Could not load trade.';
+    msg.className = 'modal-msg error';
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Update Trade';
+  }
+}
 
     function closeLogTrade() {
   document.getElementById('logTradeModal').classList.remove('active');
@@ -10324,17 +10889,16 @@ async function loadTradeprint() {
     return;
   }
 
-  if (!allLoadedTrades.length) {
-    await loadTrades();
-    return;
-  }
+  renderTradeprintConfluenceLoading('Loading confluence intelligence...');
 
-  if (!allStrategies.length) {
-    await loadStrategies();
-    return;
-  }
+  await Promise.all([
+    tradesLoaded || allLoadedTrades.length ? Promise.resolve() : loadTrades(),
+    strategiesLoaded || allStrategies.length ? Promise.resolve() : loadStrategies({ renderLoading: false })
+  ]);
 
+  allTrades = getActiveAccountTrades();
   renderTradeprint();
+  pageLoaded.tradeprint = true;
 }
 
 function getTradeprintTrades() {
@@ -10793,18 +11357,64 @@ function renderTradeprintConfluences(strategies, trades) {
   const el = document.getElementById('tradeprintConfluenceIntel');
   if (!el) return;
 
-  if (!strategies.length) {
+  const orderedStrategies = getOrderedStrategies(strategies);
+
+  if ((strategiesLoading && !orderedStrategies.length) || (tradesLoading && !tradesLoaded)) {
+    renderTradeprintConfluenceLoading();
+    return;
+  }
+
+  if (!orderedStrategies.length) {
     el.innerHTML = '<div class="tradeprint-empty">Create strategies with confluences to unlock confluence intelligence.</div>';
     return;
   }
 
-  const cards = strategies.map(strategy => {
-    const strategyTrades = trades.filter(t => t.strategy_id === strategy.id);
+  if (!trades.length) {
+    el.innerHTML = '<div class="tradeprint-empty">Log trades with strategies and confluences to build confluence intelligence.</div>';
+    return;
+  }
+
+  const qualifyingTrades = trades.filter(t =>
+    t.strategy_id &&
+    Array.isArray(t.confluences_used) &&
+    t.confluences_used.length
+  );
+
+  if (!qualifyingTrades.length) {
+    el.innerHTML = '<div class="tradeprint-empty">No confluence data yet. Edit or log trades with confluences selected.</div>';
+    return;
+  }
+
+  const cacheKey = getTradeprintConfluenceCacheKey(orderedStrategies, trades);
+  if (tradeprintConfluenceCache.key === cacheKey) {
+    el.innerHTML = tradeprintConfluenceCache.html;
+    return;
+  }
+
+  const strategyOrder = new Map(orderedStrategies.map((strategy, index) => [strategy.id, index]));
+
+  const sortedStrategies = orderedStrategies
+    .map(strategy => {
+      const strategyTrades = trades.filter(t => t.strategy_id === strategy.id);
+      return {
+        strategy,
+        strategyTrades,
+        tradeCount: strategyTrades.length
+      };
+    })
+    .sort((a, b) =>
+      b.tradeCount - a.tradeCount ||
+      (strategyOrder.get(a.strategy.id) ?? 9999) - (strategyOrder.get(b.strategy.id) ?? 9999) ||
+      String(a.strategy.name || '').localeCompare(String(b.strategy.name || ''))
+    );
+
+  const cards = sortedStrategies.map(({ strategy, strategyTrades }) => {
     const insights = getStrategyConfluenceInsights(strategy, strategyTrades);
 
     return `
       <div class="tradeprint-edge-card">
         <div class="tradeprint-edge-title">${escapeHtml(strategy.name)}</div>
+        <div class="tradeprint-edge-meta">${strategyTrades.length} logged trade${strategyTrades.length !== 1 ? 's' : ''}</div>
         ${renderTradeprintEdgeRow('Best combo', insights.bestCombo, 'green')}
         ${renderTradeprintEdgeRow('Worst combo', insights.worstCombo, 'red')}
         ${renderTradeprintEdgeRow('Best confluence', insights.bestConfluence, 'green')}
@@ -10814,7 +11424,28 @@ function renderTradeprintConfluences(strategies, trades) {
     `;
   }).join('');
 
-  el.innerHTML = `<div class="tradeprint-edge-grid">${cards}</div>`;
+  const html = `<div class="tradeprint-edge-grid">${cards}</div>`;
+
+  tradeprintConfluenceCache = { key: cacheKey, html };
+  el.innerHTML = html;
+}
+
+    function renderTradeprintConfluenceLoading(message = 'Loading confluence intelligence...') {
+  const el = document.getElementById('tradeprintConfluenceIntel');
+  if (el) el.innerHTML = `<div class="tradeprint-empty">${escapeHtml(message)}</div>`;
+}
+
+function getTradeprintConfluenceCacheKey(strategies, trades) {
+  const accountKey = activeAccountIds.length ? activeAccountIds.join(',') : 'all';
+  const strategyKey = strategies.map(s =>
+    `${s.id}:${s.name}:${s.sort_order ?? s.strategy_order ?? ''}:${(s.confluences || []).join('|')}`
+  ).join('~');
+
+  const tradeKey = trades.map(t =>
+    `${t.id}:${t.strategy_id}:${t.result}:${t.pnl}:${(t.confluences_used || []).join('|')}`
+  ).join('~');
+
+  return `${accountKey}::${strategyKey}::${tradeKey}`;
 }
 
 function renderTradeprintEdgeRow(label, insight, tone = '') {
@@ -10866,31 +11497,53 @@ function renderTradeprintCoach({ trades, summary, clarity, bestStrategy, bestDay
     let filteredTrades = [];
 
     async function loadTrades() {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}&select=*,strategies(name),broker_accounts(name)&order=date.desc,created_at.desc`, {
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${token}`
+  if (tradesLoadPromise) return tradesLoadPromise;
+
+  tradesLoading = true;
+
+  tradesLoadPromise = (async () => {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${user.id}&select=*,strategies(name),broker_accounts(name)&order=date.desc,created_at.desc`, {
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    allLoadedTrades = await res.json();
+    if (!Array.isArray(allLoadedTrades)) allLoadedTrades = [];
+
+    tradesLoaded = true;
+    allTrades = getActiveAccountTrades();
+    clearTradeprintConfluenceCache();
+
+    const strategies = [...new Set(allTrades.map(t => t.strategies?.name).filter(Boolean))]
+      .sort((a, b) => a.localeCompare(b));
+
+    const filterSelect = document.getElementById('filterStrategy');
+    if (filterSelect) {
+      filterSelect.innerHTML = '<option value="">All Strategies</option>' +
+        strategies.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
     }
+
+    filterTrades();
+    renderDashboard();
+
+    if (hasPro && (strategiesLoaded || allStrategies.length)) {
+      renderTradeprint();
+      pageLoaded.tradeprint = true;
+    } else {
+      pageLoaded.tradeprint = false;
+    }
+
+    pageLoaded.dashboard = true;
+
+    return allLoadedTrades;
+  })().finally(() => {
+    tradesLoading = false;
+    tradesLoadPromise = null;
   });
 
-  allLoadedTrades = await res.json();
-  if (!Array.isArray(allLoadedTrades)) allLoadedTrades = [];
-
-  allTrades = getActiveAccountTrades();
-
-  const strategies = [...new Set(allTrades.map(t => t.strategies?.name).filter(Boolean))];
-  const filterSelect = document.getElementById('filterStrategy');
-  filterSelect.innerHTML = '<option value="">All Strategies</option>' + strategies.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
-
-  filterTrades();
-renderDashboard();
-
-if (hasPro) {
-  renderTradeprint();
-}
-
-pageLoaded.dashboard = true;
-pageLoaded.tradeprint = hasPro;
+  return tradesLoadPromise;
 }
 
     function filterTrades() {
@@ -11052,11 +11705,27 @@ const strategy = t.strategies?.name || '';
     ].filter(Boolean).join(' · ');
 
     return `<div class="trades-table-row">
-      <div class="trades-table-cell muted">${dateStr}</div>
-      <div class="trades-table-cell">
-        ${strategy ? escapeHtml(strategy) : dash}
-        <div class="trades-mobile-meta">${escapeHtml(mobileMeta)}</div>
-      </div>
+      <div class="trades-table-cell muted trade-date-cell">${dateStr}</div>
+<div class="trades-table-cell trade-strategy-cell">
+  <span class="trades-desktop-strategy">${strategy ? escapeHtml(strategy) : dash}</span>
+
+  <div class="trades-mobile-card">
+    <div class="trades-mobile-top">
+      <div class="trades-mobile-strategy">${strategy ? escapeHtml(strategy) : 'Unknown Strategy'}</div>
+      <div class="trades-mobile-pnl ${pnl > 0 ? 'green' : pnl < 0 ? 'red' : 'flat'}">${hasPnl ? formatPnl(pnl) : '—'}</div>
+    </div>
+
+    <div class="trades-mobile-sub">
+      ${escapeHtml([dateStr, assetText].filter(Boolean).join(' · '))}
+    </div>
+
+    <div class="trades-mobile-chips">
+      ${resultLabel ? `<span class="trades-mobile-chip ${escapeHtml(resultValue)}">${escapeHtml(resultLabel)}</span>` : ''}
+      ${typeText ? `<span class="trades-mobile-chip">${escapeHtml(typeText)}</span>` : ''}
+      ${directionText ? `<span class="trades-mobile-chip">${escapeHtml(directionText)}</span>` : ''}
+    </div>
+  </div>
+</div>
       <div class="trades-table-cell muted">${accountName ? escapeHtml(accountName) : dash}</div>
       <div class="trades-table-cell">${resultHtml}</div>
       <div class="trades-table-cell" style="color:${hasPnl ? pnlColor : 'var(--text2)'};font-weight:${hasPnl ? '700' : '400'};">${hasPnl ? formatPnl(pnl) : dash}</div>
@@ -12078,24 +12747,32 @@ let noteDrag = {
   noteId: null,
   pointerId: null,
   timer: null,
-  moved: false
+  moved: false,
+  startX: 0,
+  startY: 0,
+  lastX: 0,
+  lastY: 0,
+  pointerType: null
 };
 
-function handleNoteListClick(id) {
-  if (noteDrag.moved) {
-    noteDrag.moved = false;
-    return;
-  }
+let noteDragDocumentHandlersBound = false;
+let suppressNoteClick = false;
 
+function handleNoteListClick(id) {
+  if (suppressNoteClick) return;
   openNote(id);
 }
 
 function attachNoteDragHandlers() {
+  if (!noteDragDocumentHandlersBound) {
+    document.addEventListener('pointerup', endNotePointer);
+    document.addEventListener('pointercancel', cancelNotePointer);
+    noteDragDocumentHandlersBound = true;
+  }
+
   document.querySelectorAll('.note-list-item[data-note-id]').forEach(item => {
     item.onpointerdown = startNotePointer;
     item.onpointermove = moveNotePointer;
-    item.onpointerup = endNotePointer;
-    item.onpointercancel = cancelNotePointer;
   });
 }
 
@@ -12112,13 +12789,16 @@ function startNotePointer(e) {
   noteDrag.moved = false;
   noteDrag.startX = e.clientX;
   noteDrag.startY = e.clientY;
+  noteDrag.lastX = e.clientX;
+  noteDrag.lastY = e.clientY;
   noteDrag.pointerType = e.pointerType;
 
   if (isTouch && !isHandle) return;
 
+  item.setPointerCapture?.(e.pointerId);
+
   if (isTouch) {
     e.preventDefault();
-    item.setPointerCapture?.(e.pointerId);
 
     noteDrag.timer = setTimeout(() => {
       noteDrag.active = true;
@@ -12131,36 +12811,81 @@ function startNotePointer(e) {
 
   noteDrag.active = true;
   item.classList.add('dragging');
-  item.setPointerCapture?.(e.pointerId);
   e.preventDefault();
 }
 
 function moveNotePointer(e) {
-  if (!noteDrag.started) return;
+  if (!noteDrag.started || e.pointerId !== noteDrag.pointerId) return;
 
-  const dx = Math.abs(e.clientX - (noteDrag.startX || e.clientX));
-  const dy = Math.abs(e.clientY - (noteDrag.startY || e.clientY));
+  noteDrag.lastX = e.clientX;
+  noteDrag.lastY = e.clientY;
+
+  const dx = Math.abs(e.clientX - noteDrag.startX);
+  const dy = Math.abs(e.clientY - noteDrag.startY);
 
   if (!noteDrag.active) {
     if (noteDrag.pointerType === 'touch' && (dy > 12 || dx > 12)) {
       clearTimeout(noteDrag.timer);
       noteDrag.started = false;
     }
+
     return;
   }
 
   e.preventDefault();
+  moveNoteDragToPoint(e.clientX, e.clientY);
+}
 
+function moveNoteDragToPoint(clientX, clientY) {
   const list = document.getElementById('notesList');
-  const dragging = list.querySelector(`.note-list-item[data-note-id="${noteDrag.noteId}"]`);
-  const target = document.elementFromPoint(e.clientX, e.clientY)?.closest('.note-list-item[data-note-id]');
+  if (!list) return;
 
-  if (!dragging || !target || dragging === target) return;
+  const dragging = Array.from(list.querySelectorAll('.note-list-item[data-note-id]'))
+    .find(item => item.dataset.noteId === noteDrag.noteId);
+
+  if (!dragging) return;
+
+  const items = Array.from(list.querySelectorAll('.note-list-item[data-note-id]'))
+    .filter(item => item !== dragging);
+
+  if (!items.length) return;
 
   document.querySelectorAll('.note-list-item.drag-over').forEach(el => el.classList.remove('drag-over'));
 
+  const first = items[0];
+  const last = items[items.length - 1];
+  const firstRect = first.getBoundingClientRect();
+  const lastRect = last.getBoundingClientRect();
+
+  if (clientY < firstRect.top) {
+    first.before(dragging);
+    first.classList.add('drag-over');
+    noteDrag.moved = true;
+    return;
+  }
+
+  if (clientY > lastRect.bottom) {
+    last.after(dragging);
+    last.classList.add('drag-over');
+    noteDrag.moved = true;
+    return;
+  }
+
+  let target = document.elementFromPoint(clientX, clientY)?.closest('.note-list-item[data-note-id]');
+
+  if (!target || target === dragging || !list.contains(target)) {
+    target = items
+      .map(item => {
+        const rect = item.getBoundingClientRect();
+        return { item, distance: Math.abs(clientY - (rect.top + rect.height / 2)) };
+      })
+      .sort((a, b) => a.distance - b.distance)[0]?.item;
+  }
+
+  if (!target || target === dragging) return;
+
   const targetRect = target.getBoundingClientRect();
-  const insertAfter = e.clientY > targetRect.top + targetRect.height / 2;
+  const insertAfter = clientY > targetRect.top + targetRect.height / 2;
 
   target.classList.add('drag-over');
 
@@ -12170,10 +12895,18 @@ function moveNotePointer(e) {
   noteDrag.moved = true;
 }
 
-async function endNotePointer() {
+async function endNotePointer(e = null) {
+  if (!noteDrag.started) return;
+  if (e && noteDrag.pointerId !== null && e.pointerId !== noteDrag.pointerId) return;
+
   clearTimeout(noteDrag.timer);
 
   const wasDragging = noteDrag.active;
+  const moved = noteDrag.moved;
+
+  if (wasDragging) {
+    moveNoteDragToPoint(noteDrag.lastX, noteDrag.lastY);
+  }
 
   document.querySelectorAll('.note-list-item.dragging, .note-list-item.drag-over').forEach(el => {
     el.classList.remove('dragging', 'drag-over');
@@ -12182,11 +12915,16 @@ async function endNotePointer() {
   noteDrag.active = false;
   noteDrag.started = false;
   noteDrag.pointerId = null;
-  noteDrag.startX = null;
-  noteDrag.startY = null;
+  noteDrag.startX = 0;
+  noteDrag.startY = 0;
+  noteDrag.lastX = 0;
+  noteDrag.lastY = 0;
   noteDrag.pointerType = null;
 
-  if (wasDragging) {
+  if (wasDragging && moved) {
+    suppressNoteClick = true;
+    setTimeout(() => { suppressNoteClick = false; }, 0);
+
     applyNoteDomOrder();
     await saveNoteOrder();
     renderNotesList();
@@ -12232,6 +12970,8 @@ async function saveNoteOrder() {
       body: JSON.stringify({ sort_order: index })
     });
   }));
+
+  localStorage.setItem(`tp_notes_cache_${user.id}`, JSON.stringify(allPageNotes));
 }
 
 function closeNoteEditor() {
@@ -12830,6 +13570,8 @@ let activePrintNetworkUserId = null;
     let leaderboardMetric = localStorage.getItem('tp_leaderboard_metric') || 'pnl';
 let leaderboardTimeframe = localStorage.getItem('tp_leaderboard_timeframe') || '1m';
 let leaderboardRows = [];
+    let leaderboardLoading = false;
+let leaderboardRequestToken = 0;
 let myLoggedTradeCount = 0;
 
 let myLeaderboardSettings = {
@@ -12989,18 +13731,36 @@ async function loadLeaderboardRows() {
   leaderboardRows = Array.isArray(data) ? data : [];
 }
 
-async function setLeaderboardMetric(metric) {
-  leaderboardMetric = metric === 'win_rate' ? 'win_rate' : 'pnl';
-  localStorage.setItem('tp_leaderboard_metric', leaderboardMetric);
-  await loadLeaderboardRows();
+function refreshLeaderboardRowsDeferred() {
+  const requestToken = ++leaderboardRequestToken;
+
+  leaderboardLoading = true;
   renderPrintsFeed();
+
+  setTimeout(async () => {
+    try {
+      await loadLeaderboardRows();
+    } catch (err) {
+      console.warn('Leaderboard refresh failed:', err);
+    } finally {
+      if (requestToken === leaderboardRequestToken) {
+        leaderboardLoading = false;
+        renderPrintsFeed();
+      }
+    }
+  }, 0);
 }
 
-async function setLeaderboardTimeframe(timeframe) {
+function setLeaderboardMetric(metric) {
+  leaderboardMetric = metric === 'win_rate' ? 'win_rate' : 'pnl';
+  localStorage.setItem('tp_leaderboard_metric', leaderboardMetric);
+  refreshLeaderboardRowsDeferred();
+}
+
+function setLeaderboardTimeframe(timeframe) {
   leaderboardTimeframe = ['1d', '1w', '1m', '3m', '1y', 'all'].includes(timeframe) ? timeframe : '1m';
   localStorage.setItem('tp_leaderboard_timeframe', leaderboardTimeframe);
-  await loadLeaderboardRows();
-  renderPrintsFeed();
+  refreshLeaderboardRowsDeferred();
 }
 
 async function loadPrints() {
@@ -13410,9 +14170,15 @@ function renderPrintLeaderboard(feed) {
         </div>
       </div>
 
-      <div class="print-leaderboard">
-        ${leaderboardRows.length ? leaderboardRows.map(renderPrintLeaderboardRow).join('') : `<div class="prints-empty">${emptyText}</div>`}
-      </div>
+      ${leaderboardLoading ? '<div class="prints-setting-note">Updating rankings...</div>' : ''}
+
+<div class="print-leaderboard">
+  ${leaderboardRows.length
+    ? leaderboardRows.map(renderPrintLeaderboardRow).join('')
+    : leaderboardLoading
+    ? '<div class="prints-empty">Updating rankings...</div>'
+    : `<div class="prints-empty">${emptyText}</div>`}
+</div>
     </div>
   `;
 }
@@ -13956,6 +14722,8 @@ function renderPrintMiniPost(post) {
   const created = new Date(post.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   const canDeletePost = canDeletePrintPost(post);
   const replies = getPostReplies(post.id);
+  const caption = snap.caption || post.caption || post.body || post.text || '';
+  const captionPreview = caption.length > 220 ? `${caption.slice(0, 217)}...` : caption;
 
   return `
     <div class="print-mini-post">
@@ -13968,20 +14736,22 @@ function renderPrintMiniPost(post) {
         <div class="print-pnl-chip ${tone}" style="min-height:34px;min-width:92px;font-size:13px;">${getPrintPnlDisplay(post)}</div>
       </div>
 
+      ${captionPreview ? `<div class="print-caption">${formatPrintText(captionPreview)}</div>` : ''}
+
       ${post.image_url ? `
         <div class="print-chart">
           <img src="${escapeHtml(post.image_url)}" alt="chart" onclick="openLightbox(this)"/>
         </div>
       ` : ''}
 
-                  ${canDeletePost ? `
-  <div class="print-card-footer">
-    <button class="print-details-btn" onclick="openPrintRepliesModal('${post.id}')">
-      View replies${replies.length ? ` (${replies.length})` : ''}
-    </button>
-    <button class="print-delete-btn" onclick="deletePrintPost('${post.id}').then(() => openPrintProfile('${post.user_id}'))">Delete Print</button>
-  </div>
-` : ''}
+      ${canDeletePost ? `
+        <div class="print-card-footer">
+          <button class="print-details-btn" onclick="openPrintRepliesModal('${post.id}')">
+            View replies${replies.length ? ` (${replies.length})` : ''}
+          </button>
+          <button class="print-delete-btn" onclick="deletePrintPost('${post.id}').then(() => openPrintProfile('${post.user_id}'))">Delete Print</button>
+        </div>
+      ` : ''}
     </div>
   `;
 }
