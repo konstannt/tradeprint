@@ -1217,31 +1217,6 @@ select.tp-native-select {
   border-color: var(--accent);
 }
 
-.strategy-card.dragging {
-  opacity: 0.55;
-  border-color: var(--accent);
-  background: rgba(99,102,241,0.12);
-}
-
-.strategy-card.drag-over-before::before,
-.strategy-card.drag-over-after::after {
-  content: '';
-  position: absolute;
-  left: 14px;
-  right: 14px;
-  height: 2px;
-  background: var(--accent);
-  border-radius: 2px;
-}
-
-.strategy-card.drag-over-before::before {
-  top: -2px;
-}
-
-.strategy-card.drag-over-after::after {
-  bottom: -2px;
-}
-
 .strategy-card-header-left {
   display: flex;
   align-items: center;
@@ -1256,18 +1231,6 @@ select.tp-native-select {
   white-space: nowrap;
 }
 
-.strategy-drag-handle {
-  flex: 0 0 auto;
-  width: 24px;
-  color: var(--text2);
-  font-size: 18px;
-  line-height: 1;
-  cursor: grab !important;
-}
-
-.strategy-card.dragging .strategy-drag-handle {
-  cursor: grabbing !important;
-}
     
     .strategy-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
     .strategy-name { font-size: 16px; font-weight: 700; }
@@ -2636,9 +2599,10 @@ select.tp-native-select {
   cursor: pointer;
   border-left: 2px solid transparent;
   transition: background 0.15s, border-color 0.15s, opacity 0.15s, transform 0.15s;
-  touch-action: none;
+  touch-action: pan-y;
   user-select: none;
 }
+
 
 .note-list-item:hover { background: rgba(255,255,255,0.03); }
 
@@ -7671,8 +7635,7 @@ function renderStrategies(strategies) {
   grid.innerHTML = orderedStrategies.map(s => `
     <div class="strategy-card ${s.id === selectedStrategyPlaybookId ? 'selected' : ''}" data-strategy-id="${s.id}" onclick="selectStrategyPlaybook('${s.id}')">
       <div class="strategy-card-header">
-        <div class="strategy-card-header-left">
-          <span class="strategy-drag-handle" title="Drag to reorder">≡</span>
+                <div class="strategy-card-header-left">
           <div class="strategy-name">${escapeHtml(s.name)}</div>
         </div>
         <div class="strategy-actions">
@@ -7697,219 +7660,16 @@ function renderStrategies(strategies) {
       <div class="confluence-count">${s.confluences ? s.confluences.length : 0} confluence${s.confluences?.length !== 1 ? 's' : ''}</div>
     </div>
   `).join('');
-
-  attachStrategyDragHandlers();
 }
 
-    let suppressStrategyClick = false;
-
 function selectStrategyPlaybook(strategyId) {
-  if (suppressStrategyClick) return;
-
   selectedStrategyPlaybookId = strategyId;
   renderStrategies(allStrategies);
   renderStrategyPlaybook();
 }
 
-    let strategyDrag = {
-  started: false,
-  active: false,
-  strategyId: null,
-  pointerId: null,
-  moved: false,
-  startX: 0,
-  startY: 0,
-  lastX: 0,
-  lastY: 0
-};
-
-let strategyDragDocumentHandlersBound = false;
-
 function attachStrategyDragHandlers() {
-  if (!strategyDragDocumentHandlersBound) {
-    document.addEventListener('pointerup', endStrategyPointer);
-    document.addEventListener('pointercancel', cancelStrategyPointer);
-    strategyDragDocumentHandlersBound = true;
-  }
-
-  document.querySelectorAll('#strategiesGrid .strategy-card[data-strategy-id]').forEach(card => {
-    card.onpointerdown = startStrategyPointer;
-    card.onpointermove = moveStrategyPointer;
-  });
-}
-
-function startStrategyPointer(e) {
-  if (e.button !== undefined && e.button !== 0) return;
-  if (e.target.closest('button,input,textarea,select,a')) return;
-
-  const card = e.currentTarget;
-
-  strategyDrag = {
-    started: true,
-    active: false,
-    strategyId: card.dataset.strategyId,
-    pointerId: e.pointerId,
-    moved: false,
-    startX: e.clientX,
-    startY: e.clientY,
-    lastX: e.clientX,
-    lastY: e.clientY
-  };
-
-  card.setPointerCapture?.(e.pointerId);
-}
-
-function moveStrategyPointer(e) {
-  if (!strategyDrag.started || e.pointerId !== strategyDrag.pointerId) return;
-
-  strategyDrag.lastX = e.clientX;
-  strategyDrag.lastY = e.clientY;
-
-  const dx = Math.abs(e.clientX - strategyDrag.startX);
-  const dy = Math.abs(e.clientY - strategyDrag.startY);
-
-  if (!strategyDrag.active && (dx > 6 || dy > 6)) {
-    const card = e.currentTarget;
-    strategyDrag.active = true;
-    card.classList.add('dragging');
-  }
-
-  if (!strategyDrag.active) return;
-
-  e.preventDefault();
-  moveStrategyDragToPoint(e.clientX, e.clientY);
-}
-
-function moveStrategyDragToPoint(clientX, clientY) {
-  const grid = document.getElementById('strategiesGrid');
-  if (!grid) return;
-
-  const dragging = Array.from(grid.querySelectorAll('.strategy-card[data-strategy-id]'))
-    .find(card => card.dataset.strategyId === strategyDrag.strategyId);
-
-  if (!dragging) return;
-
-  const items = Array.from(grid.querySelectorAll('.strategy-card[data-strategy-id]'))
-    .filter(card => card !== dragging);
-
-  if (!items.length) return;
-
-  document.querySelectorAll('.strategy-card.drag-over-before, .strategy-card.drag-over-after').forEach(card => {
-    card.classList.remove('drag-over-before', 'drag-over-after');
-  });
-
-  const first = items[0];
-  const last = items[items.length - 1];
-  const firstRect = first.getBoundingClientRect();
-  const lastRect = last.getBoundingClientRect();
-
-  if (clientY < firstRect.top) {
-    first.before(dragging);
-    first.classList.add('drag-over-before');
-    strategyDrag.moved = true;
-    return;
-  }
-
-  if (clientY > lastRect.bottom) {
-    last.after(dragging);
-    last.classList.add('drag-over-after');
-    strategyDrag.moved = true;
-    return;
-  }
-
-  let target = document.elementFromPoint(clientX, clientY)?.closest('.strategy-card[data-strategy-id]');
-  if (!target || target === dragging || !grid.contains(target)) {
-    target = items
-      .map(card => {
-        const rect = card.getBoundingClientRect();
-        return { card, distance: Math.abs(clientY - (rect.top + rect.height / 2)) };
-      })
-      .sort((a, b) => a.distance - b.distance)[0]?.card;
-  }
-
-  if (!target || target === dragging) return;
-
-  const rect = target.getBoundingClientRect();
-  const insertAfter = clientY > rect.top + rect.height / 2;
-
-  target.classList.add(insertAfter ? 'drag-over-after' : 'drag-over-before');
-
-  if (insertAfter) target.after(dragging);
-  else target.before(dragging);
-
-  strategyDrag.moved = true;
-}
-
-async function endStrategyPointer(e = null) {
-  if (!strategyDrag.started) return;
-  if (e && strategyDrag.pointerId !== null && e.pointerId !== strategyDrag.pointerId) return;
-
-  const wasDragging = strategyDrag.active;
-  const moved = strategyDrag.moved;
-
-  if (wasDragging) {
-    moveStrategyDragToPoint(strategyDrag.lastX, strategyDrag.lastY);
-  }
-
-  document.querySelectorAll('.strategy-card.dragging, .strategy-card.drag-over-before, .strategy-card.drag-over-after').forEach(card => {
-    card.classList.remove('dragging', 'drag-over-before', 'drag-over-after');
-  });
-
-  strategyDrag.started = false;
-  strategyDrag.active = false;
-  strategyDrag.pointerId = null;
-
-  if (wasDragging && moved) {
-    suppressStrategyClick = true;
-    setTimeout(() => { suppressStrategyClick = false; }, 0);
-
-    applyStrategyDomOrder();
-    await saveStrategyOrder();
-    renderStrategies(allStrategies);
-    renderStrategyPlaybook();
-  }
-}
-
-function cancelStrategyPointer() {
-  document.querySelectorAll('.strategy-card.dragging, .strategy-card.drag-over-before, .strategy-card.drag-over-after').forEach(card => {
-    card.classList.remove('dragging', 'drag-over-before', 'drag-over-after');
-  });
-
-  strategyDrag.started = false;
-  strategyDrag.active = false;
-  strategyDrag.pointerId = null;
-}
-
-function applyStrategyDomOrder() {
-  const ids = Array.from(document.querySelectorAll('#strategiesGrid .strategy-card[data-strategy-id]')).map(card => card.dataset.strategyId);
-
-  allStrategies = ids
-    .map((id, index) => {
-      const strategy = allStrategies.find(s => s.id === id);
-      return strategy ? { ...strategy, sort_order: index } : null;
-    })
-    .filter(Boolean);
-}
-
-async function saveStrategyOrder() {
-  const results = await Promise.all(allStrategies.map((strategy, index) => {
-    strategy.sort_order = index;
-
-    return fetch(`${SUPABASE_URL}/rest/v1/strategies?id=eq.${strategy.id}`, {
-      method: 'PATCH',
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=minimal'
-      },
-      body: JSON.stringify({ sort_order: index })
-    }).catch(err => ({ ok: false, err }));
-  }));
-
-  if (results.some(res => !res.ok)) {
-    console.warn('Strategy order could not be fully persisted. Check that strategies.sort_order exists.');
-  }
+  // Strategy drag reorder is intentionally disabled.
 }
 
 function getSelectedStrategyPlaybook() {
@@ -12735,6 +12495,7 @@ function renderNotesList() {
 let noteDrag = {
   active: false,
   started: false,
+  canDrag: false,
   noteId: null,
   pointerId: null,
   timer: null,
@@ -12768,15 +12529,22 @@ function attachNoteDragHandlers() {
 }
 
 function startNotePointer(e) {
+  if (e.button !== undefined && e.button !== 0) return;
+  if (e.target.closest('button,input,textarea,select,a')) return;
+
   const item = e.currentTarget;
   const noteId = item.dataset.noteId;
   const isTouch = e.pointerType === 'touch';
   const isHandle = !!e.target.closest('.note-drag-handle');
 
+  clearTimeout(noteDrag.timer);
+
   noteDrag.active = false;
   noteDrag.started = true;
+  noteDrag.canDrag = !isTouch || isHandle;
   noteDrag.noteId = noteId;
   noteDrag.pointerId = e.pointerId;
+  noteDrag.timer = null;
   noteDrag.moved = false;
   noteDrag.startX = e.clientX;
   noteDrag.startY = e.clientY;
@@ -12784,25 +12552,18 @@ function startNotePointer(e) {
   noteDrag.lastY = e.clientY;
   noteDrag.pointerType = e.pointerType;
 
-  if (isTouch && !isHandle) return;
+  if (!noteDrag.canDrag) return;
 
   item.setPointerCapture?.(e.pointerId);
 
   if (isTouch) {
-    e.preventDefault();
-
     noteDrag.timer = setTimeout(() => {
+      if (!noteDrag.started || noteDrag.pointerId !== e.pointerId) return;
       noteDrag.active = true;
       item.classList.add('dragging');
       if (navigator.vibrate) navigator.vibrate(12);
     }, 260);
-
-    return;
   }
-
-  noteDrag.active = true;
-  item.classList.add('dragging');
-  e.preventDefault();
 }
 
 function moveNotePointer(e) {
@@ -12815,12 +12576,22 @@ function moveNotePointer(e) {
   const dy = Math.abs(e.clientY - noteDrag.startY);
 
   if (!noteDrag.active) {
-    if (noteDrag.pointerType === 'touch' && (dy > 12 || dx > 12)) {
-      clearTimeout(noteDrag.timer);
-      noteDrag.started = false;
+    if (noteDrag.pointerType === 'touch') {
+      if (dy > 12 || dx > 12) {
+        clearTimeout(noteDrag.timer);
+        noteDrag.started = false;
+        noteDrag.canDrag = false;
+      }
+
+      return;
     }
 
-    return;
+    if (!noteDrag.canDrag || (dx <= 6 && dy <= 6)) {
+      return;
+    }
+
+    noteDrag.active = true;
+    e.currentTarget.classList.add('dragging');
   }
 
   e.preventDefault();
@@ -12892,6 +12663,7 @@ async function endNotePointer(e = null) {
 
   clearTimeout(noteDrag.timer);
 
+  const clickedNoteId = noteDrag.noteId;
   const wasDragging = noteDrag.active;
   const moved = noteDrag.moved;
 
@@ -12905,23 +12677,35 @@ async function endNotePointer(e = null) {
 
   noteDrag.active = false;
   noteDrag.started = false;
+  noteDrag.canDrag = false;
+  noteDrag.noteId = null;
   noteDrag.pointerId = null;
+  noteDrag.timer = null;
   noteDrag.startX = 0;
   noteDrag.startY = 0;
   noteDrag.lastX = 0;
   noteDrag.lastY = 0;
   noteDrag.pointerType = null;
 
-  if (wasDragging && moved) {
+  if (!wasDragging && !moved && clickedNoteId) {
     suppressNoteClick = true;
     setTimeout(() => { suppressNoteClick = false; }, 0);
+    openNote(clickedNoteId);
+    return;
+  }
 
+  if (wasDragging) {
+    suppressNoteClick = true;
+    setTimeout(() => { suppressNoteClick = false; }, 0);
+  }
+
+  if (wasDragging && moved) {
     applyNoteDomOrder();
     await saveNoteOrder();
     renderNotesList();
   }
 }
-
+    
 function cancelNotePointer() {
   clearTimeout(noteDrag.timer);
 
@@ -12931,8 +12715,12 @@ function cancelNotePointer() {
 
   noteDrag.active = false;
   noteDrag.started = false;
+  noteDrag.canDrag = false;
   noteDrag.noteId = null;
   noteDrag.pointerId = null;
+  noteDrag.timer = null;
+  noteDrag.moved = false;
+  noteDrag.pointerType = null;
 }
 
 function applyNoteDomOrder() {
