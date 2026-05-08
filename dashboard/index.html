@@ -2483,8 +2483,7 @@ select.tp-native-select {
     .trade-edit-btn { background: none; border: none; color: var(--text2); cursor: pointer; padding: 4px; border-radius: 4px; transition: color 0.2s; }
     .trade-edit-btn:hover { color: var(--accent); }
     .trade-edit-btn svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-    @media (max-width: 768px) {
-  .trades-mobile-card {
+    .trades-mobile-card {
   display: none;
 }
 
@@ -4955,14 +4954,6 @@ select::-ms-expand {
     <div class="modal-msg" id="printRepliesMsg"></div>
   </div>
 </div>
-  
-  <!-- FLOATING TOOLBAR -->
-  <div class="float-toolbar" id="floatToolbar">
-    <button class="float-btn" data-ncmd="bold" onclick="notesFormat('bold')"><b>B</b></button>
-    <button class="float-btn" data-ncmd="italic" onclick="notesFormat('italic')"><i>I</i></button>
-    <button class="float-btn" data-ncmd="underline" onclick="notesFormat('underline')"><u>U</u></button>
-    <button class="float-btn" onclick="notesFormatH1()">H1</button>
-  </div>
 
   <!-- IMAGE LIGHTBOX -->
 <div class="img-lightbox" id="imgLightbox" onclick="handleLightboxBackdropClick(event)">
@@ -13475,25 +13466,6 @@ function notesInsertHR() {
     function updateNotesToolbarState() {
       document.querySelectorAll('.notes-format-btn[data-ncmd]').forEach(btn => { btn.classList.toggle('active', document.queryCommandState(btn.getAttribute('data-ncmd'))); });
     }
-
-    document.addEventListener('mouseup', () => {
-      const sel = window.getSelection();
-      const toolbar = document.getElementById('floatToolbar');
-      const body = document.getElementById('noteBodyEditor');
-      if (!body || (!body.contains(document.activeElement) && !body.contains(sel?.anchorNode))) { toolbar.classList.remove('visible'); return; }
-      if (sel && sel.toString().length > 0) {
-        const range = sel.getRangeAt(0);
-        const rect = range.getBoundingClientRect();
-        toolbar.style.top = `${rect.top + window.scrollY - 44}px`;
-        toolbar.style.left = `${rect.left + window.scrollX + rect.width / 2 - 80}px`;
-        toolbar.classList.add('visible');
-        document.querySelectorAll('.float-btn[data-ncmd]').forEach(btn => { btn.classList.toggle('active', document.queryCommandState(btn.getAttribute('data-ncmd'))); });
-      } else { toolbar.classList.remove('visible'); }
-    });
-
-    document.addEventListener('mousedown', (e) => {
-      if (!document.getElementById('floatToolbar').contains(e.target)) document.getElementById('floatToolbar').classList.remove('visible');
-    });
 
     function getLightboxImageSrc(imageOrUrl) {
   if (typeof imageOrUrl === 'string') return imageOrUrl;
