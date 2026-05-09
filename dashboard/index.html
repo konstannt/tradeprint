@@ -4919,13 +4919,13 @@ select::-ms-expand {
         <input type="date" id="tradeDate" style="width:100%;padding:10px 14px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;"/>
       </div>
       <div class="form-field">
-  <label>Account</label>
+  <label>Account*</label>
   <select id="tradeAccount" style="width:100%;padding:10px 14px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;">
     <option value="">Select an account...</option>
   </select>
 </div>
       <div class="form-field">
-  <label>Strategy</label>
+  <label>Strategy*</label>
   <select id="tradeStrategy" style="width:100%;padding:10px 14px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;" onchange="loadStrategyConfluences()">
     <option value="">Select a strategy...</option>
   </select>
@@ -4946,7 +4946,7 @@ select::-ms-expand {
   </div>
 
   <div class="form-field">
-    <label>Trade Type</label>
+    <label>Trade Type*</label>
     <select id="tradeType" onchange="updateTradeAssetPlaceholder()" style="width:100%;padding:10px 14px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;">
       <option value="">Select trade type...</option>
       <option value="Stock/ETF">Stock/ETF</option>
@@ -4959,7 +4959,7 @@ select::-ms-expand {
 </div>
 
 <div class="form-field">
-  <label>Direction</label>
+  <label>Direction*</label>
   <input type="hidden" id="tradeDirection" value="" />
   <div class="direction-buttons" id="tradeDirectionButtons">
     <button class="direction-btn long" type="button" data-direction="long" onclick="selectTradeDirection('long')">Long</button>
