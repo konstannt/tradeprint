@@ -1663,31 +1663,65 @@ select.tp-native-select {
   max-width: 980px;
 }
 
+#logTradeModal .log-trade-header {
+  gap: 16px;
+}
+
+#logTradeModal .log-trade-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+#logTradeModal .advanced-toggle-btn {
+  min-height: 34px;
+  padding: 0 12px;
+  color: var(--text2);
+  background: transparent;
+  white-space: nowrap;
+}
+
+#logTradeModal .advanced-toggle-btn:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
 #logTradeModal .log-trade-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) 0;
   gap: 0;
   align-items: start;
+  overflow: hidden;
 }
 
 #logTradeModal.advanced-open .log-trade-layout {
-  grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
-}
-
-#logTradeModal .advanced-trade-panel {
-  display: none;
-}
-
-#logTradeModal.advanced-open .advanced-trade-panel {
-  display: block;
-  min-width: 0;
-  padding-right: 24px;
-  margin-right: 24px;
-  border-right: 1px solid var(--border);
+  grid-template-columns: minmax(0, 520px) minmax(280px, 1fr);
+  gap: 24px;
 }
 
 #logTradeModal .log-trade-main-panel {
   min-width: 0;
+}
+
+#logTradeModal .advanced-trade-panel {
+  min-width: 0;
+  width: 100%;
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  transform: translateX(18px);
+  pointer-events: none;
+  transition: max-width 0.22s ease, opacity 0.18s ease, transform 0.22s ease, padding-left 0.22s ease, border-color 0.22s ease;
+}
+
+#logTradeModal.advanced-open .advanced-trade-panel {
+  max-width: 390px;
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+  padding-left: 24px;
+  border-left: 1px solid var(--border);
 }
 
 .advanced-trade-title {
@@ -1791,28 +1825,42 @@ select.tp-native-select {
 @media (max-width: 900px) {
   #logTradeModal.advanced-open .log-trade-layout {
     grid-template-columns: 1fr;
+    gap: 0;
   }
 
   #logTradeModal.advanced-open .advanced-trade-panel {
-    padding-right: 0;
-    margin-right: 0;
-    margin-bottom: 22px;
-    padding-bottom: 22px;
-    border-right: none;
-    border-bottom: 1px solid var(--border);
+    max-width: none;
+    margin-top: 22px;
+    padding-left: 0;
+    padding-top: 22px;
+    border-left: none;
+    border-top: 1px solid var(--border);
   }
 
   .log-trade-footer {
     align-items: stretch;
-    flex-direction: column;
   }
 
-  .advanced-toggle-btn,
   .log-trade-actions,
   .log-trade-actions .btn-secondary,
   .log-trade-actions .btn-primary {
     width: 100%;
     justify-content: center;
+  }
+}
+
+@media (max-width: 520px) {
+  #logTradeModal .log-trade-header {
+    align-items: flex-start;
+  }
+
+  #logTradeModal .log-trade-header-actions {
+    gap: 8px;
+  }
+
+  #logTradeModal .advanced-toggle-btn {
+    padding: 0 10px;
+    font-size: 13px;
   }
 }
     
@@ -4854,48 +4902,16 @@ select::-ms-expand {
   <!-- LOG TRADE MODAL -->
   <div class="modal" id="logTradeModal" onclick="handleLogTradeModalClick(event)">
     <div class="modal-box log-trade-modal-box" id="logTradeModalBox" onclick="event.stopPropagation()">
-      <div class="modal-header">
-        <div class="modal-title" id="logTradeTitle">Log Trade</div>
-        <button class="modal-close" onclick="closeLogTrade()">×</button>
-            </div>
+      <div class="modal-header log-trade-header">
+  <div class="modal-title" id="logTradeTitle">Log Trade</div>
+
+  <div class="log-trade-header-actions">
+    <button class="btn-secondary advanced-toggle-btn" id="advancedTradeToggle" type="button" onclick="toggleAdvancedTradePanel()">Advanced ▸</button>
+    <button class="modal-close" onclick="closeLogTrade()">×</button>
+  </div>
+</div>
 
       <div class="log-trade-layout">
-        <aside class="advanced-trade-panel" id="advancedTradePanel" aria-hidden="true">
-          <div class="advanced-trade-title">Advanced Details</div>
-
-          <div class="form-field">
-            <label>Entry Price</label>
-            <input type="number" id="advancedEntryPrice" placeholder="e.g. 6951.25" step="0.01"/>
-          </div>
-
-          <div class="form-field">
-            <label>Exit Price</label>
-            <input type="number" id="advancedExitPrice" placeholder="e.g. 7010.75" step="0.01"/>
-          </div>
-
-          <div class="form-field">
-            <label>Size</label>
-            <input type="number" id="advancedPositionSize" placeholder="e.g. 5" step="0.01"/>
-          </div>
-
-          <div class="form-field">
-            <label>Risk Amount ($)</label>
-            <input type="number" id="advancedRiskAmount" placeholder="e.g. 250" step="0.01"/>
-          </div>
-
-          <div class="form-field">
-            <label>Percent Gain/Loss</label>
-            <input type="text" id="advancedPercentGainLoss" inputmode="decimal" placeholder="e.g. 4.2%" oninput="this.value=filterPercentInput(this.value)"/>
-          </div>
-
-          <div class="advanced-partials-head">
-            <div class="advanced-trade-title" style="margin-bottom:0;">Partials</div>
-            <button class="advanced-add-partial" type="button" onclick="addTradePartial()">+ Add Partial</button>
-          </div>
-
-          <div class="advanced-partials-list" id="advancedPartialsList"></div>
-        </aside>
-
         <div class="log-trade-main-panel">
           <div class="form-field" id="tradeDateField" style="display:none;">
 
@@ -5008,16 +5024,49 @@ select::-ms-expand {
         <textarea id="tradeNotes" placeholder="What happened? Any observations..." style="width:100%;min-height:80px;padding:10px 14px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;resize:vertical;font-family:inherit;"></textarea>
       </div>
               </div>
+        <aside class="advanced-trade-panel" id="advancedTradePanel" aria-hidden="true">
+          <div class="advanced-trade-title">Advanced Details</div>
+
+          <div class="form-field">
+            <label>Entry Price</label>
+            <input type="number" id="advancedEntryPrice" placeholder="e.g. 6951.25" step="0.01"/>
+          </div>
+
+          <div class="form-field">
+            <label>Exit Price</label>
+            <input type="number" id="advancedExitPrice" placeholder="e.g. 7010.75" step="0.01"/>
+          </div>
+
+          <div class="form-field">
+            <label>Size</label>
+            <input type="number" id="advancedPositionSize" placeholder="e.g. 5" step="0.01"/>
+          </div>
+
+          <div class="form-field">
+            <label>Risk Amount ($)</label>
+            <input type="number" id="advancedRiskAmount" placeholder="e.g. 250" step="0.01"/>
+          </div>
+
+          <div class="form-field">
+            <label>Percent Gain/Loss</label>
+            <input type="text" id="advancedPercentGainLoss" inputmode="decimal" placeholder="e.g. 4.2%" oninput="this.value=filterPercentInput(this.value)"/>
+          </div>
+
+          <div class="advanced-partials-head">
+            <div class="advanced-trade-title" style="margin-bottom:0;">Partials</div>
+            <button class="advanced-add-partial" type="button" onclick="addTradePartial()">+ Add Partial</button>
+          </div>
+
+          <div class="advanced-partials-list" id="advancedPartialsList"></div>
+        </aside>
       </div>
 
       <div class="modal-footer log-trade-footer">
-        <button class="btn-secondary advanced-toggle-btn" id="advancedTradeToggle" type="button" onclick="toggleAdvancedTradePanel()">Advanced ▸</button>
-
-        <div class="log-trade-actions">
-          <button class="btn-secondary" onclick="closeLogTrade()">Cancel</button>
-          <button class="btn-primary" id="saveTradeBtn" onclick="saveTrade()">Save Trade</button>
-        </div>
-      </div>
+  <div class="log-trade-actions">
+    <button class="btn-secondary" onclick="closeLogTrade()">Cancel</button>
+    <button class="btn-primary" id="saveTradeBtn" onclick="saveTrade()">Save Trade</button>
+  </div>
+</div>
 
       <div class="modal-msg" id="tradeMsg"></div>
     </div>
