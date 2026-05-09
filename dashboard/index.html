@@ -1652,6 +1652,169 @@ select.tp-native-select {
   overflow-x: hidden;
   box-sizing: border-box;
 }
+
+#logTradeModal .log-trade-modal-box {
+  max-width: 540px;
+  overflow-x: hidden;
+  transition: max-width 0.22s ease;
+}
+
+#logTradeModal.advanced-open .log-trade-modal-box {
+  max-width: 980px;
+}
+
+#logTradeModal .log-trade-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  align-items: start;
+}
+
+#logTradeModal.advanced-open .log-trade-layout {
+  grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+}
+
+#logTradeModal .advanced-trade-panel {
+  display: none;
+}
+
+#logTradeModal.advanced-open .advanced-trade-panel {
+  display: block;
+  min-width: 0;
+  padding-right: 24px;
+  margin-right: 24px;
+  border-right: 1px solid var(--border);
+}
+
+#logTradeModal .log-trade-main-panel {
+  min-width: 0;
+}
+
+.advanced-trade-title {
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 18px;
+}
+
+.advanced-trade-panel .form-field {
+  margin-bottom: 16px;
+}
+
+.advanced-partials-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 4px 0 10px;
+}
+
+.advanced-add-partial {
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.advanced-add-partial:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.advanced-partials-list {
+  display: grid;
+  gap: 10px;
+}
+
+.advanced-partial-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+}
+
+.advanced-partial-row .form-field {
+  margin-bottom: 0;
+}
+
+.advanced-partial-row .advanced-partial-percent {
+  grid-column: 1 / -1;
+}
+
+.advanced-partial-remove {
+  grid-column: 1 / -1;
+  justify-self: start;
+  background: none;
+  border: none;
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 2px 0;
+}
+
+.advanced-partial-remove:hover {
+  color: var(--danger);
+}
+
+.advanced-empty {
+  color: var(--text2);
+  font-size: 12px;
+}
+
+.log-trade-footer {
+  align-items: center;
+  justify-content: space-between;
+}
+
+.log-trade-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.advanced-toggle-btn {
+  color: var(--text2);
+  padding-left: 14px;
+  padding-right: 14px;
+}
+
+@media (max-width: 900px) {
+  #logTradeModal.advanced-open .log-trade-layout {
+    grid-template-columns: 1fr;
+  }
+
+  #logTradeModal.advanced-open .advanced-trade-panel {
+    padding-right: 0;
+    margin-right: 0;
+    margin-bottom: 22px;
+    padding-bottom: 22px;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .log-trade-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .advanced-toggle-btn,
+  .log-trade-actions,
+  .log-trade-actions .btn-secondary,
+  .log-trade-actions .btn-primary {
+    width: 100%;
+    justify-content: center;
+  }
+}
     
 .confluence-toggle {
   width: 100%;
@@ -4690,12 +4853,52 @@ select::-ms-expand {
 
   <!-- LOG TRADE MODAL -->
   <div class="modal" id="logTradeModal" onclick="handleLogTradeModalClick(event)">
-    <div class="modal-box" style="max-width:540px;" onclick="event.stopPropagation()">
+    <div class="modal-box log-trade-modal-box" id="logTradeModalBox" onclick="event.stopPropagation()">
       <div class="modal-header">
         <div class="modal-title" id="logTradeTitle">Log Trade</div>
         <button class="modal-close" onclick="closeLogTrade()">×</button>
-      </div>
-      <div class="form-field" id="tradeDateField" style="display:none;">
+            </div>
+
+      <div class="log-trade-layout">
+        <aside class="advanced-trade-panel" id="advancedTradePanel" aria-hidden="true">
+          <div class="advanced-trade-title">Advanced Details</div>
+
+          <div class="form-field">
+            <label>Entry Price</label>
+            <input type="number" id="advancedEntryPrice" placeholder="e.g. 6951.25" step="0.01"/>
+          </div>
+
+          <div class="form-field">
+            <label>Exit Price</label>
+            <input type="number" id="advancedExitPrice" placeholder="e.g. 7010.75" step="0.01"/>
+          </div>
+
+          <div class="form-field">
+            <label>Size</label>
+            <input type="number" id="advancedPositionSize" placeholder="e.g. 5" step="0.01"/>
+          </div>
+
+          <div class="form-field">
+            <label>Risk Amount ($)</label>
+            <input type="number" id="advancedRiskAmount" placeholder="e.g. 250" step="0.01"/>
+          </div>
+
+          <div class="form-field">
+            <label>Percent Gain/Loss</label>
+            <input type="text" id="advancedPercentGainLoss" inputmode="decimal" placeholder="e.g. 4.2%" oninput="this.value=filterPercentInput(this.value)"/>
+          </div>
+
+          <div class="advanced-partials-head">
+            <div class="advanced-trade-title" style="margin-bottom:0;">Partials</div>
+            <button class="advanced-add-partial" type="button" onclick="addTradePartial()">+ Add Partial</button>
+          </div>
+
+          <div class="advanced-partials-list" id="advancedPartialsList"></div>
+        </aside>
+
+        <div class="log-trade-main-panel">
+          <div class="form-field" id="tradeDateField" style="display:none;">
+
         <label>Date</label>
         <input type="date" id="tradeDate" style="width:100%;padding:10px 14px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;"/>
       </div>
@@ -4804,10 +5007,18 @@ select::-ms-expand {
         <label>Trade Notes (optional)</label>
         <textarea id="tradeNotes" placeholder="What happened? Any observations..." style="width:100%;min-height:80px;padding:10px 14px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;resize:vertical;font-family:inherit;"></textarea>
       </div>
-      <div class="modal-footer">
-        <button class="btn-secondary" onclick="closeLogTrade()">Cancel</button>
-        <button class="btn-primary" id="saveTradeBtn" onclick="saveTrade()">Save Trade</button>
+              </div>
       </div>
+
+      <div class="modal-footer log-trade-footer">
+        <button class="btn-secondary advanced-toggle-btn" id="advancedTradeToggle" type="button" onclick="toggleAdvancedTradePanel()">Advanced ▸</button>
+
+        <div class="log-trade-actions">
+          <button class="btn-secondary" onclick="closeLogTrade()">Cancel</button>
+          <button class="btn-primary" id="saveTradeBtn" onclick="saveTrade()">Save Trade</button>
+        </div>
+      </div>
+
       <div class="modal-msg" id="tradeMsg"></div>
     </div>
   </div>
@@ -6106,7 +6317,10 @@ const TRADE_CHART_MAX_MB = 8;
 const TRADE_CHART_DEBUG = true;
 
 let tradeChartImages = [];
+let tradePartials = [];
+let logTradeAdvancedOpen = false;
 const tradeChartSignedUrlCache = new Map();
+
     const tradeChartObjectUrlCache = new Map();
 
     const pageLoaded = {
@@ -6281,6 +6495,252 @@ function setTradeDirection(direction = '') {
   });
 }
 
+function setLogTradeAdvancedOpen(isOpen) {
+  logTradeAdvancedOpen = !!isOpen;
+
+  const modal = document.getElementById('logTradeModal');
+  const toggle = document.getElementById('advancedTradeToggle');
+  const panel = document.getElementById('advancedTradePanel');
+
+  modal?.classList.toggle('advanced-open', logTradeAdvancedOpen);
+  panel?.setAttribute('aria-hidden', logTradeAdvancedOpen ? 'false' : 'true');
+
+  if (toggle) {
+    toggle.textContent = logTradeAdvancedOpen ? '◂ Hide Advanced' : 'Advanced ▸';
+  }
+}
+
+function toggleAdvancedTradePanel() {
+  setLogTradeAdvancedOpen(!logTradeAdvancedOpen);
+}
+
+function filterPercentInput(value) {
+  let next = String(value || '').replace(/[^\d.\-%]/g, '');
+  const hasPercent = next.includes('%');
+
+  next = next.replace(/%/g, '');
+  next = next.replace(/(?!^)-/g, '');
+
+  const negative = next.startsWith('-');
+  if (negative) next = '-' + next.slice(1).replace(/-/g, '');
+
+  const parts = next.split('.');
+  if (parts.length > 2) {
+    next = `${parts.shift()}.${parts.join('')}`;
+  }
+
+  return next + (hasPercent ? '%' : '');
+}
+
+function parseOptionalAdvancedNumberValue(raw, label) {
+  const valueText = String(raw ?? '').trim();
+
+  if (!valueText) {
+    return { ok: true, value: null };
+  }
+
+  const value = Number(valueText);
+
+  if (!Number.isFinite(value)) {
+    return { ok: false, error: `${label} must be a valid number.` };
+  }
+
+  return { ok: true, value };
+}
+
+function readOptionalAdvancedNumber(inputId, label) {
+  return parseOptionalAdvancedNumberValue(document.getElementById(inputId)?.value, label);
+}
+
+function normalizeAdvancedPercent(raw, label) {
+  const valueText = filterPercentInput(String(raw ?? '').trim());
+
+  if (!valueText) {
+    return { ok: true, value: null };
+  }
+
+  const withoutPercent = valueText.replace('%', '').trim();
+
+  if (!/^-?(?:\d+|\d*\.\d+)$/.test(withoutPercent)) {
+    return { ok: false, error: `${label} must be a valid percent.` };
+  }
+
+  return { ok: true, value: `${String(Number(withoutPercent))}%` };
+}
+
+function formatAdvancedPercentForDisplay(value) {
+  const normalized = normalizeAdvancedPercent(value, 'Percent');
+  return normalized.ok && normalized.value ? normalized.value : (value || '');
+}
+
+function addTradePartial(partial = {}) {
+  tradePartials.push({
+    exit_price: partial.exit_price ?? '',
+    size_closed: partial.size_closed ?? partial.size ?? '',
+    percent_closed: partial.percent_closed ?? ''
+  });
+
+  renderTradePartials();
+}
+
+function updateTradePartial(index, field, value) {
+  if (!tradePartials[index]) return;
+  tradePartials[index][field] = value;
+}
+
+function removeTradePartial(index) {
+  tradePartials.splice(index, 1);
+  renderTradePartials();
+}
+
+function renderTradePartials() {
+  const list = document.getElementById('advancedPartialsList');
+  if (!list) return;
+
+  if (!tradePartials.length) {
+    list.innerHTML = '<div class="advanced-empty">No partial exits added.</div>';
+    return;
+  }
+
+  list.innerHTML = tradePartials.map((partial, index) => `
+    <div class="advanced-partial-row">
+      <div class="form-field">
+        <label>Exit Price</label>
+        <input type="number" step="0.01" data-partial-field="exit_price" value="${escapeHtml(partial.exit_price ?? '')}" placeholder="e.g. 6990.25" oninput="updateTradePartial(${index}, 'exit_price', this.value)"/>
+      </div>
+
+      <div class="form-field">
+        <label>Size Closed</label>
+        <input type="number" step="0.01" data-partial-field="size_closed" value="${escapeHtml(partial.size_closed ?? '')}" placeholder="e.g. 2" oninput="updateTradePartial(${index}, 'size_closed', this.value)"/>
+      </div>
+
+      <div class="form-field advanced-partial-percent">
+        <label>Percent Closed</label>
+        <input type="text" inputmode="decimal" data-partial-field="percent_closed" value="${escapeHtml(formatAdvancedPercentForDisplay(partial.percent_closed ?? ''))}" placeholder="e.g. 50%" oninput="this.value=filterPercentInput(this.value); updateTradePartial(${index}, 'percent_closed', this.value)"/>
+      </div>
+
+      <button class="advanced-partial-remove" type="button" onclick="removeTradePartial(${index})">Remove partial</button>
+    </div>
+  `).join('');
+}
+
+function resetAdvancedTradeFields() {
+  ['advancedEntryPrice', 'advancedExitPrice', 'advancedPositionSize', 'advancedRiskAmount', 'advancedPercentGainLoss'].forEach(id => {
+    const input = document.getElementById(id);
+    if (input) input.value = '';
+  });
+
+  tradePartials = [];
+  renderTradePartials();
+}
+
+function parseTradePartials(value) {
+  if (Array.isArray(value)) return value;
+
+  if (typeof value === 'string' && value.trim()) {
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (err) {
+      return [];
+    }
+  }
+
+  return [];
+}
+
+function populateAdvancedTradeFields(trade) {
+  const setValue = (id, value) => {
+    const input = document.getElementById(id);
+    if (input) input.value = value ?? '';
+  };
+
+  setValue('advancedEntryPrice', trade?.entry_price);
+  setValue('advancedExitPrice', trade?.exit_price);
+  setValue('advancedPositionSize', trade?.position_size);
+  setValue('advancedRiskAmount', trade?.risk_amount);
+  setValue('advancedPercentGainLoss', formatAdvancedPercentForDisplay(trade?.percent_gain_loss));
+
+  tradePartials = parseTradePartials(trade?.partials).map(partial => ({
+    exit_price: partial.exit_price ?? '',
+    size_closed: partial.size_closed ?? partial.size ?? '',
+    percent_closed: formatAdvancedPercentForDisplay(partial.percent_closed ?? '')
+  }));
+
+  renderTradePartials();
+}
+
+function hasAdvancedTradeData(trade) {
+  if (!trade) return false;
+
+  const hasField = ['entry_price', 'exit_price', 'position_size', 'risk_amount', 'percent_gain_loss'].some(key => {
+    const value = trade[key];
+    return value !== null && value !== undefined && String(value).trim() !== '';
+  });
+
+  return hasField || parseTradePartials(trade.partials).length > 0;
+}
+
+function collectAdvancedTradePayload() {
+  const fields = [
+    ['advancedEntryPrice', 'Entry price', 'entry_price'],
+    ['advancedExitPrice', 'Exit price', 'exit_price'],
+    ['advancedPositionSize', 'Size', 'position_size'],
+    ['advancedRiskAmount', 'Risk amount', 'risk_amount']
+  ];
+
+  const payload = {};
+
+  for (const [inputId, label, payloadKey] of fields) {
+    const parsed = readOptionalAdvancedNumber(inputId, label);
+
+    if (!parsed.ok) {
+      return parsed;
+    }
+
+    payload[payloadKey] = parsed.value;
+  }
+
+  const percent = normalizeAdvancedPercent(document.getElementById('advancedPercentGainLoss')?.value, 'Percent gain/loss');
+
+  if (!percent.ok) {
+    return percent;
+  }
+
+  payload.percent_gain_loss = percent.value;
+
+  const partialRows = Array.from(document.querySelectorAll('#advancedPartialsList .advanced-partial-row'));
+  const partials = [];
+
+  for (const [index, row] of partialRows.entries()) {
+    const exitRaw = row.querySelector('[data-partial-field="exit_price"]')?.value || '';
+    const sizeRaw = row.querySelector('[data-partial-field="size_closed"]')?.value || '';
+    const percentRaw = row.querySelector('[data-partial-field="percent_closed"]')?.value || '';
+
+    if (!exitRaw.trim() && !sizeRaw.trim() && !percentRaw.trim()) {
+      continue;
+    }
+
+    const exitPrice = parseOptionalAdvancedNumberValue(exitRaw, `Partial ${index + 1} exit price`);
+    const sizeClosed = parseOptionalAdvancedNumberValue(sizeRaw, `Partial ${index + 1} size closed`);
+    const percentClosed = normalizeAdvancedPercent(percentRaw, `Partial ${index + 1} percent closed`);
+
+    if (!exitPrice.ok) return exitPrice;
+    if (!sizeClosed.ok) return sizeClosed;
+    if (!percentClosed.ok) return percentClosed;
+
+    partials.push({
+      exit_price: exitPrice.value,
+      size_closed: sizeClosed.value,
+      percent_closed: percentClosed.value
+    });
+  }
+
+  payload.partials = partials;
+
+  return { ok: true, payload };
+}
+    
 function makeTradeChartId() {
   return crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
 }
@@ -9706,6 +10166,8 @@ populateTradeAccountSelect();
       updateTradeAssetPlaceholder();
 setTradeDirection('');
 resetTradeCharts();
+resetAdvancedTradeFields();
+setLogTradeAdvancedOpen(false);
       document.getElementById('tradePnl').value = '';
       document.getElementById('tradeNotes').value = '';
       document.getElementById('tradeTime').value = '';
@@ -9736,9 +10198,12 @@ populateTradeAccountSelect();
       document.getElementById('tradeAsset').value = '';
       document.getElementById('tradeType').value = '';
       updateTradeAssetPlaceholder();
-setTradeDirection('');
-resetTradeCharts();
-      document.getElementById('tradePnl').value = '';
+  resetConfluenceSection();
+  resetTradeCharts();
+  resetAdvancedTradeFields();
+  setLogTradeAdvancedOpen(false);
+
+  document.getElementById('logTradeTitle').textContent = 'Edit Trade';
       document.getElementById('tradeNotes').value = '';
       document.getElementById('tradeTime').value = '';
       document.getElementById('tradeAmPm').value = 'AM';
@@ -9777,8 +10242,10 @@ async function openEditTrade(id) {
   const msg = document.getElementById('tradeMsg');
   const saveBtn = document.getElementById('saveTradeBtn');
 
-  resetConfluenceSection();
+    resetConfluenceSection();
   resetTradeCharts();
+  resetAdvancedTradeFields();
+  setLogTradeAdvancedOpen(false);
 
   document.getElementById('logTradeTitle').textContent = 'Edit Trade';
   document.getElementById('tradeDateField').style.display = logFromPage ? 'block' : 'none';
@@ -9852,7 +10319,10 @@ async function openEditTrade(id) {
       document.getElementById('tradeAmPm').value = 'AM';
     }
 
-    document.querySelector(`input[name="followedRules"][value="${t.followed_rules ? 'true' : 'false'}"]`).checked = true;
+        document.querySelector(`input[name="followedRules"][value="${t.followed_rules ? 'true' : 'false'}"]`).checked = true;
+
+    populateAdvancedTradeFields(t);
+    setLogTradeAdvancedOpen(hasAdvancedTradeData(t));
 
     msg.textContent = '';
     saveBtn.disabled = false;
@@ -9884,8 +10354,10 @@ async function openEditTrade(id) {
     saveBtn.textContent = 'Save Trade';
   }
 
-  setTradeDirection('');
+    setTradeDirection('');
   resetTradeCharts();
+  resetAdvancedTradeFields();
+  setLogTradeAdvancedOpen(false);
   resetConfluenceSection();
       
   editingTradeId = null;
@@ -10000,8 +10472,16 @@ if (!direction) {
 
   const tradeDate = logFromPage ? document.getElementById('tradeDate').value : selectedDate;
 
-  if (!tradeDate) {
+    if (!tradeDate) {
     msg.textContent = 'Please select a date.';
+    msg.className = 'modal-msg error';
+    return;
+  }
+
+  const advancedTrade = collectAdvancedTradePayload();
+
+  if (!advancedTrade.ok) {
+    msg.textContent = advancedTrade.error;
     msg.className = 'modal-msg error';
     return;
   }
@@ -10038,8 +10518,9 @@ const payload = {
       notes,
       followed_rules: followedRules,
       confluences_used: confluencesUsed,
-      chart_images: chartImages,
-      trade_time: tradeTime
+            chart_images: chartImages,
+      trade_time: tradeTime,
+      ...advancedTrade.payload
     };
 
     if (TRADE_CHART_DEBUG) {
