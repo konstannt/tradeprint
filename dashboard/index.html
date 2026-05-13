@@ -4949,7 +4949,7 @@ select::-ms-expand {
     <label>Trade Type*</label>
     <select id="tradeType" onchange="updateTradeAssetPlaceholder()" style="width:100%;padding:10px 14px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;">
       <option value="">Select trade type...</option>
-      <option value="Stock/ETF">Stock/ETF</option>
+      <option value="Shares">Shares</option>
       <option value="Futures">Futures</option>
       <option value="Options">Options</option>
       <option value="Forex">Forex</option>
@@ -5539,7 +5539,7 @@ select::-ms-expand {
 
   <select id="filterType" onchange="filterTrades()">
     <option value="">All Trade Types</option>
-    <option value="Stock/ETF">Stock/ETF</option>
+    <option value="Shares">Shares</option>
     <option value="Futures">Futures</option>
     <option value="Options">Options</option>
     <option value="Forex">Forex</option>
@@ -5969,7 +5969,7 @@ select::-ms-expand {
               <label>Default Trade Type</label>
               <select id="defaultTradeType">
                 <option value="">No default trade type</option>
-                <option value="Stock/ETF">Stock/ETF</option>
+                <option value="Shares">Shares</option>
                 <option value="Futures">Futures</option>
                 <option value="Options">Options</option>
                 <option value="Forex">Forex</option>
@@ -6357,7 +6357,7 @@ let subscriptionLoaded = false;
 let currentSubscription = null;
 const PRO_STATUSES = ['active', 'trialing', 'completed'];
 
-const TRADE_TYPES = ['Stock/ETF', 'Futures', 'Options', 'Forex', 'Crypto'];
+const TRADE_TYPES = ['Shares', 'Futures', 'Options', 'Forex', 'Crypto'];
 const TRADE_DIRECTIONS = ['long', 'short'];
 const TRADE_CHART_BUCKET = 'trade-charts';
 const TRADE_CHART_BUCKET_IS_PUBLIC = true; // set true only if trade-charts bucket is public
@@ -6436,9 +6436,9 @@ function updateTradeAssetPlaceholder() {
   if (!assetInput) return;
 
   const placeholders = {
-    'Stock/ETF': 'e.g. SPY, QQQ, AAPL, META',
+    'Shares': 'e.g. AMZN, SPY, AAPL, META',
     'Futures': 'e.g. NQ, ES, MGC, CL',
-    'Options': 'e.g. SPX, NDX, TSLA, NVDA',
+    'Options': 'e.g. SPX, QQQ, TSLA, NVDA',
     'Forex': 'e.g. EURUSD, GBPUSD, XAUUSD',
     'Crypto': 'e.g. BTC, SOL, ETH, XRP'
   };
