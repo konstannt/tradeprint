@@ -4791,6 +4791,51 @@ select::-ms-expand {
   color: var(--danger);
   border-color: var(--danger);
 }
+
+/* ─── MENTORSHIP ─────────────────────────────────────────── */
+.mentorship-layout { max-width: 860px; }
+.mentorship-section { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 28px; margin-bottom: 20px; }
+.mentorship-section-title { font-size: 15px; font-weight: 700; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+.mentorship-invite-row { display: flex; gap: 10px; margin-bottom: 8px; }
+.mentorship-invite-row input { flex: 1; padding: 10px 14px; font-size: 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); outline: none; font-family: inherit; }
+.mentorship-invite-row input:focus { border-color: var(--accent); }
+.mentor-card { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 12px; display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+.mentor-card-info { min-width: 0; flex: 1; }
+.mentor-card-email { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.mentor-card-meta { font-size: 12px; color: var(--text2); line-height: 1.5; }
+.mentor-card-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-start; flex-shrink: 0; }
+.mentor-status-pill { display: inline-flex; align-items: center; min-height: 24px; padding: 0 9px; border-radius: 8px; font-size: 11px; font-weight: 900; text-transform: capitalize; }
+.mentor-status-pill.pending { background: rgba(245,158,11,0.14); color: #f59e0b; border: 1px solid rgba(245,158,11,0.28); }
+.mentor-status-pill.active { background: rgba(34,197,94,0.14); color: var(--success); border: 1px solid rgba(34,197,94,0.28); }
+.mentor-status-pill.revoked { background: rgba(239,68,68,0.14); color: var(--danger); border: 1px solid rgba(239,68,68,0.28); }
+.mentor-permissions-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; margin-top: 12px; }
+.mentor-perm-toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; }
+.mentor-perm-label { font-size: 13px; color: var(--text); }
+.mentor-empty { color: var(--text2); font-size: 14px; padding: 24px; text-align: center; }
+.feedback-list { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+.feedback-item { background: var(--bg); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 8px; padding: 14px; }
+.feedback-item-meta { font-size: 11px; color: var(--text2); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.4px; }
+.feedback-item-body { font-size: 14px; color: var(--text); line-height: 1.6; }
+.mentor-dashboard-layout { max-width: 860px; }
+.mentor-trader-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 18px; margin-bottom: 12px; cursor: pointer; transition: border-color 0.2s; }
+.mentor-trader-card:hover { border-color: var(--accent); }
+.mentor-trader-name { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+.mentor-trader-meta { font-size: 12px; color: var(--text2); }
+.mentor-review-queue { display: flex; flex-direction: column; gap: 10px; }
+.mentor-review-item { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+.mentor-review-item-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
+.mentor-review-item-title { font-size: 14px; font-weight: 700; color: var(--text); }
+.mentor-review-item-meta { font-size: 12px; color: var(--text2); margin-top: 3px; }
+.mentor-feedback-compose { margin-top: 12px; }
+.mentor-feedback-compose textarea { width: 100%; min-height: 80px; padding: 10px 14px; font-size: 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg2); color: var(--text); outline: none; resize: vertical; font-family: inherit; }
+.mentor-feedback-compose textarea:focus { border-color: var(--accent); }
+.mentor-feedback-compose-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px; }
+.review-request-btn { display: inline-flex; align-items: center; gap: 7px; min-height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg2); color: var(--text); cursor: pointer; font-size: 12px; font-weight: 800; transition: border-color 0.2s, color 0.2s; }
+.review-request-btn:hover { border-color: var(--accent); color: var(--accent); }
+@media (max-width: 768px) {
+  .mentor-card { flex-direction: column; }
+  .mentor-permissions-grid { grid-template-columns: 1fr; }
+}
     
   </style>
 </head>
@@ -5179,6 +5224,48 @@ select::-ms-expand {
   </div>
 </div>
 
+<!-- REVIEW REQUEST MODAL -->
+<div class="modal" id="reviewRequestModal" onclick="if(event.target===this)closeReviewRequestModal()">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">Request Mentor Review</div>
+      <button class="modal-close" onclick="closeReviewRequestModal()">×</button>
+    </div>
+    <div class="form-field">
+      <label>Select Mentor</label>
+      <select id="reviewRequestMentorSelect" style="width:100%;padding:10px 14px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;"></select>
+    </div>
+    <div class="form-field">
+      <label>Note for your mentor (optional)</label>
+      <textarea id="reviewRequestNote" placeholder="What do you want feedback on?" style="width:100%;min-height:80px;padding:10px 14px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;resize:vertical;font-family:inherit;"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeReviewRequestModal()">Cancel</button>
+      <button class="btn-primary" onclick="submitReviewRequest()">Send Request</button>
+    </div>
+    <div class="modal-msg" id="reviewRequestMsg"></div>
+  </div>
+</div>
+
+<!-- MENTOR FEEDBACK MODAL -->
+<div class="modal" id="mentorFeedbackModal" onclick="if(event.target===this)closeMentorFeedbackModal()">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title" id="mentorFeedbackModalTitle">Leave Feedback</div>
+      <button class="modal-close" onclick="closeMentorFeedbackModal()">×</button>
+    </div>
+    <div class="form-field">
+      <label>Your Feedback</label>
+      <textarea id="mentorFeedbackText" placeholder="Write your feedback, observations, or suggestions..." style="width:100%;min-height:120px;padding:10px 14px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;resize:vertical;font-family:inherit;"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeMentorFeedbackModal()">Cancel</button>
+      <button class="btn-primary" onclick="submitMentorFeedback()">Submit Feedback</button>
+    </div>
+    <div class="modal-msg" id="mentorFeedbackMsg"></div>
+  </div>
+</div>
+  
   <!-- IMAGE LIGHTBOX -->
 <div class="img-lightbox" id="imgLightbox" onclick="handleLightboxBackdropClick(event)">
   <button class="img-lightbox-close" type="button" onclick="closeLightbox(event)" aria-label="Close image">×</button>
@@ -5240,8 +5327,16 @@ select::-ms-expand {
         <svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="12" y2="14"/></svg>
         <span class="nav-label">Calculator</span>
       </a>
+      <a class="nav-item" onclick="showPage('mentorship', this)">
+  <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+  <span class="nav-label">Mentorship</span>
+</a>
     </div>
         <div class="sidebar-bottom">
+          <div class="settings-row" id="mentor-dashboard-nav" onclick="showPage('mentor-dashboard', this)" style="display:none;">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span class="settings-label">Mentor View</span>
+      </div>
       <div class="settings-row prints-nav-row" id="prints-nav" onclick="showPage('prints', this)">
         <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         <span class="settings-label">Prints</span>
@@ -5985,6 +6080,75 @@ select::-ms-expand {
     </div>
   </div>
 
+<!-- MENTORSHIP PAGE (Trader side) -->
+<div class="page" id="page-mentorship">
+  <div class="page-title">Mentorship</div>
+  <div class="page-subtitle">Invite a mentor to review your trades and journals.</div>
+  <div class="mentorship-layout">
+
+    <div class="mentorship-section">
+      <div class="mentorship-section-title">Invite a Mentor</div>
+      <div class="mentorship-invite-row">
+        <input type="email" id="mentorEmailInput" placeholder="Mentor's email address"/>
+        <button class="btn-primary" onclick="sendMentorInvite()">Send Invite</button>
+      </div>
+      <div style="font-size:12px;color:var(--text2);">They'll get a link to accept and create or log in to a Tradeprint account.</div>
+      <div class="msg" id="mentorInviteMsg"></div>
+    </div>
+
+    <div class="mentorship-section">
+      <div class="mentorship-section-title">Your Mentors</div>
+      <div id="mentorRelationshipsList"><div class="mentor-empty">No mentors yet.</div></div>
+    </div>
+
+    <div class="mentorship-section" id="mentorFeedbackSection" style="display:none;">
+      <div class="mentorship-section-title">Recent Feedback</div>
+      <div class="feedback-list" id="traderFeedbackList"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MENTOR DASHBOARD PAGE -->
+<div class="page" id="page-mentor-dashboard">
+  <div class="page-title">Mentor Dashboard</div>
+  <div class="page-subtitle">Traders who've invited you, and their review queue.</div>
+  <div class="mentor-dashboard-layout">
+
+    <div class="mentorship-section">
+      <div class="mentorship-section-title">Traders You Mentor</div>
+      <div id="mentorTradersList"><div class="mentor-empty">No active traders yet.</div></div>
+    </div>
+
+    <div class="mentorship-section" id="mentorReviewQueueSection">
+      <div class="mentorship-section-title">Review Queue</div>
+      <div class="mentor-review-queue" id="mentorReviewQueue"><div class="mentor-empty">No pending reviews.</div></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MENTOR VIEW TRADER PAGE -->
+<div class="page" id="page-mentor-trader-view">
+  <div style="display:flex;align-items:center;gap:14px;margin-bottom:28px;">
+    <button class="btn-secondary" onclick="showPage('mentor-dashboard', document.querySelector('.nav-item[onclick*=mentor-dashboard]'))">← Back</button>
+    <div>
+      <div class="page-title" id="mentorViewTraderTitle" style="margin-bottom:0;">Trader</div>
+      <div class="page-subtitle" id="mentorViewTraderSub" style="margin-bottom:0;"></div>
+    </div>
+  </div>
+  <div class="mentor-dashboard-layout">
+    <div class="mentorship-section" id="mentorViewTradesSection" style="display:none;">
+      <div class="mentorship-section-title">Recent Trades</div>
+      <div id="mentorViewTradesList"></div>
+    </div>
+    <div class="mentorship-section" id="mentorViewJournalsSection" style="display:none;">
+      <div class="mentorship-section-title">Recent Journal Notes</div>
+      <div id="mentorViewJournalsList"></div>
+    </div>
+  </div>
+</div>
+  
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
   <script>
     window.addEventListener('error', (event) => {
@@ -9115,11 +9279,17 @@ async function showPage(name, el) {
       if (name === 'calculator') initCalcPage();
       if (name === 'prints') await (printsWarmPromise || loadPrints());
 
-      if (name === 'settings') {
+      iif (name === 'settings') {
   if (!allStrategies.length) await loadStrategies();
   await ensureSubscriptionLoaded();
   renderProSettings();
   syncTradeDefaultsInputs();
+}
+if (name === 'mentorship') {
+  await loadMentorshipPage();
+}
+if (name === 'mentor-dashboard') {
+  await loadMentorDashboard();
 }
 
       pageLoaded[name] = true;
@@ -9798,6 +9968,23 @@ async function uploadNoteImage(file, folder = 'notes', options = {}) {
 
   document.getElementById('dayModal').classList.add('active');
 
+// Inject review request button into day modal header if trader has active mentors
+const activeMentors = mentorRelationships.filter(r => r.status === 'active');
+const existingReviewBtn = document.getElementById('dayModalReviewBtn');
+if (existingReviewBtn) existingReviewBtn.remove();
+if (activeMentors.length) {
+  const dayModalHeader = document.querySelector('.day-modal-header');
+  if (dayModalHeader) {
+    const btn = document.createElement('button');
+    btn.id = 'dayModalReviewBtn';
+    btn.className = 'review-request-btn';
+    btn.title = 'Request mentor review for this day';
+    btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Request Review`;
+    btn.onclick = () => openReviewRequestModal('journal', dateStr);
+    dayModalHeader.insertBefore(btn, dayModalHeader.querySelector('.day-modal-close'));
+  }
+}
+      
   await nextFrame();
 
   loadDayNoteContent(dateStr)
@@ -10069,6 +10256,10 @@ async function closeDayModal() {
           </div>
           <div class="trade-feed-pnl ${pnlClass}">${formatPnl(pnl)}</div>
           <div class="trade-feed-actions">
+  <button class="review-request-btn" title="Request mentor review" onclick="openReviewRequestModal('trade','${t.id}')">
+    <svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    Review
+  </button>
             <button class="trade-feed-edit" onclick="openEditTrade('${t.id}')"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
             <button class="trade-feed-delete" onclick="deleteTrade('${t.id}')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>
           </div>
@@ -15265,6 +15456,627 @@ async function savePrintReply() {
   msg.textContent = '';
   msg.className = 'modal-msg';
 }
+
+// ─── MENTORSHIP ───────────────────────────────────────────────
+
+let mentorRelationships = [];
+let myMentorships = []; // relationships where I am the mentor
+let reviewRequestContext = { type: null, id: null }; // type: 'trade' | 'journal', id: trade id or date
+let activeMentorFeedbackContext = { relationshipId: null, traderId: null, tradeId: null, journalDate: null, requestId: null };
+let currentMentorTraderId = null;
+
+// ── Invite ───────────────────────────────────────────────────
+
+async function sendMentorInvite() {
+  const emailInput = document.getElementById('mentorEmailInput');
+  const msg = document.getElementById('mentorInviteMsg');
+  const email = emailInput.value.trim().toLowerCase();
+
+  msg.textContent = '';
+  msg.className = 'msg';
+
+  if (!email || !email.includes('@')) {
+    msg.textContent = 'Enter a valid email address.';
+    msg.className = 'msg error';
+    return;
+  }
+
+  if (email === user.email?.toLowerCase()) {
+    msg.textContent = 'You cannot invite yourself.';
+    msg.className = 'msg error';
+    return;
+  }
+
+  const existing = mentorRelationships.find(r => r.mentor_email.toLowerCase() === email && r.status !== 'revoked');
+  if (existing) {
+    msg.textContent = existing.status === 'pending' ? 'Invite already sent to this email.' : 'This person is already your mentor.';
+    msg.className = 'msg error';
+    return;
+  }
+
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/mentor_relationships`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    },
+    body: JSON.stringify({
+      trader_user_id: user.id,
+      mentor_email: email,
+      status: 'pending',
+      permissions: {
+        canViewTrades: true,
+        canViewJournals: true,
+        canComment: true,
+        canViewPnL: false,
+        canViewAccountNames: false
+      }
+    })
+  });
+
+  if (!res.ok) {
+    msg.textContent = 'Could not send invite. Try again.';
+    msg.className = 'msg error';
+    return;
+  }
+
+  emailInput.value = '';
+  msg.textContent = 'Invite sent! Share this invite link with your mentor (they need to log in to Tradeprint to accept).';
+  msg.className = 'msg success';
+  await loadMentorRelationships();
+  renderMentorRelationships();
+}
+
+// ── Load ─────────────────────────────────────────────────────
+
+async function loadMentorRelationships() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/mentor_relationships?trader_user_id=eq.${user.id}&order=created_at.desc`, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
+  });
+  const data = await res.json();
+  mentorRelationships = Array.isArray(data) ? data : [];
+}
+
+async function loadMyMentorships() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/mentor_relationships?mentor_user_id=eq.${user.id}&status=eq.active&order=created_at.desc`, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
+  });
+  const data = await res.json();
+  myMentorships = Array.isArray(data) ? data : [];
+}
+
+async function loadTraderFeedback() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/mentor_feedback?trader_id=eq.${user.id}&order=created_at.desc&limit=20`, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
+  });
+  const data = await res.json();
+  return Array.isArray(data) ? data : [];
+}
+
+// ── Render: Trader side ──────────────────────────────────────
+
+function renderMentorRelationships() {
+  const container = document.getElementById('mentorRelationshipsList');
+  if (!container) return;
+
+  const active = mentorRelationships.filter(r => r.status !== 'revoked');
+
+  if (!active.length) {
+    container.innerHTML = '<div class="mentor-empty">No mentors yet. Send an invite above.</div>';
+    return;
+  }
+
+  container.innerHTML = active.map(r => {
+    const perms = r.permissions || {};
+    const permLabels = {
+      canViewTrades: 'View Trades',
+      canViewJournals: 'View Journals',
+      canComment: 'Leave Feedback',
+      canViewPnL: 'See PnL',
+      canViewAccountNames: 'See Account Names'
+    };
+
+    const permToggles = Object.entries(permLabels).map(([key, label]) => `
+      <div class="mentor-perm-toggle">
+        <span class="mentor-perm-label">${label}</span>
+        <label class="prints-mini-switch">
+          <input type="checkbox" ${perms[key] ? 'checked' : ''} onchange="updateMentorPermission('${r.id}', '${key}', this.checked)" ${r.status !== 'active' ? 'disabled' : ''}/>
+          <span></span>
+        </label>
+      </div>
+    `).join('');
+
+    const inviteUrl = `${window.location.origin}/accept-mentor?token=${r.invite_token}`;
+
+    return `
+      <div class="mentor-card">
+        <div class="mentor-card-info">
+          <div class="mentor-card-email">${escapeHtml(r.mentor_email)}</div>
+          <div class="mentor-card-meta">
+            <span class="mentor-status-pill ${r.status}">${r.status}</span>
+            &nbsp;· Invited ${new Date(r.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+          </div>
+          ${r.status === 'pending' ? `
+            <div style="margin-top:10px;">
+              <div style="font-size:11px;color:var(--text2);margin-bottom:4px;">Share this link with your mentor:</div>
+              <div style="font-size:12px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:7px 10px;word-break:break-all;user-select:all;">${escapeHtml(inviteUrl)}</div>
+            </div>
+          ` : ''}
+          ${r.status === 'active' ? `
+            <div class="mentor-permissions-grid" style="margin-top:14px;">${permToggles}</div>
+          ` : ''}
+        </div>
+        <div class="mentor-card-actions">
+          ${r.status === 'active' ? `<button class="btn-secondary" style="font-size:13px;" onclick="revokeMentor('${r.id}')">Revoke Access</button>` : ''}
+          ${r.status === 'revoked' ? '<span style="font-size:12px;color:var(--text2);">Access revoked</span>' : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function updateMentorPermission(relationshipId, permKey, value) {
+  const rel = mentorRelationships.find(r => r.id === relationshipId);
+  if (!rel) return;
+
+  const newPerms = { ...rel.permissions, [permKey]: value };
+
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/mentor_relationships?id=eq.${relationshipId}`, {
+    method: 'PATCH',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal'
+    },
+    body: JSON.stringify({ permissions: newPerms, updated_at: new Date().toISOString() })
+  });
+
+  if (res.ok) {
+    rel.permissions = newPerms;
+  }
+}
+
+async function revokeMentor(relationshipId) {
+  if (!confirm('Revoke this mentor\'s access? They will no longer be able to view your trades or journals.')) return;
+
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/mentor_relationships?id=eq.${relationshipId}`, {
+    method: 'PATCH',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal'
+    },
+    body: JSON.stringify({ status: 'revoked', updated_at: new Date().toISOString() })
+  });
+
+  if (res.ok) {
+    await loadMentorRelationships();
+    renderMentorRelationships();
+  }
+}
+
+async function renderTraderFeedback() {
+  const feedback = await loadTraderFeedback();
+  const section = document.getElementById('mentorFeedbackSection');
+  const list = document.getElementById('traderFeedbackList');
+
+  if (!feedback.length || !section || !list) {
+    if (section) section.style.display = 'none';
+    return;
+  }
+
+  section.style.display = 'block';
+  list.innerHTML = feedback.map(f => {
+    const context = f.trade_id ? 'Trade feedback' : f.journal_date ? `Journal — ${f.journal_date}` : 'General feedback';
+    const date = new Date(f.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+    return `
+      <div class="feedback-item">
+        <div class="feedback-item-meta">${escapeHtml(context)} · ${escapeHtml(date)}</div>
+        <div class="feedback-item-body">${escapeHtml(f.comment)}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ── Mentorship page init ──────────────────────────────────────
+
+async function loadMentorshipPage() {
+  await loadMentorRelationships();
+  renderMentorRelationships();
+  await renderTraderFeedback();
+
+  await loadMyMentorships();
+  const navEl = document.getElementById('mentor-dashboard-nav');
+  if (navEl) navEl.style.display = myMentorships.length ? 'flex' : 'none';
+}
+
+// ── Review Request ────────────────────────────────────────────
+
+function openReviewRequestModal(type, id) {
+  reviewRequestContext = { type, id };
+
+  const select = document.getElementById('reviewRequestMentorSelect');
+  const msg = document.getElementById('reviewRequestMsg');
+  const note = document.getElementById('reviewRequestNote');
+
+  msg.textContent = '';
+  msg.className = 'modal-msg';
+  if (note) note.value = '';
+
+  const activeMentors = mentorRelationships.filter(r => r.status === 'active');
+
+  if (!activeMentors.length) {
+    select.innerHTML = '<option value="">No active mentors — invite one first</option>';
+  } else {
+    select.innerHTML = activeMentors.map(r => `<option value="${r.id}">${escapeHtml(r.mentor_email)}</option>`).join('');
+  }
+
+  document.getElementById('reviewRequestModal').classList.add('active');
+}
+
+function closeReviewRequestModal() {
+  document.getElementById('reviewRequestModal').classList.remove('active');
+}
+
+async function submitReviewRequest() {
+  const select = document.getElementById('reviewRequestMentorSelect');
+  const note = document.getElementById('reviewRequestNote');
+  const msg = document.getElementById('reviewRequestMsg');
+  const relationshipId = select.value;
+
+  if (!relationshipId) {
+    msg.textContent = 'Select a mentor first.';
+    msg.className = 'modal-msg error';
+    return;
+  }
+
+  const rel = mentorRelationships.find(r => r.id === relationshipId);
+  if (!rel) return;
+
+  const payload = {
+    trader_id: user.id,
+    mentor_id: rel.mentor_user_id,
+    relationship_id: relationshipId,
+    status: 'pending',
+    note_from_trader: note?.value.trim() || null
+  };
+
+  if (reviewRequestContext.type === 'trade') {
+    payload.trade_id = reviewRequestContext.id;
+  } else if (reviewRequestContext.type === 'journal') {
+    payload.journal_date = reviewRequestContext.id;
+  }
+
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/review_requests`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal'
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (!res.ok) {
+    msg.textContent = 'Could not send review request.';
+    msg.className = 'modal-msg error';
+    return;
+  }
+
+  msg.textContent = 'Review request sent!';
+  msg.className = 'modal-msg success';
+  setTimeout(() => closeReviewRequestModal(), 1200);
+}
+
+// ── Mentor Dashboard ──────────────────────────────────────────
+
+async function loadMentorDashboard() {
+  await loadMyMentorships();
+
+  const tradersEl = document.getElementById('mentorTradersList');
+  const queueEl = document.getElementById('mentorReviewQueue');
+
+  if (!tradersEl || !queueEl) return;
+
+  if (!myMentorships.length) {
+    tradersEl.innerHTML = '<div class="mentor-empty">No traders have accepted your mentor invite yet.</div>';
+    queueEl.innerHTML = '<div class="mentor-empty">No pending reviews.</div>';
+    return;
+  }
+
+  const traderIds = myMentorships.map(r => r.trader_user_id);
+
+  const profileRes = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=in.(${traderIds.join(',')})&select=id,username,avatar_url`, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
+  });
+  const profiles = await profileRes.json();
+  const profileMap = {};
+  if (Array.isArray(profiles)) profiles.forEach(p => { profileMap[p.id] = p; });
+
+  tradersEl.innerHTML = myMentorships.map(r => {
+    const profile = profileMap[r.trader_user_id] || {};
+    const username = profile.username || 'Trader';
+
+    return `
+      <div class="mentor-trader-card" onclick="openMentorTraderView('${r.trader_user_id}', '${r.id}')">
+        <div class="mentor-trader-name">${escapeHtml(username)}</div>
+        <div class="mentor-trader-meta">Active since ${new Date(r.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</div>
+      </div>
+    `;
+  }).join('');
+
+  const relIds = myMentorships.map(r => r.id);
+  const reviewRes = await fetch(`${SUPABASE_URL}/rest/v1/review_requests?relationship_id=in.(${relIds.join(',')})&status=eq.pending&order=created_at.desc&limit=20`, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
+  });
+  const requests = await reviewRes.json();
+  const pendingRequests = Array.isArray(requests) ? requests : [];
+
+  if (!pendingRequests.length) {
+    queueEl.innerHTML = '<div class="mentor-empty">No pending reviews.</div>';
+    return;
+  }
+
+  queueEl.innerHTML = pendingRequests.map(req => {
+    const rel = myMentorships.find(r => r.id === req.relationship_id);
+    const profile = rel ? (profileMap[rel.trader_user_id] || {}) : {};
+    const username = profile.username || 'Trader';
+    const context = req.trade_id ? 'Trade review' : req.journal_date ? `Journal — ${req.journal_date}` : 'General review';
+    const date = new Date(req.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+    return `
+      <div class="mentor-review-item">
+        <div class="mentor-review-item-head">
+          <div>
+            <div class="mentor-review-item-title">${escapeHtml(context)} from ${escapeHtml(username)}</div>
+            <div class="mentor-review-item-meta">${escapeHtml(date)}${req.note_from_trader ? ` · "${escapeHtml(req.note_from_trader)}"` : ''}</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-shrink:0;">
+            <button class="btn-primary" style="font-size:12px;padding:7px 12px;" onclick="openMentorFeedbackFromRequest('${req.id}', '${req.relationship_id}', '${req.trader_id}', '${req.trade_id || ''}', '${req.journal_date || ''}')">Give Feedback</button>
+            <button class="btn-secondary" style="font-size:12px;padding:7px 12px;" onclick="dismissReviewRequest('${req.id}')">Dismiss</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function dismissReviewRequest(requestId) {
+  await fetch(`${SUPABASE_URL}/rest/v1/review_requests?id=eq.${requestId}`, {
+    method: 'PATCH',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal'
+    },
+    body: JSON.stringify({ status: 'dismissed', updated_at: new Date().toISOString() })
+  });
+  await loadMentorDashboard();
+}
+
+// ── Mentor: view trader ───────────────────────────────────────
+
+async function openMentorTraderView(traderId, relationshipId) {
+  currentMentorTraderId = traderId;
+
+  const rel = myMentorships.find(r => r.id === relationshipId);
+  const perms = rel?.permissions || {};
+
+  const profileRes = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${traderId}&select=username&limit=1`, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
+  });
+  const profileData = await profileRes.json();
+  const username = profileData?.[0]?.username || 'Trader';
+
+  document.getElementById('mentorViewTraderTitle').textContent = username;
+  document.getElementById('mentorViewTraderSub').textContent = `Reviewing ${username}'s activity`;
+
+  const tradesSection = document.getElementById('mentorViewTradesSection');
+  const journalsSection = document.getElementById('mentorViewJournalsSection');
+  const tradesList = document.getElementById('mentorViewTradesList');
+  const journalsList = document.getElementById('mentorViewJournalsList');
+
+  if (tradesSection) tradesSection.style.display = perms.canViewTrades ? 'block' : 'none';
+  if (journalsSection) journalsSection.style.display = perms.canViewJournals ? 'block' : 'none';
+
+  if (perms.canViewTrades && tradesList) {
+    const tradesRes = await fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${traderId}&select=*,strategies(name),broker_accounts(name)&order=date.desc&limit=20`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
+    });
+    const trades = await tradesRes.json();
+
+    if (!Array.isArray(trades) || !trades.length) {
+      tradesList.innerHTML = '<div class="mentor-empty">No trades yet.</div>';
+    } else {
+      tradesList.innerHTML = trades.map(t => {
+        const pnl = parseFloat(t.pnl) || 0;
+        const pnlDisplay = perms.canViewPnL ? formatPnl(pnl) : '—';
+        const pnlColor = perms.canViewPnL ? (pnl > 0 ? 'var(--success)' : pnl < 0 ? 'var(--danger)' : 'var(--text)') : 'var(--text2)';
+        const accountName = perms.canViewAccountNames ? (t.broker_accounts?.name || '') : '';
+        const strategy = t.strategies?.name || 'Unknown';
+
+        return `
+          <div class="mentor-review-item" style="margin-bottom:10px;">
+            <div class="mentor-review-item-head">
+              <div>
+                <div class="mentor-review-item-title">${escapeHtml(strategy)}${t.asset ? ` · ${escapeHtml(t.asset)}` : ''}${accountName ? ` · ${escapeHtml(accountName)}` : ''}</div>
+                <div class="mentor-review-item-meta">${t.date} · ${t.result} · ${t.confluences_used?.length || 0} confluences${t.actual_rr ? ` · ${t.actual_rr}R` : ''}</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;">
+                <span style="font-size:15px;font-weight:800;color:${pnlColor};">${pnlDisplay}</span>
+                ${perms.canComment ? `<button class="btn-primary" style="font-size:12px;padding:7px 12px;" onclick="openMentorFeedbackModal('${relationshipId}', '${traderId}', '${t.id}', null, null)">Feedback</button>` : ''}
+              </div>
+            </div>
+            ${t.notes ? `<div style="font-size:12px;color:var(--text2);margin-top:6px;font-style:italic;">"${escapeHtml(t.notes)}"</div>` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+  }
+
+  if (perms.canViewJournals && journalsList) {
+    const notesRes = await fetch(`${SUPABASE_URL}/rest/v1/day_notes?user_id=eq.${traderId}&select=id,date,content&order=date.desc&limit=10`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
+    });
+    const notes = await notesRes.json();
+
+    if (!Array.isArray(notes) || !notes.length) {
+      journalsList.innerHTML = '<div class="mentor-empty">No journal entries yet.</div>';
+    } else {
+      journalsList.innerHTML = notes.map(n => {
+        const preview = n.content ? n.content.replace(/<[^>]*>/g, '').slice(0, 200) : 'No content.';
+
+        return `
+          <div class="mentor-review-item" style="margin-bottom:10px;">
+            <div class="mentor-review-item-head">
+              <div>
+                <div class="mentor-review-item-title">Journal — ${escapeHtml(n.date)}</div>
+                <div class="mentor-review-item-meta">${escapeHtml(preview)}${preview.length >= 200 ? '...' : ''}</div>
+              </div>
+              ${perms.canComment ? `<button class="btn-primary" style="font-size:12px;padding:7px 12px;" onclick="openMentorFeedbackModal('${relationshipId}', '${traderId}', null, '${n.date}', null)">Feedback</button>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+
+  showPage('mentor-trader-view', null);
+}
+
+// ── Mentor Feedback Modal ─────────────────────────────────────
+
+function openMentorFeedbackModal(relationshipId, traderId, tradeId, journalDate, requestId) {
+  activeMentorFeedbackContext = { relationshipId, traderId, tradeId: tradeId || null, journalDate: journalDate || null, requestId: requestId || null };
+
+  const titleEl = document.getElementById('mentorFeedbackModalTitle');
+  const textEl = document.getElementById('mentorFeedbackText');
+  const msgEl = document.getElementById('mentorFeedbackMsg');
+
+  if (titleEl) titleEl.textContent = tradeId ? 'Leave Trade Feedback' : journalDate ? `Leave Journal Feedback — ${journalDate}` : 'Leave Feedback';
+  if (textEl) textEl.value = '';
+  if (msgEl) { msgEl.textContent = ''; msgEl.className = 'modal-msg'; }
+
+  document.getElementById('mentorFeedbackModal').classList.add('active');
+}
+
+function openMentorFeedbackFromRequest(requestId, relationshipId, traderId, tradeId, journalDate) {
+  openMentorFeedbackModal(relationshipId, traderId, tradeId || null, journalDate || null, requestId);
+}
+
+function closeMentorFeedbackModal() {
+  document.getElementById('mentorFeedbackModal').classList.remove('active');
+}
+
+async function submitMentorFeedback() {
+  const text = document.getElementById('mentorFeedbackText')?.value.trim();
+  const msg = document.getElementById('mentorFeedbackMsg');
+  const ctx = activeMentorFeedbackContext;
+
+  if (!text) {
+    msg.textContent = 'Write your feedback first.';
+    msg.className = 'modal-msg error';
+    return;
+  }
+
+  const payload = {
+    mentor_id: user.id,
+    trader_id: ctx.traderId,
+    relationship_id: ctx.relationshipId,
+    comment: text
+  };
+
+  if (ctx.tradeId) payload.trade_id = ctx.tradeId;
+  if (ctx.journalDate) payload.journal_date = ctx.journalDate;
+
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/mentor_feedback`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal'
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (!res.ok) {
+    msg.textContent = 'Could not submit feedback.';
+    msg.className = 'modal-msg error';
+    return;
+  }
+
+  if (ctx.requestId) {
+    await fetch(`${SUPABASE_URL}/rest/v1/review_requests?id=eq.${ctx.requestId}`, {
+      method: 'PATCH',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ status: 'reviewed', updated_at: new Date().toISOString() })
+    });
+  }
+
+  msg.textContent = 'Feedback submitted!';
+  msg.className = 'modal-msg success';
+  setTimeout(() => {
+    closeMentorFeedbackModal();
+    if (ctx.requestId) loadMentorDashboard();
+  }, 900);
+}
+
+// ── Accept invite (called when mentor opens /accept-mentor?token=...) ─
+
+async function checkAndAcceptMentorInvite() {
+  const params = new URLSearchParams(window.location.search);
+  const inviteToken = params.get('mentor_token') || params.get('token');
+
+  if (!inviteToken || !user?.id) return;
+
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/mentor_relationships?invite_token=eq.${inviteToken}&status=eq.pending&select=id,mentor_email&limit=1`, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
+  });
+
+  const data = await res.json();
+  const rel = Array.isArray(data) && data[0] ? data[0] : null;
+
+  if (!rel) return;
+
+  if (rel.mentor_email.toLowerCase() !== user.email?.toLowerCase()) {
+    console.warn('[Mentorship] Invite email does not match logged-in user.');
+    return;
+  }
+
+  await fetch(`${SUPABASE_URL}/rest/v1/mentor_relationships?id=eq.${rel.id}`, {
+    method: 'PATCH',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal'
+    },
+    body: JSON.stringify({
+      mentor_user_id: user.id,
+      status: 'active',
+      updated_at: new Date().toISOString()
+    })
+  });
+
+  window.history.replaceState({}, document.title, window.location.pathname);
+
+  showPage('mentor-dashboard', document.getElementById('mentor-dashboard-nav'));
+}
+
+checkAndAcceptMentorInvite();
     
     document.addEventListener('DOMContentLoaded', enhanceAllSelects);
 setTimeout(enhanceAllSelects, 0);
