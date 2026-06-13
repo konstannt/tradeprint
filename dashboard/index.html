@@ -4793,7 +4793,11 @@ select::-ms-expand {
 }
 
 /* ─── MENTORSHIP ─────────────────────────────────────────── */
-.mentorship-layout { max-width: 860px; }
+.mentorship-layout { max-width: 860px; width: 100%; }
+
+#page-mentorship {
+  max-width: 860px;
+}
 .mentorship-section { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 28px; margin-bottom: 20px; }
 .mentorship-section-title { font-size: 15px; font-weight: 700; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
 .mentorship-invite-row { display: flex; gap: 10px; margin-bottom: 8px; }
@@ -6082,8 +6086,12 @@ select::-ms-expand {
 
 <!-- MENTORSHIP PAGE (Trader side) -->
 <div class="page" id="page-mentorship">
-  <div class="page-title">Mentorship</div>
-  <div class="page-subtitle">Invite a mentor to review your trades and journals.</div>
+  <div class="page-header" style="margin-bottom:24px;">
+    <div>
+      <h1>Mentorship</h1>
+      <p>Invite a mentor to review your trades and journals.</p>
+    </div>
+  </div>
   <div class="mentorship-layout">
 
     <div class="mentorship-section">
