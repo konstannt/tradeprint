@@ -9279,7 +9279,7 @@ async function showPage(name, el) {
       if (name === 'calculator') initCalcPage();
       if (name === 'prints') await (printsWarmPromise || loadPrints());
 
-      iif (name === 'settings') {
+      if (name === 'settings') {
   if (!allStrategies.length) await loadStrategies();
   await ensureSubscriptionLoaded();
   renderProSettings();
