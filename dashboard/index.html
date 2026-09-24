@@ -2657,6 +2657,48 @@ select.tp-native-select {
     .trade-edit-btn { background: none; border: none; color: var(--text2); cursor: pointer; padding: 4px; border-radius: 4px; transition: color 0.2s; }
     .trade-edit-btn:hover { color: var(--accent); }
     .trade-edit-btn svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        /* ─── TRADE RECAP / SHARE CARD ─────────────────────────────── */
+    .trade-recap-btn { background: none; border: none; color: var(--text2); cursor: pointer; padding: 4px; border-radius: 4px; transition: color 0.2s; }
+    .trade-recap-btn:hover { color: var(--accent); }
+    .trade-recap-btn svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    .trade-recap-modal-box { max-width: 780px; }
+    .trade-recap-subtitle { font-size: 13px; color: var(--text2); margin-top: 4px; }
+
+    .trade-recap-formats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+    .trade-recap-format { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px 12px 14px; color: var(--text); cursor: pointer; font: inherit; text-align: center; transition: border-color 0.2s, background 0.2s, box-shadow 0.2s; }
+    .trade-recap-format:hover { border-color: var(--accent); }
+    .trade-recap-format.active { border-color: var(--accent); background: rgba(99,102,241,0.08); box-shadow: inset 0 0 0 1px rgba(99,102,241,0.18); }
+    .trade-recap-format-preview { height: 72px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; }
+    .trade-recap-format-shape { position: relative; overflow: hidden; background: var(--bg2); border: 1px solid var(--border); border-radius: 5px; transition: border-color 0.2s, background 0.2s; }
+    .trade-recap-format-shape.story { width: 34px; height: 60px; }
+    .trade-recap-format-shape.square { width: 48px; height: 48px; }
+    .trade-recap-format-shape.wide { width: 74px; height: 42px; }
+    .trade-recap-format-shape::before { content: ''; position: absolute; left: 6px; top: 6px; width: 11px; height: 3px; border-radius: 2px; background: var(--accent); }
+    .trade-recap-format-shape::after { content: ''; position: absolute; left: 6px; right: 6px; bottom: 6px; height: 6px; border-radius: 2px; background: var(--border); }
+    .trade-recap-format.active .trade-recap-format-shape { border-color: rgba(99,102,241,0.6); background: rgba(99,102,241,0.14); }
+    .trade-recap-format-name { font-size: 14px; font-weight: 800; }
+    .trade-recap-format-ratio { font-size: 12px; font-weight: 700; color: var(--accent); margin-top: 3px; }
+    .trade-recap-format-hint { font-size: 11px; color: var(--text2); margin-top: 5px; line-height: 1.4; }
+
+    .trade-recap-preview-wrap { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 18px; min-height: 160px; display: flex; align-items: center; justify-content: center; }
+    .trade-recap-preview { width: 100%; display: flex; align-items: center; justify-content: center; }
+    .trade-recap-preview canvas { display: block; max-width: 100%; border-radius: 10px; box-shadow: 0 18px 45px rgba(0,0,0,0.42); }
+    .trade-recap-preview-empty { color: var(--text2); font-size: 14px; text-align: center; padding: 36px 12px; }
+
+    .trade-recap-footer { align-items: center; justify-content: space-between; flex-wrap: wrap; }
+    .trade-recap-footer-meta { font-size: 12px; color: var(--text2); }
+    .trade-recap-footer-actions { display: flex; gap: 12px; margin-left: auto; }
+    .trade-recap-footer .btn-primary:disabled { background: var(--border); color: var(--text2); cursor: not-allowed; }
+
+    @media (max-width: 640px) {
+      .trade-recap-formats { grid-template-columns: 1fr; }
+      .trade-recap-format { display: grid; grid-template-columns: 78px minmax(0, 1fr); column-gap: 12px; align-items: center; text-align: left; padding: 12px; }
+      .trade-recap-format-preview { grid-row: 1 / span 3; height: auto; margin-bottom: 0; }
+      .trade-recap-format-name, .trade-recap-format-ratio, .trade-recap-format-hint { grid-column: 2; }
+      .trade-recap-footer-actions { width: 100%; }
+      .trade-recap-footer-actions .btn-secondary, .trade-recap-footer-actions .btn-primary { flex: 1; justify-content: center; }
+    }
     .trades-mobile-card {
   display: none;
 }
@@ -5276,6 +5318,56 @@ select::-ms-expand {
   <img id="lightboxImg" src="" alt="" onclick="closeLightbox(event)"/>
 </div>
 
+  <!-- TRADE RECAP MODAL -->
+  <div class="modal" id="tradeRecapModal" onclick="handleTradeRecapModalClick(event)">
+    <div class="modal-box trade-recap-modal-box" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">Trade Recap</div>
+          <div class="trade-recap-subtitle" id="tradeRecapSubtitle"></div>
+        </div>
+        <button class="modal-close" onclick="closeTradeRecapModal()">×</button>
+      </div>
+
+      <div class="trade-recap-formats" id="tradeRecapFormats">
+        <button class="trade-recap-format" type="button" data-format="story" onclick="setTradeRecapFormat('story')">
+          <div class="trade-recap-format-preview"><div class="trade-recap-format-shape story"></div></div>
+          <div class="trade-recap-format-name">Story</div>
+          <div class="trade-recap-format-ratio">9:16 · 1080 × 1920</div>
+          <div class="trade-recap-format-hint">Instagram Stories, TikTok, Snapchat</div>
+        </button>
+        <button class="trade-recap-format" type="button" data-format="square" onclick="setTradeRecapFormat('square')">
+          <div class="trade-recap-format-preview"><div class="trade-recap-format-shape square"></div></div>
+          <div class="trade-recap-format-name">Square</div>
+          <div class="trade-recap-format-ratio">1:1 · 1080 × 1080</div>
+          <div class="trade-recap-format-hint">Instagram posts, X, Discord</div>
+        </button>
+        <button class="trade-recap-format" type="button" data-format="wide" onclick="setTradeRecapFormat('wide')">
+          <div class="trade-recap-format-preview"><div class="trade-recap-format-shape wide"></div></div>
+          <div class="trade-recap-format-name">Wide</div>
+          <div class="trade-recap-format-ratio">16:9 · 1920 × 1080</div>
+          <div class="trade-recap-format-hint">YouTube thumbnails, X, desktop</div>
+        </button>
+      </div>
+
+      <div class="trade-recap-preview-wrap">
+        <div class="trade-recap-preview-empty" id="tradeRecapPreviewEmpty">Select a format to preview your recap.</div>
+        <div class="trade-recap-preview" id="tradeRecapPreview" style="display:none;">
+          <canvas id="tradeRecapCanvas"></canvas>
+        </div>
+      </div>
+
+      <div class="modal-footer trade-recap-footer">
+        <div class="trade-recap-footer-meta" id="tradeRecapMeta"></div>
+        <div class="trade-recap-footer-actions">
+          <button class="btn-secondary" type="button" onclick="closeTradeRecapModal()">Close</button>
+          <button class="btn-primary" type="button" id="tradeRecapDownloadBtn" onclick="downloadTradeRecapImage()" disabled>Download Image</button>
+        </div>
+      </div>
+      <div class="modal-msg" id="tradeRecapMsg"></div>
+    </div>
+  </div>
+  
   <!-- MOBILE TOP BAR -->
   <div class="mobile-topbar">
     <button class="hamburger" onclick="openMobileSidebar()">
@@ -10262,7 +10354,8 @@ async function closeDayModal() {
             ${t.notes ? `<div class="trade-feed-detail" style="margin-top:3px;font-style:italic;">"${t.notes}"</div>` : ''}
           </div>
           <div class="trade-feed-pnl ${pnlClass}">${formatPnl(pnl)}</div>
-          <div class="trade-feed-actions">
+                    <div class="trade-feed-actions">
+            ${renderTradeRecapButton(t.id)}
             <button class="trade-feed-edit" onclick="openEditTrade('${t.id}')"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
             <button class="trade-feed-delete" onclick="deleteTrade('${t.id}')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>
           </div>
@@ -12212,7 +12305,8 @@ const strategy = t.strategies?.name || '';
       <div class="trades-table-cell muted">${confluenceText ? escapeHtml(confluenceText) : dash}</div>
       <div class="trades-table-cell trade-rules-cell">${rulesHtml}</div>
       <div class="trades-table-cell muted">${notesHtml}</div>
-      <div class="trades-table-cell trade-row-actions" style="display:flex;gap:4px;align-items:center;">
+            <div class="trades-table-cell trade-row-actions" style="display:flex;gap:4px;align-items:center;">
+        ${renderTradeRecapButton(t.id)}
         <button class="trade-edit-btn" onclick="openEditTradeFromList('${t.id}')">
           <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         </button>
@@ -15460,6 +15554,812 @@ async function savePrintReply() {
   msg.className = 'modal-msg';
 }
 
+// ─── TRADE RECAP / SHARE CARD ─────────────────────────────────
+const TRADE_RECAP_FORMATS = {
+  story:  { key: 'story',  label: 'Story',  ratio: '9:16', width: 1080, height: 1920 },
+  square: { key: 'square', label: 'Square', ratio: '1:1',  width: 1080, height: 1080 },
+  wide:   { key: 'wide',   label: 'Wide',   ratio: '16:9', width: 1920, height: 1080 }
+};
+
+let tradeRecapTrade = null;
+let tradeRecapFormat = null;
+let tradeRecapRenderToken = 0;
+
+// TradeRecapButton — shared by the Trades tab and the Calendar day modal
+function renderTradeRecapButton(tradeId) {
+  return `<button class="trade-recap-btn" type="button" title="Create Trade Recap" aria-label="Create Trade Recap" onclick="openTradeRecapModal('${tradeId}')">
+    <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+  </button>`;
+}
+
+// Theme is read from the :root tokens (html element), so the card always uses the dark
+// Tradeprint identity even when the dashboard is in light mode (body.light).
+function getTradeRecapTheme() {
+  const root = getComputedStyle(document.documentElement);
+  const read = (name, fallback) => (root.getPropertyValue(name) || '').trim() || fallback;
+
+  return {
+    bg: read('--bg', '#0a0a0a'),
+    bg2: read('--bg2', '#111111'),
+    border: read('--border', '#1e1e1e'),
+    text: read('--text', '#ffffff'),
+    text2: read('--text2', '#555555'),
+    accent: read('--accent', '#6366f1'),
+    success: read('--success', '#22c55e'),
+    danger: read('--danger', '#ef4444'),
+    font: '"Segoe UI", sans-serif'
+  };
+}
+
+function recapWithAlpha(color, alpha) {
+  const match = String(color || '').trim().match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
+  if (!match) return color;
+
+  let hex = match[1];
+  if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+
+  const n = parseInt(hex, 16);
+  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${alpha})`;
+}
+
+function formatRecapNumber(value, maxDecimals = 6, minDecimals = 0) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return String(value ?? '').trim();
+
+  return n.toLocaleString('en-US', {
+    minimumFractionDigits: minDecimals,
+    maximumFractionDigits: Math.max(minDecimals, maxDecimals)
+  });
+}
+
+// Maps the existing trade row (trades table columns) onto what the card shows.
+function getTradeRecapData(trade) {
+  const hasValue = v => v !== null && v !== undefined && String(v).trim() !== '';
+
+  const pnl = parseFloat(trade.pnl) || 0;
+  const direction = normalizeDirection(trade.direction);
+  const strategy = trade.strategies?.name || allStrategies.find(s => s.id === trade.strategy_id)?.name || '';
+  const asset = String(trade.asset || '').trim().toUpperCase();
+  const type = String(trade.type || '').trim();
+  const result = String(trade.result || '').trim();
+  const date = trade.date
+    ? new Date(trade.date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    : '';
+
+  const stats = [];
+
+  if (hasValue(trade.entry_price)) stats.push({ label: 'Entry', value: formatRecapNumber(trade.entry_price) });
+  if (hasValue(trade.exit_price)) stats.push({ label: 'Exit', value: formatRecapNumber(trade.exit_price) });
+  if (hasValue(trade.actual_rr)) stats.push({ label: 'R:R', value: `${formatRecapNumber(trade.actual_rr, 2)}R` });
+  if (hasValue(trade.position_size)) stats.push({ label: 'Size', value: formatRecapNumber(trade.position_size) });
+  if (trade.trade_time) stats.push({ label: 'Entry time', value: formatDisplayTime(trade.trade_time) });
+  if (hasValue(trade.risk_amount)) stats.push({ label: 'Risk', value: `$${formatRecapNumber(trade.risk_amount, 2, 2)}` });
+  if (hasValue(trade.percent_gain_loss)) stats.push({ label: 'Return', value: String(trade.percent_gain_loss).trim() });
+
+  // Sparse trades still get a balanced stats panel.
+  if (stats.length < 2) {
+    if (result) stats.push({ label: 'Result', value: result === 'breakeven' ? 'Breakeven' : result[0].toUpperCase() + result.slice(1) });
+    if (date) stats.push({ label: 'Date', value: date });
+  }
+
+  return {
+    pnl,
+    pnlText: formatPnl(pnl),
+    direction,
+    strategy,
+    type: asset ? type : '', // when the type stands in for a missing asset, don't repeat it as a chip
+    result,
+    date,
+    asset: asset || (type ? type.toUpperCase() : 'TRADE'),
+    stats: stats.slice(0, 6)
+  };
+}
+
+// ── Canvas primitives ──────────────────────────────────────────
+
+function recapFont(theme, weight, size) {
+  return `${weight} ${size}px ${theme.font}`;
+}
+
+function recapRoundRect(ctx, x, y, w, h, r) {
+  const radius = Math.max(0, Math.min(r, w / 2, h / 2));
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + w - radius, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + radius);
+  ctx.lineTo(x + w, y + h - radius);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - radius, y + h);
+  ctx.lineTo(x + radius, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - radius);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.closePath();
+}
+
+function recapMeasureSpaced(ctx, text, spacing) {
+  let width = 0;
+  for (const ch of text) width += ctx.measureText(ch).width + spacing;
+  return Math.max(0, width - spacing);
+}
+
+function recapDrawSpacedText(ctx, text, x, y, spacing) {
+  let cursor = x;
+  for (const ch of text) {
+    ctx.fillText(ch, cursor, y);
+    cursor += ctx.measureText(ch).width + spacing;
+  }
+  return Math.max(0, cursor - spacing - x);
+}
+
+function recapFitText(ctx, text, theme, weight, maxSize, minSize, maxWidth) {
+  let size = maxSize;
+  ctx.font = recapFont(theme, weight, size);
+
+  while (size > minSize && ctx.measureText(text).width > maxWidth) {
+    size -= 2;
+    ctx.font = recapFont(theme, weight, size);
+  }
+
+  return size;
+}
+
+function recapEllipsize(ctx, text, maxWidth) {
+  if (ctx.measureText(text).width <= maxWidth) return text;
+
+  let trimmed = text;
+  while (trimmed.length > 1 && ctx.measureText(trimmed + '…').width > maxWidth) {
+    trimmed = trimmed.slice(0, -1);
+  }
+
+  return trimmed.trimEnd() + '…';
+}
+
+function recapDrawLine(ctx, theme, x1, y1, x2, y2, color = theme.border, width = 2) {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = width;
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+}
+
+function recapPnlColor(theme, pnl) {
+  return pnl > 0 ? theme.success : pnl < 0 ? theme.danger : theme.text;
+}
+
+// Small uppercase tracked label (matches .stat-label / .tradeprint-kicker)
+function recapDrawLabel(ctx, theme, text, x, y, size, color = theme.text2, align = 'left') {
+  const upper = String(text).toUpperCase();
+  const spacing = size * 0.1;
+
+  ctx.font = recapFont(theme, 800, size);
+  ctx.fillStyle = color;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+
+  const width = recapMeasureSpaced(ctx, upper, spacing);
+  const startX = align === 'right' ? x - width : align === 'center' ? x - width / 2 : x;
+
+  recapDrawSpacedText(ctx, upper, startX, y, spacing);
+  return width;
+}
+
+// "tradeprint" wordmark — trade in --text, print in --accent (matches .sidebar-logo)
+function recapDrawWordmark(ctx, theme, x, y, size, align = 'left') {
+  const spacing = -(size / 40); // .sidebar-logo letter-spacing -0.5px at 20px
+
+  ctx.font = recapFont(theme, 800, size);
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+
+  const wTrade = recapMeasureSpaced(ctx, 'trade', spacing);
+  const wPrint = recapMeasureSpaced(ctx, 'print', spacing);
+  const total = wTrade + wPrint;
+  const startX = align === 'right' ? x - total : align === 'center' ? x - total / 2 : x;
+
+  ctx.fillStyle = theme.text;
+  recapDrawSpacedText(ctx, 'trade', startX, y, spacing);
+  ctx.fillStyle = theme.accent;
+  recapDrawSpacedText(ctx, 'print', startX + wTrade, y, spacing);
+
+  return total;
+}
+
+function recapDrawDirectionArrow(ctx, x, y, size, up, color) {
+  const x1 = x + size * 0.18;
+  const x2 = x + size * 0.82;
+  const yStart = up ? y + size * 0.82 : y + size * 0.18;
+  const yEnd = up ? y + size * 0.18 : y + size * 0.82;
+  const head = size * 0.36;
+
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = Math.max(2, size * 0.13);
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  ctx.beginPath();
+  ctx.moveTo(x1, yStart);
+  ctx.lineTo(x2, yEnd);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.moveTo(x2 - head, yEnd);
+  ctx.lineTo(x2, yEnd);
+  ctx.lineTo(x2, up ? yEnd + head : yEnd - head);
+  ctx.stroke();
+  ctx.restore();
+}
+
+// Pill (matches .direction-btn.active / .confluence-tag tints)
+function recapDrawChip(ctx, theme, opts) {
+  const { x, y, height, size, text, color, bg, border, arrow = null, dryRun = false } = opts;
+
+  ctx.font = recapFont(theme, 900, size);
+  const spacing = size * 0.06;
+  const textW = recapMeasureSpaced(ctx, text, spacing);
+  const padX = Math.round(height * 0.42);
+  const arrowSize = Math.round(size * 0.9);
+  const arrowGap = Math.round(size * 0.3);
+  const width = padX * 2 + textW + (arrow ? arrowSize + arrowGap : 0);
+  const radius = Math.round(height * 0.3);
+
+  if (dryRun) return width;
+
+  recapRoundRect(ctx, x, y, width, height, radius);
+  ctx.fillStyle = bg;
+  ctx.fill();
+
+  if (border) {
+    recapRoundRect(ctx, x + 1, y + 1, width - 2, height - 2, radius);
+    ctx.strokeStyle = border;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+
+  let cursor = x + padX;
+
+  if (arrow) {
+    recapDrawDirectionArrow(ctx, cursor, y + (height - arrowSize) / 2, arrowSize, arrow === 'up', color);
+    cursor += arrowSize + arrowGap;
+  }
+
+  ctx.font = recapFont(theme, 900, size);
+  ctx.fillStyle = color;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  recapDrawSpacedText(ctx, text, cursor, y + height / 2 + size * 0.36, spacing);
+
+  return width;
+}
+
+// Direction chip + trade type chip. Returns total width (dryRun measures only).
+function recapDrawChips(ctx, theme, data, x, y, height, size, dryRun = false) {
+  const gap = Math.round(height * 0.28);
+  let cursor = x;
+
+  if (data.direction) {
+    const isLong = data.direction === 'long';
+    const tone = isLong ? theme.success : theme.danger;
+
+    cursor += recapDrawChip(ctx, theme, {
+      x: cursor, y, height, size, dryRun,
+      text: isLong ? 'LONG' : 'SHORT',
+      color: tone,
+      bg: recapWithAlpha(tone, 0.12),
+      border: recapWithAlpha(tone, 0.45),
+      arrow: isLong ? 'up' : 'down'
+    }) + gap;
+  }
+
+  if (data.type) {
+    cursor += recapDrawChip(ctx, theme, {
+      x: cursor, y, height, size, dryRun,
+      text: data.type.toUpperCase(),
+      color: theme.text2,
+      bg: theme.bg2,
+      border: theme.border
+    }) + gap;
+  }
+
+  return Math.max(0, cursor - gap - x);
+}
+
+// Background (matches .tradeprint-hero-main accent glow + #page-prints texture)
+function recapDrawBackground(ctx, theme, w, h, pnl) {
+  ctx.fillStyle = theme.bg;
+  ctx.fillRect(0, 0, w, h);
+
+  const glow = ctx.createRadialGradient(w, 0, 0, w, 0, Math.max(w, h) * 0.8);
+  glow.addColorStop(0, recapWithAlpha(theme.accent, 0.22));
+  glow.addColorStop(0.45, recapWithAlpha(theme.accent, 0));
+  glow.addColorStop(1, recapWithAlpha(theme.accent, 0));
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, w, h);
+
+  const tone = pnl > 0 ? theme.success : pnl < 0 ? theme.danger : theme.text2;
+  const tint = ctx.createRadialGradient(0, h, 0, 0, h, Math.max(w, h) * 0.7);
+  tint.addColorStop(0, recapWithAlpha(tone, 0.11));
+  tint.addColorStop(0.5, recapWithAlpha(tone, 0));
+  tint.addColorStop(1, recapWithAlpha(tone, 0));
+  ctx.fillStyle = tint;
+  ctx.fillRect(0, 0, w, h);
+
+  ctx.strokeStyle = 'rgba(255,255,255,0.028)';
+  ctx.lineWidth = 1;
+  const step = 108;
+
+  for (let x = step; x < w; x += step) {
+    ctx.beginPath();
+    ctx.moveTo(x + 0.5, 0);
+    ctx.lineTo(x + 0.5, h);
+    ctx.stroke();
+  }
+
+  for (let y = step; y < h; y += step) {
+    ctx.beginPath();
+    ctx.moveTo(0, y + 0.5);
+    ctx.lineTo(w, y + 0.5);
+    ctx.stroke();
+  }
+}
+
+// Panel (matches .stat-card / .print-card surface)
+function recapDrawPanel(ctx, theme, x, y, w, h, r) {
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,0.45)';
+  ctx.shadowBlur = 44;
+  ctx.shadowOffsetY = 18;
+  recapRoundRect(ctx, x, y, w, h, r);
+  ctx.fillStyle = theme.bg2;
+  ctx.fill();
+  ctx.restore();
+
+  const sheen = ctx.createLinearGradient(0, y, 0, y + h);
+  sheen.addColorStop(0, 'rgba(255,255,255,0.03)');
+  sheen.addColorStop(1, 'rgba(255,255,255,0)');
+  recapRoundRect(ctx, x, y, w, h, r);
+  ctx.fillStyle = sheen;
+  ctx.fill();
+
+  recapRoundRect(ctx, x + 1, y + 1, w - 2, h - 2, r);
+  ctx.strokeStyle = theme.border;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+
+// 4 stats read better as 2×2 than 3+1
+function recapPickColumns(count, preferred) {
+  if (count <= preferred) return Math.max(1, count);
+  if (preferred === 3 && count === 4) return 2;
+  return preferred;
+}
+
+function recapDrawStatsPanel(ctx, theme, stats, opts) {
+  const { x, y, width, height, labelSize, valueSize, padX, padY, radius } = opts;
+  const columns = recapPickColumns(stats.length, opts.columns);
+
+  recapDrawPanel(ctx, theme, x, y, width, height, radius);
+  if (!stats.length) return;
+
+  const rows = Math.ceil(stats.length / columns);
+  const innerX = x + padX;
+  const innerW = width - padX * 2;
+  const rowH = (height - padY * 2) / rows;
+  const cellPad = Math.round(valueSize * 0.55);
+
+  stats.forEach((stat, i) => {
+    const row = Math.floor(i / columns);
+    const col = i % columns;
+    const cellsInRow = row === rows - 1 ? stats.length - row * columns : columns;
+    const cellW = innerW / cellsInRow;
+    const cx = innerX + col * cellW;
+    const cy = y + padY + row * rowH;
+    const centerY = cy + rowH / 2;
+
+    if (col > 0) recapDrawLine(ctx, theme, cx, cy + rowH * 0.22, cx, cy + rowH * 0.78);
+    if (row > 0 && col === 0) recapDrawLine(ctx, theme, innerX, cy, innerX + innerW, cy);
+
+    recapDrawLabel(ctx, theme, stat.label, cx + cellPad, centerY - valueSize * 0.42, labelSize);
+
+    const size = recapFitText(ctx, stat.value, theme, 800, valueSize, Math.round(valueSize * 0.5), cellW - cellPad * 2);
+    ctx.fillStyle = theme.text;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillText(stat.value, cx + cellPad, centerY + size * 0.6);
+  });
+}
+
+function recapDrawHeader(ctx, theme, data, { x, y, width, wordmarkSize, dateSize }) {
+  recapDrawWordmark(ctx, theme, x, y, wordmarkSize, 'left');
+
+  if (data.date) {
+    ctx.font = recapFont(theme, 600, dateSize);
+    ctx.fillStyle = theme.text2;
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillText(data.date, x + width, y);
+    ctx.textAlign = 'left';
+  }
+}
+
+function recapDrawStrategyLine(ctx, theme, data, x, y, maxWidth, labelSize, nameSize) {
+  if (!data.strategy) return;
+
+  const labelW = recapDrawLabel(ctx, theme, 'Strategy', x, y, labelSize);
+  const gap = Math.round(nameSize * 0.6);
+
+  ctx.font = recapFont(theme, 800, nameSize);
+  ctx.fillStyle = theme.text;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText(recapEllipsize(ctx, data.strategy, maxWidth - labelW - gap), x + labelW + gap, y);
+}
+
+// ── Format layouts ─────────────────────────────────────────────
+
+// 9:16 — 1080 × 1920. Content is centered inside the story safe zone.
+function recapDrawStory(ctx, theme, data) {
+  const W = 1080, H = 1920, P = 84;
+  const contentW = W - P * 2;
+
+  recapDrawBackground(ctx, theme, W, H, data.pnl);
+
+  const headerY = 300;
+  recapDrawHeader(ctx, theme, data, { x: P, y: headerY, width: contentW, wordmarkSize: 48, dateSize: 26 });
+  recapDrawLine(ctx, theme, P, headerY + 44, W - P, headerY + 44);
+
+  const chipH = 58;
+  const chipsW = recapDrawChips(ctx, theme, data, 0, 0, chipH, 26, true);
+  const tickerSize = recapFitText(ctx, data.asset, theme, 900, 150, 80, contentW);
+  const pnlSize = recapFitText(ctx, data.pnlText, theme, 900, 184, 96, contentW);
+  const rows = Math.ceil(data.stats.length / recapPickColumns(data.stats.length, 2));
+  const rowH = rows >= 3 ? 108 : 122;
+  const panelH = rows * rowH + 64;
+
+  const contentH =
+    tickerSize * 0.74 +
+    (chipsW ? 44 + chipH : 0) +
+    96 + pnlSize * 0.74 +
+    (data.strategy ? 78 + 46 * 0.74 : 0) +
+    88 + panelH;
+
+  const regionTop = headerY + 44;
+  const regionBottom = H - 330;
+  let y = regionTop + Math.max(72, (regionBottom - regionTop - contentH) / 2);
+
+  y += tickerSize * 0.74;
+  ctx.font = recapFont(theme, 900, tickerSize);
+  ctx.fillStyle = theme.text;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText(data.asset, P, y);
+
+  if (chipsW) {
+    y += 44;
+    recapDrawChips(ctx, theme, data, P, y, chipH, 26);
+    y += chipH;
+  }
+
+  y += 96 + pnlSize * 0.74;
+  ctx.font = recapFont(theme, 900, pnlSize);
+  ctx.fillStyle = recapPnlColor(theme, data.pnl);
+  ctx.textAlign = 'left';
+  ctx.fillText(data.pnlText, P, y);
+
+  if (data.strategy) {
+    y += 78 + 46 * 0.74;
+    recapDrawStrategyLine(ctx, theme, data, P, y, contentW, 26, 46);
+  }
+
+  y += 88;
+  recapDrawStatsPanel(ctx, theme, data.stats, {
+    x: P, y, width: contentW, height: panelH,
+    columns: 2, labelSize: 24, valueSize: 46, padX: 40, padY: 32, radius: 28
+  });
+
+  recapDrawWordmark(ctx, theme, W / 2, H - 232, 30, 'center');
+}
+
+// 1:1 — 1080 × 1080. Ticker + chips share a row; stats fill the bottom.
+function recapDrawSquare(ctx, theme, data) {
+  const W = 1080, H = 1080, P = 72;
+  const contentW = W - P * 2;
+
+  recapDrawBackground(ctx, theme, W, H, data.pnl);
+
+  const headerY = 118;
+  recapDrawHeader(ctx, theme, data, { x: P, y: headerY, width: contentW, wordmarkSize: 40, dateSize: 24 });
+  recapDrawLine(ctx, theme, P, headerY + 38, W - P, headerY + 38);
+
+  const chipH = 52;
+  const chipsW = recapDrawChips(ctx, theme, data, 0, 0, chipH, 24, true);
+  const tickerMaxW = contentW - (chipsW ? chipsW + 36 : 0);
+  const tickerSize = recapFitText(ctx, data.asset, theme, 900, 112, 64, tickerMaxW);
+
+  let y = headerY + 38 + 62 + tickerSize * 0.74;
+  ctx.font = recapFont(theme, 900, tickerSize);
+  ctx.fillStyle = theme.text;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText(data.asset, P, y);
+
+  if (chipsW) {
+    recapDrawChips(ctx, theme, data, W - P - chipsW, y - tickerSize * 0.37 - chipH / 2, chipH, 24);
+  }
+
+  if (data.strategy) {
+    y += 64;
+    recapDrawStrategyLine(ctx, theme, data, P, y, contentW, 22, 34);
+  }
+
+  const pnlSize = recapFitText(ctx, data.pnlText, theme, 900, 150, 84, contentW);
+  y += 74 + pnlSize * 0.74;
+  ctx.font = recapFont(theme, 900, pnlSize);
+  ctx.fillStyle = recapPnlColor(theme, data.pnl);
+  ctx.textAlign = 'left';
+  ctx.fillText(data.pnlText, P, y);
+
+  const panelTop = y + 66;
+  const available = H - P - panelTop;
+  const rows = Math.ceil(data.stats.length / recapPickColumns(data.stats.length, 3));
+  const panelH = Math.min(available, rows * 150 + 56);
+  const panelY = panelTop + (available - panelH) / 2;
+
+  recapDrawStatsPanel(ctx, theme, data.stats, {
+    x: P, y: panelY, width: contentW, height: panelH,
+    columns: 3, labelSize: 20, valueSize: 36, padX: 36, padY: 28, radius: 24
+  });
+}
+
+// 16:9 — 1920 × 1080. Ticker / P&L / strategy on the left, stats on the right.
+function recapDrawWide(ctx, theme, data) {
+  const W = 1920, H = 1080, P = 96;
+
+  recapDrawBackground(ctx, theme, W, H, data.pnl);
+
+  const headerY = 150;
+  recapDrawHeader(ctx, theme, data, { x: P, y: headerY, width: W - P * 2, wordmarkSize: 44, dateSize: 26 });
+  recapDrawLine(ctx, theme, P, headerY + 40, W - P, headerY + 40);
+
+  const leftX = P;
+  const leftW = 880;
+  const rightX = 1056;
+  const rightW = W - P - rightX;
+  const regionTop = headerY + 40 + 70;
+  const regionBottom = H - P;
+
+  const chipH = 56;
+  const chipsW = recapDrawChips(ctx, theme, data, 0, 0, chipH, 26, true);
+  const tickerSize = recapFitText(ctx, data.asset, theme, 900, 136, 72, leftW);
+  const pnlSize = recapFitText(ctx, data.pnlText, theme, 900, 176, 90, leftW);
+
+  const leftH =
+    tickerSize * 0.74 +
+    (chipsW ? 40 + chipH : 0) +
+    92 + pnlSize * 0.74 +
+    (data.strategy ? 76 + 42 * 0.74 : 0);
+
+  let y = regionTop + Math.max(0, (regionBottom - regionTop - leftH) / 2);
+
+  y += tickerSize * 0.74;
+  ctx.font = recapFont(theme, 900, tickerSize);
+  ctx.fillStyle = theme.text;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText(data.asset, leftX, y);
+
+  if (chipsW) {
+    y += 40;
+    recapDrawChips(ctx, theme, data, leftX, y, chipH, 26);
+    y += chipH;
+  }
+
+  y += 92 + pnlSize * 0.74;
+  ctx.font = recapFont(theme, 900, pnlSize);
+  ctx.fillStyle = recapPnlColor(theme, data.pnl);
+  ctx.textAlign = 'left';
+  ctx.fillText(data.pnlText, leftX, y);
+
+  if (data.strategy) {
+    y += 76 + 42 * 0.74;
+    recapDrawStrategyLine(ctx, theme, data, leftX, y, leftW, 24, 42);
+  }
+
+  recapDrawLine(ctx, theme, 1016, regionTop, 1016, regionBottom);
+
+  const rows = Math.ceil(data.stats.length / recapPickColumns(data.stats.length, 2));
+  const available = regionBottom - regionTop;
+  const panelH = Math.min(available, rows * 196 + 64);
+  const panelY = regionTop + (available - panelH) / 2;
+
+  recapDrawStatsPanel(ctx, theme, data.stats, {
+    x: rightX, y: panelY, width: rightW, height: panelH,
+    columns: 2, labelSize: 24, valueSize: 50, padX: 44, padY: 32, radius: 28
+  });
+}
+
+// TradeRecapCard — draws the selected format at full export resolution
+function drawTradeRecapCard(ctx, format, data, theme) {
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, format.width, format.height);
+
+  if (format.key === 'story') recapDrawStory(ctx, theme, data);
+  else if (format.key === 'wide') recapDrawWide(ctx, theme, data);
+  else recapDrawSquare(ctx, theme, data);
+}
+
+// ── Modal ──────────────────────────────────────────────────────
+
+async function openTradeRecapModal(tradeId) {
+  const modal = document.getElementById('tradeRecapModal');
+  if (!modal) return;
+
+  let trade = findCachedTradeById(tradeId);
+
+  if (!trade) {
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/trades?id=eq.${tradeId}&select=*,strategies(name),broker_accounts(name)&limit=1`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      trade = Array.isArray(data) ? data[0] : null;
+    } catch (err) {
+      trade = null;
+    }
+  }
+
+  if (!trade) {
+    console.warn('[Trade recap] trade not found:', tradeId);
+    return;
+  }
+
+  tradeRecapTrade = trade;
+  tradeRecapFormat = null;
+  tradeRecapRenderToken++;
+
+  const data = getTradeRecapData(trade);
+  const subtitle = document.getElementById('tradeRecapSubtitle');
+  const msg = document.getElementById('tradeRecapMsg');
+
+  if (subtitle) subtitle.textContent = [data.asset, data.strategy, data.date].filter(Boolean).join(' · ');
+
+  document.querySelectorAll('#tradeRecapFormats .trade-recap-format').forEach(btn => btn.classList.remove('active'));
+  document.getElementById('tradeRecapPreviewEmpty').style.display = 'block';
+  document.getElementById('tradeRecapPreview').style.display = 'none';
+  document.getElementById('tradeRecapDownloadBtn').disabled = true;
+  document.getElementById('tradeRecapMeta').textContent = 'Pick a format to generate the preview.';
+
+  if (msg) {
+    msg.textContent = '';
+    msg.className = 'modal-msg';
+  }
+
+  modal.classList.add('active');
+}
+
+function closeTradeRecapModal() {
+  document.getElementById('tradeRecapModal')?.classList.remove('active');
+  tradeRecapTrade = null;
+  tradeRecapFormat = null;
+  tradeRecapRenderToken++;
+}
+
+function handleTradeRecapModalClick(e) {
+  if (e.target === document.getElementById('tradeRecapModal')) closeTradeRecapModal();
+}
+
+// Format selector
+function setTradeRecapFormat(key) {
+  const format = TRADE_RECAP_FORMATS[key];
+  if (!format || !tradeRecapTrade) return;
+
+  tradeRecapFormat = key;
+
+  document.querySelectorAll('#tradeRecapFormats .trade-recap-format').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.format === key);
+  });
+
+  document.getElementById('tradeRecapPreviewEmpty').style.display = 'none';
+  document.getElementById('tradeRecapPreview').style.display = 'flex';
+  document.getElementById('tradeRecapDownloadBtn').disabled = false;
+  document.getElementById('tradeRecapMeta').textContent = `${format.label} · ${format.ratio} · exports at ${format.width} × ${format.height} PNG`;
+
+  renderTradeRecapCard();
+}
+
+function renderTradeRecapCard() {
+  const canvas = document.getElementById('tradeRecapCanvas');
+  const format = TRADE_RECAP_FORMATS[tradeRecapFormat];
+  if (!canvas || !format || !tradeRecapTrade) return;
+
+  const renderToken = ++tradeRecapRenderToken;
+
+  const draw = () => {
+    if (renderToken !== tradeRecapRenderToken) return;
+
+    canvas.width = format.width;
+    canvas.height = format.height;
+
+    const ctx = canvas.getContext('2d');
+    drawTradeRecapCard(ctx, format, getTradeRecapData(tradeRecapTrade), getTradeRecapTheme());
+    fitTradeRecapPreview();
+  };
+
+  if (document.fonts?.ready) {
+    document.fonts.ready.then(draw);
+  } else {
+    draw();
+  }
+}
+
+// The canvas is always full export size; only its on-screen size is scaled down.
+function fitTradeRecapPreview() {
+  const wrap = document.getElementById('tradeRecapPreview');
+  const canvas = document.getElementById('tradeRecapCanvas');
+  const format = TRADE_RECAP_FORMATS[tradeRecapFormat];
+  if (!wrap || !canvas || !format) return;
+
+  const maxW = Math.max(120, wrap.clientWidth);
+  const maxH = Math.min(window.innerHeight * 0.5, 600);
+  const scale = Math.min(maxW / format.width, maxH / format.height, 1);
+
+  canvas.style.width = `${Math.round(format.width * scale)}px`;
+  canvas.style.height = `${Math.round(format.height * scale)}px`;
+}
+
+window.addEventListener('resize', () => {
+  if (document.getElementById('tradeRecapModal')?.classList.contains('active')) {
+    fitTradeRecapPreview();
+  }
+});
+
+// Export — the canvas is already 1080×1920 / 1080×1080 / 1920×1080, so the PNG is full resolution.
+function downloadTradeRecapImage() {
+  const canvas = document.getElementById('tradeRecapCanvas');
+  const format = TRADE_RECAP_FORMATS[tradeRecapFormat];
+  const msg = document.getElementById('tradeRecapMsg');
+  if (!canvas || !format || !tradeRecapTrade) return;
+
+  const data = getTradeRecapData(tradeRecapTrade);
+  const slug = String(data.asset || 'trade').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'trade';
+  const filename = `tradeprint-recap-${slug}-${tradeRecapTrade.date || 'trade'}-${format.key}.png`;
+
+  const triggerDownload = (href, revoke) => {
+    const link = document.createElement('a');
+    link.href = href;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    if (revoke) setTimeout(() => URL.revokeObjectURL(href), 1500);
+  };
+
+  if (msg) {
+    msg.textContent = '';
+    msg.className = 'modal-msg';
+  }
+
+  try {
+    canvas.toBlob(blob => {
+      if (blob) triggerDownload(URL.createObjectURL(blob), true);
+      else triggerDownload(canvas.toDataURL('image/png'), false);
+
+      if (msg) {
+        msg.textContent = `Downloaded ${format.width} × ${format.height} PNG.`;
+        msg.className = 'modal-msg success';
+      }
+    }, 'image/png');
+  } catch (err) {
+    console.warn('[Trade recap] export failed:', err);
+
+    if (msg) {
+      msg.textContent = 'Could not export the image. Try again.';
+      msg.className = 'modal-msg error';
+    }
+  }
+}
+    
 // ─── MENTORSHIP ───────────────────────────────────────────────
 
 let mentorRelationships = [];
