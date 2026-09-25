@@ -18262,7 +18262,7 @@ function renderPropAlerts(acct, st) {
 
   if (st.evalPassed && acct.status === 'active') {
     const hasNext = (st.program?.next || []).length > 0;
-    alerts.push(`<div class="prop-alert success"><div><b>Evaluation Goals Met.</b> Based on your TradePrint data, the tracked evaluation requirements have been met. ${escapeHtml(acct.firm_name)} still needs to approve and activate the next stage.</div><div class="prop-alert-actions">${hasNext ? `<button class="btn-primary" onclick="openPropTransitionDialog('${acct.id}')">Switch to Funded</button>` : `<button class="btn-primary" onclick="openPropTransitionDialog('${acct.id}', true)">Advance Stage</button>`}</div></div>`);
+    alerts.push(`<div class="prop-alert success"><div><b>Evaluation Goals Met.</b> Based on your Tradeprint data, the tracked evaluation requirements have been met. ${escapeHtml(acct.firm_name)} still needs to approve and activate the next stage.</div><div class="prop-alert-actions">${hasNext ? `<button class="btn-primary" onclick="openPropTransitionDialog('${acct.id}')">Switch to Funded</button>` : `<button class="btn-primary" onclick="openPropTransitionDialog('${acct.id}', true)">Advance Stage</button>`}</div></div>`);
   }
 
   const update = getPropTemplateUpdate(acct);
