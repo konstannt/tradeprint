@@ -6370,7 +6370,7 @@ select::-ms-expand {
 
       <div class="prop-disclaimer">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        <div>Prop firm metrics are tracking tools based on your TradePrint data and the rules currently saved for each account. Prop firm rules can change and some rules depend on data TradePrint may not have access to. Always verify eligibility and current rules directly with your prop firm. Do your own research.</div>
+        <div>Prop firm metrics are tracking tools based on your Tradeprint data and the rules currently saved for each account. Prop firm rules can change and some rules depend on data that Tradeprint may not have access to. Always verify eligibility and current rules directly with your prop firm. Do your own research.</div>
       </div>
 
       <div id="propCenterContent"></div>
@@ -18979,8 +18979,8 @@ function renderPropWizard() {
     body = `
       <div class="form-field"><label>Trade source</label>
         <div class="rule-radio-row">
-          <label class="rule-radio-option"><input type="radio" name="propLinkMode" value="existing" ${w.linkMode === 'existing' ? 'checked' : ''} onchange="propWizardSet('linkMode', 'existing'); renderPropWizard();"/> Link existing TradePrint account</label>
-          <label class="rule-radio-option"><input type="radio" name="propLinkMode" value="new" ${w.linkMode === 'new' ? 'checked' : ''} onchange="propWizardSet('linkMode', 'new'); renderPropWizard();"/> Create new TradePrint account</label>
+          <label class="rule-radio-option"><input type="radio" name="propLinkMode" value="existing" ${w.linkMode === 'existing' ? 'checked' : ''} onchange="propWizardSet('linkMode', 'existing'); renderPropWizard();"/> Link existing Tradeprint account</label>
+          <label class="rule-radio-option"><input type="radio" name="propLinkMode" value="new" ${w.linkMode === 'new' ? 'checked' : ''} onchange="propWizardSet('linkMode', 'new'); renderPropWizard();"/> Create new Tradeprint account</label>
         </div>
       </div>
       ${w.linkMode === 'existing'
@@ -19003,7 +19003,7 @@ function renderPropWizard() {
       <div class="prop-field-hint" style="margin:10px 0 14px;">TradePrint template ${escapeHtml(PROP_RULESETS_VERSION)} · verified ${escapeHtml(propDateLabel(PROP_RULESETS_VERIFIED_AT))}. A snapshot of these rules is saved with the account; later template updates never change it silently.</div>
       <div class="form-field"><label>Rules</label>
         <div class="rule-radio-row">
-          <label class="rule-radio-option"><input type="radio" name="propRulesMode" ${w.rulesMode === 'default' ? 'checked' : ''} onchange="propWizardSet('rulesMode', 'default'); renderPropWizard();"/> Use TradePrint default rules</label>
+          <label class="rule-radio-option"><input type="radio" name="propRulesMode" ${w.rulesMode === 'default' ? 'checked' : ''} onchange="propWizardSet('rulesMode', 'default'); renderPropWizard();"/> Use Tradeprint default rules</label>
           <label class="rule-radio-option"><input type="radio" name="propRulesMode" ${w.rulesMode === 'custom' ? 'checked' : ''} onchange="propWizardSet('rulesMode', 'custom'); renderPropWizard();"/> Customize rules</label>
         </div>
       </div>
