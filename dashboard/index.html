@@ -6353,7 +6353,7 @@ select::-ms-expand {
     <div class="page" id="page-prop">
       <div class="page-header prop-page-header">
         <div>
-          <h1>Prop Command Center</h1>
+          <h1>Prop Firm Command Center</h1>
           <p id="propHeaderDescriptor">Evaluations, funded accounts, payouts, drawdown and true prop profitability.</p>
         </div>
         <div class="page-header-actions">
@@ -18236,9 +18236,9 @@ function renderPropAccountControls() {
 function renderPropEmptyState() {
   return `
     <div class="prop-empty">
-      <div class="tradeprint-kicker">Prop Command Center</div>
+      <div class="tradeprint-kicker">Prop Firm Command Center</div>
       <h2>Track evaluations, funded accounts, payouts, drawdown, and your true prop-firm profitability.</h2>
-      <p>Link a prop account to the TradePrint account you already log trades to. Nothing gets duplicated; every trade you log flows straight into evaluation progress, payout eligibility and drawdown tracking.</p>
+      <p>Link a prop account to the Tradeprint account you already log trades to. Nothing gets duplicated; every trade you log flows straight into evaluation progress, payout eligibility and drawdown tracking.</p>
       <button class="btn-primary" onclick="openPropAccountWizard()">+ Add Prop Account</button>
       <div class="prop-empty-features">
         ${['Evaluation Progress', 'Payout Eligibility', 'Drawdown & Daily Loss', 'Prop Expenses', 'Payout History', 'Rule Snapshots'].map(f => `<div class="prop-empty-feature">${f}</div>`).join('')}
