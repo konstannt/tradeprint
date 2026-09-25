@@ -2700,6 +2700,46 @@ select.tp-native-select {
       .trade-recap-footer-actions { width: 100%; }
       .trade-recap-footer-actions .btn-secondary, .trade-recap-footer-actions .btn-primary { flex: 1; justify-content: center; }
     }
+        /* ─── DAILY / WEEKLY SHARE + WEEK MODAL ─────────────────────── */
+    .day-modal-date { min-width: 0; padding-right: 12px; }
+    .day-modal-header-actions { display: flex; align-items: center; justify-content: flex-end; gap: 6px; flex-wrap: wrap; flex-shrink: 0; margin-top: 4px; }
+    .day-modal-header-actions .day-modal-close { margin-top: 0; }
+    .day-modal-share { background: none; border: none; color: var(--text2); cursor: pointer; padding: 6px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.2s; }
+    .day-modal-share:hover { color: var(--accent); }
+    .day-modal-share:disabled { opacity: 0.35; cursor: not-allowed; color: var(--text2); }
+    .day-modal-share svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    .week-day-label { font-size: 11px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.6px; margin-top: 10px; }
+    .week-day-label:first-child { margin-top: 0; }
+
+    .cal-week-cell.has-trades { cursor: pointer; transition: background 0.15s, box-shadow 0.15s; }
+    .cal-week-cell.has-trades:hover, .cal-week-cell.has-trades:focus-visible { background: rgba(99,102,241,0.11); box-shadow: inset 0 0 0 1px rgba(99,102,241,0.35); outline: none; }
+
+    .trade-recap-accounts { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-bottom: 16px; }
+    .trade-recap-accounts-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+    .trade-recap-accounts-title { font-size: 11px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.6px; }
+    .trade-recap-accounts-actions { display: flex; gap: 14px; }
+    .trade-recap-accounts-link { background: none; border: none; color: var(--accent); cursor: pointer; font: inherit; font-size: 12px; font-weight: 700; padding: 0; }
+    .trade-recap-accounts-link:hover { text-decoration: underline; }
+    .trade-recap-account-list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .trade-recap-account { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg2); color: var(--text); cursor: pointer; font: inherit; font-size: 13px; font-weight: 700; transition: border-color 0.15s, background 0.15s; }
+    .trade-recap-account:hover { border-color: var(--accent); }
+    .trade-recap-account.active { border-color: rgba(99,102,241,0.6); background: rgba(99,102,241,0.1); }
+    .trade-recap-account-count { font-size: 11px; font-weight: 600; color: var(--text2); }
+    .trade-recap-accounts-empty { font-size: 13px; color: var(--text2); }
+    .trade-recap-accounts-note { font-size: 12px; color: var(--text2); margin-top: 10px; min-height: 16px; }
+    .trade-recap-accounts-note.error { color: var(--danger); }
+    .trade-recap-format:disabled { opacity: 0.45; cursor: not-allowed; }
+    .trade-recap-format:disabled:hover { border-color: var(--border); }
+
+    @media (max-width: 768px) {
+      .day-modal-share { padding: 8px; }
+      .day-modal-share svg { width: 22px; height: 22px; }
+    }
+
+    @media (max-width: 640px) {
+      .trade-recap-account { flex: 1 1 100%; }
+    }
     .trades-mobile-card {
   display: none;
 }
@@ -4963,9 +5003,14 @@ select::-ms-expand {
   <!-- DAY MODAL -->
   <div class="day-modal-overlay" id="dayModal" onmousedown="handleDayModalPointerDown(event)" onclick="handleDayModalClick(event)">
     <div class="day-modal-box" onclick="event.stopPropagation()">
-      <div class="day-modal-header">
+            <div class="day-modal-header">
         <div class="day-modal-date" id="dayModalTitle">April 14, 2026</div>
-        <button class="day-modal-close" onclick="closeDayModal()">×</button>
+        <div class="day-modal-header-actions" id="dayModalHeaderActions">
+          <button class="day-modal-share" id="dayModalShareBtn" type="button" title="Share this day" aria-label="Share this day" onclick="openDayShareCard()">
+            <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+          </button>
+          <button class="day-modal-close" onclick="closeDayModal()">×</button>
+        </div>
       </div>
       <div class="day-modal-stats" id="dayStats"></div>
       <div class="day-modal-body">
@@ -4991,6 +5036,26 @@ select::-ms-expand {
     </div>
   </div>
 
+  <!-- WEEK MODAL -->
+  <div class="day-modal-overlay" id="weekModal" onmousedown="handleWeekModalPointerDown(event)" onclick="handleWeekModalClick(event)">
+    <div class="day-modal-box" onclick="event.stopPropagation()">
+      <div class="day-modal-header">
+        <div class="day-modal-date" id="weekModalTitle">Week</div>
+        <div class="day-modal-header-actions">
+          <button class="day-modal-share" id="weekModalShareBtn" type="button" title="Share this week" aria-label="Share this week" onclick="openWeekShareCard()">
+            <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+          </button>
+          <button class="day-modal-close" onclick="closeWeekModal()">×</button>
+        </div>
+      </div>
+      <div class="day-modal-stats" id="weekStats"></div>
+      <div class="day-modal-body">
+        <div class="day-modal-section-title">Trades</div>
+        <div class="trade-feed" id="weekTradesList"></div>
+      </div>
+    </div>
+  </div>
+  
   <!-- LOG TRADE MODAL -->
   <div class="modal" id="logTradeModal" onclick="handleLogTradeModalClick(event)">
     <div class="modal-box log-trade-modal-box" id="logTradeModalBox" onclick="event.stopPropagation()">
@@ -5322,12 +5387,24 @@ select::-ms-expand {
   <!-- TRADE RECAP MODAL -->
   <div class="modal" id="tradeRecapModal" onclick="handleTradeRecapModalClick(event)">
     <div class="modal-box trade-recap-modal-box" onclick="event.stopPropagation()">
-      <div class="modal-header">
+            <div class="modal-header">
         <div>
-          <div class="modal-title">Trade Recap</div>
+          <div class="modal-title" id="tradeRecapTitle">Trade Recap</div>
           <div class="trade-recap-subtitle" id="tradeRecapSubtitle"></div>
         </div>
         <button class="modal-close" onclick="closeTradeRecapModal()">×</button>
+      </div>
+
+      <div class="trade-recap-accounts" id="tradeRecapAccountsSection" style="display:none;">
+        <div class="trade-recap-accounts-head">
+          <div class="trade-recap-accounts-title">Accounts</div>
+          <div class="trade-recap-accounts-actions">
+            <button class="trade-recap-accounts-link" type="button" onclick="setAllTradeRecapAccounts(true)">Select all</button>
+            <button class="trade-recap-accounts-link" type="button" onclick="setAllTradeRecapAccounts(false)">Clear</button>
+          </div>
+        </div>
+        <div class="trade-recap-account-list" id="tradeRecapAccountList"></div>
+        <div class="trade-recap-accounts-note" id="tradeRecapAccountsNote"></div>
       </div>
 
       <div class="trade-recap-formats" id="tradeRecapFormats">
@@ -9798,14 +9875,33 @@ function resetPointsCalc() {
           weekPnl += dayPnl; weekTrades += dayTradesArr.length;
           weekWins += dayTradesArr.filter(t => t.result === 'win').length;
         });
-        const weekCell = document.createElement('div');
+                const weekCell = document.createElement('div');
         weekCell.className = 'cal-week-cell';
         if (weekTrades > 0) {
           const pnlClass = weekPnl > 0 ? 'green' : weekPnl < 0 ? 'red' : '';
+          const weekStartStr = week[0].dateStr;
+          const weekEndStr = week[week.length - 1].dateStr;
+
+          weekCell.classList.add('has-trades');
+          weekCell.dataset.weekStart = weekStartStr;
+          weekCell.dataset.weekEnd = weekEndStr;
+          weekCell.setAttribute('role', 'button');
+          weekCell.setAttribute('tabindex', '0');
+          weekCell.title = 'View this week';
           weekCell.innerHTML = `<div class="cal-week-pnl ${pnlClass}">${formatPnlShort(weekPnl)}</div><div class="cal-week-meta">${weekTrades} trade${weekTrades !== 1 ? 's' : ''}<br>${Math.round((weekWins/weekTrades)*100)}% WR</div>`;
+
+          weekCell.addEventListener('click', () => openWeekModal(weekStartStr, weekEndStr, trades));
+          weekCell.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              openWeekModal(weekStartStr, weekEndStr, trades);
+            }
+          });
         }
         grid.appendChild(weekCell);
       }
+
+      refreshWeekModalIfOpen(trades);
     }
 
     let dayModalPointerStartedInside = false;
@@ -10073,15 +10169,15 @@ const activeMentors = mentorRelationships.filter(r => r.status === 'active');
 const existingReviewBtn = document.getElementById('dayModalReviewBtn');
 if (existingReviewBtn) existingReviewBtn.remove();
 if (activeMentors.length) {
-  const dayModalHeader = document.querySelector('.day-modal-header');
-  if (dayModalHeader) {
+  const dayModalActions = document.getElementById('dayModalHeaderActions');
+  if (dayModalActions) {
     const btn = document.createElement('button');
     btn.id = 'dayModalReviewBtn';
     btn.className = 'review-request-btn';
     btn.title = 'Request mentor review for this day';
     btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Request Review`;
     btn.onclick = () => openReviewRequestModal('journal', dateStr);
-    dayModalHeader.insertBefore(btn, dayModalHeader.querySelector('.day-modal-close'));
+    dayModalActions.insertBefore(btn, dayModalActions.querySelector('.day-modal-share'));
   }
 }
       
@@ -10325,7 +10421,7 @@ async function closeDayModal() {
   renderDayTrades();
 }
 
-    function renderDayTrades() {
+        function renderDayTrades() {
       const list = document.getElementById('dayTradesList');
       const totalPnl = dayTrades.reduce((sum, t) => sum + (parseFloat(t.pnl) || 0), 0);
       const wins = dayTrades.filter(t => t.result === 'win').length;
@@ -10337,16 +10433,23 @@ async function closeDayModal() {
         <div class="day-modal-stat"><div class="day-modal-stat-label">Wins</div><div class="day-modal-stat-val" style="color:var(--success)">${wins}</div></div>
         <div class="day-modal-stat"><div class="day-modal-stat-label">Losses</div><div class="day-modal-stat-val" style="color:var(--danger)">${losses}</div></div>
       </div>` : '';
+      updateDayShareButtonState();
       if (!dayTrades.length) { list.innerHTML = ''; return; }
-            list.innerHTML = dayTrades.map(t => {
-        const pnl = parseFloat(t.pnl) || 0;
-        const pnlClass = pnl > 0 ? 'green' : pnl < 0 ? 'red' : '';
-        const timeDisplay = t.trade_time ? formatDisplayTime(t.trade_time) : null;
-        const strategy = t.strategies?.name || 'Unknown';
-        const accountName = t.broker_accounts?.name || getAccountName(t.account_id);
-        const displayStrategy = !isSingleAccountActive() ? `${accountName} · ${strategy}` : strategy;
+      list.innerHTML = dayTrades.map(t => buildTradeFeedItemHtml(t)).join('');
+    }
 
-        return `<div class="trade-feed-item">
+    // Shared trade row for the Day Modal and Week Modal. Same markup the Day Modal always used.
+    function buildTradeFeedItemHtml(t, options = {}) {
+      const editFn = options.editFn || 'openEditTrade';
+      const deleteFn = options.deleteFn || 'deleteTrade';
+      const pnl = parseFloat(t.pnl) || 0;
+      const pnlClass = pnl > 0 ? 'green' : pnl < 0 ? 'red' : '';
+      const timeDisplay = t.trade_time ? formatDisplayTime(t.trade_time) : null;
+      const strategy = t.strategies?.name || 'Unknown';
+      const accountName = t.broker_accounts?.name || getAccountName(t.account_id);
+      const displayStrategy = !isSingleAccountActive() ? `${accountName} · ${strategy}` : strategy;
+
+      return `<div class="trade-feed-item">
           <div class="trade-feed-left">
             <div class="trade-feed-strat">${escapeHtml(displayStrategy)}${t.asset ? ` · ${escapeHtml(t.asset)}` : ''} — <span style="color:${t.result==='win'?'var(--success)':t.result==='loss'?'var(--danger)':'var(--text2)'};text-transform:capitalize;">${escapeHtml(t.result)}</span></div>
             <div class="trade-feed-detail">
@@ -10355,13 +10458,12 @@ async function closeDayModal() {
             ${t.notes ? `<div class="trade-feed-detail" style="margin-top:3px;font-style:italic;">"${t.notes}"</div>` : ''}
           </div>
           <div class="trade-feed-pnl ${pnlClass}">${formatPnl(pnl)}</div>
-                    <div class="trade-feed-actions">
+          <div class="trade-feed-actions">
             ${renderTradeRecapButton(t.id)}
-            <button class="trade-feed-edit" onclick="openEditTrade('${t.id}')"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-            <button class="trade-feed-delete" onclick="deleteTrade('${t.id}')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>
+            <button class="trade-feed-edit" onclick="${editFn}('${t.id}')"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+            <button class="trade-feed-delete" onclick="${deleteFn}('${t.id}')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>
           </div>
         </div>`;
-      }).join('');
     }
 
     async function deleteTrade(id) {
@@ -15565,6 +15667,11 @@ const TRADE_RECAP_FORMATS = {
 let tradeRecapTrade = null;
 let tradeRecapFormat = null;
 let tradeRecapRenderToken = 0;
+let tradeRecapMode = 'trade'; // 'trade' | 'day' | 'week'
+let tradeRecapSummaryTrades = [];
+let tradeRecapSummaryLabel = '';
+let tradeRecapAccountOptions = [];
+let tradeRecapSelectedAccountKeys = new Set();
 
 // TradeRecapButton — shared by the Trades tab and the Calendar day modal
 function renderTradeRecapButton(tradeId) {
@@ -15764,6 +15871,19 @@ function recapDrawWordmark(ctx, theme, x, y, size, align = 'left') {
   recapDrawSpacedText(ctx, 'print', startX + wTrade, y, spacing);
 
   return total;
+}
+    // "tradeprint.ai" footer branding — subtle, bottom-center on every share card
+function recapDrawFooterBrand(ctx, theme, x, y, size) {
+  const text = 'tradeprint.ai';
+  const spacing = size * 0.05;
+
+  ctx.font = recapFont(theme, 700, size);
+  ctx.fillStyle = theme.text2;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+
+  const width = recapMeasureSpaced(ctx, text, spacing);
+  recapDrawSpacedText(ctx, text, x - width / 2, y, spacing);
 }
 
 function recapDrawDirectionArrow(ctx, x, y, size, up, color) {
@@ -16059,7 +16179,7 @@ function recapDrawStory(ctx, theme, data) {
     columns: 2, labelSize: 24, valueSize: 46, padX: 40, padY: 32, radius: 28
   });
 
-  recapDrawWordmark(ctx, theme, W / 2, H - 232, 30, 'center');
+    recapDrawFooterBrand(ctx, theme, W / 2, H - 232, 30);
 }
 
 // 1:1 — 1080 × 1080. Ticker + chips share a row; stats fill the bottom.
@@ -16101,8 +16221,8 @@ function recapDrawSquare(ctx, theme, data) {
   ctx.textAlign = 'left';
   ctx.fillText(data.pnlText, P, y);
 
-  const panelTop = y + 66;
-  const available = H - P - panelTop;
+    const panelTop = y + 66;
+  const available = H - P - 24 - panelTop;
   const rows = Math.ceil(data.stats.length / recapPickColumns(data.stats.length, 3));
   const panelH = Math.min(available, rows * 150 + 56);
   const panelY = panelTop + (available - panelH) / 2;
@@ -16111,6 +16231,8 @@ function recapDrawSquare(ctx, theme, data) {
     x: P, y: panelY, width: contentW, height: panelH,
     columns: 3, labelSize: 20, valueSize: 36, padX: 36, padY: 28, radius: 24
   });
+
+  recapDrawFooterBrand(ctx, theme, W / 2, H - 34, 22);
 }
 
 // 16:9 — 1920 × 1080. Ticker / P&L / strategy on the left, stats on the right.
@@ -16174,10 +16296,12 @@ function recapDrawWide(ctx, theme, data) {
   const panelH = Math.min(available, rows * 196 + 64);
   const panelY = regionTop + (available - panelH) / 2;
 
-  recapDrawStatsPanel(ctx, theme, data.stats, {
+    recapDrawStatsPanel(ctx, theme, data.stats, {
     x: rightX, y: panelY, width: rightW, height: panelH,
     columns: 2, labelSize: 24, valueSize: 50, padX: 44, padY: 32, radius: 28
   });
+
+  recapDrawFooterBrand(ctx, theme, W / 2, H - 40, 24);
 }
 
 // TradeRecapCard — draws the selected format at full export resolution
@@ -16185,12 +16309,45 @@ function drawTradeRecapCard(ctx, format, data, theme) {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.clearRect(0, 0, format.width, format.height);
 
+  if (data.cardType === 'summary') {
+    if (format.key === 'story') recapDrawSummaryStory(ctx, theme, data);
+    else if (format.key === 'wide') recapDrawSummaryWide(ctx, theme, data);
+    else recapDrawSummarySquare(ctx, theme, data);
+    return;
+  }
+
   if (format.key === 'story') recapDrawStory(ctx, theme, data);
   else if (format.key === 'wide') recapDrawWide(ctx, theme, data);
   else recapDrawSquare(ctx, theme, data);
 }
 
 // ── Modal ──────────────────────────────────────────────────────
+
+function resetTradeRecapFormatUi(metaText, emptyText, formatsDisabled = false) {
+  tradeRecapFormat = null;
+  tradeRecapRenderToken++;
+
+  document.querySelectorAll('#tradeRecapFormats .trade-recap-format').forEach(btn => {
+    btn.classList.remove('active');
+    btn.disabled = formatsDisabled;
+  });
+
+  const empty = document.getElementById('tradeRecapPreviewEmpty');
+  if (empty) {
+    empty.textContent = emptyText;
+    empty.style.display = 'block';
+  }
+
+  document.getElementById('tradeRecapPreview').style.display = 'none';
+  document.getElementById('tradeRecapDownloadBtn').disabled = true;
+  document.getElementById('tradeRecapMeta').textContent = metaText;
+
+  const msg = document.getElementById('tradeRecapMsg');
+  if (msg) {
+    msg.textContent = '';
+    msg.className = 'modal-msg';
+  }
+}
 
 async function openTradeRecapModal(tradeId) {
   const modal = document.getElementById('tradeRecapModal');
@@ -16215,34 +16372,36 @@ async function openTradeRecapModal(tradeId) {
     return;
   }
 
+  tradeRecapMode = 'trade';
   tradeRecapTrade = trade;
-  tradeRecapFormat = null;
-  tradeRecapRenderToken++;
+  tradeRecapSummaryTrades = [];
+  tradeRecapSummaryLabel = '';
+  tradeRecapAccountOptions = [];
+  tradeRecapSelectedAccountKeys = new Set();
 
   const data = getTradeRecapData(trade);
+  const title = document.getElementById('tradeRecapTitle');
   const subtitle = document.getElementById('tradeRecapSubtitle');
-  const msg = document.getElementById('tradeRecapMsg');
+  const accountsSection = document.getElementById('tradeRecapAccountsSection');
 
+  if (title) title.textContent = 'Trade Recap';
   if (subtitle) subtitle.textContent = [data.asset, data.strategy, data.date].filter(Boolean).join(' · ');
+  if (accountsSection) accountsSection.style.display = 'none';
 
-  document.querySelectorAll('#tradeRecapFormats .trade-recap-format').forEach(btn => btn.classList.remove('active'));
-  document.getElementById('tradeRecapPreviewEmpty').style.display = 'block';
-  document.getElementById('tradeRecapPreview').style.display = 'none';
-  document.getElementById('tradeRecapDownloadBtn').disabled = true;
-  document.getElementById('tradeRecapMeta').textContent = 'Pick a format to generate the preview.';
-
-  if (msg) {
-    msg.textContent = '';
-    msg.className = 'modal-msg';
-  }
+  resetTradeRecapFormatUi('Pick a format to generate the preview.', 'Select a format to preview your recap.', false);
 
   modal.classList.add('active');
 }
 
 function closeTradeRecapModal() {
   document.getElementById('tradeRecapModal')?.classList.remove('active');
+  tradeRecapMode = 'trade';
   tradeRecapTrade = null;
   tradeRecapFormat = null;
+  tradeRecapSummaryTrades = [];
+  tradeRecapSummaryLabel = '';
+  tradeRecapAccountOptions = [];
+  tradeRecapSelectedAccountKeys = new Set();
   tradeRecapRenderToken++;
 }
 
@@ -16253,7 +16412,7 @@ function handleTradeRecapModalClick(e) {
 // Format selector
 function setTradeRecapFormat(key) {
   const format = TRADE_RECAP_FORMATS[key];
-  if (!format || !tradeRecapTrade) return;
+  if (!format || !tradeRecapHasSubject()) return;
 
   tradeRecapFormat = key;
 
@@ -16272,7 +16431,7 @@ function setTradeRecapFormat(key) {
 function renderTradeRecapCard() {
   const canvas = document.getElementById('tradeRecapCanvas');
   const format = TRADE_RECAP_FORMATS[tradeRecapFormat];
-  if (!canvas || !format || !tradeRecapTrade) return;
+  if (!canvas || !format || !tradeRecapHasSubject()) return;
 
   const renderToken = ++tradeRecapRenderToken;
 
@@ -16283,7 +16442,7 @@ function renderTradeRecapCard() {
     canvas.height = format.height;
 
     const ctx = canvas.getContext('2d');
-    drawTradeRecapCard(ctx, format, getTradeRecapData(tradeRecapTrade), getTradeRecapTheme());
+    drawTradeRecapCard(ctx, format, getTradeRecapCardData(), getTradeRecapTheme());
     fitTradeRecapPreview();
   };
 
@@ -16316,15 +16475,24 @@ window.addEventListener('resize', () => {
 });
 
 // Export — the canvas is already 1080×1920 / 1080×1080 / 1920×1080, so the PNG is full resolution.
+function getTradeRecapFilename(format) {
+  if (tradeRecapMode === 'trade') {
+    const data = getTradeRecapData(tradeRecapTrade);
+    const slug = String(data.asset || 'trade').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'trade';
+    return `tradeprint-recap-${slug}-${tradeRecapTrade.date || 'trade'}-${format.key}.png`;
+  }
+
+  const slug = String(tradeRecapSummaryLabel || tradeRecapMode).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || tradeRecapMode;
+  return `tradeprint-${tradeRecapMode === 'week' ? 'weekly' : 'daily'}-${slug}-${format.key}.png`;
+}
+
 function downloadTradeRecapImage() {
   const canvas = document.getElementById('tradeRecapCanvas');
   const format = TRADE_RECAP_FORMATS[tradeRecapFormat];
   const msg = document.getElementById('tradeRecapMsg');
-  if (!canvas || !format || !tradeRecapTrade) return;
+  if (!canvas || !format || !tradeRecapHasSubject()) return;
 
-  const data = getTradeRecapData(tradeRecapTrade);
-  const slug = String(data.asset || 'trade').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'trade';
-  const filename = `tradeprint-recap-${slug}-${tradeRecapTrade.date || 'trade'}-${format.key}.png`;
+  const filename = getTradeRecapFilename(format);
 
   const triggerDownload = (href, revoke) => {
     const link = document.createElement('a');
@@ -16359,6 +16527,465 @@ function downloadTradeRecapImage() {
       msg.className = 'modal-msg error';
     }
   }
+}
+
+    // ─── DAILY / WEEKLY SHARE CARDS ───────────────────────────────
+
+function tradeRecapHasSubject() {
+  if (tradeRecapMode === 'trade') return !!tradeRecapTrade;
+  return getTradeRecapSelectedTrades().length > 0;
+}
+
+function getTradeAccountKey(trade) {
+  return trade?.account_id || '__none';
+}
+
+function getTradeRecapSelectedTrades() {
+  if (tradeRecapMode === 'trade') return tradeRecapTrade ? [tradeRecapTrade] : [];
+  return tradeRecapSummaryTrades.filter(t => tradeRecapSelectedAccountKeys.has(getTradeAccountKey(t)));
+}
+
+function getTradeRecapCardData() {
+  if (tradeRecapMode === 'trade') return getTradeRecapData(tradeRecapTrade);
+  return getSummaryRecapData(tradeRecapMode, getTradeRecapSelectedTrades(), tradeRecapSummaryLabel, tradeRecapSelectedAccountKeys.size);
+}
+
+// Aggregates only the trades passed in (already filtered to the selected accounts).
+function getSummaryRecapData(mode, trades, dateLabel, accountCount) {
+  const summary = getTradeSummary(trades);
+  const total = summary.total;
+  const avgPnl = total ? summary.totalPnl / total : 0;
+  const accounts = Number(accountCount) || 0;
+
+  return {
+    cardType: 'summary',
+    mode,
+    kicker: mode === 'week' ? 'Weekly Performance' : 'Daily Performance',
+    date: dateLabel || '',
+    pnl: summary.totalPnl,
+    pnlText: formatPnl(summary.totalPnl),
+    subline: `${total} trade${total !== 1 ? 's' : ''} across ${accounts} account${accounts !== 1 ? 's' : ''}`,
+    stats: [
+      { label: 'Trades', value: String(total) },
+      { label: 'Win Rate', value: `${summary.winRate ?? 0}%` },
+      { label: 'Accounts', value: String(accounts) },
+      { label: 'Avg / Trade', value: formatPnl(avgPnl) }
+    ]
+  };
+}
+
+// 9:16 — 1080 × 1920
+function recapDrawSummaryStory(ctx, theme, data) {
+  const W = 1080, H = 1920, P = 84;
+  const contentW = W - P * 2;
+
+  recapDrawBackground(ctx, theme, W, H, data.pnl);
+
+  const headerY = 300;
+  recapDrawHeader(ctx, theme, data, { x: P, y: headerY, width: contentW, wordmarkSize: 48, dateSize: 26 });
+  recapDrawLine(ctx, theme, P, headerY + 44, W - P, headerY + 44);
+
+  const kickerSize = 30;
+  const sublineSize = 30;
+  const pnlSize = recapFitText(ctx, data.pnlText, theme, 900, 190, 96, contentW);
+  const rows = Math.ceil(data.stats.length / 2);
+  const panelH = rows * 122 + 64;
+
+  const contentH =
+    kickerSize +
+    84 + pnlSize * 0.74 +
+    56 + sublineSize +
+    96 + panelH;
+
+  const regionTop = headerY + 44;
+  const regionBottom = H - 330;
+  let y = regionTop + Math.max(72, (regionBottom - regionTop - contentH) / 2);
+
+  y += kickerSize;
+  recapDrawLabel(ctx, theme, data.kicker, P, y, kickerSize, theme.accent);
+
+  y += 84 + pnlSize * 0.74;
+  ctx.font = recapFont(theme, 900, pnlSize);
+  ctx.fillStyle = recapPnlColor(theme, data.pnl);
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText(data.pnlText, P, y);
+
+  y += 56 + sublineSize;
+  ctx.font = recapFont(theme, 600, sublineSize);
+  ctx.fillStyle = theme.text2;
+  ctx.textAlign = 'left';
+  ctx.fillText(recapEllipsize(ctx, data.subline, contentW), P, y);
+
+  y += 96;
+  recapDrawStatsPanel(ctx, theme, data.stats, {
+    x: P, y, width: contentW, height: panelH,
+    columns: 2, labelSize: 24, valueSize: 46, padX: 40, padY: 32, radius: 28
+  });
+
+  recapDrawFooterBrand(ctx, theme, W / 2, H - 232, 30);
+}
+
+// 1:1 — 1080 × 1080
+function recapDrawSummarySquare(ctx, theme, data) {
+  const W = 1080, H = 1080, P = 72;
+  const contentW = W - P * 2;
+
+  recapDrawBackground(ctx, theme, W, H, data.pnl);
+
+  const headerY = 118;
+  recapDrawHeader(ctx, theme, data, { x: P, y: headerY, width: contentW, wordmarkSize: 40, dateSize: 24 });
+  recapDrawLine(ctx, theme, P, headerY + 38, W - P, headerY + 38);
+
+  const kickerSize = 26;
+  const sublineSize = 26;
+
+  let y = headerY + 38 + 62 + kickerSize;
+  recapDrawLabel(ctx, theme, data.kicker, P, y, kickerSize, theme.accent);
+
+  const pnlSize = recapFitText(ctx, data.pnlText, theme, 900, 160, 84, contentW);
+  y += 60 + pnlSize * 0.74;
+  ctx.font = recapFont(theme, 900, pnlSize);
+  ctx.fillStyle = recapPnlColor(theme, data.pnl);
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText(data.pnlText, P, y);
+
+  y += 46 + sublineSize;
+  ctx.font = recapFont(theme, 600, sublineSize);
+  ctx.fillStyle = theme.text2;
+  ctx.textAlign = 'left';
+  ctx.fillText(recapEllipsize(ctx, data.subline, contentW), P, y);
+
+  const panelTop = y + 60;
+  const available = H - P - 24 - panelTop;
+  const rows = Math.ceil(data.stats.length / 2);
+  const panelH = Math.min(available, rows * 150 + 56);
+  const panelY = panelTop + (available - panelH) / 2;
+
+  recapDrawStatsPanel(ctx, theme, data.stats, {
+    x: P, y: panelY, width: contentW, height: panelH,
+    columns: 2, labelSize: 20, valueSize: 36, padX: 36, padY: 28, radius: 24
+  });
+
+  recapDrawFooterBrand(ctx, theme, W / 2, H - 34, 22);
+}
+
+// 16:9 — 1920 × 1080
+function recapDrawSummaryWide(ctx, theme, data) {
+  const W = 1920, H = 1080, P = 96;
+
+  recapDrawBackground(ctx, theme, W, H, data.pnl);
+
+  const headerY = 150;
+  recapDrawHeader(ctx, theme, data, { x: P, y: headerY, width: W - P * 2, wordmarkSize: 44, dateSize: 26 });
+  recapDrawLine(ctx, theme, P, headerY + 40, W - P, headerY + 40);
+
+  const leftX = P;
+  const leftW = 880;
+  const rightX = 1056;
+  const rightW = W - P - rightX;
+  const regionTop = headerY + 40 + 70;
+  const regionBottom = H - P;
+
+  const kickerSize = 28;
+  const sublineSize = 30;
+  const pnlSize = recapFitText(ctx, data.pnlText, theme, 900, 180, 90, leftW);
+
+  const leftH = kickerSize + 80 + pnlSize * 0.74 + 56 + sublineSize;
+  let y = regionTop + Math.max(0, (regionBottom - regionTop - leftH) / 2);
+
+  y += kickerSize;
+  recapDrawLabel(ctx, theme, data.kicker, leftX, y, kickerSize, theme.accent);
+
+  y += 80 + pnlSize * 0.74;
+  ctx.font = recapFont(theme, 900, pnlSize);
+  ctx.fillStyle = recapPnlColor(theme, data.pnl);
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText(data.pnlText, leftX, y);
+
+  y += 56 + sublineSize;
+  ctx.font = recapFont(theme, 600, sublineSize);
+  ctx.fillStyle = theme.text2;
+  ctx.textAlign = 'left';
+  ctx.fillText(recapEllipsize(ctx, data.subline, leftW), leftX, y);
+
+  recapDrawLine(ctx, theme, 1016, regionTop, 1016, regionBottom);
+
+  const rows = Math.ceil(data.stats.length / 2);
+  const available = regionBottom - regionTop;
+  const panelH = Math.min(available, rows * 196 + 64);
+  const panelY = regionTop + (available - panelH) / 2;
+
+  recapDrawStatsPanel(ctx, theme, data.stats, {
+    x: rightX, y: panelY, width: rightW, height: panelH,
+    columns: 2, labelSize: 24, valueSize: 52, padX: 44, padY: 32, radius: 28
+  });
+
+  recapDrawFooterBrand(ctx, theme, W / 2, H - 40, 24);
+}
+
+// ── Account selection (Step 1) ────────────────────────────────
+
+function buildTradeRecapAccountOptions(trades) {
+  const map = new Map();
+
+  trades.forEach(t => {
+    const key = getTradeAccountKey(t);
+
+    if (!map.has(key)) {
+      map.set(key, {
+        key,
+        name: t.broker_accounts?.name || getAccountName(t.account_id),
+        count: 0
+      });
+    }
+
+    map.get(key).count++;
+  });
+
+  const order = new Map(allAccounts.map((a, i) => [a.id, i]));
+
+  return [...map.values()].sort((a, b) =>
+    (order.get(a.key) ?? 9999) - (order.get(b.key) ?? 9999) ||
+    a.name.localeCompare(b.name)
+  );
+}
+
+function openSummaryRecapModal(mode, trades, label) {
+  const modal = document.getElementById('tradeRecapModal');
+  if (!modal) return;
+
+  tradeRecapMode = mode === 'week' ? 'week' : 'day';
+  tradeRecapTrade = null;
+  tradeRecapSummaryTrades = Array.isArray(trades) ? [...trades] : [];
+  tradeRecapSummaryLabel = label || '';
+  tradeRecapAccountOptions = buildTradeRecapAccountOptions(tradeRecapSummaryTrades);
+  tradeRecapSelectedAccountKeys = new Set(tradeRecapAccountOptions.map(o => o.key));
+
+  const title = document.getElementById('tradeRecapTitle');
+  const subtitle = document.getElementById('tradeRecapSubtitle');
+  const accountsSection = document.getElementById('tradeRecapAccountsSection');
+
+  if (title) title.textContent = tradeRecapMode === 'week' ? 'Weekly Share Card' : 'Daily Share Card';
+  if (subtitle) subtitle.textContent = tradeRecapSummaryLabel;
+  if (accountsSection) accountsSection.style.display = 'block';
+
+  renderTradeRecapAccountPicker();
+  updateTradeRecapSummaryState({ reset: true });
+
+  modal.classList.add('active');
+}
+
+function renderTradeRecapAccountPicker() {
+  const list = document.getElementById('tradeRecapAccountList');
+  if (!list) return;
+
+  if (!tradeRecapAccountOptions.length) {
+    list.innerHTML = `<div class="trade-recap-accounts-empty">No trades logged for this ${tradeRecapMode === 'week' ? 'week' : 'day'}.</div>`;
+    return;
+  }
+
+  list.innerHTML = tradeRecapAccountOptions.map(opt => {
+    const checked = tradeRecapSelectedAccountKeys.has(opt.key);
+
+    return `
+      <button class="trade-recap-account${checked ? ' active' : ''}" type="button" onclick="toggleTradeRecapAccount('${escapeHtml(opt.key)}')">
+        <span class="account-check${checked ? ' checked' : ''}"></span>
+        <span>${escapeHtml(opt.name)}</span>
+        <span class="trade-recap-account-count">${opt.count} trade${opt.count !== 1 ? 's' : ''}</span>
+      </button>
+    `;
+  }).join('');
+}
+
+function toggleTradeRecapAccount(key) {
+  if (tradeRecapSelectedAccountKeys.has(key)) tradeRecapSelectedAccountKeys.delete(key);
+  else tradeRecapSelectedAccountKeys.add(key);
+
+  renderTradeRecapAccountPicker();
+  updateTradeRecapSummaryState();
+}
+
+function setAllTradeRecapAccounts(selectAll) {
+  tradeRecapSelectedAccountKeys = new Set(selectAll ? tradeRecapAccountOptions.map(o => o.key) : []);
+  renderTradeRecapAccountPicker();
+  updateTradeRecapSummaryState();
+}
+
+function updateTradeRecapSummaryState({ reset = false } = {}) {
+  const note = document.getElementById('tradeRecapAccountsNote');
+  const selected = getTradeRecapSelectedTrades();
+  const unit = tradeRecapMode === 'week' ? 'week' : 'day';
+  const hasTrades = selected.length > 0;
+  const accountCount = tradeRecapSelectedAccountKeys.size;
+
+  if (note) {
+    if (!tradeRecapAccountOptions.length) {
+      note.textContent = `Log a trade on this ${unit} to generate a share card.`;
+      note.className = 'trade-recap-accounts-note error';
+    } else if (!hasTrades) {
+      note.textContent = 'No trades for the selected accounts. Select at least one account.';
+      note.className = 'trade-recap-accounts-note error';
+    } else {
+      note.textContent = `${selected.length} trade${selected.length !== 1 ? 's' : ''} · ${accountCount} account${accountCount !== 1 ? 's' : ''} selected`;
+      note.className = 'trade-recap-accounts-note';
+    }
+  }
+
+  document.querySelectorAll('#tradeRecapFormats .trade-recap-format').forEach(btn => {
+    btn.disabled = !hasTrades;
+  });
+
+  if (reset || !hasTrades) {
+    resetTradeRecapFormatUi(
+      hasTrades ? 'Pick a format to generate the preview.' : 'Select at least one account with trades.',
+      hasTrades ? 'Select a format to preview your share card.' : 'No trades for the selected accounts.',
+      !hasTrades
+    );
+    return;
+  }
+
+  if (tradeRecapFormat) renderTradeRecapCard();
+}
+
+// ── Entry points ──────────────────────────────────────────────
+
+function formatShareDateLabel(dateStr) {
+  if (!dateStr) return '';
+  return new Date(dateStr + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function updateDayShareButtonState() {
+  const btn = document.getElementById('dayModalShareBtn');
+  if (btn) btn.disabled = !dayTrades.length;
+}
+
+function openDayShareCard() {
+  if (!selectedDate) return;
+  openSummaryRecapModal('day', dayTrades, formatShareDateLabel(selectedDate));
+}
+
+function openWeekShareCard() {
+  if (!weekModalRange) return;
+  openSummaryRecapModal('week', weekModalTrades, formatWeekRangeLabel(weekModalRange.start, weekModalRange.end));
+}
+
+    // ─── WEEK MODAL ───────────────────────────────────────────────
+
+let weekModalRange = null;   // { start: 'YYYY-MM-DD', end: 'YYYY-MM-DD' } — same Sun..Sat row the calendar grid uses
+let weekModalTrades = [];
+let weekModalPointerStartedInside = false;
+
+function formatWeekRangeLabel(startStr, endStr) {
+  const start = new Date(startStr + 'T12:00:00');
+  const end = new Date(endStr + 'T12:00:00');
+  const sameYear = start.getFullYear() === end.getFullYear();
+
+  const startText = start.toLocaleDateString('en-US', sameYear
+    ? { month: 'short', day: 'numeric' }
+    : { month: 'short', day: 'numeric', year: 'numeric' });
+  const endText = end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+  return `${startText} – ${endText}`;
+}
+
+function formatWeekDayLabel(dateStr) {
+  return new Date(dateStr + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
+function getWeekTradesFrom(source) {
+  if (!weekModalRange) return [];
+
+  return (Array.isArray(source) ? source : [])
+    .filter(t => t.date >= weekModalRange.start && t.date <= weekModalRange.end)
+    .sort((a, b) =>
+      String(a.date).localeCompare(String(b.date)) ||
+      String(a.created_at || '').localeCompare(String(b.created_at || ''))
+    );
+}
+
+function openWeekModal(startStr, endStr, source = calTradesCache) {
+  if (!startStr || !endStr) return;
+
+  weekModalRange = { start: startStr, end: endStr };
+
+  const title = document.getElementById('weekModalTitle');
+  if (title) title.textContent = formatWeekRangeLabel(startStr, endStr);
+
+  renderWeekTrades(source);
+  document.getElementById('weekModal')?.classList.add('active');
+}
+
+function closeWeekModal() {
+  document.getElementById('weekModal')?.classList.remove('active');
+  weekModalRange = null;
+  weekModalTrades = [];
+}
+
+function handleWeekModalPointerDown(e) {
+  weekModalPointerStartedInside = e.target !== document.getElementById('weekModal');
+}
+
+function handleWeekModalClick(e) {
+  const clickedBackdrop = e.target === document.getElementById('weekModal');
+
+  if (clickedBackdrop && !weekModalPointerStartedInside) {
+    closeWeekModal();
+  }
+
+  weekModalPointerStartedInside = false;
+}
+
+// Called at the end of renderCalendar so edits/deletes made from the week modal refresh it.
+function refreshWeekModalIfOpen(source = calTradesCache) {
+  if (!weekModalRange) return;
+  if (!document.getElementById('weekModal')?.classList.contains('active')) return;
+  renderWeekTrades(source);
+}
+
+function renderWeekTrades(source = calTradesCache) {
+  weekModalTrades = getWeekTradesFrom(source);
+
+  const trades = weekModalTrades;
+  const statsEl = document.getElementById('weekStats');
+  const list = document.getElementById('weekTradesList');
+  const shareBtn = document.getElementById('weekModalShareBtn');
+
+  if (!statsEl || !list) return;
+
+  const summary = getTradeSummary(trades);
+  const avgPnl = summary.total ? summary.totalPnl / summary.total : 0;
+  const pnlColor = summary.totalPnl > 0 ? 'var(--success)' : summary.totalPnl < 0 ? 'var(--danger)' : 'var(--text)';
+  const avgColor = avgPnl > 0 ? 'var(--success)' : avgPnl < 0 ? 'var(--danger)' : 'var(--text)';
+
+  if (shareBtn) shareBtn.disabled = !trades.length;
+
+  statsEl.innerHTML = trades.length ? `<div style="display:flex;gap:32px;padding:20px 36px;flex-wrap:wrap;border-bottom:1px solid var(--border);width:100%;">
+    <div class="day-modal-stat"><div class="day-modal-stat-label">Trades</div><div class="day-modal-stat-val">${summary.total}</div></div>
+    <div class="day-modal-stat"><div class="day-modal-stat-label">PNL</div><div class="day-modal-stat-val" style="color:${pnlColor}">${formatPnl(summary.totalPnl)}</div></div>
+    <div class="day-modal-stat"><div class="day-modal-stat-label">Win Rate</div><div class="day-modal-stat-val">${summary.winRate ?? 0}%</div></div>
+    <div class="day-modal-stat"><div class="day-modal-stat-label">Avg / Trade</div><div class="day-modal-stat-val" style="color:${avgColor}">${formatPnl(avgPnl)}</div></div>
+    <div class="day-modal-stat"><div class="day-modal-stat-label">Wins</div><div class="day-modal-stat-val" style="color:var(--success)">${summary.wins}</div></div>
+    <div class="day-modal-stat"><div class="day-modal-stat-label">Losses</div><div class="day-modal-stat-val" style="color:var(--danger)">${summary.losses}</div></div>
+  </div>` : '';
+
+  if (!trades.length) {
+    list.innerHTML = '<div class="dashboard-empty">No trades logged this week.</div>';
+    return;
+  }
+
+  const byDay = new Map();
+  trades.forEach(t => {
+    if (!byDay.has(t.date)) byDay.set(t.date, []);
+    byDay.get(t.date).push(t);
+  });
+
+  list.innerHTML = [...byDay.entries()].map(([date, items]) => `
+    <div class="week-day-label">${escapeHtml(formatWeekDayLabel(date))} · ${items.length} trade${items.length !== 1 ? 's' : ''}</div>
+    ${items.map(t => buildTradeFeedItemHtml(t, { editFn: 'openEditTradeFromList', deleteFn: 'deleteTradeFromList' })).join('')}
+  `).join('');
 }
     
 // ─── MENTORSHIP ───────────────────────────────────────────────
