@@ -5400,6 +5400,203 @@ select::-ms-expand {
   background: rgba(99,102,241,0.14);
   color: var(--text);
 }
+
+    /* ─── RULE VIOLATION BREAKDOWN + MISTAKES PICKER ─────────────── */
+.day-rule-banner {
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.day-rule-banner:hover,
+.day-rule-banner:focus-visible {
+  border-color: rgba(245,158,11,0.6);
+  background: rgba(245,158,11,0.11);
+}
+
+.day-rule-banner-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.day-rule-banner-hint {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #f59e0b;
+  opacity: 0.75;
+  white-space: nowrap;
+}
+
+.rule-breakdown-modal {
+  z-index: 110;
+}
+
+.rule-breakdown-modal .modal-box {
+  max-width: 560px;
+}
+
+.rule-breakdown-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rule-breakdown-item {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-left: 3px solid #f59e0b;
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.rule-breakdown-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #f59e0b;
+}
+
+.rule-breakdown-rule {
+  font-size: 12px;
+  color: var(--text2);
+  margin-top: 3px;
+}
+
+.rule-breakdown-facts {
+  margin-top: 10px;
+}
+
+.rule-breakdown-fact {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text2);
+}
+
+.rule-breakdown-fact b {
+  color: var(--text);
+  font-weight: 700;
+  text-align: right;
+}
+
+.rule-breakdown-list-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin: 12px 0 4px;
+}
+
+.rule-breakdown-trade {
+  font-size: 13px;
+  color: var(--text);
+  padding: 5px 0;
+}
+
+.rule-breakdown-trade.muted {
+  color: var(--text2);
+}
+
+.mistake-picker {
+  position: relative;
+  width: 100%;
+}
+
+.mistake-picker .account-picker-btn {
+  width: 100%;
+  background: var(--bg);
+}
+
+.mistake-picker.open .account-picker-btn {
+  border-color: var(--accent);
+}
+
+.mistake-picker .account-menu {
+  left: 0;
+  right: 0;
+  width: 100%;
+  max-height: 300px;
+  background: var(--bg);
+  z-index: 130;
+}
+
+.mistake-picker.open .account-menu {
+  display: block;
+}
+
+.mistake-menu-item.has-remove {
+  grid-template-columns: minmax(0, 1fr) 18px 24px;
+}
+
+.mistake-menu-remove {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  color: var(--text2);
+  font-size: 14px;
+  line-height: 1;
+}
+
+.mistake-menu-remove:hover {
+  color: var(--danger);
+}
+
+.mistake-menu-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 6px 2px;
+}
+
+.mistake-menu-add {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.mistake-menu-add .account-menu-name {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.mistake-custom-row {
+  display: none;
+  gap: 8px;
+  padding: 4px 4px 2px;
+}
+
+.mistake-custom-row input {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 12px;
+  font-size: 13px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg2);
+  color: var(--text);
+  outline: none;
+  font-family: inherit;
+}
+
+.mistake-custom-row input:focus {
+  border-color: var(--accent);
+}
+
+.mistake-custom-row .mistake-add-btn {
+  min-height: 36px;
+  padding: 0 12px;
+}
+
+#logTradeModal.mistake-open .log-trade-layout {
+  overflow: visible;
+}
     
   </style>
 </head>
@@ -5490,7 +5687,7 @@ select::-ms-expand {
         </div>
       </div>
             <div class="day-modal-stats" id="dayStats"></div>
-      <div class="day-rule-banner" id="dayRuleBanner"></div>
+            <div class="day-rule-banner" id="dayRuleBanner" role="button" tabindex="0" title="View rule violation breakdown" onclick="openRuleBreakdownModal()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openRuleBreakdownModal();}"></div>
       <div class="day-modal-body">
         <div class="day-modal-section-title">Trades</div>
         <div class="trade-feed" id="dayTradesList"></div>
@@ -5531,6 +5728,20 @@ select::-ms-expand {
         <div class="day-modal-section-title">Trades</div>
         <div class="trade-feed" id="weekTradesList"></div>
       </div>
+    </div>
+  </div>
+
+  <!-- RULE VIOLATION BREAKDOWN MODAL -->
+  <div class="modal rule-breakdown-modal" id="ruleBreakdownModal" onclick="handleRuleBreakdownModalClick(event)">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title">Rule Violations</div>
+          <div class="trade-recap-subtitle" id="ruleBreakdownSubtitle"></div>
+        </div>
+        <button class="modal-close" type="button" onclick="closeRuleBreakdownModal()">×</button>
+      </div>
+      <div id="ruleBreakdownContent"></div>
     </div>
   </div>
   
@@ -5633,12 +5844,11 @@ select::-ms-expand {
           <label>Setup Grade</label>
           <input type="text" id="tradeSetupGrade" maxlength="3" placeholder="e.g. A+" autocomplete="off"/>
         </div>
-        <div class="form-field">
-          <label>Mistakes (optional)</label>
-          <div class="mistake-chips" id="mistakeChips"></div>
-          <div class="mistake-input-row">
-            <input type="text" id="mistakeInput" maxlength="40" placeholder="Add a custom mistake..." autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomMistakeTag();}"/>
-            <button class="mistake-add-btn" type="button" onclick="addCustomMistakeTag()">Add</button>
+                <div class="form-field">
+          <label>Mistakes</label>
+          <div class="mistake-picker" id="mistakePicker">
+            <button class="account-picker-btn" id="mistakePickerBtn" type="button" onclick="toggleMistakePicker(event)">Select mistakes</button>
+            <div class="account-menu" id="mistakeMenu" onclick="event.stopPropagation()"></div>
           </div>
         </div>
       </div>
@@ -20721,6 +20931,11 @@ function ruleApiHeaders(extra = {}) {
 
 // ── Mistake tags ──────────────────────────────────────────────
 
+// ── Mistake tags ──────────────────────────────────────────────
+
+let mistakePickerOpen = false;
+let mistakeCustomInputOpen = false;
+
 async function loadUserMistakeTags() {
   if (mistakeTagsLoadPromise) return mistakeTagsLoadPromise;
   if (!user?.id) return [];
@@ -20740,7 +20955,7 @@ async function loadUserMistakeTags() {
       mistakeTagsLoaded = true;
     }
 
-    renderMistakeChips();
+    renderMistakePicker();
     return userMistakeTags;
   })().finally(() => { mistakeTagsLoadPromise = null; });
 
@@ -20771,7 +20986,7 @@ function setSelectedMistakes(list) {
   const clean = (Array.isArray(list) ? list : []).map(m => String(m ?? '').trim()).filter(Boolean);
   selectedMistakes = [];
   clean.forEach(m => { if (!isMistakeSelected(m)) selectedMistakes.push(m); });
-  renderMistakeChips();
+  renderMistakePicker();
 }
 
 function toggleMistake(name) {
@@ -20782,63 +20997,135 @@ function toggleMistake(name) {
   if (idx >= 0) selectedMistakes.splice(idx, 1);
   else selectedMistakes.push(value);
 
-  renderMistakeChips();
+  renderMistakePicker();
 }
 
-function renderMistakeChips() {
-  const el = document.getElementById('mistakeChips');
-  if (!el) return;
+function getMistakePickerLabel() {
+  const count = selectedMistakes.length;
+  if (!count) return 'Select mistakes';
+  return `${count} mistake${count === 1 ? '' : 's'} selected`;
+}
 
-  const chip = (name, customId = null) => {
-    const active = isMistakeSelected(name);
+function renderMistakePicker() {
+  const picker = document.getElementById('mistakePicker');
+  const btn = document.getElementById('mistakePickerBtn');
+  const menu = document.getElementById('mistakeMenu');
+  if (!picker || !btn || !menu) return;
+
+  btn.textContent = getMistakePickerLabel();
+
+  const draft = document.getElementById('mistakeInput')?.value || '';
+
+  const row = (name, customId = null) => {
+    const checked = isMistakeSelected(name);
     const remove = customId
-      ? `<span class="mistake-chip-remove" title="Remove from your saved mistakes" onclick="event.stopPropagation(); deleteCustomMistakeTag('${customId}')">×</span>`
+      ? `<span class="mistake-menu-remove" title="Remove from your saved mistakes" onclick="event.stopPropagation(); deleteCustomMistakeTag('${customId}')">×</span>`
       : '';
-    return `<button type="button" class="mistake-chip${active ? ' active' : ''}" data-name="${escapeHtml(name)}" onclick="toggleMistake(this.dataset.name)">${escapeHtml(name)}${remove}</button>`;
+
+    return `
+      <button class="account-menu-item mistake-menu-item${checked ? ' active' : ''}${customId ? ' has-remove' : ''}" type="button" data-name="${escapeHtml(name)}" onclick="event.stopPropagation(); toggleMistake(this.dataset.name)">
+        <span class="account-menu-name">${escapeHtml(name)}</span>
+        ${remove}
+        <span class="account-check${checked ? ' checked' : ''}"></span>
+      </button>`;
   };
 
   const known = new Set([...DEFAULT_MISTAKE_TAGS, ...userMistakeTags.map(t => t.name)].map(n => n.toLowerCase()));
   const extras = selectedMistakes.filter(m => !known.has(m.toLowerCase()));
 
-  el.innerHTML =
-    DEFAULT_MISTAKE_TAGS.map(n => chip(n)).join('') +
-    userMistakeTags.map(t => chip(t.name, t.id)).join('') +
-    extras.map(n => chip(n)).join('');
+  menu.innerHTML =
+    DEFAULT_MISTAKE_TAGS.map(n => row(n)).join('') +
+    userMistakeTags.map(t => row(t.name, t.id)).join('') +
+    extras.map(n => row(n)).join('') +
+    `<div class="mistake-menu-divider"></div>
+     <button class="account-menu-item mistake-menu-add" type="button" onclick="event.stopPropagation(); toggleMistakeCustomInput()">
+       <span class="account-menu-name">+ Add custom mistake</span>
+     </button>
+     <div class="mistake-custom-row" id="mistakeCustomRow" style="display:${mistakeCustomInputOpen ? 'flex' : 'none'};">
+       <input type="text" id="mistakeInput" maxlength="${MISTAKE_TAG_MAX_LENGTH}" placeholder="e.g. Chased breakout" autocomplete="off" value="${escapeHtml(draft)}" onclick="event.stopPropagation()" onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomMistakeTag();}"/>
+       <button class="mistake-add-btn" id="mistakeAddBtn" type="button" onclick="event.stopPropagation(); addCustomMistakeTag()">Add</button>
+     </div>`;
+
+  picker.classList.toggle('open', mistakePickerOpen);
+  document.getElementById('logTradeModal')?.classList.toggle('mistake-open', mistakePickerOpen);
 }
+
+function toggleMistakePicker(event) {
+  event?.stopPropagation?.();
+
+  if (mistakePickerOpen) {
+    closeMistakePicker();
+    return;
+  }
+
+  closePrettySelects();
+  closeAccountPickers();
+  mistakePickerOpen = true;
+  renderMistakePicker();
+}
+
+function closeMistakePicker() {
+  mistakePickerOpen = false;
+  mistakeCustomInputOpen = false;
+  renderMistakePicker();
+}
+
+function toggleMistakeCustomInput() {
+  mistakeCustomInputOpen = !mistakeCustomInputOpen;
+
+  const rowEl = document.getElementById('mistakeCustomRow');
+  if (rowEl) rowEl.style.display = mistakeCustomInputOpen ? 'flex' : 'none';
+
+  focusMistakeInput();
+}
+
+function focusMistakeInput() {
+  if (!mistakePickerOpen || !mistakeCustomInputOpen) return;
+  const input = document.getElementById('mistakeInput');
+  if (input) input.focus();
+}
+
+document.addEventListener('click', (event) => {
+  if (mistakePickerOpen && !event.target.closest('.mistake-picker')) closeMistakePicker();
+}, true);
 
 async function addCustomMistakeTag() {
   const input = document.getElementById('mistakeInput');
   if (!input) return;
 
   const name = String(input.value || '').trim().replace(/\s+/g, ' ').slice(0, MISTAKE_TAG_MAX_LENGTH);
-  if (!name) return;
-
-  const existing = findKnownMistakeTag(name);
-
-  if (existing) {
-    if (!isMistakeSelected(existing)) selectedMistakes.push(existing);
-    input.value = '';
-    renderMistakeChips();
+  if (!name) {
+    input.focus();
     return;
   }
 
-  try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/user_mistake_tags`, {
-      method: 'POST',
-      headers: ruleApiHeaders({ 'Content-Type': 'application/json', 'Prefer': 'return=representation' }),
-      body: JSON.stringify({ user_id: user.id, name })
-    });
-    const data = await res.json().catch(() => null);
-    if (!res.ok || !data?.[0]) throw new Error(data?.message || `Could not save mistake tag (${res.status})`);
-    userMistakeTags.push(data[0]);
-  } catch (err) {
-    console.warn('[Mistakes] custom tag was not saved for reuse:', err);
+  const existing = findKnownMistakeTag(name);
+
+  if (!existing) {
+    const addBtn = document.getElementById('mistakeAddBtn');
+    if (addBtn) addBtn.disabled = true;
+
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/user_mistake_tags`, {
+        method: 'POST',
+        headers: ruleApiHeaders({ 'Content-Type': 'application/json', 'Prefer': 'return=representation' }),
+        body: JSON.stringify({ user_id: user.id, name })
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.[0]) throw new Error(data?.message || `Could not save mistake tag (${res.status})`);
+      userMistakeTags.push(data[0]);
+    } catch (err) {
+      console.warn('[Mistakes] custom tag was not saved for reuse:', err);
+    }
   }
 
-  if (!isMistakeSelected(name)) selectedMistakes.push(name);
+  const finalName = existing || name;
+  if (!isMistakeSelected(finalName)) selectedMistakes.push(finalName);
+
   input.value = '';
-  renderMistakeChips();
-  input.focus();
+  mistakeCustomInputOpen = true;
+  renderMistakePicker();
+  focusMistakeInput();
 }
 
 async function deleteCustomMistakeTag(id) {
@@ -20854,7 +21141,7 @@ async function deleteCustomMistakeTag(id) {
   if (!res.ok) return;
 
   userMistakeTags = userMistakeTags.filter(t => t.id !== id);
-  renderMistakeChips();
+  renderMistakePicker();
 }
 
 function resetTradeExtras() {
@@ -20863,7 +21150,9 @@ function resetTradeExtras() {
   if (grade) grade.value = '';
   if (input) input.value = '';
   selectedMistakes = [];
-  renderMistakeChips();
+  mistakePickerOpen = false;
+  mistakeCustomInputOpen = false;
+  renderMistakePicker();
   hideTradeRuleWarning();
 }
 
@@ -21199,22 +21488,152 @@ function getDayRuleViolations(trades, rules = getEnabledAutomaticRules()) {
 
 // ── Day modal banner + trade row flag ─────────────────────────
 
+let dayRuleBreakdown = null;
+
 function renderDayRuleBanner(dayRules) {
   const el = document.getElementById('dayRuleBanner');
   if (!el) return;
 
   const items = dayRules?.violations || [];
 
+  dayRuleBreakdown = items.length
+    ? { dateStr: selectedDate, result: dayRules, trades: Array.isArray(dayTrades) ? [...dayTrades] : [] }
+    : null;
+
   if (!items.length) {
     el.classList.remove('active');
     el.innerHTML = '';
+    if (isRuleBreakdownModalOpen()) closeRuleBreakdownModal();
     return;
   }
 
   el.innerHTML =
-    `<div class="day-rule-banner-title">⚠ ${items.length} rule violation${items.length !== 1 ? 's' : ''}</div>` +
+    `<div class="day-rule-banner-title">
+      <span>⚠ ${items.length} rule violation${items.length !== 1 ? 's' : ''}</span>
+      <span class="day-rule-banner-hint">View breakdown ›</span>
+    </div>` +
     items.map(v => `<div class="day-rule-banner-item">${escapeHtml(v.message)}</div>`).join('');
   el.classList.add('active');
+
+  if (isRuleBreakdownModalOpen()) renderRuleBreakdownContent();
+}
+
+// ── Rule violation breakdown modal (same computed result as the banner and row icons)
+
+function isRuleBreakdownModalOpen() {
+  return !!document.getElementById('ruleBreakdownModal')?.classList.contains('active');
+}
+
+function openRuleBreakdownModal() {
+  const modal = document.getElementById('ruleBreakdownModal');
+  if (!modal || !dayRuleBreakdown?.result?.violations?.length) return;
+
+  renderRuleBreakdownContent();
+  modal.classList.add('active');
+}
+
+function closeRuleBreakdownModal() {
+  document.getElementById('ruleBreakdownModal')?.classList.remove('active');
+}
+
+function handleRuleBreakdownModalClick(e) {
+  if (e.target === document.getElementById('ruleBreakdownModal')) closeRuleBreakdownModal();
+}
+
+function formatRuleBreakdownTradeLine(t) {
+  const label = t.asset || t.strategies?.name || 'Trade';
+  const time = t.trade_time ? formatDisplayTime(t.trade_time) : 'No time';
+  return `${label} · ${time} · ${formatPnl(parseFloat(t.pnl) || 0)}`;
+}
+
+function getRuleBreakdownFacts(ruleType, cfg, trades, dateStr) {
+  const dayPnl = trades.reduce((sum, t) => sum + (parseFloat(t.pnl) || 0), 0);
+  const losses = trades.filter(t => t.result === 'loss').length;
+
+  switch (ruleType) {
+    case 'no_trades_before':
+    case 'no_trades_after':
+      return { facts: [], listTitle: 'Violated by' };
+
+    case 'max_trades_per_day':
+      return {
+        facts: [['Limit', pluralTrades(Number(cfg.count) || 0)], ['Trades taken', String(trades.length)]],
+        listTitle: 'Trades beyond limit'
+      };
+
+    case 'max_daily_loss_dollars':
+      return {
+        facts: [['Limit', `$${formatRuleMoney(cfg.amount)}`], ['Day PNL', formatPnl(dayPnl)]],
+        listTitle: 'Limit crossed on'
+      };
+
+    case 'max_daily_loss_r': {
+      const dayR = trades.reduce((sum, t) => sum + getTradeSignedR(t), 0);
+      return {
+        facts: [['Limit', `${formatRuleR(cfg.r)}R`], ['Day R', `${dayR >= 0 ? '+' : ''}${dayR.toFixed(2)}R`]],
+        listTitle: 'Limit crossed on'
+      };
+    }
+
+    case 'max_losing_trades_per_day': {
+      const max = Number(cfg.count) || 0;
+      return {
+        facts: [['Limit', `${max} losing trade${max === 1 ? '' : 's'}`], ['Losing trades', String(losses)]],
+        listTitle: 'Losing trades beyond limit'
+      };
+    }
+
+    case 'allowed_weekdays': {
+      const dow = dateStr ? new Date(dateStr + 'T12:00:00').getDay() : null;
+      return {
+        facts: [['Allowed', formatRuleWeekdays(cfg.days) || '(no days selected)'], ['Traded on', dow != null ? RULE_WEEKDAY_NAMES[dow] : '']],
+        listTitle: 'Trades on this day'
+      };
+    }
+
+    default:
+      return { facts: [], listTitle: 'Violated by' };
+  }
+}
+
+function renderRuleBreakdownContent() {
+  const content = document.getElementById('ruleBreakdownContent');
+  const subtitle = document.getElementById('ruleBreakdownSubtitle');
+  if (!content) return;
+
+  const breakdown = dayRuleBreakdown;
+  const violations = breakdown?.result?.violations || [];
+  const tradeViolations = breakdown?.result?.tradeViolations || new Map();
+  const trades = sortTradesForRuleCheck(breakdown?.trades || []);
+
+  if (subtitle) {
+    subtitle.textContent = breakdown?.dateStr
+      ? `${formatShareDateLabel(breakdown.dateStr)} · ${violations.length} rule violation${violations.length !== 1 ? 's' : ''} · ${pluralTrades(trades.length)}`
+      : '';
+  }
+
+  if (!violations.length) {
+    content.innerHTML = '<div class="dashboard-empty">No rule violations for this day.</div>';
+    return;
+  }
+
+  content.innerHTML = `<div class="rule-breakdown-list">${violations.map(v => {
+    const rule = tradingRules.find(r => r.id === v.ruleId) || null;
+    const cfg = rule?.config || {};
+    const flagged = trades.filter(t => (tradeViolations.get(t.id) || []).some(x => x.ruleId === v.ruleId));
+    const details = getRuleBreakdownFacts(rule?.rule_type || v.ruleType, cfg, trades, breakdown.dateStr);
+
+    return `
+      <div class="rule-breakdown-item">
+        <div class="rule-breakdown-title">⚠ ${escapeHtml(v.message)}</div>
+        <div class="rule-breakdown-rule">Rule: ${escapeHtml(v.label)}</div>
+        ${details.facts.length ? `<div class="rule-breakdown-facts">${details.facts.map(([k, val]) => `<div class="rule-breakdown-fact"><span>${escapeHtml(k)}</span><b>${escapeHtml(val)}</b></div>`).join('')}</div>` : ''}
+        <div class="rule-breakdown-list-title">${escapeHtml(details.listTitle)}</div>
+        ${flagged.length
+          ? flagged.map(t => `<div class="rule-breakdown-trade">${escapeHtml(formatRuleBreakdownTradeLine(t))}</div>`).join('')
+          : '<div class="rule-breakdown-trade muted">No individual trade flagged.</div>'}
+      </div>`;
+  }).join('')}</div>`;
 }
 
 function renderTradeRuleFlag(violations) {
