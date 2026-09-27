@@ -5147,6 +5147,259 @@ select::-ms-expand {
   .mentor-card { flex-direction: column; }
   .mentor-permissions-grid { grid-template-columns: 1fr; }
 }
+
+    /* ─── SETUP GRADE, MISTAKE TAGS, TRADING RULES ──────────────── */
+.trade-extras-grid {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.trade-extras-grid .form-field {
+  min-width: 0;
+}
+
+.mistake-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.mistake-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 5px 11px;
+  font-size: 12px;
+  font-family: inherit;
+  color: var(--text2);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.mistake-chip:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.mistake-chip.active {
+  border-color: rgba(239,68,68,0.45);
+  background: rgba(239,68,68,0.1);
+  color: var(--danger);
+}
+
+.mistake-chip-remove {
+  font-size: 13px;
+  line-height: 1;
+  opacity: 0.6;
+}
+
+.mistake-chip-remove:hover {
+  opacity: 1;
+}
+
+.mistake-input-row {
+  display: flex;
+  gap: 8px;
+}
+
+.mistake-input-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+.mistake-add-btn {
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.mistake-add-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+@media (max-width: 560px) {
+  .trade-extras-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
+
+.trade-rule-warning {
+  display: none;
+  margin-top: 6px;
+  padding: 10px 12px;
+  border: 1px solid rgba(245,158,11,0.35);
+  border-radius: 8px;
+  background: rgba(245,158,11,0.08);
+  color: #f59e0b;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.55;
+}
+
+.trade-rule-warning.active {
+  display: block;
+}
+
+.day-rule-banner {
+  display: none;
+  margin: 20px 36px 0;
+  padding: 12px 14px;
+  border: 1px solid rgba(245,158,11,0.35);
+  border-radius: 10px;
+  background: rgba(245,158,11,0.07);
+}
+
+.day-rule-banner.active {
+  display: block;
+}
+
+.day-rule-banner-title {
+  font-size: 11px;
+  font-weight: 800;
+  color: #f59e0b;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 6px;
+}
+
+.day-rule-banner-item {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.55;
+}
+
+@media (max-width: 768px) {
+  .day-rule-banner {
+    margin: 14px 16px 0;
+  }
+}
+
+.trade-rule-flag {
+  color: #f59e0b;
+  font-size: 12px;
+  cursor: help;
+}
+
+.trading-rules-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.trading-rule-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+}
+
+.trading-rule-item .switch {
+  flex: 0 0 44px;
+}
+
+.trading-rule-item.disabled .trading-rule-label {
+  color: var(--text2);
+}
+
+.trading-rule-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.trading-rule-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trading-rule-type {
+  font-size: 11px;
+  color: var(--text2);
+  margin-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.trading-rule-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.trading-rules-empty {
+  color: var(--text2);
+  font-size: 13px;
+  padding: 12px 0;
+}
+
+.trading-rules-add {
+  border-top: 1px solid var(--border);
+  padding-top: 18px;
+}
+
+.trading-rules-add-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 14px;
+}
+
+.trading-rules-add-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.weekday-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.weekday-chip {
+  min-width: 46px;
+  padding: 7px 0;
+  text-align: center;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text2);
+  font-size: 12px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.weekday-chip.active {
+  border-color: rgba(99,102,241,0.55);
+  background: rgba(99,102,241,0.14);
+  color: var(--text);
+}
     
   </style>
 </head>
@@ -5236,7 +5489,8 @@ select::-ms-expand {
           <button class="day-modal-close" onclick="closeDayModal()">×</button>
         </div>
       </div>
-      <div class="day-modal-stats" id="dayStats"></div>
+            <div class="day-modal-stats" id="dayStats"></div>
+      <div class="day-rule-banner" id="dayRuleBanner"></div>
       <div class="day-modal-body">
         <div class="day-modal-section-title">Trades</div>
         <div class="trade-feed" id="dayTradesList"></div>
@@ -5372,7 +5626,21 @@ select::-ms-expand {
             </select>
           </div>
         </div>
-        <div class="form-field"><label>R:R</label><input type="number" id="tradeActualRR" placeholder="e.g. 2.5" step="0.1"/></div>
+                <div class="form-field"><label>R:R</label><input type="number" id="tradeActualRR" placeholder="e.g. 2.5" step="0.1"/></div>
+      </div>
+      <div class="trade-extras-grid">
+        <div class="form-field">
+          <label>Setup Grade</label>
+          <input type="text" id="tradeSetupGrade" maxlength="3" placeholder="e.g. A+" autocomplete="off"/>
+        </div>
+        <div class="form-field">
+          <label>Mistakes (optional)</label>
+          <div class="mistake-chips" id="mistakeChips"></div>
+          <div class="mistake-input-row">
+            <input type="text" id="mistakeInput" maxlength="40" placeholder="Add a custom mistake..." autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomMistakeTag();}"/>
+            <button class="mistake-add-btn" type="button" onclick="addCustomMistakeTag()">Add</button>
+          </div>
+        </div>
       </div>
       <div class="trade-rules-chart-grid">
   <div class="form-field trade-chart-field">
@@ -5442,6 +5710,7 @@ select::-ms-expand {
         </aside>
       </div>
 
+            <div class="trade-rule-warning" id="tradeRuleWarning"></div>
       <div class="modal-footer log-trade-footer">
   <div class="log-trade-actions">
     <button class="btn-secondary" onclick="closeLogTrade()">Cancel</button>
@@ -6461,6 +6730,43 @@ select::-ms-expand {
         <div class="toggle-switch">
           <span>Light Mode</span>
           <label class="switch"><input type="checkbox" id="themeToggle" onchange="toggleTheme()"/><span class="slider"></span></label>
+        </div>
+      </div>
+
+                <div class="settings-section" id="tradingRulesSection">
+        <div class="settings-section-title">Trading Rules</div>
+        <div class="settings-defaults-copy">
+          Define the rules you want Tradeprint to hold you accountable to. Automatic rules are checked against your logged trades. Custom rules are saved for manual review.
+        </div>
+
+        <div class="trading-rules-list" id="tradingRulesList">
+          <div class="trading-rules-empty">Loading rules...</div>
+        </div>
+
+        <div class="trading-rules-add">
+          <div class="trading-rules-add-title" id="tradingRuleFormTitle">Add a rule</div>
+
+          <div class="settings-field">
+            <label>Rule Type</label>
+            <select id="newRuleType" onchange="renderTradingRuleConfigInputs()">
+              <option value="no_trades_before">No trades before a time</option>
+              <option value="no_trades_after">No trades after a time</option>
+              <option value="max_trades_per_day">Maximum trades per day</option>
+              <option value="max_daily_loss_dollars">Maximum daily loss ($)</option>
+              <option value="max_daily_loss_r">Maximum daily loss (R)</option>
+              <option value="max_losing_trades_per_day">Maximum losing trades per day</option>
+              <option value="allowed_weekdays">Allowed trading weekdays</option>
+              <option value="custom">Custom rule (manual)</option>
+            </select>
+          </div>
+
+          <div id="tradingRuleConfigInputs"></div>
+
+          <div class="trading-rules-add-actions">
+            <button class="save-btn" id="tradingRuleSaveBtn" onclick="saveTradingRuleFromForm()">Add Rule</button>
+            <button class="btn-secondary" id="tradingRuleCancelBtn" onclick="cancelTradingRuleEdit()" style="display:none;">Cancel</button>
+          </div>
+          <div class="msg" id="tradingRulesMsg"></div>
         </div>
       </div>
         
@@ -8077,7 +8383,9 @@ loadProfile()
   loadAccounts().catch(console.warn);
   loadStrategies().then(() => { pageLoaded.strategies = true; }).catch(console.warn);
   loadCalendarData().then(() => { pageLoaded.calendar = true; }).catch(console.warn);
-  loadTrades().then(() => { pageLoaded.trades = true; }).catch(console.warn);
+    loadTrades().then(() => { pageLoaded.trades = true; }).catch(console.warn);
+  loadTradingRules().catch(console.warn);
+  loadUserMistakeTags().catch(console.warn);
   // Notes are lazy-loaded only when opened so large note state cannot slow app boot/navigation.
 
   printsWarmPromise = ensureSubscriptionLoaded()
@@ -9730,11 +10038,13 @@ async function showPage(name, el) {
       if (name === 'calculator') initCalcPage();
       if (name === 'prints') await (printsWarmPromise || loadPrints());
 
-      if (name === 'settings') {
+            if (name === 'settings') {
   if (!allStrategies.length) await loadStrategies();
   await ensureSubscriptionLoaded();
   renderProSettings();
   syncTradeDefaultsInputs();
+  await ensureTradingRulesLoaded();
+  renderTradingRules();
 }
 if (name === 'mentorship') {
   await loadMentorshipPage();
@@ -10707,9 +11017,11 @@ async function closeDayModal() {
         <div class="day-modal-stat"><div class="day-modal-stat-label">Wins</div><div class="day-modal-stat-val" style="color:var(--success)">${wins}</div></div>
         <div class="day-modal-stat"><div class="day-modal-stat-label">Losses</div><div class="day-modal-stat-val" style="color:var(--danger)">${losses}</div></div>
       </div>` : '';
-      updateDayShareButtonState();
+            updateDayShareButtonState();
+      const dayRules = getDayRuleViolations(dayTrades);
+      renderDayRuleBanner(dayRules);
       if (!dayTrades.length) { list.innerHTML = ''; return; }
-      list.innerHTML = dayTrades.map(t => buildTradeFeedItemHtml(t)).join('');
+      list.innerHTML = dayTrades.map(t => buildTradeFeedItemHtml(t, { violations: dayRules.tradeViolations.get(t.id) || [] })).join('');
     }
 
     // Shared trade row for the Day Modal and Week Modal. Same markup the Day Modal always used.
@@ -10727,7 +11039,7 @@ async function closeDayModal() {
           <div class="trade-feed-left">
             <div class="trade-feed-strat">${escapeHtml(displayStrategy)}${t.asset ? ` · ${escapeHtml(t.asset)}` : ''} — <span style="color:${t.result==='win'?'var(--success)':t.result==='loss'?'var(--danger)':'var(--text2)'};text-transform:capitalize;">${escapeHtml(t.result)}</span></div>
             <div class="trade-feed-detail">
-              ${t.confluences_used?.length ? `${t.confluences_used.length} confluences` : 'No confluences'}${t.actual_rr ? ` · ${t.actual_rr}R` : ''}${timeDisplay ? ` · ${timeDisplay}` : ''}${!t.followed_rules ? ' · <span style="color:var(--danger);">Rules broken</span>' : ''}
+                            ${t.confluences_used?.length ? `${t.confluences_used.length} confluences` : 'No confluences'}${t.actual_rr ? ` · ${t.actual_rr}R` : ''}${timeDisplay ? ` · ${timeDisplay}` : ''}${!t.followed_rules ? ' · <span style="color:var(--danger);">Rules broken</span>' : ''}${renderTradeRuleFlag(options.violations)}
             </div>
             ${t.notes ? `<div class="trade-feed-detail" style="margin-top:3px;font-style:italic;">"${t.notes}"</div>` : ''}
           </div>
@@ -10892,9 +11204,12 @@ setLogTradeAdvancedOpen(false);
 applyLogTradeDefaults();
 document.getElementById('tradeMsg').textContent = '';
       document.getElementById('saveTradeBtn').textContent = 'Save Trade';
-      document.getElementById('logTradeTitle').textContent = `Log Trade — ${document.getElementById('dayModalTitle').textContent}`;
+            document.getElementById('logTradeTitle').textContent = `Log Trade — ${document.getElementById('dayModalTitle').textContent}`;
+      await ensureMistakeTagsLoaded();
+      resetTradeExtras();
       syncPrettySelects();
       document.getElementById('logTradeModal').classList.add('active');
+      updateTradeRuleWarning();
     }
 
     async function openLogTradeFromPage() {
@@ -10927,10 +11242,13 @@ populateTradeAccountSelect();
       document.querySelector('input[name="followedRules"][value="true"]').checked = true;
 applyLogTradeDefaults();
 document.getElementById('tradeMsg').textContent = '';
-      document.getElementById('saveTradeBtn').textContent = 'Save Trade';
+            document.getElementById('saveTradeBtn').textContent = 'Save Trade';
       document.getElementById('logTradeTitle').textContent = 'Log Trade';
+      await ensureMistakeTagsLoaded();
+      resetTradeExtras();
       syncPrettySelects();
       document.getElementById('logTradeModal').classList.add('active');
+      updateTradeRuleWarning();
     }
 
     function findCachedTradeById(id) {
@@ -11034,14 +11352,20 @@ async function openEditTrade(id) {
 
         document.querySelector(`input[name="followedRules"][value="${t.followed_rules ? 'true' : 'false'}"]`).checked = true;
 
-    populateAdvancedTradeFields(t);
+        populateAdvancedTradeFields(t);
     setLogTradeAdvancedOpen(hasAdvancedTradeData(t));
+
+    await ensureMistakeTagsLoaded();
+    resetTradeExtras();
+    document.getElementById('tradeSetupGrade').value = t.setup_grade || '';
+    setSelectedMistakes(t.mistakes);
 
     msg.textContent = '';
     saveBtn.disabled = false;
     saveBtn.textContent = 'Update Trade';
 
     syncPrettySelects();
+    updateTradeRuleWarning();
 
     const charts = Array.isArray(t.chart_images) ? t.chart_images : [];
     requestAnimationFrame(() => {
@@ -11058,8 +11382,9 @@ async function openEditTrade(id) {
   }
 }
 
-    function closeLogTrade() {
+        function closeLogTrade() {
   document.getElementById('logTradeModal').classList.remove('active');
+  resetTradeExtras();
 
   const saveBtn = document.getElementById('saveTradeBtn');
   if (saveBtn) {
@@ -11152,7 +11477,9 @@ const direction = document.getElementById('tradeDirection').value;
   const msg = document.getElementById('tradeMsg');
   const saveBtn = document.getElementById('saveTradeBtn');
   const confluencesUsed = Array.from(document.querySelectorAll('#confluenceChecklist input:checked')).map(cb => cb.value);
-  const tradeTime = parseTradeTime(document.getElementById('tradeTime').value, document.getElementById('tradeAmPm').value);
+    const tradeTime = parseTradeTime(document.getElementById('tradeTime').value, document.getElementById('tradeAmPm').value);
+  const setupGrade = document.getElementById('tradeSetupGrade').value.trim().slice(0, 3) || null;
+  const mistakes = getSelectedMistakes();
 
   if (saveBtn.disabled) return;
 
@@ -11232,7 +11559,9 @@ const payload = {
       followed_rules: followedRules,
       confluences_used: confluencesUsed,
             chart_images: chartImages,
-      trade_time: tradeTime,
+            trade_time: tradeTime,
+      setup_grade: setupGrade,
+      mistakes: mistakes,
       ...advancedTrade.payload
     };
 
@@ -17274,10 +17603,13 @@ function renderWeekTrades(source = calTradesCache) {
     byDay.get(t.date).push(t);
   });
 
-  list.innerHTML = [...byDay.entries()].map(([date, items]) => `
+    list.innerHTML = [...byDay.entries()].map(([date, items]) => {
+    const dayRules = getDayRuleViolations(items);
+    return `
     <div class="week-day-label">${escapeHtml(formatWeekDayLabel(date))} · ${items.length} trade${items.length !== 1 ? 's' : ''}</div>
-    ${items.map(t => buildTradeFeedItemHtml(t, { editFn: 'openEditTradeFromList', deleteFn: 'deleteTradeFromList' })).join('')}
-  `).join('');
+    ${items.map(t => buildTradeFeedItemHtml(t, { editFn: 'openEditTradeFromList', deleteFn: 'deleteTradeFromList', violations: dayRules.tradeViolations.get(t.id) || [] })).join('')}
+  `;
+  }).join('');
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -20362,6 +20694,785 @@ async function checkAndAcceptMentorInvite() {
 }
 
 checkAndAcceptMentorInvite();
+
+// ─── SETUP GRADE, MISTAKE TAGS & TRADING RULES ────────────────
+
+const DEFAULT_MISTAKE_TAGS = ['FOMO', 'Overtrading', 'Early Entry', 'Late Entry', 'Moved Stop', 'Oversized', 'Revenge Trade', 'Exited Early', 'No Setup', 'Hesitated'];
+const MISTAKE_TAG_MAX_LENGTH = 40;
+const RULE_WEEKDAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const RULE_WEEKDAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const AUTOMATIC_RULE_TYPES = ['no_trades_before', 'no_trades_after', 'max_trades_per_day', 'max_daily_loss_dollars', 'max_daily_loss_r', 'max_losing_trades_per_day', 'allowed_weekdays'];
+const PREVIEW_TRADE_ID = '__tp_preview_trade__';
+
+let selectedMistakes = [];
+let userMistakeTags = [];
+let mistakeTagsLoaded = false;
+let mistakeTagsLoadPromise = null;
+
+let tradingRules = [];
+let tradingRulesLoaded = false;
+let tradingRulesLoadError = false;
+let tradingRulesLoadPromise = null;
+let editingTradingRuleId = null;
+
+function ruleApiHeaders(extra = {}) {
+  return { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}`, ...extra };
+}
+
+// ── Mistake tags ──────────────────────────────────────────────
+
+async function loadUserMistakeTags() {
+  if (mistakeTagsLoadPromise) return mistakeTagsLoadPromise;
+  if (!user?.id) return [];
+
+  mistakeTagsLoadPromise = (async () => {
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/user_mistake_tags?user_id=eq.${user.id}&select=id,name,created_at&order=created_at.asc`, {
+        headers: ruleApiHeaders()
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !Array.isArray(data)) throw new Error(data?.message || `Mistake tags load failed: ${res.status}`);
+      userMistakeTags = data;
+    } catch (err) {
+      console.warn('[Mistakes] could not load custom tags:', err);
+      userMistakeTags = Array.isArray(userMistakeTags) ? userMistakeTags : [];
+    } finally {
+      mistakeTagsLoaded = true;
+    }
+
+    renderMistakeChips();
+    return userMistakeTags;
+  })().finally(() => { mistakeTagsLoadPromise = null; });
+
+  return mistakeTagsLoadPromise;
+}
+
+async function ensureMistakeTagsLoaded() {
+  if (!mistakeTagsLoaded) await loadUserMistakeTags();
+  return userMistakeTags;
+}
+
+function findKnownMistakeTag(name) {
+  const key = String(name || '').trim().toLowerCase();
+  if (!key) return null;
+  return [...DEFAULT_MISTAKE_TAGS, ...userMistakeTags.map(t => t.name)].find(n => n.toLowerCase() === key) || null;
+}
+
+function isMistakeSelected(name) {
+  const key = String(name || '').toLowerCase();
+  return selectedMistakes.some(m => m.toLowerCase() === key);
+}
+
+function getSelectedMistakes() {
+  return [...selectedMistakes];
+}
+
+function setSelectedMistakes(list) {
+  const clean = (Array.isArray(list) ? list : []).map(m => String(m ?? '').trim()).filter(Boolean);
+  selectedMistakes = [];
+  clean.forEach(m => { if (!isMistakeSelected(m)) selectedMistakes.push(m); });
+  renderMistakeChips();
+}
+
+function toggleMistake(name) {
+  const value = String(name || '').trim();
+  if (!value) return;
+
+  const idx = selectedMistakes.findIndex(m => m.toLowerCase() === value.toLowerCase());
+  if (idx >= 0) selectedMistakes.splice(idx, 1);
+  else selectedMistakes.push(value);
+
+  renderMistakeChips();
+}
+
+function renderMistakeChips() {
+  const el = document.getElementById('mistakeChips');
+  if (!el) return;
+
+  const chip = (name, customId = null) => {
+    const active = isMistakeSelected(name);
+    const remove = customId
+      ? `<span class="mistake-chip-remove" title="Remove from your saved mistakes" onclick="event.stopPropagation(); deleteCustomMistakeTag('${customId}')">×</span>`
+      : '';
+    return `<button type="button" class="mistake-chip${active ? ' active' : ''}" data-name="${escapeHtml(name)}" onclick="toggleMistake(this.dataset.name)">${escapeHtml(name)}${remove}</button>`;
+  };
+
+  const known = new Set([...DEFAULT_MISTAKE_TAGS, ...userMistakeTags.map(t => t.name)].map(n => n.toLowerCase()));
+  const extras = selectedMistakes.filter(m => !known.has(m.toLowerCase()));
+
+  el.innerHTML =
+    DEFAULT_MISTAKE_TAGS.map(n => chip(n)).join('') +
+    userMistakeTags.map(t => chip(t.name, t.id)).join('') +
+    extras.map(n => chip(n)).join('');
+}
+
+async function addCustomMistakeTag() {
+  const input = document.getElementById('mistakeInput');
+  if (!input) return;
+
+  const name = String(input.value || '').trim().replace(/\s+/g, ' ').slice(0, MISTAKE_TAG_MAX_LENGTH);
+  if (!name) return;
+
+  const existing = findKnownMistakeTag(name);
+
+  if (existing) {
+    if (!isMistakeSelected(existing)) selectedMistakes.push(existing);
+    input.value = '';
+    renderMistakeChips();
+    return;
+  }
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/user_mistake_tags`, {
+      method: 'POST',
+      headers: ruleApiHeaders({ 'Content-Type': 'application/json', 'Prefer': 'return=representation' }),
+      body: JSON.stringify({ user_id: user.id, name })
+    });
+    const data = await res.json().catch(() => null);
+    if (!res.ok || !data?.[0]) throw new Error(data?.message || `Could not save mistake tag (${res.status})`);
+    userMistakeTags.push(data[0]);
+  } catch (err) {
+    console.warn('[Mistakes] custom tag was not saved for reuse:', err);
+  }
+
+  if (!isMistakeSelected(name)) selectedMistakes.push(name);
+  input.value = '';
+  renderMistakeChips();
+  input.focus();
+}
+
+async function deleteCustomMistakeTag(id) {
+  const tag = userMistakeTags.find(t => t.id === id);
+  if (!tag) return;
+  if (!confirm(`Remove "${tag.name}" from your saved mistakes? Trades that already use it are not changed.`)) return;
+
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/user_mistake_tags?id=eq.${id}`, {
+    method: 'DELETE',
+    headers: ruleApiHeaders()
+  });
+
+  if (!res.ok) return;
+
+  userMistakeTags = userMistakeTags.filter(t => t.id !== id);
+  renderMistakeChips();
+}
+
+function resetTradeExtras() {
+  const grade = document.getElementById('tradeSetupGrade');
+  const input = document.getElementById('mistakeInput');
+  if (grade) grade.value = '';
+  if (input) input.value = '';
+  selectedMistakes = [];
+  renderMistakeChips();
+  hideTradeRuleWarning();
+}
+
+// ── Trading rules: load / persist ─────────────────────────────
+
+function normalizeTradingRule(rule) {
+  return {
+    ...rule,
+    enabled: rule.enabled !== false,
+    config: rule.config && typeof rule.config === 'object' ? rule.config : {}
+  };
+}
+
+async function loadTradingRules() {
+  if (tradingRulesLoadPromise) return tradingRulesLoadPromise;
+  if (!user?.id) return [];
+
+  tradingRulesLoadPromise = (async () => {
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/trading_rules?user_id=eq.${user.id}&select=*&order=sort_order.asc,created_at.asc`, {
+        headers: ruleApiHeaders()
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !Array.isArray(data)) throw new Error(data?.message || `Trading rules load failed: ${res.status}`);
+      tradingRules = data.map(normalizeTradingRule);
+      tradingRulesLoadError = false;
+    } catch (err) {
+      console.warn('[Rules] could not load trading rules:', err);
+      tradingRules = [];
+      tradingRulesLoadError = true;
+    } finally {
+      tradingRulesLoaded = true;
+    }
+
+    renderTradingRules();
+    refreshRuleDependentViews();
+    return tradingRules;
+  })().finally(() => { tradingRulesLoadPromise = null; });
+
+  return tradingRulesLoadPromise;
+}
+
+async function ensureTradingRulesLoaded() {
+  if (!tradingRulesLoaded) await loadTradingRules();
+  return tradingRules;
+}
+
+function getEnabledAutomaticRules() {
+  return tradingRules.filter(r => r.enabled && AUTOMATIC_RULE_TYPES.includes(r.rule_type));
+}
+
+function setTradingRulesMsg(text, cls = '') {
+  const msg = document.getElementById('tradingRulesMsg');
+  if (!msg) return;
+  msg.textContent = text || '';
+  msg.className = `msg${cls ? ` ${cls}` : ''}`;
+  if (text && cls === 'success') {
+    setTimeout(() => { if (msg.textContent === text) { msg.textContent = ''; msg.className = 'msg'; } }, 2000);
+  }
+}
+
+async function saveTradingRuleFromForm() {
+  const btn = document.getElementById('tradingRuleSaveBtn');
+  const type = getTradingRuleFormType();
+  const read = readTradingRuleFormConfig(type);
+  const wasEditing = !!editingTradingRuleId;
+
+  setTradingRulesMsg('');
+
+  if (!read.ok) {
+    setTradingRulesMsg(read.error, 'error');
+    return;
+  }
+
+  if (btn) btn.disabled = true;
+
+  try {
+    let saved;
+
+    if (editingTradingRuleId) {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/trading_rules?id=eq.${editingTradingRuleId}`, {
+        method: 'PATCH',
+        headers: ruleApiHeaders({ 'Content-Type': 'application/json', 'Prefer': 'return=representation' }),
+        body: JSON.stringify({ rule_type: type, config: read.config, updated_at: new Date().toISOString() })
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.[0]) throw new Error(data?.message || `Could not update rule (${res.status})`);
+      saved = normalizeTradingRule(data[0]);
+      tradingRules = tradingRules.map(r => r.id === saved.id ? saved : r);
+    } else {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/trading_rules`, {
+        method: 'POST',
+        headers: ruleApiHeaders({ 'Content-Type': 'application/json', 'Prefer': 'return=representation' }),
+        body: JSON.stringify({ user_id: user.id, rule_type: type, config: read.config, enabled: true, sort_order: tradingRules.length })
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.[0]) throw new Error(data?.message || `Could not save rule (${res.status})`);
+      saved = normalizeTradingRule(data[0]);
+      tradingRules.push(saved);
+    }
+
+    cancelTradingRuleEdit();
+    renderTradingRules();
+    refreshRuleDependentViews();
+    setTradingRulesMsg(wasEditing ? 'Rule updated.' : 'Rule added.', 'success');
+  } catch (err) {
+    console.warn('[Rules] save failed:', err);
+    setTradingRulesMsg(err.message || 'Could not save the rule.', 'error');
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+async function toggleTradingRule(id, enabled) {
+  const rule = tradingRules.find(r => r.id === id);
+  if (!rule) return;
+
+  const previous = rule.enabled;
+  rule.enabled = !!enabled;
+  renderTradingRules();
+  refreshRuleDependentViews();
+
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/trading_rules?id=eq.${id}`, {
+    method: 'PATCH',
+    headers: ruleApiHeaders({ 'Content-Type': 'application/json', 'Prefer': 'return=minimal' }),
+    body: JSON.stringify({ enabled: !!enabled, updated_at: new Date().toISOString() })
+  });
+
+  if (!res.ok) {
+    rule.enabled = previous;
+    renderTradingRules();
+    refreshRuleDependentViews();
+    setTradingRulesMsg('Could not update the rule.', 'error');
+  }
+}
+
+async function deleteTradingRule(id) {
+  const rule = tradingRules.find(r => r.id === id);
+  if (!rule) return;
+  if (!confirm(`Delete this rule?\n${getTradingRuleLabel(rule)}`)) return;
+
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/trading_rules?id=eq.${id}`, {
+    method: 'DELETE',
+    headers: ruleApiHeaders()
+  });
+
+  if (!res.ok) {
+    setTradingRulesMsg('Could not delete the rule.', 'error');
+    return;
+  }
+
+  tradingRules = tradingRules.filter(r => r.id !== id);
+  if (editingTradingRuleId === id) cancelTradingRuleEdit();
+  renderTradingRules();
+  refreshRuleDependentViews();
+}
+
+// ── Trading rules: labels ─────────────────────────────────────
+
+function formatRuleMoney(value) {
+  return (Number(value) || 0).toLocaleString('en-US', { maximumFractionDigits: 2 });
+}
+
+function formatRuleR(value) {
+  return String(Number(value) || 0);
+}
+
+function formatRuleWeekdays(days) {
+  const list = (Array.isArray(days) ? days : []).map(Number).filter(d => d >= 0 && d <= 6).sort((a, b) => a - b);
+  return list.map(d => RULE_WEEKDAY_SHORT[d]).join(', ');
+}
+
+function pluralTrades(n) {
+  return `${n} trade${n === 1 ? '' : 's'}`;
+}
+
+function getTradingRuleLabel(rule) {
+  const cfg = rule?.config || {};
+
+  switch (rule?.rule_type) {
+    case 'no_trades_before': return `No trades before ${cfg.time ? formatDisplayTime(cfg.time) : '(no time set)'}`;
+    case 'no_trades_after': return `No trades after ${cfg.time ? formatDisplayTime(cfg.time) : '(no time set)'}`;
+    case 'max_trades_per_day': return `Maximum ${pluralTrades(Number(cfg.count) || 0)} per day`;
+    case 'max_daily_loss_dollars': return `Maximum daily loss: $${formatRuleMoney(cfg.amount)}`;
+    case 'max_daily_loss_r': return `Maximum daily loss: ${formatRuleR(cfg.r)}R`;
+    case 'max_losing_trades_per_day': return `Maximum ${Number(cfg.count) || 0} losing trade${Number(cfg.count) === 1 ? '' : 's'} per day`;
+    case 'allowed_weekdays': return `Only trade ${formatRuleWeekdays(cfg.days) || '(no days selected)'}`;
+    case 'custom': return String(cfg.text || 'Custom rule');
+    default: return rule?.rule_type || 'Rule';
+  }
+}
+
+// ── Violation engine (derived, never stored) ──────────────────
+
+function getTradeSortTimeKey(t) {
+  return t?.trade_time ? String(t.trade_time).slice(0, 5) : '99:99';
+}
+
+function sortTradesForRuleCheck(trades) {
+  return [...trades].sort((a, b) =>
+    getTradeSortTimeKey(a).localeCompare(getTradeSortTimeKey(b)) ||
+    String(a.created_at || '').localeCompare(String(b.created_at || ''))
+  );
+}
+
+// Signed R per trade: pnl / risk_amount when the advanced Risk Amount is set,
+// otherwise the R:R field with its sign taken from the result.
+function getTradeSignedR(t) {
+  const pnl = parseFloat(t.pnl) || 0;
+  const risk = parseFloat(t.risk_amount);
+  if (Number.isFinite(risk) && risk > 0) return pnl / risk;
+
+  const rr = parseFloat(t.actual_rr);
+  if (!Number.isFinite(rr)) return 0;
+  if (t.result === 'loss') return -Math.abs(rr);
+  if (t.result === 'win') return Math.abs(rr);
+  return 0;
+}
+
+// Returns { violations: [{ ruleId, ruleType, message, label }], tradeViolations: Map<tradeId, [{ ruleId, message, label }]> }
+function getDayRuleViolations(trades, rules = getEnabledAutomaticRules()) {
+  const result = { violations: [], tradeViolations: new Map() };
+  const list = Array.isArray(trades) ? trades : [];
+  if (!list.length || !rules.length) return result;
+
+  const ordered = sortTradesForRuleCheck(list);
+  const dateStr = ordered[0]?.date || '';
+
+  const record = (rule, message) => {
+    if (!result.violations.some(v => v.ruleId === rule.id)) {
+      result.violations.push({ ruleId: rule.id, ruleType: rule.rule_type, message, label: getTradingRuleLabel(rule) });
+    }
+  };
+
+  const flag = (trade, rule, message) => {
+    if (!trade?.id) return;
+    const arr = result.tradeViolations.get(trade.id) || [];
+    if (!arr.some(v => v.ruleId === rule.id)) arr.push({ ruleId: rule.id, message, label: getTradingRuleLabel(rule) });
+    result.tradeViolations.set(trade.id, arr);
+  };
+
+  rules.forEach(rule => {
+    const cfg = rule.config || {};
+
+    switch (rule.rule_type) {
+      case 'no_trades_before': {
+        if (!cfg.time) break;
+        const msg = `Traded before ${formatDisplayTime(cfg.time)}`;
+        ordered.forEach(t => {
+          if (t.trade_time && getTradeSortTimeKey(t) < cfg.time) { record(rule, msg); flag(t, rule, msg); }
+        });
+        break;
+      }
+
+      case 'no_trades_after': {
+        if (!cfg.time) break;
+        const msg = `Traded after ${formatDisplayTime(cfg.time)}`;
+        ordered.forEach(t => {
+          if (t.trade_time && getTradeSortTimeKey(t) > cfg.time) { record(rule, msg); flag(t, rule, msg); }
+        });
+        break;
+      }
+
+      case 'max_trades_per_day': {
+        const max = Number(cfg.count);
+        if (!(max > 0) || ordered.length <= max) break;
+        const msg = `Maximum ${pluralTrades(max)} per day exceeded`;
+        record(rule, msg);
+        ordered.slice(max).forEach(t => flag(t, rule, msg));
+        break;
+      }
+
+      case 'max_daily_loss_dollars': {
+        const max = Number(cfg.amount);
+        if (!(max > 0)) break;
+        let cumulative = 0;
+        for (const t of ordered) {
+          cumulative += parseFloat(t.pnl) || 0;
+          if (cumulative < -max) {
+            const msg = `Maximum daily loss of $${formatRuleMoney(max)} exceeded`;
+            record(rule, msg);
+            flag(t, rule, msg);
+            break;
+          }
+        }
+        break;
+      }
+
+      case 'max_daily_loss_r': {
+        const max = Number(cfg.r);
+        if (!(max > 0)) break;
+        let cumulative = 0;
+        for (const t of ordered) {
+          cumulative += getTradeSignedR(t);
+          if (cumulative < -max) {
+            const msg = `Maximum daily loss of ${formatRuleR(max)}R exceeded`;
+            record(rule, msg);
+            flag(t, rule, msg);
+            break;
+          }
+        }
+        break;
+      }
+
+      case 'max_losing_trades_per_day': {
+        const max = Number(cfg.count);
+        if (!(max >= 0)) break;
+        const msg = `Maximum ${max} losing trade${max === 1 ? '' : 's'} per day exceeded`;
+        let losses = 0;
+        ordered.forEach(t => {
+          if (t.result !== 'loss') return;
+          losses++;
+          if (losses > max) { record(rule, msg); flag(t, rule, msg); }
+        });
+        break;
+      }
+
+      case 'allowed_weekdays': {
+        const days = Array.isArray(cfg.days) ? cfg.days.map(Number) : [];
+        if (!days.length || !dateStr) break;
+        const dow = new Date(dateStr + 'T12:00:00').getDay();
+        if (days.includes(dow)) break;
+        const msg = `Traded on ${RULE_WEEKDAY_NAMES[dow]}`;
+        record(rule, msg);
+        ordered.forEach(t => flag(t, rule, msg));
+        break;
+      }
+    }
+  });
+
+  return result;
+}
+
+// ── Day modal banner + trade row flag ─────────────────────────
+
+function renderDayRuleBanner(dayRules) {
+  const el = document.getElementById('dayRuleBanner');
+  if (!el) return;
+
+  const items = dayRules?.violations || [];
+
+  if (!items.length) {
+    el.classList.remove('active');
+    el.innerHTML = '';
+    return;
+  }
+
+  el.innerHTML =
+    `<div class="day-rule-banner-title">⚠ ${items.length} rule violation${items.length !== 1 ? 's' : ''}</div>` +
+    items.map(v => `<div class="day-rule-banner-item">${escapeHtml(v.message)}</div>`).join('');
+  el.classList.add('active');
+}
+
+function renderTradeRuleFlag(violations) {
+  if (!Array.isArray(violations) || !violations.length) return '';
+  const title = violations.map(v => v.label).join(', ');
+  return ` <span class="trade-rule-flag" title="${escapeHtml(title)}">⚠</span>`;
+}
+
+function refreshRuleDependentViews() {
+  if (document.getElementById('dayModal')?.classList.contains('active')) renderDayTrades();
+  if (document.getElementById('weekModal')?.classList.contains('active')) renderWeekTrades();
+  updateTradeRuleWarning();
+}
+
+// ── Log Trade warning (pre-save, never blocks) ────────────────
+
+function hideTradeRuleWarning() {
+  const el = document.getElementById('tradeRuleWarning');
+  if (el) { el.classList.remove('active'); el.innerHTML = ''; }
+}
+
+function buildPreviewTradeFromLogForm(dateStr) {
+  const result = document.getElementById('tradeResult')?.value || 'win';
+  let pnl = parseFloat(document.getElementById('tradePnl')?.value) || 0;
+  if (result === 'loss' && pnl > 0) pnl = -pnl;
+  if (result === 'win' && pnl < 0) pnl = Math.abs(pnl);
+
+  const original = editingTradeId ? findCachedTradeById(editingTradeId) : null;
+
+  return {
+    id: PREVIEW_TRADE_ID,
+    date: dateStr,
+    trade_time: parseTradeTime(document.getElementById('tradeTime')?.value || '', document.getElementById('tradeAmPm')?.value || 'AM'),
+    result,
+    pnl,
+    actual_rr: parseFloat(document.getElementById('tradeActualRR')?.value) || null,
+    risk_amount: parseFloat(document.getElementById('advancedRiskAmount')?.value) || null,
+    created_at: original?.created_at || '9999-12-31T23:59:59.000Z'
+  };
+}
+
+function updateTradeRuleWarning() {
+  const el = document.getElementById('tradeRuleWarning');
+  const modal = document.getElementById('logTradeModal');
+  if (!el || !modal?.classList.contains('active')) return;
+
+  const rules = getEnabledAutomaticRules();
+  const dateStr = logFromPage ? (document.getElementById('tradeDate')?.value || '') : (selectedDate || '');
+
+  if (!rules.length || !dateStr) { hideTradeRuleWarning(); return; }
+
+  const preview = buildPreviewTradeFromLogForm(dateStr);
+  const others = getActiveAccountTrades().filter(t => t.date === dateStr && t.id !== editingTradeId);
+  const found = getDayRuleViolations([...others, preview], rules).tradeViolations.get(PREVIEW_TRADE_ID) || [];
+
+  if (!found.length) { hideTradeRuleWarning(); return; }
+
+  el.innerHTML = found.map(v => `<div>⚠ Rule violation: ${escapeHtml(v.label)}</div>`).join('');
+  el.classList.add('active');
+}
+
+document.getElementById('logTradeModal')?.addEventListener('input', () => updateTradeRuleWarning());
+document.getElementById('logTradeModal')?.addEventListener('change', () => updateTradeRuleWarning());
+
+// ── Settings: rules list + form ───────────────────────────────
+
+function renderTradingRules() {
+  const list = document.getElementById('tradingRulesList');
+  if (!list) return;
+
+  if (!tradingRulesLoaded) {
+    list.innerHTML = '<div class="trading-rules-empty">Loading rules...</div>';
+    return;
+  }
+
+  if (tradingRulesLoadError) {
+    list.innerHTML = '<div class="trading-rules-empty" style="color:var(--danger);">Trading rules could not be loaded. Run the trading_rules migration in Supabase, then refresh.</div>';
+    return;
+  }
+
+  if (!tradingRules.length) {
+    list.innerHTML = '<div class="trading-rules-empty">No rules yet. Add your first rule below.</div>';
+    return;
+  }
+
+  list.innerHTML = tradingRules.map(rule => `
+    <div class="trading-rule-item${rule.enabled ? '' : ' disabled'}">
+      <label class="switch">
+        <input type="checkbox" ${rule.enabled ? 'checked' : ''} onchange="toggleTradingRule('${rule.id}', this.checked)"/>
+        <span class="slider"></span>
+      </label>
+      <div class="trading-rule-main">
+        <div class="trading-rule-label">${escapeHtml(getTradingRuleLabel(rule))}</div>
+        <div class="trading-rule-type">${rule.rule_type === 'custom' ? 'Custom · manual review' : 'Automatic'}</div>
+      </div>
+      <div class="trading-rule-actions">
+        <button class="strategy-action-btn" type="button" title="Edit rule" onclick="startEditingTradingRule('${rule.id}')">
+          <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="strategy-action-btn delete" type="button" title="Delete rule" onclick="deleteTradingRule('${rule.id}')">
+          <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function getTradingRuleFormType() {
+  return document.getElementById('newRuleType')?.value || 'no_trades_before';
+}
+
+function renderTradingRuleConfigInputs(rule = null) {
+  const container = document.getElementById('tradingRuleConfigInputs');
+  if (!container) return;
+
+  const type = rule?.rule_type || getTradingRuleFormType();
+  const cfg = rule?.config || {};
+  const enterSaves = `onkeydown="if(event.key==='Enter'){event.preventDefault();saveTradingRuleFromForm();}"`;
+  let html = '';
+
+  if (type === 'no_trades_before' || type === 'no_trades_after') {
+    let timeValue = '';
+    let ampm = 'AM';
+
+    if (cfg.time) {
+      const [h, m] = String(cfg.time).split(':').map(Number);
+      ampm = h >= 12 ? 'PM' : 'AM';
+      timeValue = `${h % 12 || 12}:${String(m || 0).padStart(2, '0')}`;
+    }
+
+    html = `
+      <div class="settings-field">
+        <label>Time</label>
+        <div class="time-input-row">
+          <input type="text" id="ruleTimeInput" placeholder="e.g. 9:35" maxlength="5" value="${escapeHtml(timeValue)}" oninput="this.value=this.value.replace(/[^0-9:]/g,'').slice(0,5)" ${enterSaves}/>
+          <select id="ruleTimeAmPm">
+            <option value="AM" ${ampm === 'AM' ? 'selected' : ''}>AM</option>
+            <option value="PM" ${ampm === 'PM' ? 'selected' : ''}>PM</option>
+          </select>
+        </div>
+      </div>`;
+  } else if (type === 'max_trades_per_day' || type === 'max_losing_trades_per_day') {
+    html = `
+      <div class="settings-field">
+        <label>${type === 'max_trades_per_day' ? 'Maximum trades per day' : 'Maximum losing trades per day'}</label>
+        <input type="number" id="ruleCountInput" min="1" step="1" placeholder="e.g. 2" value="${cfg.count != null ? escapeHtml(cfg.count) : ''}" ${enterSaves}/>
+      </div>`;
+  } else if (type === 'max_daily_loss_dollars') {
+    html = `
+      <div class="settings-field">
+        <label>Maximum daily loss ($)</label>
+        <input type="number" id="ruleAmountInput" min="0" step="0.01" placeholder="e.g. 300" value="${cfg.amount != null ? escapeHtml(cfg.amount) : ''}" ${enterSaves}/>
+      </div>`;
+  } else if (type === 'max_daily_loss_r') {
+    html = `
+      <div class="settings-field">
+        <label>Maximum daily loss (R)</label>
+        <input type="number" id="ruleRInput" min="0" step="0.1" placeholder="e.g. 2" value="${cfg.r != null ? escapeHtml(cfg.r) : ''}" ${enterSaves}/>
+        <div style="font-size:12px;color:var(--text2);margin-top:6px;">Uses Risk Amount from Advanced Details when set, otherwise the R:R field.</div>
+      </div>`;
+  } else if (type === 'allowed_weekdays') {
+    const days = Array.isArray(cfg.days) ? cfg.days.map(Number) : [1, 2, 3, 4, 5];
+    html = `
+      <div class="settings-field">
+        <label>Allowed weekdays</label>
+        <div class="weekday-chips" id="ruleWeekdayChips">
+          ${RULE_WEEKDAY_SHORT.map((d, i) => `<button type="button" class="weekday-chip${days.includes(i) ? ' active' : ''}" data-day="${i}" onclick="this.classList.toggle('active')">${d}</button>`).join('')}
+        </div>
+      </div>`;
+  } else {
+    html = `
+      <div class="settings-field">
+        <label>Rule</label>
+        <input type="text" id="ruleCustomText" maxlength="200" placeholder="e.g. Never add to a losing position" value="${escapeHtml(cfg.text || '')}" ${enterSaves}/>
+        <div style="font-size:12px;color:var(--text2);margin-top:6px;">Custom rules are saved for manual review. Tradeprint does not detect violations for them yet.</div>
+      </div>`;
+  }
+
+  container.innerHTML = html;
+  container.querySelectorAll('select').forEach(enhanceSelect);
+  syncPrettySelects();
+}
+
+function readTradingRuleFormConfig(type) {
+  if (type === 'no_trades_before' || type === 'no_trades_after') {
+    const time = parseTradeTime(document.getElementById('ruleTimeInput')?.value || '', document.getElementById('ruleTimeAmPm')?.value || 'AM');
+    if (!time) return { ok: false, error: 'Enter a valid time like 9:35.' };
+    return { ok: true, config: { time } };
+  }
+
+  if (type === 'max_trades_per_day' || type === 'max_losing_trades_per_day') {
+    const count = parseInt(document.getElementById('ruleCountInput')?.value, 10);
+    if (!Number.isFinite(count) || count < 1) return { ok: false, error: 'Enter a whole number of 1 or more.' };
+    return { ok: true, config: { count } };
+  }
+
+  if (type === 'max_daily_loss_dollars') {
+    const amount = Math.abs(parseFloat(document.getElementById('ruleAmountInput')?.value));
+    if (!Number.isFinite(amount) || amount <= 0) return { ok: false, error: 'Enter a dollar amount greater than 0.' };
+    return { ok: true, config: { amount } };
+  }
+
+  if (type === 'max_daily_loss_r') {
+    const r = Math.abs(parseFloat(document.getElementById('ruleRInput')?.value));
+    if (!Number.isFinite(r) || r <= 0) return { ok: false, error: 'Enter an R value greater than 0.' };
+    return { ok: true, config: { r } };
+  }
+
+  if (type === 'allowed_weekdays') {
+    const days = Array.from(document.querySelectorAll('#ruleWeekdayChips .weekday-chip.active')).map(el => Number(el.dataset.day));
+    if (!days.length) return { ok: false, error: 'Select at least one weekday.' };
+    return { ok: true, config: { days } };
+  }
+
+  const text = String(document.getElementById('ruleCustomText')?.value || '').trim().slice(0, 200);
+  if (!text) return { ok: false, error: 'Write the rule first.' };
+  return { ok: true, config: { text } };
+}
+
+function startEditingTradingRule(id) {
+  const rule = tradingRules.find(r => r.id === id);
+  if (!rule) return;
+
+  editingTradingRuleId = id;
+
+  const typeSelect = document.getElementById('newRuleType');
+  if (typeSelect) typeSelect.value = rule.rule_type;
+  syncPrettySelects();
+
+  renderTradingRuleConfigInputs(rule);
+
+  const title = document.getElementById('tradingRuleFormTitle');
+  const btn = document.getElementById('tradingRuleSaveBtn');
+  const cancel = document.getElementById('tradingRuleCancelBtn');
+
+  if (title) title.textContent = 'Edit rule';
+  if (btn) btn.textContent = 'Update Rule';
+  if (cancel) cancel.style.display = '';
+
+  setTradingRulesMsg('');
+  document.getElementById('tradingRuleConfigInputs')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+
+function cancelTradingRuleEdit() {
+  editingTradingRuleId = null;
+
+  const title = document.getElementById('tradingRuleFormTitle');
+  const btn = document.getElementById('tradingRuleSaveBtn');
+  const cancel = document.getElementById('tradingRuleCancelBtn');
+
+  if (title) title.textContent = 'Add a rule';
+  if (btn) btn.textContent = 'Add Rule';
+  if (cancel) cancel.style.display = 'none';
+
+  renderTradingRuleConfigInputs();
+}
+
+renderTradingRuleConfigInputs();
     
     document.addEventListener('DOMContentLoaded', enhanceAllSelects);
 setTimeout(enhanceAllSelects, 0);
