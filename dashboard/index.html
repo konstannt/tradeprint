@@ -2712,8 +2712,8 @@ select.tp-native-select {
     .week-day-label { font-size: 11px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.6px; margin-top: 10px; }
     .week-day-label:first-child { margin-top: 0; }
 
-    .cal-week-cell.has-trades { cursor: pointer; transition: background 0.15s, box-shadow 0.15s; }
-    .cal-week-cell.has-trades:hover, .cal-week-cell.has-trades:focus-visible { background: rgba(99,102,241,0.11); box-shadow: inset 0 0 0 1px rgba(99,102,241,0.35); outline: none; }
+        .cal-week-cell.is-clickable { cursor: pointer; transition: background 0.15s, box-shadow 0.15s; }
+    .cal-week-cell.is-clickable:hover, .cal-week-cell.is-clickable:focus-visible { background: rgba(99,102,241,0.11); box-shadow: inset 0 0 0 1px rgba(99,102,241,0.35); outline: none; }
 
     .trade-recap-accounts { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-bottom: 16px; }
     .trade-recap-accounts-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
@@ -2858,11 +2858,41 @@ body.light .econ-day-strip:hover { background: rgba(0, 0, 0, 0.035); }
 .econ-modal-body { display: flex; flex-direction: column; gap: 12px; padding: 24px 36px 36px; }
 .econ-day-heading { margin: 12px 0 2px; font-size: 11px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; }
 .econ-day-heading:first-child { margin-top: 0; }
-.econ-card { padding: 16px 18px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg); }
+.econ-card { border: 1px solid var(--border); border-radius: 12px; background: var(--bg); overflow: hidden; }
 .econ-card.focus { border-color: rgba(239, 68, 68, 0.5); }
-.econ-card-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
-.econ-card-time { font-size: 13px; font-weight: 700; color: var(--text); }
+.econ-card-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: "time name chev";
+  align-items: center;
+  column-gap: 14px;
+  width: 100%;
+  padding: 13px 16px;
+  border: none;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.econ-card-head:hover { background: rgba(255, 255, 255, 0.025); }
+body.light .econ-card-head:hover { background: rgba(0, 0, 0, 0.025); }
+.econ-card-head:focus-visible { outline: none; box-shadow: inset 0 0 0 1px var(--accent); }
+.econ-card-time { grid-area: time; min-width: 80px; font-size: 13px; font-weight: 700; color: var(--text); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .econ-card-time span { font-weight: 500; color: var(--text2); }
+.econ-card-head .econ-card-name { grid-area: name; min-width: 0; }
+.econ-card-head .econ-status-pill { grid-area: status; justify-self: end; }
+.econ-card-chevron { grid-area: chev; justify-self: end; width: 8px; height: 8px; margin-right: 2px; border-right: 1.5px solid var(--text2); border-bottom: 1.5px solid var(--text2); transform: rotate(-45deg); transition: transform 0.15s; }
+.econ-card-head:hover .econ-card-chevron { border-color: var(--text); }
+.econ-card:not(.open) .econ-card-name { font-size: 15px; font-weight: 700; }
+.econ-card:not(.open) .econ-status-pill,
+.econ-card:not(.open) .econ-card-time span { display: none; }
+.econ-card.open .econ-card-head { grid-template-columns: minmax(0, 1fr) auto auto; grid-template-areas: "time status chev" "name name name"; column-gap: 10px; row-gap: 8px; padding: 16px 18px 0; }
+.econ-card.open .econ-card-head:hover { background: none; }
+.econ-card.open .econ-card-chevron { transform: rotate(45deg); }
+.econ-card-body { display: none; padding: 0 18px 16px; }
+.econ-card.open .econ-card-body { display: block; }
 .econ-status-pill {
   display: inline-flex;
   align-items: center;
@@ -2909,7 +2939,9 @@ body.light .econ-day-strip:hover { background: rgba(0, 0, 0, 0.035); }
 @media (max-width: 768px) {
   .econ-modal-body { padding: 16px 16px 28px; }
   .econ-modal-date { font-size: 20px; }
-  .econ-card { padding: 14px; }
+    .econ-card-head { padding: 12px 14px; column-gap: 12px; }
+  .econ-card.open .econ-card-head { padding: 14px 14px 0; }
+  .econ-card-body { padding: 0 14px 14px; }
   .econ-metric-row { grid-template-columns: minmax(0, 1fr) 84px 84px; padding: 9px 10px; }
   .econ-card-name { font-size: 15px; }
 }
@@ -7639,6 +7671,7 @@ const KEEPALIVE_MAX_BYTES = 60000;
 const EDITOR_PLACEHOLDER_SRC = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%221%22 height=%221%22/%3E';
 
 const MIN_DATE = new Date(2026, 0, 1);
+    const CAL_MAX_DATE = new Date(2026, 11, 1); // furthest month the calendar can navigate to (Dec 2026)
 let allPageNotes = [];
 let currentNoteId = null;
 let noteSaveTimer = null;
@@ -10786,12 +10819,23 @@ function resetPointsCalc() {
       prefetchCalendarMonth(next.getFullYear(), next.getMonth());
     }
 
+        function getCalMonthIndex(year, month) { return year * 12 + month; }
+    function getCalMinMonthIndex() { return getCalMonthIndex(MIN_DATE.getFullYear(), MIN_DATE.getMonth()); }
+    function getCalMaxMonthIndex() {
+      const now = new Date();
+      // Never lock the user out of the real current month, even after Dec 2026.
+      return Math.max(
+        getCalMonthIndex(CAL_MAX_DATE.getFullYear(), CAL_MAX_DATE.getMonth()),
+        getCalMonthIndex(now.getFullYear(), now.getMonth())
+      );
+    }
+
     function updateNavButtons() {
       const prevBtn = document.querySelector('.cal-nav-btn');
       const nextBtn = document.getElementById('calNextBtn');
-      const now = new Date();
-      prevBtn.disabled = calYear === MIN_DATE.getFullYear() && calMonth === MIN_DATE.getMonth();
-      nextBtn.disabled = calYear > now.getFullYear() || (calYear === now.getFullYear() && calMonth >= now.getMonth());
+      const current = getCalMonthIndex(calYear, calMonth);
+      prevBtn.disabled = current <= getCalMinMonthIndex();
+      nextBtn.disabled = current >= getCalMaxMonthIndex();
     }
 
     function updateMonthlyStats(trades) {
@@ -10861,29 +10905,32 @@ function resetPointsCalc() {
           weekPnl += dayPnl; weekTrades += dayTradesArr.length;
           weekWins += dayTradesArr.filter(t => t.result === 'win').length;
         });
-                const weekCell = document.createElement('div');
-        weekCell.className = 'cal-week-cell';
+                        const weekCell = document.createElement('div');
+        const weekStartStr = week[0].dateStr;
+        const weekEndStr = week[week.length - 1].dateStr;
+
+        // Every week row opens the week modal, with or without trades.
+        weekCell.className = 'cal-week-cell is-clickable';
+        weekCell.dataset.weekStart = weekStartStr;
+        weekCell.dataset.weekEnd = weekEndStr;
+        weekCell.setAttribute('role', 'button');
+        weekCell.setAttribute('tabindex', '0');
+        weekCell.title = 'View this week';
+
         if (weekTrades > 0) {
           const pnlClass = weekPnl > 0 ? 'green' : weekPnl < 0 ? 'red' : '';
-          const weekStartStr = week[0].dateStr;
-          const weekEndStr = week[week.length - 1].dateStr;
-
           weekCell.classList.add('has-trades');
-          weekCell.dataset.weekStart = weekStartStr;
-          weekCell.dataset.weekEnd = weekEndStr;
-          weekCell.setAttribute('role', 'button');
-          weekCell.setAttribute('tabindex', '0');
-          weekCell.title = 'View this week';
           weekCell.innerHTML = `<div class="cal-week-pnl ${pnlClass}">${formatPnlShort(weekPnl)}</div><div class="cal-week-meta">${weekTrades} trade${weekTrades !== 1 ? 's' : ''}<br>${Math.round((weekWins/weekTrades)*100)}% WR</div>`;
-
-          weekCell.addEventListener('click', () => openWeekModal(weekStartStr, weekEndStr, trades));
-          weekCell.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              openWeekModal(weekStartStr, weekEndStr, trades);
-            }
-          });
         }
+
+        weekCell.addEventListener('click', () => openWeekModal(weekStartStr, weekEndStr, trades));
+        weekCell.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            openWeekModal(weekStartStr, weekEndStr, trades);
+          }
+        });
+
         grid.appendChild(weekCell);
       }
 
@@ -12067,18 +12114,12 @@ const payload = {
   }
 }
 
-    function changeMonth(dir) {
-  calMonth += dir;
+        function changeMonth(dir) {
+  const target = getCalMonthIndex(calYear, calMonth) + dir;
+  if (target < getCalMinMonthIndex() || target > getCalMaxMonthIndex()) return;
 
-  if (calMonth > 11) {
-    calMonth = 0;
-    calYear++;
-  }
-
-  if (calMonth < 0) {
-    calMonth = 11;
-    calYear--;
-  }
+  calYear = Math.floor(target / 12);
+  calMonth = target % 12;
 
   renderCalendarFromLoadedTrades();
   loadCalendarData();
@@ -18421,7 +18462,7 @@ function openEconModalForWeek() {
 function openEconModal(mode, start, end, focusId = null) {
   const modal = document.getElementById('econModal');
   if (!modal) return;
-  econModalState = { mode, start, end, focusId };
+    econModalState = { mode, start, end, focusId, expanded: new Set(focusId ? [focusId] : []) };
   renderEconModal();
   modal.classList.add('active');
   loadEconEvents(start, end).then(() => renderEconModal());
@@ -18506,13 +18547,15 @@ function renderEconModal() {
   }
 }
 
-// Shared card renderer (day list, week list, focused view)
+// Shared card renderer (day list, week list, focused view).
+// Collapsed by default: release time + event name. Click the row to expand the full detail.
 function renderEconEventCard(ev, focused = false) {
   const t = formatEconTime(ev);
   const s = getEconStatus(ev);
   const released = ev.status === 'released';
   const metrics = ev.metrics || [];
   const timeHtml = t.same ? `${econEscape(t.et)} ET` : `${econEscape(t.local)} <span>· ${econEscape(t.et)} ET</span>`;
+  const expanded = !!(econModalState && econModalState.expanded && econModalState.expanded.has(ev.id));
 
   let metricsHtml = '';
   if (metrics.length) {
@@ -18546,19 +18589,35 @@ function renderEconEventCard(ev, focused = false) {
   }
   const sourceUrl = ev.release_url || ev.source_url;
 
-  return `<div class="econ-card${focused ? ' focus' : ''}" data-econ-id="${econEscape(ev.id)}">
-    <div class="econ-card-top">
-      <div class="econ-card-time">${timeHtml}</div>
-      <div class="econ-status-pill ${econEscape(s.key)}">${econEscape(s.label)}</div>
-    </div>
-    <div class="econ-card-name">${econEscape(ev.display_name)}</div>
-    <div class="econ-card-meta">${econEscape(ev.currency || 'USD')} · <b>High Impact</b> · ${econEscape(ev.agency_name)}</div>
-    ${metricsHtml}
-    <div class="econ-card-foot">
-      ${foot.map(line => `<div class="econ-card-foot-line">${line}</div>`).join('')}
-      ${sourceUrl ? `<a class="econ-source-link" href="${econEscape(sourceUrl)}" target="_blank" rel="noopener">View Official Release ↗</a>` : ''}
+  return `<div class="econ-card${expanded ? ' open' : ''}${focused ? ' focus' : ''}" data-econ-id="${econEscape(ev.id)}">
+    <button type="button" class="econ-card-head" aria-expanded="${expanded ? 'true' : 'false'}" onclick="toggleEconEventCard(this)">
+      <span class="econ-card-time">${timeHtml}</span>
+      <span class="econ-card-name">${econEscape(ev.display_name)}</span>
+      <span class="econ-status-pill ${econEscape(s.key)}">${econEscape(s.label)}</span>
+      <span class="econ-card-chevron" aria-hidden="true"></span>
+    </button>
+    <div class="econ-card-body">
+      <div class="econ-card-meta">${econEscape(ev.currency || 'USD')} · <b>High Impact</b> · ${econEscape(ev.agency_name)}</div>
+      ${metricsHtml}
+      <div class="econ-card-foot">
+        ${foot.map(line => `<div class="econ-card-foot-line">${line}</div>`).join('')}
+        ${sourceUrl ? `<a class="econ-source-link" href="${econEscape(sourceUrl)}" target="_blank" rel="noopener">View Official Release ↗</a>` : ''}
+      </div>
     </div>
   </div>`;
+}
+
+// Expands/collapses one event. State is kept on econModalState so live refreshes keep it open.
+function toggleEconEventCard(btn) {
+  const card = btn && btn.closest('.econ-card');
+  if (!card) return;
+  const open = !card.classList.contains('open');
+  card.classList.toggle('open', open);
+  btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  if (econModalState && econModalState.expanded) {
+    if (open) econModalState.expanded.add(card.dataset.econId);
+    else econModalState.expanded.delete(card.dataset.econId);
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
