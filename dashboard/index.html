@@ -2977,6 +2977,24 @@ body.light .econ-card-head:hover { background: rgba(0, 0, 0, 0.025); }
   .econ-card-body { padding: 0 12px 12px; }
   .econ-metric-row { grid-template-columns: minmax(0, 1fr) 72px 72px; gap: 6px; padding: 8px; }
 }
+
+    /* Week modal: centered on mobile (day modal keeps the bottom sheet) */
+@media (max-width: 768px) {
+  #weekModal { padding: 24px 16px; align-items: center; }
+  #weekModal .day-modal-box {
+    border-radius: 16px;
+    max-height: calc(100vh - 48px);
+    max-height: calc(100dvh - 48px);
+    overscroll-behavior: contain;
+  }
+  #weekModal .day-modal-header { position: sticky; top: 0; z-index: 2; background: var(--bg2); }
+  #weekStats > div { padding: 14px 16px !important; gap: 16px 24px !important; }
+}
+
+@media (max-width: 400px) {
+  #weekModal { padding: 16px 12px; }
+  #weekModal .day-modal-box { max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px); }
+}
     
         /* ─── PROP COMMAND CENTER ─────────────────────────────────── */
     .prop-nav-divider { height: 1px; background: var(--border); margin: 6px 16px 10px; }
