@@ -2740,6 +2740,199 @@ select.tp-native-select {
     @media (max-width: 640px) {
       .trade-recap-account { flex: 1 1 100%; }
     }
+
+/* ─── ECONOMIC NEWS ───────────────────────────────────────────── */
+/* calendar day-cell indicator (bottom-left, mirrors .cal-plus at bottom-right) */
+.cal-day-news {
+  position: absolute;
+  bottom: 6px;
+  left: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 16px;
+  padding: 0 5px 0 4px;
+  border-radius: 6px;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger);
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  pointer-events: none;
+  z-index: 1;
+}
+.cal-day-news svg { width: 10px; height: 10px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.cal-cell.other-month .cal-day-news { opacity: 0.55; }
+@media (hover: hover) and (pointer: fine) {
+  .cal-day-news { pointer-events: auto; cursor: pointer; transition: background 0.15s, border-color 0.15s; }
+  .cal-day-news:hover { background: rgba(239, 68, 68, 0.18); border-color: rgba(239, 68, 68, 0.6); }
+}
+@media (max-width: 768px) {
+  .cal-day-news { bottom: 2px; left: 2px; height: 12px; padding: 0 3px 0 2px; gap: 2px; border-radius: 4px; font-size: 8px; }
+  .cal-day-news svg { width: 8px; height: 8px; }
+}
+
+/* news pill (day modal header, week modal header) */
+.econ-news-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 11px;
+  border-radius: 8px;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  background: rgba(239, 68, 68, 0.08);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+  transition: border-color 0.2s, background 0.2s;
+}
+.econ-news-btn:hover { border-color: rgba(239, 68, 68, 0.6); background: rgba(239, 68, 68, 0.14); }
+.econ-news-btn svg { width: 14px; height: 14px; stroke: var(--danger); fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+.econ-news-btn-short { display: none; }
+@media (max-width: 640px) {
+  .econ-news-btn-long { display: none; }
+  .econ-news-btn-short { display: inline; }
+}
+@media (max-width: 768px) {
+  .econ-news-btn { min-height: 36px; padding: 0 12px; font-size: 13px; }
+}
+
+/* compact preview inside the day modal */
+.econ-day-block {
+  margin: 20px 36px 0;
+  padding: 12px 14px;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 10px;
+  background: rgba(239, 68, 68, 0.05);
+}
+.econ-day-block-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--danger);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+.econ-day-block-hint { font-size: 10px; font-weight: 700; letter-spacing: 0.5px; opacity: 0.75; }
+.econ-preview-list { display: flex; flex-direction: column; }
+.econ-preview-row {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 6px 4px;
+  background: none;
+  border: none;
+  border-top: 1px solid rgba(239, 68, 68, 0.12);
+  border-radius: 6px;
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  transition: background 0.15s;
+}
+.econ-preview-row:first-child { border-top: none; }
+.econ-preview-row:hover { background: rgba(255, 255, 255, 0.03); }
+.econ-preview-time { font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.econ-preview-name { min-width: 0; font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.econ-preview-status { font-size: 11px; font-weight: 600; color: var(--text2); white-space: nowrap; }
+.econ-preview-tag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 0 7px;
+  border-radius: 6px;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+@media (max-width: 768px) {
+  .econ-day-block { margin: 14px 16px 0; padding: 10px 12px; }
+  .econ-preview-row { grid-template-columns: 62px minmax(0, 1fr) auto; }
+  .econ-preview-status { display: none; }
+  .econ-preview-name { white-space: normal; font-size: 13px; line-height: 1.3; }
+}
+
+/* full Economic News modal (reuses .day-modal-overlay / .day-modal-box) */
+.econ-modal { z-index: 120; }
+.econ-modal-box { max-width: 720px; min-height: unset; }
+.econ-modal-header { align-items: flex-start; }
+.econ-modal-kicker { margin-bottom: 6px; font-size: 11px; font-weight: 800; color: var(--danger); text-transform: uppercase; letter-spacing: 0.8px; }
+.econ-modal-date { font-size: 26px; }
+.econ-modal-sub { margin-top: 6px; font-size: 13px; color: var(--text2); }
+.econ-modal-body { display: flex; flex-direction: column; gap: 12px; padding: 24px 36px 36px; }
+.econ-day-heading { margin: 12px 0 2px; font-size: 11px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; }
+.econ-day-heading:first-child { margin-top: 0; }
+.econ-card { padding: 16px 18px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg); }
+.econ-card.focus { border-color: rgba(239, 68, 68, 0.5); }
+.econ-card-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.econ-card-time { font-size: 13px; font-weight: 700; color: var(--text); }
+.econ-card-time span { font-weight: 500; color: var(--text2); }
+.econ-status-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 0 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--text2);
+  white-space: nowrap;
+}
+.econ-status-pill.released { color: var(--text); border-color: rgba(255, 255, 255, 0.18); }
+.econ-status-pill.due, .econ-status-pill.delayed { color: #f59e0b; border-color: rgba(245, 158, 11, 0.4); background: rgba(245, 158, 11, 0.08); }
+.econ-status-pill.cancelled, .econ-status-pill.unavailable { color: var(--danger); border-color: rgba(239, 68, 68, 0.4); }
+.econ-status-pill.schedule_only { color: var(--text2); border-style: dashed; }
+.econ-card-name { font-size: 16px; font-weight: 800; line-height: 1.3; }
+.econ-card-meta { margin-top: 4px; font-size: 12px; color: var(--text2); }
+.econ-card-meta b { color: var(--danger); font-weight: 800; }
+.econ-metrics { margin-top: 14px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.econ-metric-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 104px 104px;
+  align-items: start;
+  gap: 8px;
+  padding: 9px 12px;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+}
+.econ-metric-row:first-child { border-top: none; }
+.econ-metric-head { background: rgba(255, 255, 255, 0.02); font-size: 10px; font-weight: 800; color: var(--text2); text-transform: uppercase; letter-spacing: 0.6px; }
+.econ-metric-name { min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
+.econ-metric-val { text-align: right; font-weight: 800; font-variant-numeric: tabular-nums; }
+.econ-metric-val.empty { color: var(--text2); font-weight: 600; }
+.econ-metric-sub { display: block; margin-top: 2px; font-size: 10px; font-weight: 600; color: var(--text2); }
+.econ-card-foot { display: flex; flex-direction: column; gap: 4px; margin-top: 12px; font-size: 12px; color: var(--text2); }
+.econ-card-foot b { color: var(--text); font-weight: 600; }
+.econ-inline-link { color: var(--accent); font-weight: 700; text-decoration: none; }
+.econ-inline-link:hover { text-decoration: underline; }
+.econ-source-link { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 12px; font-weight: 700; color: var(--accent); text-decoration: none; }
+.econ-source-link:hover { text-decoration: underline; }
+.econ-empty { padding: 24px 0; text-align: center; font-size: 14px; color: var(--text2); }
+.econ-modal-note { margin-top: 8px; font-size: 11px; line-height: 1.5; color: var(--text2); }
+@media (max-width: 768px) {
+  .econ-modal-body { padding: 16px 16px 28px; }
+  .econ-modal-date { font-size: 20px; }
+  .econ-card { padding: 14px; }
+  .econ-metric-row { grid-template-columns: minmax(0, 1fr) 84px 84px; padding: 9px 10px; }
+  .econ-card-name { font-size: 15px; }
+}
+    
         /* ─── PROP COMMAND CENTER ─────────────────────────────────── */
     .prop-nav-divider { height: 1px; background: var(--border); margin: 6px 16px 10px; }
     .prop-nav-row { margin: 0 10px 8px; padding: 11px 10px; border: 1px solid var(--border); border-left: 1px solid var(--border); border-radius: 8px; color: var(--text); position: relative; }
@@ -5731,6 +5924,23 @@ select::-ms-expand {
     </div>
   </div>
 
+  <!-- ECONOMIC NEWS MODAL -->
+<div class="day-modal-overlay econ-modal" id="econModal" onmousedown="handleEconModalPointerDown(event)" onclick="handleEconModalClick(event)">
+  <div class="day-modal-box econ-modal-box" onclick="event.stopPropagation()">
+    <div class="day-modal-header econ-modal-header">
+      <div>
+        <div class="econ-modal-kicker">Economic News</div>
+        <div class="day-modal-date econ-modal-date" id="econModalTitle"></div>
+        <div class="econ-modal-sub" id="econModalSub"></div>
+      </div>
+      <div class="day-modal-header-actions">
+        <button class="day-modal-close" type="button" onclick="closeEconModal()" aria-label="Close">×</button>
+      </div>
+    </div>
+    <div class="day-modal-body econ-modal-body" id="econModalBody"></div>
+  </div>
+</div>
+
   <!-- RULE VIOLATION BREAKDOWN MODAL -->
   <div class="modal rule-breakdown-modal" id="ruleBreakdownModal" onclick="handleRuleBreakdownModalClick(event)">
     <div class="modal-box" onclick="event.stopPropagation()">
@@ -7354,6 +7564,7 @@ let calendarLoadToken = 0;
 let lastCalendarOpenAt = 0;
 
 function handleCalendarGridPointerUp(event) {
+    if (handleCalendarNewsPointerUp(event)) return;
   const grid = document.getElementById('calGrid');
   const cell = event.target.closest('.cal-cell[data-date]');
 
@@ -10957,6 +11168,7 @@ async function uploadNoteImage(file, folder = 'notes', options = {}) {
   renderDayTrades();
 
   document.getElementById('dayModal').classList.add('active');
+  renderDayEconPreview(dateStr);
 
 // Inject review request button into day modal header if trader has active mentors
 const activeMentors = mentorRelationships.filter(r => r.status === 'active');
@@ -17747,6 +17959,7 @@ function openWeekModal(startStr, endStr, source = calTradesCache) {
 
   renderWeekTrades(source);
   document.getElementById('weekModal')?.classList.add('active');
+  renderWeekEconButton(startStr, endStr);
 }
 
 function closeWeekModal() {
@@ -17820,6 +18033,548 @@ function renderWeekTrades(source = calTradesCache) {
     ${items.map(t => buildTradeFeedItemHtml(t, { editFn: 'openEditTradeFromList', deleteFn: 'deleteTradeFromList', violations: dayRules.tradeViolations.get(t.id) || [] })).join('')}
   `;
   }).join('');
+}
+
+    // ═══════════════════════════════════════════════════════════════
+// ECONOMIC NEWS · U.S. high-impact calendar (BLS / BEA / Census / Fed / DOL)
+// Reads public.economic_events + economic_event_metrics (RLS: authenticated read-only)
+// ═══════════════════════════════════════════════════════════════
+const ECON_SUPABASE_URL = 'https://fpdedufotkmvjsvxdcmk.supabase.co';
+const ECON_SUPABASE_KEY = 'sb_publishable_1Q8yInISuuD3HDWI7mVesQ_A-DSkCM7';
+const ECON_NEWS_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-4 0v-9a2 2 0 0 1 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/></svg>';
+const ECON_FRESH_MS_TODAY = 10 * 60 * 1000;   // ranges that include today refetch after 10 min
+const ECON_FRESH_MS_PAST = 60 * 60 * 1000;    // purely past/future ranges refetch after 60 min
+const ECON_LIVE_REFRESH_MS = 60 * 1000;       // econ modal polls while an event is due
+
+const econRangeCache = new Map();   // 'start|end' → { loadedAt }
+const econInflight = new Map();     // 'start|end' → Promise
+const econEventsById = {};          // id → event
+let econEventsByDate = {};          // 'YYYY-MM-DD' (Eastern release day) → [events]
+let econModalState = null;          // { mode: 'day' | 'week', start, end, focusId }
+let econModalTimer = null;
+let econModalPointerStartedInside = false;
+let econDayModalDate = null;
+let econWeekModalRange = null;
+
+// ── small helpers ──────────────────────────────────────────────
+function econEscape(value) {
+  return String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function econIsoDate(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function econAddDays(dateStr, days) {
+  const d = new Date(`${dateStr}T12:00:00`);
+  d.setDate(d.getDate() + days);
+  return econIsoDate(d);
+}
+
+function econTodayEt() {
+  try {
+    return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+  } catch (_) {
+    return econIsoDate(new Date());
+  }
+}
+
+// Same session your other REST calls use. If your dashboard exposes the token
+// through a helper (e.g. getAccessToken()), return it here instead.
+function econGetAccessToken() {
+  try {
+    if (typeof currentSession !== 'undefined' && currentSession && currentSession.access_token) return currentSession.access_token;
+    if (typeof session !== 'undefined' && session && session.access_token) return session.access_token;
+    if (typeof accessToken === 'string' && accessToken) return accessToken;
+    if (typeof authToken === 'string' && authToken) return authToken;
+    const raw = localStorage.getItem('sb-fpdedufotkmvjsvxdcmk-auth-token');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return (parsed && (parsed.access_token || (parsed.currentSession && parsed.currentSession.access_token))) || null;
+    }
+  } catch (_) { /* ignore */ }
+  return null;
+}
+
+// ── data ───────────────────────────────────────────────────────
+function normalizeEconEvent(row) {
+  const metrics = Array.isArray(row.economic_event_metrics) ? row.economic_event_metrics.slice() : [];
+  metrics.sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+  return { ...row, metrics };
+}
+
+function rebuildEconIndexes() {
+  const byDate = {};
+  Object.values(econEventsById).forEach(ev => {
+    (byDate[ev.release_date_et] ||= []).push(ev);
+  });
+  Object.values(byDate).forEach(list => list.sort((a, b) => new Date(a.release_at) - new Date(b.release_at)));
+  econEventsByDate = byDate;
+}
+
+function getEconEventsForDate(dateStr) {
+  return (econEventsByDate[dateStr] || []).filter(ev => ev.status !== 'cancelled');
+}
+
+function getEconEventsInRange(start, end) {
+  return Object.values(econEventsById)
+    .filter(ev => ev.release_date_et >= start && ev.release_date_et <= end && ev.status !== 'cancelled')
+    .sort((a, b) => new Date(a.release_at) - new Date(b.release_at));
+}
+
+function econIsRangeCovered(start, end, ttl) {
+  for (const [key, entry] of econRangeCache) {
+    const [s, e] = key.split('|');
+    if (s <= start && e >= end && Date.now() - entry.loadedAt < ttl) return true;
+  }
+  return false;
+}
+
+// Never rejects. Returns the events currently known for the range.
+async function loadEconEvents(start, end, options = {}) {
+  if (!start || !end) return [];
+  const force = !!options.force;
+  const key = `${start}|${end}`;
+  const today = econTodayEt();
+  const ttl = (start <= today && today <= end) ? ECON_FRESH_MS_TODAY : ECON_FRESH_MS_PAST;
+
+  if (!force && econIsRangeCovered(start, end, ttl)) return getEconEventsInRange(start, end);
+  if (econInflight.has(key)) return econInflight.get(key);
+
+  const request = (async () => {
+    try {
+      const token = econGetAccessToken();
+      const headers = { apikey: ECON_SUPABASE_KEY, Accept: 'application/json' };
+      if (token) headers.Authorization = `Bearer ${token}`;
+      const url = `${ECON_SUPABASE_URL}/rest/v1/economic_events`
+        + `?select=*,economic_event_metrics(*)`
+        + `&release_date_et=gte.${start}&release_date_et=lte.${end}`
+        + `&order=release_at.asc`;
+      const res = await fetch(url, { headers });
+      if (!res.ok) throw new Error(`economic_events HTTP ${res.status}`);
+      const rows = await res.json();
+
+      // Replace what we knew inside this range, so server-side removals disappear too
+      Object.keys(econEventsById).forEach(id => {
+        const ev = econEventsById[id];
+        if (ev.release_date_et >= start && ev.release_date_et <= end) delete econEventsById[id];
+      });
+      (Array.isArray(rows) ? rows : []).forEach(row => { econEventsById[row.id] = normalizeEconEvent(row); });
+      econRangeCache.set(key, { loadedAt: Date.now() });
+      rebuildEconIndexes();
+    } catch (err) {
+      console.warn('[Econ] load failed:', err);
+    } finally {
+      econInflight.delete(key);
+    }
+    return getEconEventsInRange(start, end);
+  })();
+
+  econInflight.set(key, request);
+  return request;
+}
+
+// ── formatting ─────────────────────────────────────────────────
+function getEconStatus(ev) {
+  const now = Date.now();
+  const at = new Date(ev.release_at).getTime();
+  if (ev.status === 'released') return { key: 'released', label: 'Released' };
+  if (ev.status === 'cancelled') return { key: 'cancelled', label: 'Cancelled' };
+  if (at > now) return { key: 'upcoming', label: ev.schedule_confidence === 'provisional' ? 'Upcoming · tentative' : 'Upcoming' };
+  if (ev.meta && ev.meta.data_mode === 'schedule_only') return { key: 'schedule_only', label: 'Schedule only' };
+  if (ev.watch_exhausted) return { key: 'unavailable', label: 'No data retrieved' };
+  if (ev.status === 'delayed') return { key: 'delayed', label: 'Delayed' };
+  return { key: 'due', label: 'Awaiting official release' };
+}
+
+function formatEconTime(ev) {
+  const d = new Date(ev.release_at);
+  const opts = { hour: 'numeric', minute: '2-digit' };
+  const et = d.toLocaleTimeString('en-US', { ...opts, timeZone: 'America/New_York' });
+  const local = d.toLocaleTimeString('en-US', opts);
+  return { et, local, same: et === local };
+}
+
+function formatEconDateLong(dateStr) {
+  return new Date(`${dateStr}T12:00:00`).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+}
+
+function formatEconDateHeading(dateStr) {
+  return new Date(`${dateStr}T12:00:00`).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+}
+
+function formatEconDateShort(dateStr) {
+  return new Date(`${dateStr}T12:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function formatEconNumber(value, unit, precision = 1) {
+  const v = Number(value);
+  if (!Number.isFinite(v)) return null;
+  const sign = v < 0 ? '-' : '';
+  const abs = Math.abs(v);
+  switch (unit) {
+    case 'pct':       return `${v.toFixed(precision)}%`;
+    case 'k_change':  return `${sign}${Math.round(abs)}K`;
+    case 'thousands': return abs >= 1000 ? `${sign}${(abs / 1000).toFixed(2)}M` : `${sign}${Math.round(abs)}K`;
+    case 'count':
+      if (abs >= 1e6) return `${sign}${(abs / 1e6).toFixed(2)}M`;
+      if (abs >= 1e3) return `${sign}${Math.round(abs / 1e3)}K`;
+      return `${sign}${Math.round(abs)}`;
+    case 'musd':      return `${sign}$${(abs / 1000).toFixed(1)}B`;
+    case 'index':     return v.toFixed(precision);
+    default:          return v.toFixed(precision);
+  }
+}
+
+// which: 'actual' | 'previous' | 'previous_revised_from' | 'revised_actual'
+function formatEconValue(metric, which) {
+  const text = metric[`${which}_text`];
+  const num = metric[which];
+  if (text && (metric.unit === 'range' || metric.unit === 'text' || num == null)) return text;
+  if (num == null) return null;
+  return formatEconNumber(num, metric.unit, metric.display_precision ?? 1);
+}
+
+function getEconNewsButtonLabel(events) {
+  if (events.length === 1) {
+    const ev = events[0];
+    return `${ev.short_name || ev.display_name} · ${formatEconTime(ev).local}`;
+  }
+  return `News ${events.length}`;
+}
+
+// ── calendar day cells ─────────────────────────────────────────
+function renderCalendarEconIndicator(dateStr) {
+  const events = getEconEventsForDate(dateStr);
+  if (!events.length) return '';
+  const title = events.map(ev => `${formatEconTime(ev).local} · ${ev.short_name || ev.display_name}`).join('\n');
+  const label = `${events.length} high-impact economic event${events.length === 1 ? '' : 's'}`;
+  return `<div class="cal-day-news" title="${econEscape(title)}" aria-label="${econEscape(label)}">${ECON_NEWS_ICON}<span>${events.length}</span></div>`;
+}
+
+function refreshCalendarEconIndicators() {
+  const grid = document.getElementById('calGrid');
+  if (!grid) return;
+  grid.querySelectorAll('.cal-cell[data-date]').forEach(cell => {
+    const existing = cell.querySelector('.cal-day-news');
+    if (existing) existing.remove();
+    const html = renderCalendarEconIndicator(cell.dataset.date);
+    if (html) cell.insertAdjacentHTML('beforeend', html);
+  });
+}
+
+function econRepaintOpenViews() {
+  const dayModal = document.getElementById('dayModal');
+  if (econDayModalDate && dayModal && dayModal.classList.contains('active')) renderDayEconPreview(econDayModalDate, { skipLoad: true });
+  const weekModal = document.getElementById('weekModal');
+  if (econWeekModalRange && weekModal && weekModal.classList.contains('active')) renderWeekEconButton(econWeekModalRange.start, econWeekModalRange.end, { skipLoad: true });
+  const econModal = document.getElementById('econModal');
+  if (econModalState && econModal && econModal.classList.contains('active')) renderEconModal();
+}
+
+// Loads the visible grid (plus six weeks either side) and paints the indicators.
+function syncEconForCalendar() {
+  const grid = document.getElementById('calGrid');
+  const dates = grid
+    ? Array.from(grid.querySelectorAll('.cal-cell[data-date]')).map(c => c.dataset.date).filter(Boolean).sort()
+    : [];
+  if (!dates.length) return;
+  refreshCalendarEconIndicators();
+  loadEconEvents(econAddDays(dates[0], -42), econAddDays(dates[dates.length - 1], 42)).then(() => {
+    refreshCalendarEconIndicators();
+    econRepaintOpenViews();
+  });
+}
+
+// Every calendar render (month change, account switch, refresh) repaints the indicators.
+if (typeof renderCalendar === 'function') {
+  const econOriginalRenderCalendar = renderCalendar;
+  renderCalendar = function () {
+    const out = econOriginalRenderCalendar.apply(this, arguments);
+    try { syncEconForCalendar(); } catch (err) { console.warn('[Econ] indicator sync failed:', err); }
+    return out;
+  };
+}
+
+// Desktop only: clicking the indicator opens Economic News directly.
+// Returns true when it handled the pointer event.
+function handleCalendarNewsPointerUp(event) {
+  const target = event.target;
+  const indicator = target && target.closest ? target.closest('.cal-day-news') : null;
+  if (!indicator || event.pointerType === 'touch') return false;
+  const cell = indicator.closest('.cal-cell[data-date]');
+  if (!cell || !getEconEventsForDate(cell.dataset.date).length) return false;
+  if (typeof lastCalendarOpenAt !== 'undefined') {
+    if (Date.now() - lastCalendarOpenAt < 250) return true;
+    lastCalendarOpenAt = Date.now();
+  }
+  openEconModal('day', cell.dataset.date, cell.dataset.date);
+  return true;
+}
+
+// ── day modal: header pill + compact preview ───────────────────
+function ensureEconDayModalNodes() {
+  let btn = document.getElementById('dayModalNewsBtn');
+  if (!btn) {
+    const actions = document.getElementById('dayModalHeaderActions');
+    if (!actions) return null;
+    btn = document.createElement('button');
+    btn.type = 'button';
+    btn.id = 'dayModalNewsBtn';
+    btn.className = 'econ-news-btn';
+    btn.style.display = 'none';
+    btn.setAttribute('aria-label', 'Economic news for this day');
+    btn.addEventListener('click', e => { e.stopPropagation(); openEconModalForDay(); });
+    actions.insertBefore(btn, actions.firstElementChild);
+  }
+  let block = document.getElementById('dayEconBlock');
+  if (!block) {
+    const banner = document.getElementById('dayRuleBanner');
+    if (!banner) return null;
+    block = document.createElement('div');
+    block.id = 'dayEconBlock';
+    block.className = 'econ-day-block';
+    block.style.display = 'none';
+    block.addEventListener('click', e => {
+      const row = e.target.closest('[data-econ-open]');
+      if (!row) return;
+      e.stopPropagation();
+      const ev = econEventsById[row.dataset.econOpen];
+      if (ev) openEconModal('day', ev.release_date_et, ev.release_date_et, ev.id);
+    });
+    banner.insertAdjacentElement('afterend', block);
+  }
+  return { btn, block };
+}
+
+function renderEconPreviewRow(ev) {
+  const t = formatEconTime(ev);
+  const s = getEconStatus(ev);
+  return `<button type="button" class="econ-preview-row" data-econ-open="${econEscape(ev.id)}">
+    <span class="econ-preview-time">${econEscape(t.local)}</span>
+    <span class="econ-preview-name">${econEscape(ev.display_name)}</span>
+    <span class="econ-preview-status">${econEscape(s.label)}</span>
+    <span class="econ-preview-tag">High</span>
+  </button>`;
+}
+
+async function renderDayEconPreview(dateStr, options = {}) {
+  if (!dateStr) return;
+  econDayModalDate = dateStr;
+  const nodes = ensureEconDayModalNodes();
+  if (!nodes) return;
+
+  const paint = () => {
+    if (econDayModalDate !== dateStr) return;
+    const events = getEconEventsForDate(dateStr);
+    if (!events.length) {
+      nodes.btn.style.display = 'none';
+      nodes.block.style.display = 'none';
+      nodes.block.innerHTML = '';
+      return;
+    }
+    nodes.btn.style.display = 'inline-flex';
+    nodes.btn.innerHTML = `${ECON_NEWS_ICON}<span class="econ-news-btn-long">${econEscape(getEconNewsButtonLabel(events))}</span><span class="econ-news-btn-short">News ${events.length}</span>`;
+    nodes.block.style.display = 'block';
+    nodes.block.innerHTML = `
+      <div class="econ-day-block-title"><span>Economic News</span><span class="econ-day-block-hint">${events.length} high impact</span></div>
+      <div class="econ-preview-list">${events.map(renderEconPreviewRow).join('')}</div>`;
+  };
+
+  paint();
+  if (!options.skipLoad) {
+    await loadEconEvents(econAddDays(dateStr, -7), econAddDays(dateStr, 7));
+    paint();
+  }
+}
+
+function openEconModalForDay() {
+  if (econDayModalDate) openEconModal('day', econDayModalDate, econDayModalDate);
+}
+
+// ── week modal: News button ────────────────────────────────────
+function ensureEconWeekButton() {
+  let btn = document.getElementById('weekModalNewsBtn');
+  if (btn) return btn;
+  const share = document.getElementById('weekModalShareBtn');
+  if (!share || !share.parentElement) return null;
+  btn = document.createElement('button');
+  btn.type = 'button';
+  btn.id = 'weekModalNewsBtn';
+  btn.className = 'econ-news-btn';
+  btn.style.display = 'none';
+  btn.setAttribute('aria-label', 'Economic news for this week');
+  btn.addEventListener('click', e => { e.stopPropagation(); openEconModalForWeek(); });
+  share.parentElement.insertBefore(btn, share);
+  return btn;
+}
+
+async function renderWeekEconButton(startStr, endStr, options = {}) {
+  if (!startStr || !endStr) return;
+  econWeekModalRange = { start: startStr, end: endStr };
+  const btn = ensureEconWeekButton();
+  if (!btn) return;
+
+  const paint = () => {
+    if (!econWeekModalRange || econWeekModalRange.start !== startStr) return;
+    const events = getEconEventsInRange(startStr, endStr);
+    btn.style.display = events.length ? 'inline-flex' : 'none';
+    btn.innerHTML = `${ECON_NEWS_ICON}<span>News ${events.length}</span>`;
+  };
+
+  paint();
+  if (!options.skipLoad) {
+    await loadEconEvents(startStr, endStr);
+    paint();
+  }
+}
+
+function openEconModalForWeek() {
+  if (econWeekModalRange) openEconModal('week', econWeekModalRange.start, econWeekModalRange.end);
+}
+
+// ── Economic News modal ────────────────────────────────────────
+function openEconModal(mode, start, end, focusId = null) {
+  const modal = document.getElementById('econModal');
+  if (!modal) return;
+  econModalState = { mode, start, end, focusId };
+  renderEconModal();
+  modal.classList.add('active');
+  loadEconEvents(start, end).then(() => renderEconModal());
+  startEconLiveRefresh();
+}
+
+function closeEconModal() {
+  const modal = document.getElementById('econModal');
+  if (modal) modal.classList.remove('active');
+  econModalState = null;
+  stopEconLiveRefresh();
+}
+
+function handleEconModalPointerDown(event) {
+  econModalPointerStartedInside = !!(event.target && event.target.closest && event.target.closest('.econ-modal-box'));
+}
+
+function handleEconModalClick(event) {
+  if (event.target && event.target.closest && event.target.closest('.econ-modal-box')) return;
+  if (econModalPointerStartedInside) { econModalPointerStartedInside = false; return; }
+  closeEconModal();
+}
+
+function startEconLiveRefresh() {
+  stopEconLiveRefresh();
+  econModalTimer = setInterval(() => {
+    if (!econModalState) { stopEconLiveRefresh(); return; }
+    const now = Date.now();
+    const hasDue = getEconEventsInRange(econModalState.start, econModalState.end).some(ev =>
+      ev.status !== 'released' && ev.status !== 'cancelled' && !ev.watch_exhausted && !(ev.meta && ev.meta.data_mode === 'schedule_only') && new Date(ev.release_at).getTime() <= now + 2 * 60 * 1000);
+    if (!hasDue) return;
+    loadEconEvents(econModalState.start, econModalState.end, { force: true }).then(() => {
+      renderEconModal();
+      refreshCalendarEconIndicators();
+      econRepaintOpenViews();
+    });
+  }, ECON_LIVE_REFRESH_MS);
+}
+
+function stopEconLiveRefresh() {
+  if (econModalTimer) clearInterval(econModalTimer);
+  econModalTimer = null;
+}
+
+function renderEconModal() {
+  if (!econModalState) return;
+  const { mode, start, end, focusId } = econModalState;
+  const title = document.getElementById('econModalTitle');
+  const sub = document.getElementById('econModalSub');
+  const body = document.getElementById('econModalBody');
+  if (!title || !sub || !body) return;
+
+  const events = getEconEventsInRange(start, end);
+  title.textContent = mode === 'day' ? formatEconDateLong(start) : `${formatEconDateShort(start)} to ${formatEconDateShort(end)}`;
+  sub.textContent = events.length
+    ? `${events.length} high-impact U.S. release${events.length === 1 ? '' : 's'}`
+    : 'No high-impact U.S. releases';
+
+  if (!events.length) {
+    body.innerHTML = `<div class="econ-empty">No high-impact U.S. economic events ${mode === 'day' ? 'on this day' : 'this week'}.</div>`;
+    return;
+  }
+
+  let html = '';
+  if (mode === 'week') {
+    const byDate = {};
+    events.forEach(ev => { (byDate[ev.release_date_et] ||= []).push(ev); });
+    Object.keys(byDate).sort().forEach(date => {
+      html += `<div class="econ-day-heading">${econEscape(formatEconDateHeading(date))}</div>`;
+      html += byDate[date].map(ev => renderEconEventCard(ev, ev.id === focusId)).join('');
+    });
+  } else {
+    html = events.map(ev => renderEconEventCard(ev, ev.id === focusId)).join('');
+  }
+  html += `<div class="econ-modal-note">Times are shown in your local time zone alongside the official Eastern time. Sources: BLS, BEA, U.S. Census Bureau, Federal Reserve, DOL. "High impact" is Tradeprint's curated list of major U.S. releases.</div>`;
+  body.innerHTML = html;
+
+  if (focusId) {
+    const card = body.querySelector(`[data-econ-id="${CSS.escape(focusId)}"]`);
+    if (card) card.scrollIntoView({ block: 'center' });
+    econModalState.focusId = null;
+  }
+}
+
+// Shared card renderer (day list, week list, focused view)
+function renderEconEventCard(ev, focused = false) {
+  const t = formatEconTime(ev);
+  const s = getEconStatus(ev);
+  const released = ev.status === 'released';
+  const metrics = ev.metrics || [];
+  const timeHtml = t.same ? `${econEscape(t.et)} ET` : `${econEscape(t.local)} <span>· ${econEscape(t.et)} ET</span>`;
+
+  let metricsHtml = '';
+  if (metrics.length) {
+    const rows = metrics.map(m => {
+      const actual = released ? formatEconValue(m, 'actual') : null;
+      const previous = formatEconValue(m, 'previous');
+      const revisedFrom = formatEconValue(m, 'previous_revised_from');
+      const revisedTo = formatEconValue(m, 'revised_actual');
+      const actualCell = actual != null
+        ? `<span class="econ-metric-val">${econEscape(actual)}${revisedTo ? `<span class="econ-metric-sub">later revised to ${econEscape(revisedTo)}</span>` : ''}</span>`
+        : `<span class="econ-metric-val empty">—<span class="econ-metric-sub">${released ? 'See official release' : s.key === 'schedule_only' ? 'Not retrieved' : 'Upcoming'}</span></span>`;
+      const prevCell = previous != null
+        ? `<span class="econ-metric-val">${econEscape(previous)}${revisedFrom ? `<span class="econ-metric-sub">revised from ${econEscape(revisedFrom)}</span>` : ''}</span>`
+        : `<span class="econ-metric-val empty">—</span>`;
+      return `<div class="econ-metric-row"><span class="econ-metric-name">${econEscape(m.display_name)}</span>${actualCell}${prevCell}</div>`;
+    }).join('');
+    metricsHtml = `<div class="econ-metrics"><div class="econ-metric-row econ-metric-head"><span>Metric</span><span class="econ-metric-val">Actual</span><span class="econ-metric-val">Previous</span></div>${rows}</div>`;
+  }
+
+  const foot = [];
+  if (ev.reference_period) foot.push(`Reference period: <b>${econEscape(ev.reference_period)}</b>`);
+  if (released) foot.push(`Released: <b>${econEscape(formatEconDateShort(ev.release_date_et))} at ${econEscape(t.et)} ET</b>`);
+  else if (s.key === 'due') foot.push('Awaiting the official release. This view refreshes automatically.');
+  else if (s.key === 'delayed') foot.push('The agency has not published yet. Still checking.');
+  else if (s.key === 'unavailable') foot.push('No official data could be retrieved for this release.');
+  else if (s.key === 'schedule_only') foot.push(econEscape((ev.meta && ev.meta.data_note) || 'Official numbers are not retrieved for this release yet; use the official link.'));
+  if (ev.meta && ev.meta.sep) {
+    foot.push(ev.meta.sep_url
+      ? `Includes the Summary of Economic Projections · <a class="econ-inline-link" href="${econEscape(ev.meta.sep_url)}" target="_blank" rel="noopener">SEP ↗</a>`
+      : 'Includes the Summary of Economic Projections');
+  }
+  const sourceUrl = ev.release_url || ev.source_url;
+
+  return `<div class="econ-card${focused ? ' focus' : ''}" data-econ-id="${econEscape(ev.id)}">
+    <div class="econ-card-top">
+      <div class="econ-card-time">${timeHtml}</div>
+      <div class="econ-status-pill ${econEscape(s.key)}">${econEscape(s.label)}</div>
+    </div>
+    <div class="econ-card-name">${econEscape(ev.display_name)}</div>
+    <div class="econ-card-meta">${econEscape(ev.currency || 'USD')} · <b>High Impact</b> · ${econEscape(ev.agency_name)}</div>
+    ${metricsHtml}
+    <div class="econ-card-foot">
+      ${foot.map(line => `<div class="econ-card-foot-line">${line}</div>`).join('')}
+      ${sourceUrl ? `<a class="econ-source-link" href="${econEscape(sourceUrl)}" target="_blank" rel="noopener">View Official Release ↗</a>` : ''}
+    </div>
+  </div>`;
 }
 
 // ═══════════════════════════════════════════════════════════════
