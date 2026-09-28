@@ -2808,69 +2808,44 @@ body.light .cal-day-news {
   .econ-news-btn { min-height: 36px; padding: 0 12px; font-size: 13px; }
 }
 
-/* compact preview inside the day modal */
-.econ-day-block {
-  margin: 20px 36px 0;
-  padding: 12px 14px;
-  border: 1px solid rgba(239, 68, 68, 0.25);
-  border-radius: 10px;
-  background: rgba(239, 68, 68, 0.05);
-}
-.econ-day-block-title {
+/* compact news strip inside the day modal (secondary market context) */
+.econ-day-strip {
+  --strip-muted: #8f8f8f;
+  --strip-strong: #d6d6d6;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 6px;
-  font-size: 11px;
-  font-weight: 800;
-  color: var(--danger);
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-}
-.econ-day-block-hint { font-size: 10px; font-weight: 700; letter-spacing: 0.5px; opacity: 0.75; }
-.econ-preview-list { display: flex; flex-direction: column; }
-.econ-preview-row {
-  display: grid;
-  grid-template-columns: 72px minmax(0, 1fr) auto auto;
-  align-items: center;
   gap: 10px;
-  min-height: 44px;
-  padding: 6px 4px;
-  background: none;
+  width: calc(100% - 52px);
+  min-height: 34px;
+  margin: 12px 26px 0;
+  padding: 7px 10px;
   border: none;
-  border-top: 1px solid rgba(239, 68, 68, 0.12);
-  border-radius: 6px;
-  color: var(--text);
-  cursor: pointer;
-  text-align: left;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--strip-muted);
   font: inherit;
+  font-size: 13px;
+  line-height: 1.3;
+  text-align: left;
+  cursor: pointer;
   transition: background 0.15s;
 }
-.econ-preview-row:first-child { border-top: none; }
-.econ-preview-row:hover { background: rgba(255, 255, 255, 0.03); }
-.econ-preview-time { font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.econ-preview-name { min-width: 0; font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.econ-preview-status { font-size: 11px; font-weight: 600; color: var(--text2); white-space: nowrap; }
-.econ-preview-tag {
-  display: inline-flex;
-  align-items: center;
-  min-height: 20px;
-  padding: 0 7px;
-  border-radius: 6px;
-  border: 1px solid rgba(239, 68, 68, 0.35);
-  background: rgba(239, 68, 68, 0.1);
-  color: var(--danger);
-  font-size: 10px;
-  font-weight: 900;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
+body.light .econ-day-strip { --strip-muted: #777777; --strip-strong: #2a2a2a; }
+.econ-day-strip:hover { background: rgba(255, 255, 255, 0.03); }
+body.light .econ-day-strip:hover { background: rgba(0, 0, 0, 0.035); }
+.econ-day-strip:focus-visible { outline: none; box-shadow: inset 0 0 0 1px var(--accent); }
+.econ-day-strip-icon { display: inline-flex; flex: 0 0 auto; }
+.econ-day-strip-icon svg { width: 14px; height: 14px; stroke: var(--danger); fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; opacity: 0.85; }
+.econ-day-strip-label { flex: 0 0 auto; white-space: nowrap; }
+.econ-day-strip-label b { color: var(--strip-strong); font-weight: 700; }
+.econ-day-strip-events { flex: 1 1 auto; min-width: 0; padding-left: 10px; border-left: 1px solid var(--border); overflow: hidden; white-space: nowrap; }
+.econ-day-strip-time { margin-right: 5px; color: var(--strip-strong); font-weight: 600; font-variant-numeric: tabular-nums; }
+.econ-day-strip-sep { margin: 0 6px; opacity: 0.55; }
+.econ-day-strip-chevron { flex: 0 0 auto; margin-left: auto; font-size: 16px; line-height: 1; opacity: 0.5; transition: opacity 0.15s; }
+.econ-day-strip:hover .econ-day-strip-chevron { opacity: 1; }
+.econ-day-strip.is-summary .econ-day-strip-events { display: none; }
 @media (max-width: 768px) {
-  .econ-day-block { margin: 14px 16px 0; padding: 10px 12px; }
-  .econ-preview-row { grid-template-columns: 62px minmax(0, 1fr) auto; }
-  .econ-preview-status { display: none; }
-  .econ-preview-name { white-space: normal; font-size: 13px; line-height: 1.3; }
+  .econ-day-strip { width: calc(100% - 12px); margin: 10px 6px 0; }
 }
 
 /* full Economic News modal (reuses .day-modal-overlay / .day-modal-box) */
@@ -18307,7 +18282,9 @@ function handleCalendarNewsPointerUp(event) {
   return true;
 }
 
-// ── day modal: header pill + compact preview ───────────────────
+// ── day modal: header pill + compact news strip ────────────────
+const ECON_STRIP_MAX_INLINE = 3; // more events than this always collapse to "News · N events"
+
 function ensureEconDayModalNodes() {
   let btn = document.getElementById('dayModalNewsBtn');
   if (!btn) {
@@ -18326,32 +18303,35 @@ function ensureEconDayModalNodes() {
   if (!block) {
     const banner = document.getElementById('dayRuleBanner');
     if (!banner) return null;
-    block = document.createElement('div');
+    block = document.createElement('button');
+    block.type = 'button';
     block.id = 'dayEconBlock';
-    block.className = 'econ-day-block';
+    block.className = 'econ-day-strip';
     block.style.display = 'none';
-    block.addEventListener('click', e => {
-      const row = e.target.closest('[data-econ-open]');
-      if (!row) return;
-      e.stopPropagation();
-      const ev = econEventsById[row.dataset.econOpen];
-      if (ev) openEconModal('day', ev.release_date_et, ev.release_date_et, ev.id);
-    });
+    block.addEventListener('click', e => { e.stopPropagation(); openEconModalForDay(); });
     banner.insertAdjacentElement('afterend', block);
   }
   return { btn, block };
 }
 
-function renderEconPreviewRow(ev) {
-  const t = formatEconTime(ev);
-  const s = getEconStatus(ev);
-  return `<button type="button" class="econ-preview-row" data-econ-open="${econEscape(ev.id)}">
-    <span class="econ-preview-time">${econEscape(t.local)}</span>
-    <span class="econ-preview-name">${econEscape(ev.display_name)}</span>
-    <span class="econ-preview-status">${econEscape(s.label)}</span>
-    <span class="econ-preview-tag">High</span>
-  </button>`;
+function renderEconStripEvent(ev) {
+  return `<span><span class="econ-day-strip-time">${econEscape(formatEconTime(ev).local)}</span>${econEscape(ev.display_name)}</span>`;
 }
+
+// Collapses the strip to "News · N events" when the event list can't fit on one line.
+function fitDayEconStrip() {
+  const strip = document.getElementById('dayEconBlock');
+  const list = strip?.querySelector('.econ-day-strip-events');
+  if (!list || !document.getElementById('dayModal')?.classList.contains('active')) return;
+  strip.classList.remove('is-summary');
+  if (list.scrollWidth > list.clientWidth + 1) strip.classList.add('is-summary');
+}
+
+let econStripFitFrame = 0;
+window.addEventListener('resize', () => {
+  cancelAnimationFrame(econStripFitFrame);
+  econStripFitFrame = requestAnimationFrame(fitDayEconStrip);
+});
 
 async function renderDayEconPreview(dateStr, options = {}) {
   if (!dateStr) return;
@@ -18370,10 +18350,19 @@ async function renderDayEconPreview(dateStr, options = {}) {
     }
     nodes.btn.style.display = 'inline-flex';
     nodes.btn.innerHTML = `${ECON_NEWS_ICON}<span class="econ-news-btn-long">${econEscape(getEconNewsButtonLabel(events))}</span><span class="econ-news-btn-short">News ${events.length}</span>`;
-    nodes.block.style.display = 'block';
+
+    const countText = `${events.length} event${events.length === 1 ? '' : 's'}`;
+    const inline = events.length <= ECON_STRIP_MAX_INLINE;
+
+    nodes.block.title = events.map(ev => `${formatEconTime(ev).local} · ${ev.display_name} (${getEconStatus(ev).label})`).join('\n');
     nodes.block.innerHTML = `
-      <div class="econ-day-block-title"><span>Economic News</span><span class="econ-day-block-hint">${events.length} high impact</span></div>
-      <div class="econ-preview-list">${events.map(renderEconPreviewRow).join('')}</div>`;
+      <span class="econ-day-strip-icon">${ECON_NEWS_ICON}</span>
+      <span class="econ-day-strip-label"><b>News</b><span class="econ-day-strip-sep">·</span>${countText}</span>
+      ${inline ? `<span class="econ-day-strip-events">${events.map(renderEconStripEvent).join('<span class="econ-day-strip-sep">·</span>')}</span>` : ''}
+      <span class="econ-day-strip-chevron" aria-hidden="true">›</span>`;
+    nodes.block.classList.toggle('is-summary', !inline);
+    nodes.block.style.display = '';
+    fitDayEconStrip();
   };
 
   paint();
