@@ -18082,18 +18082,7 @@ function econTodayEt() {
 // Same session your other REST calls use. If your dashboard exposes the token
 // through a helper (e.g. getAccessToken()), return it here instead.
 function econGetAccessToken() {
-  try {
-    if (typeof currentSession !== 'undefined' && currentSession && currentSession.access_token) return currentSession.access_token;
-    if (typeof session !== 'undefined' && session && session.access_token) return session.access_token;
-    if (typeof accessToken === 'string' && accessToken) return accessToken;
-    if (typeof authToken === 'string' && authToken) return authToken;
-    const raw = localStorage.getItem('sb-fpdedufotkmvjsvxdcmk-auth-token');
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      return (parsed && (parsed.access_token || (parsed.currentSession && parsed.currentSession.access_token))) || null;
-    }
-  } catch (_) { /* ignore */ }
-  return null;
+  return token || localStorage.getItem('tp_token') || null;
 }
 
 // ── data ───────────────────────────────────────────────────────
