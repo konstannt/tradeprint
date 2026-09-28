@@ -2753,20 +2753,26 @@ select.tp-native-select {
   height: 16px;
   padding: 0 5px 0 4px;
   border-radius: 6px;
-  border: 1px solid rgba(239, 68, 68, 0.35);
-  background: rgba(239, 68, 68, 0.1);
-  color: var(--danger);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+  color: #9a9a9a;
   font-size: 10px;
   font-weight: 800;
   line-height: 1;
   pointer-events: none;
   z-index: 1;
 }
+body.light .cal-day-news {
+  border-color: var(--border);
+  background: rgba(0, 0, 0, 0.03);
+  color: var(--text2);
+}
 .cal-day-news svg { width: 10px; height: 10px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 .cal-cell.other-month .cal-day-news { opacity: 0.55; }
 @media (hover: hover) and (pointer: fine) {
   .cal-day-news { pointer-events: auto; cursor: pointer; transition: background 0.15s, border-color 0.15s; }
-  .cal-day-news:hover { background: rgba(239, 68, 68, 0.18); border-color: rgba(239, 68, 68, 0.6); }
+    .cal-day-news:hover { background: rgba(255, 255, 255, 0.09); border-color: rgba(255, 255, 255, 0.24); }
+  body.light .cal-day-news:hover { background: rgba(0, 0, 0, 0.06); border-color: #c8c8c8; }
 }
 @media (max-width: 768px) {
   .cal-day-news { bottom: 2px; left: 2px; height: 12px; padding: 0 3px 0 2px; gap: 2px; border-radius: 4px; font-size: 8px; }
