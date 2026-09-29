@@ -9532,6 +9532,8 @@ function setProPaywallContent(sectionName) {
   copy.textContent = 'Upgrade to unlock your trading fingerprint, strategy rankings, confluence intelligence, best and worst trading windows, and upcoming AI feedback.';
 }
 
+    const MANUAL_PROVIDER_VALUES = ['manual', 'complimentary', 'comp'];
+
 // Where a subscription row came from:
 //   'stripe'  new paid subscriptions (the stripe-webhook should write provider = 'stripe')
 //   'whop'    legacy Whop rows, kept only so existing Whop subscribers keep working
@@ -21874,13 +21876,38 @@ let currentMentorTraderId = null;
 // ── Invite ───────────────────────────────────────────────────
 
 async function sendMentorInvite() {
+  const emailInput = document.getElementById('mentorEmailInput');
+  const msg = document.getElementById('mentorInviteMsg');
+  if (!emailInput || !msg) return;
+
   // Inviting a mentor is Tradeprint Pro.
   if (!hasPro) {
-    const msg = document.getElementById('mentorInviteMsg');
-    if (msg) {
-      msg.textContent = 'Inviting a mentor needs Tradeprint Pro.';
-      msg.className = 'msg error';
-    }
+    msg.textContent = 'Inviting a mentor needs Tradeprint Pro.';
+    msg.className = 'msg error';
+    return;
+  }
+
+  const email = emailInput.value.trim().toLowerCase();
+
+  msg.textContent = '';
+  msg.className = 'msg';
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    msg.textContent = 'Enter a valid email address.';
+    msg.className = 'msg error';
+    return;
+  }
+
+  if (email === String(user.email || '').toLowerCase()) {
+    msg.textContent = 'You cannot invite yourself.';
+    msg.className = 'msg error';
+    return;
+  }
+
+  const existing = mentorRelationships.find(r => String(r.mentor_email || '').toLowerCase() === email && r.status !== 'revoked');
+  if (existing) {
+    msg.textContent = existing.status === 'pending' ? 'An invite was already sent to this email.' : 'This person is already your mentor.';
+    msg.className = 'msg error';
     return;
   }
 
@@ -21952,22 +21979,14 @@ async function refreshMentorViewAccess() {
   return myMentorships.length > 0;
 }
 
-// Mentor View is free. Anyone who is an active mentor for at least one trader
-// sees it in the sidebar, with or without Tradeprint Pro. It only has the mentor
-// side (traders you mentor, their review queue, feedback). The trader side,
-// the Mentorship tab, stays Tradeprint Pro.
-async function refreshMentorViewAccess() {
-  if (!user?.id) return false;
-
-  await loadMyMentorships();
-
-  const navEl = document.getElementById('mentor-dashboard-nav');
-  if (navEl) navEl.style.display = myMentorships.length ? 'flex' : 'none';
-
-  return myMentorships.length > 0;
-}
-
+// Feedback mentors left for me (trader side, shown on the Pro Mentorship page).
 async function loadTraderFeedback() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/mentor_feedback?trader_id=eq.${user.id}&select=*&order=created_at.desc&limit=20`, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
+  });
+  const data = await res.json().catch(() => null);
+  return res.ok && Array.isArray(data) ? data : [];
+}
 
 // ── Render: Trader side ──────────────────────────────────────
 
@@ -22240,15 +22259,60 @@ function closeReviewRequestModal() {
 }
 
 async function submitReviewRequest() {
+  const msg = document.getElementById('reviewRequestMsg');
+  const select = document.getElementById('reviewRequestMentorSelect');
+  const noteEl = document.getElementById('reviewRequestNote');
+  if (!msg || !select) return;
+
   // Review requests are Tradeprint Pro.
   if (!hasPro) {
-    const msg = document.getElementById('reviewRequestMsg');
-    if (msg) {
-      msg.textContent = 'Review requests need Tradeprint Pro.';
-      msg.className = 'modal-msg error';
-    }
+    msg.textContent = 'Review requests need Tradeprint Pro.';
+    msg.className = 'modal-msg error';
     return;
   }
+
+  msg.textContent = '';
+  msg.className = 'modal-msg';
+
+  const rel = mentorRelationships.find(r => r.id === select.value && r.status === 'active');
+
+  if (!rel) {
+    msg.textContent = 'Select an active mentor first.';
+    msg.className = 'modal-msg error';
+    return;
+  }
+
+  const payload = {
+    relationship_id: rel.id,
+    trader_id: user.id,
+    status: 'pending',
+    note_from_trader: noteEl?.value.trim() || null
+  };
+
+  if (reviewRequestContext.type === 'trade' && reviewRequestContext.id) payload.trade_id = reviewRequestContext.id;
+  if (reviewRequestContext.type === 'journal' && reviewRequestContext.id) payload.journal_date = reviewRequestContext.id;
+
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/review_requests`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal'
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (!res.ok) {
+    msg.textContent = 'Could not send the review request. Try again.';
+    msg.className = 'modal-msg error';
+    return;
+  }
+
+  msg.textContent = 'Review request sent!';
+  msg.className = 'modal-msg success';
+  setTimeout(closeReviewRequestModal, 900);
+}
 
 // ── Mentor Dashboard ──────────────────────────────────────────
 
