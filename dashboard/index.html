@@ -6250,6 +6250,53 @@ body.light .tp-activation-card {
     transition: none;
   }
 }
+
+    /* ─── MENTOR ACCESS (Free privacy control under the Mentorship paywall) ─── */
+#page-pro .pro-paywall {
+  flex-direction: column;
+  gap: 16px;
+}
+
+.mentor-access-section {
+  width: 100%;
+  max-width: 760px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 22px;
+}
+
+.mentor-access-section[hidden] {
+  display: none;
+}
+
+.mentor-access-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.mentor-access-copy {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text2);
+  margin-bottom: 14px;
+}
+
+.mentor-access-section .mentor-card:last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 768px) {
+  .mentor-access-section {
+    padding: 18px;
+  }
+
+  .mentor-access-section .mentor-card-actions,
+  .mentor-access-section .mentor-card-actions .btn-secondary {
+    width: 100%;
+  }
+}
     
   </style>
 </head>
@@ -7525,7 +7572,7 @@ body.light .tp-activation-card {
       <div id="propCenterContent"></div>
     </div>
     
-    <div class="page" id="page-pro">
+            <div class="page" id="page-pro">
   <div class="pro-paywall">
     <div class="pro-paywall-card">
       <div class="pro-paywall-badge">Tradeprint Pro</div>
@@ -7536,21 +7583,29 @@ body.light .tp-activation-card {
 
       <div class="pro-paywall-actions">
         <button class="btn-primary" onclick="window.location.href='/checkout'">
-          Upgrade to Pro
+          Upgrade to Tradeprint Pro
           <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;">
             <path d="M5 12h14"/>
             <path d="M13 5l7 7-7 7"/>
           </svg>
         </button>
 
-        <button class="pro-paywall-secondary" onclick="showPage('dashboard', document.querySelectorAll('.nav-item')[0])">
+        <button class="pro-paywall-secondary" onclick="showPage('dashboard', findNavItemForPage('dashboard'))">
           Back to Dashboard
         </button>
       </div>
     </div>
+
+    <!-- Mentor access: account privacy control for Free traders, shown only under the Mentorship paywall -->
+    <div class="mentor-access-section" id="mentorAccessSection" hidden>
+      <div class="mentor-access-title">Mentor access</div>
+      <div class="mentor-access-copy">These mentors can currently see your account. You can remove their access at any time, with or without Tradeprint Pro.</div>
+      <div id="mentorAccessList"></div>
+      <div class="msg" id="mentorAccessMsg" aria-live="polite"></div>
+    </div>
   </div>
 </div>
-
+    
 <div class="page" id="page-settings">
       <div class="page-title">Settings</div>
       <div class="page-subtitle">Manage your account and preferences.</div>
@@ -7766,7 +7821,7 @@ body.light .tp-activation-card {
 <!-- MENTOR VIEW TRADER PAGE -->
 <div class="page" id="page-mentor-trader-view">
   <div style="display:flex;align-items:center;gap:14px;margin-bottom:28px;">
-    <button class="btn-secondary" onclick="showPage('mentor-dashboard', document.querySelector('.nav-item[onclick*=mentor-dashboard]'))">← Back</button>
+    <button class="btn-secondary" onclick="showPage('mentor-dashboard', findNavItemForPage('mentor-dashboard'))">← Back</button>
     <div>
       <div class="page-title" id="mentorViewTraderTitle" style="margin-bottom:0;">Trader</div>
       <div class="page-subtitle" id="mentorViewTraderSub" style="margin-bottom:0;"></div>
@@ -9298,7 +9353,8 @@ loadProfile()
   loadCalendarData().then(() => { pageLoaded.calendar = true; }).catch(console.warn);
     loadTrades().then(() => { pageLoaded.trades = true; }).catch(console.warn);
   loadTradingRules().catch(console.warn);
-  loadUserMistakeTags().catch(console.warn);
+    loadUserMistakeTags().catch(console.warn);
+  refreshMentorViewAccess().catch(console.warn); // Mentor View is free for active mentors, Pro or not
   // Notes are lazy-loaded only when opened so large note state cannot slow app boot/navigation.
 
   printsWarmPromise = ensureSubscriptionLoaded()
@@ -9433,11 +9489,20 @@ async function ensureSubscriptionLoaded() {
   return hasPro;
 }
 
+// Which section the shared paywall is showing ('mentorship', 'prop', ...).
+let proPaywallSection = null;
+
 function setProPaywallContent(sectionName) {
   const title = document.getElementById('proPaywallTitle');
   const copy = document.getElementById('proPaywallCopy');
 
   if (!title || !copy) return;
+
+  proPaywallSection = sectionName;
+
+  // Mentor access (an account privacy control) only shows under the Mentorship paywall.
+  if (sectionName === 'mentorship') loadMentorAccessSection().catch(console.warn);
+  else renderMentorAccessSection();
 
   if (sectionName === 'calculator') {
     title.textContent = 'The Calculator is only available through Tradeprint Pro.';
@@ -9448,6 +9513,18 @@ function setProPaywallContent(sectionName) {
   if (sectionName === 'prints') {
     title.textContent = 'Prints is only available through Tradeprint Pro.';
     copy.textContent = 'Upgrade to share logged trades, follow other traders, view profiles, and build your Prints feed.';
+    return;
+  }
+
+  if (sectionName === 'mentorship') {
+    title.textContent = 'Mentorship is only available through Tradeprint Pro.';
+    copy.textContent = 'Upgrade to invite a mentor, share your trades and journal with them, request reviews, and keep their feedback in one place.';
+    return;
+  }
+
+  if (sectionName === 'prop') {
+    title.textContent = 'The Prop Center is only available through Tradeprint Pro.';
+    copy.textContent = 'Upgrade to track evaluations, funded accounts, payouts, drawdown, and your true prop firm profitability in one place.';
     return;
   }
 
@@ -11098,7 +11175,11 @@ function handlePointsCalcTickerChange() {
   }
 }
 
-    let pageSwitchToken = 0;
+    // Pages that need Tradeprint Pro. Their nav items stay visible; free users get
+// the shared Pro paywall (page-pro) instead. Access comes only from hasPro.
+const TRADEPRINT_PRO_PAGES = ['tradeprint', 'calculator', 'prints', 'mentorship', 'prop'];
+
+let pageSwitchToken = 0;
 
 async function showPage(name, el) {
   const tok = ++pageSwitchToken;
@@ -11116,7 +11197,7 @@ async function showPage(name, el) {
   closeMobileSidebar();
 
   const requestedName = name;
-  const isProSection = name === 'tradeprint' || name === 'calculator' || name === 'prints';
+   const isProSection = TRADEPRINT_PRO_PAGES.includes(name);
 
   if (isProSection && !(await ensureSubscriptionLoaded())) {
     setProPaywallContent(name);
@@ -11135,6 +11216,10 @@ async function showPage(name, el) {
     try {
     if (name === 'prop') {
       await openPropCenterPage();
+    } else if (name === 'mentor-dashboard') {
+      // Reloaded on every visit (not just the first), so a trader who removes
+      // your access drops off the list and the sidebar link updates.
+      await loadMentorDashboard();
     } else if (name === 'tradeprint') {
       await loadTradeprint();
       pageLoaded.tradeprint = true;
@@ -11891,8 +11976,9 @@ async function uploadNoteImage(file, folder = 'notes', options = {}) {
   document.getElementById('dayModal').classList.add('active');
   renderDayEconPreview(dateStr);
 
-// Inject review request button into day modal header if trader has active mentors
-const activeMentors = mentorRelationships.filter(r => r.status === 'active');
+// Inject review request button into day modal header if trader has active mentors.
+// Mentorship is Tradeprint Pro, so free users never get this button.
+const activeMentors = hasPro ? mentorRelationships.filter(r => r.status === 'active') : [];
 const existingReviewBtn = document.getElementById('dayModalReviewBtn');
 if (existingReviewBtn) existingReviewBtn.remove();
 if (activeMentors.length) {
@@ -19666,6 +19752,10 @@ async function loadPropCenter() {
 }
 
 async function openPropCenterPage() {
+  // Prop Center is Tradeprint Pro. showPage() already shows the paywall to
+  // free users; this also stops prop data loading if it is ever called another way.
+  if (!hasPro) return;
+
   if (!propState.loaded) await loadPropCenter();
   if (!tradesLoaded && !allLoadedTrades.length) await loadTrades().catch(console.warn);
   renderPropCenter();
@@ -21786,29 +21876,13 @@ let currentMentorTraderId = null;
 // ── Invite ───────────────────────────────────────────────────
 
 async function sendMentorInvite() {
-  const emailInput = document.getElementById('mentorEmailInput');
-  const msg = document.getElementById('mentorInviteMsg');
-  const email = emailInput.value.trim().toLowerCase();
-
-  msg.textContent = '';
-  msg.className = 'msg';
-
-  if (!email || !email.includes('@')) {
-    msg.textContent = 'Enter a valid email address.';
-    msg.className = 'msg error';
-    return;
-  }
-
-  if (email === user.email?.toLowerCase()) {
-    msg.textContent = 'You cannot invite yourself.';
-    msg.className = 'msg error';
-    return;
-  }
-
-  const existing = mentorRelationships.find(r => r.mentor_email.toLowerCase() === email && r.status !== 'revoked');
-  if (existing) {
-    msg.textContent = existing.status === 'pending' ? 'Invite already sent to this email.' : 'This person is already your mentor.';
-    msg.className = 'msg error';
+  // Inviting a mentor is Tradeprint Pro.
+  if (!hasPro) {
+    const msg = document.getElementById('mentorInviteMsg');
+    if (msg) {
+      msg.textContent = 'Inviting a mentor needs Tradeprint Pro.';
+      msg.className = 'msg error';
+    }
     return;
   }
 
@@ -21865,13 +21939,37 @@ async function loadMyMentorships() {
   myMentorships = Array.isArray(data) ? data : [];
 }
 
-async function loadTraderFeedback() {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/mentor_feedback?trader_id=eq.${user.id}&order=created_at.desc&limit=20`, {
-    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
-  });
-  const data = await res.json();
-  return Array.isArray(data) ? data : [];
+// Mentor View is free. Anyone who is an active mentor for at least one trader
+// sees it in the sidebar, with or without Tradeprint Pro. It only has the mentor
+// side (traders you mentor, their review queue, feedback). The trader side,
+// the Mentorship tab, stays Tradeprint Pro.
+async function refreshMentorViewAccess() {
+  if (!user?.id) return false;
+
+  await loadMyMentorships();
+
+  const navEl = document.getElementById('mentor-dashboard-nav');
+  if (navEl) navEl.style.display = myMentorships.length ? 'flex' : 'none';
+
+  return myMentorships.length > 0;
 }
+
+// Mentor View is free. Anyone who is an active mentor for at least one trader
+// sees it in the sidebar, with or without Tradeprint Pro. It only has the mentor
+// side (traders you mentor, their review queue, feedback). The trader side,
+// the Mentorship tab, stays Tradeprint Pro.
+async function refreshMentorViewAccess() {
+  if (!user?.id) return false;
+
+  await loadMyMentorships();
+
+  const navEl = document.getElementById('mentor-dashboard-nav');
+  if (navEl) navEl.style.display = myMentorships.length ? 'flex' : 'none';
+
+  return myMentorships.length > 0;
+}
+
+async function loadTraderFeedback() {
 
 // ── Render: Trader side ──────────────────────────────────────
 
@@ -21957,24 +22055,124 @@ async function updateMentorPermission(relationshipId, permKey, value) {
   }
 }
 
+// Removing a mentor is an account privacy control, so it works with or without
+// Tradeprint Pro. Pro traders use it from the Mentorship page; Free traders use
+// it from Mentor access under the Mentorship paywall.
 async function revokeMentor(relationshipId) {
-  if (!confirm('Revoke this mentor\'s access? They will no longer be able to view your trades or journals.')) return;
+  if (!confirm('Revoke this mentor\'s access? They will no longer be able to view your trades or journals.')) return false;
 
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/mentor_relationships?id=eq.${relationshipId}`, {
-    method: 'PATCH',
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=minimal'
-    },
-    body: JSON.stringify({ status: 'revoked', updated_at: new Date().toISOString() })
-  });
+  let revoked = false;
 
-  if (res.ok) {
-    await loadMentorRelationships();
-    renderMentorRelationships();
+  try {
+    // Ask for the updated row back. With return=minimal, an update that the
+    // database silently blocked would still look like a success.
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/mentor_relationships?id=eq.${relationshipId}&trader_user_id=eq.${user.id}`, {
+      method: 'PATCH',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify({ status: 'revoked', updated_at: new Date().toISOString() })
+    });
+
+    const data = res.ok ? await res.json().catch(() => null) : null;
+    revoked = Array.isArray(data) && data.some(r => r.id === relationshipId && r.status === 'revoked');
+  } catch (err) {
+    console.warn('Revoke mentor failed:', err);
   }
+
+  if (!revoked) {
+    const shown = renderMentorAccessSection({ message: "Couldn't remove access. Try again.", tone: 'error' });
+    if (!shown) alert("Couldn't remove this mentor's access. Try again.");
+    return false;
+  }
+
+  mentorRelationships = mentorRelationships.map(r => r.id === relationshipId ? { ...r, status: 'revoked' } : r);
+  await loadMentorRelationships().catch(console.warn);
+
+  if (hasPro) renderMentorRelationships();
+  renderMentorAccessSection({ message: 'Access removed.', tone: 'success' });
+  return true;
+}
+
+// ─── MENTOR ACCESS (account privacy control) ─────────────────
+// Shown under the Mentorship paywall for traders without Tradeprint Pro.
+// It only lists mentors who currently have active access and lets the trader
+// remove it with revokeMentor(). Nothing else from Mentorship: no invites,
+// no permission changes, no review requests, no feedback or history.
+async function loadMentorAccessSection() {
+  // Show what is already known right away, then refresh from the server.
+  renderMentorAccessSection();
+
+  try {
+    await loadMentorRelationships();
+  } catch (err) {
+    console.warn('Mentor access check failed:', err);
+    renderMentorAccessSection({ message: "Couldn't check which mentors have access to your account. Refresh to try again.", tone: 'error', loadFailed: true });
+    return;
+  }
+
+  renderMentorAccessSection();
+}
+
+function describeMentorAccess(permissions) {
+  const perms = permissions || {};
+  const parts = [];
+
+  if (perms.canViewTrades) parts.push('trades');
+  if (perms.canViewJournals) parts.push('journal');
+  if (perms.canViewPnL) parts.push('PnL');
+  if (perms.canViewAccountNames) parts.push('account names');
+
+  return parts.length ? `Can see your ${parts.join(', ')}` : 'Has access to your account';
+}
+
+// Returns true when the section is showing.
+function renderMentorAccessSection({ message = '', tone = '', loadFailed = false } = {}) {
+  const section = document.getElementById('mentorAccessSection');
+  const list = document.getElementById('mentorAccessList');
+  const msg = document.getElementById('mentorAccessMsg');
+  if (!section || !list || !msg) return false;
+
+  // Only under the Mentorship paywall. Pro traders manage mentors on the full Mentorship page.
+  if (proPaywallSection !== 'mentorship' || hasPro) {
+    section.hidden = true;
+    return false;
+  }
+
+  const active = loadFailed ? [] : mentorRelationships.filter(r => r.status === 'active');
+
+  // Nothing to manage and nothing to report.
+  if (!active.length && !message) {
+    section.hidden = true;
+    list.innerHTML = '';
+    msg.textContent = '';
+    return false;
+  }
+
+  list.innerHTML = active.length
+    ? active.map(r => `
+      <div class="mentor-card">
+        <div class="mentor-card-info">
+          <div class="mentor-card-email">${escapeHtml(r.mentor_email)}</div>
+          <div class="mentor-card-meta">
+            <span class="mentor-status-pill active">Active</span>
+            &nbsp;· ${escapeHtml(describeMentorAccess(r.permissions))}
+          </div>
+        </div>
+        <div class="mentor-card-actions">
+          <button class="btn-secondary" type="button" style="font-size:13px;" onclick="revokeMentor('${escapeHtml(r.id)}')">Remove access</button>
+        </div>
+      </div>
+    `).join('')
+    : (loadFailed ? '' : '<div class="mentor-empty">No mentors have access to your account.</div>');
+
+  msg.textContent = message;
+  msg.className = `msg${tone ? ` ${tone}` : ''}`;
+  section.hidden = false;
+  return true;
 }
 
 async function renderTraderFeedback() {
@@ -22004,13 +22202,15 @@ async function renderTraderFeedback() {
 // ── Mentorship page init ──────────────────────────────────────
 
 async function loadMentorshipPage() {
+  // Mentorship is Tradeprint Pro. showPage() already shows the paywall to
+  // free users; this also stops mentorship data loading if it is ever called another way.
+  if (!hasPro) return;
+
   await loadMentorRelationships();
   renderMentorRelationships();
   await renderTraderFeedback();
 
-  await loadMyMentorships();
-  const navEl = document.getElementById('mentor-dashboard-nav');
-  if (navEl) navEl.style.display = myMentorships.length ? 'flex' : 'none';
+  await refreshMentorViewAccess();
 }
 
 // ── Review Request ────────────────────────────────────────────
@@ -22042,60 +22242,22 @@ function closeReviewRequestModal() {
 }
 
 async function submitReviewRequest() {
-  const select = document.getElementById('reviewRequestMentorSelect');
-  const note = document.getElementById('reviewRequestNote');
-  const msg = document.getElementById('reviewRequestMsg');
-  const relationshipId = select.value;
-
-  if (!relationshipId) {
-    msg.textContent = 'Select a mentor first.';
-    msg.className = 'modal-msg error';
+  // Review requests are Tradeprint Pro.
+  if (!hasPro) {
+    const msg = document.getElementById('reviewRequestMsg');
+    if (msg) {
+      msg.textContent = 'Review requests need Tradeprint Pro.';
+      msg.className = 'modal-msg error';
+    }
     return;
   }
-
-  const rel = mentorRelationships.find(r => r.id === relationshipId);
-  if (!rel) return;
-
-  const payload = {
-    trader_id: user.id,
-    mentor_id: rel.mentor_user_id,
-    relationship_id: relationshipId,
-    status: 'pending',
-    note_from_trader: note?.value.trim() || null
-  };
-
-  if (reviewRequestContext.type === 'trade') {
-    payload.trade_id = reviewRequestContext.id;
-  } else if (reviewRequestContext.type === 'journal') {
-    payload.journal_date = reviewRequestContext.id;
-  }
-
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/review_requests`, {
-    method: 'POST',
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=minimal'
-    },
-    body: JSON.stringify(payload)
-  });
-
-  if (!res.ok) {
-    msg.textContent = 'Could not send review request.';
-    msg.className = 'modal-msg error';
-    return;
-  }
-
-  msg.textContent = 'Review request sent!';
-  msg.className = 'modal-msg success';
-  setTimeout(() => closeReviewRequestModal(), 1200);
-}
 
 // ── Mentor Dashboard ──────────────────────────────────────────
 
 async function loadMentorDashboard() {
-  await loadMyMentorships();
+  // Also updates the Mentor View sidebar link, so it disappears once a trader
+  // removes your last active access.
+  await refreshMentorViewAccess();
 
   const tradersEl = document.getElementById('mentorTradersList');
   const queueEl = document.getElementById('mentorReviewQueue');
@@ -22184,7 +22346,17 @@ async function dismissReviewRequest(requestId) {
 async function openMentorTraderView(traderId, relationshipId) {
   currentMentorTraderId = traderId;
 
+  // Re-check first, so a trader who has removed your access can't be opened
+  // from an out-of-date list.
+  await refreshMentorViewAccess().catch(console.warn);
+
   const rel = myMentorships.find(r => r.id === relationshipId);
+
+  if (!rel) {
+    currentMentorTraderId = null;
+    await showPage('mentor-dashboard', findNavItemForPage('mentor-dashboard'));
+    return;
+  }
   const perms = rel?.permissions || {};
 
   const profileRes = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${traderId}&select=username&limit=1`, {
@@ -22391,6 +22563,8 @@ async function checkAndAcceptMentorInvite() {
 
   window.history.replaceState({}, document.title, window.location.pathname);
 
+    // Mentor View is free for active mentors, so its sidebar link shows up right away.
+  await refreshMentorViewAccess().catch(console.warn);
   showPage('mentor-dashboard', document.getElementById('mentor-dashboard-nav'));
 }
 
