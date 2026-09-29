@@ -10088,6 +10088,7 @@ function handleAccountModalClick(e) {
 }
 
 function renderAccountList() {
+  const list = document.getElementById('accountList');
   renderBrokerAccountLimitUsage();
 
   list.innerHTML = allAccounts.map(a => `
