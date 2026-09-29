@@ -5852,6 +5852,404 @@ select::-ms-expand {
 #logTradeModal.mistake-open .log-trade-layout {
   overflow: visible;
 }
+
+    /* ─── STRIPE CHECKOUT RETURN / ACTIVATION ─────────────────── */
+.tp-activation {
+  --act-muted: #9a9a9a;
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: max(20px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  background: rgba(5, 5, 5, 0.74);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.tp-activation.active {
+  display: flex;
+  animation: tpActFade 0.2s ease both;
+}
+
+body.light .tp-activation {
+  --act-muted: #666666;
+  background: rgba(240, 240, 240, 0.72);
+}
+
+.tp-activation-card {
+  position: relative;
+  width: 100%;
+  max-width: 440px;
+  max-height: calc(100vh - 40px);
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
+  padding: 32px 28px 26px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: radial-gradient(circle at top right, rgba(99,102,241,0.2), transparent 45%), var(--bg2);
+  box-shadow: 0 30px 90px rgba(0,0,0,0.5);
+  color: var(--text);
+  text-align: center;
+  animation: tpActRise 0.34s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+body.light .tp-activation-card {
+  box-shadow: 0 24px 70px rgba(0,0,0,0.14);
+}
+
+.tp-activation-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--act-muted);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s, background 0.2s;
+}
+
+.tp-activation-close:hover {
+  color: var(--text);
+  background: var(--border);
+}
+
+.tp-activation-mark {
+  width: 64px;
+  height: 64px;
+  margin: 4px auto 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(99,102,241,0.12);
+  box-shadow: 0 0 0 8px rgba(99,102,241,0.05);
+}
+
+/* Confirming: neutral spinner. The green check only appears once Pro is confirmed. */
+.tp-activation-spinner {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 3px solid rgba(99,102,241,0.25);
+  border-top-color: var(--accent);
+  animation: tpActSpin 0.9s linear infinite;
+}
+
+.tp-activation[data-status="slow"] .tp-activation-mark {
+  background: rgba(245,158,11,0.1);
+  box-shadow: 0 0 0 8px rgba(245,158,11,0.04);
+}
+
+.tp-activation[data-status="slow"] .tp-activation-spinner {
+  border-color: rgba(245,158,11,0.25);
+  border-top-color: #f59e0b;
+  animation-duration: 1.6s;
+}
+
+.tp-activation-mark svg {
+  display: none;
+  width: 40px;
+  height: 40px;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tp-activation[data-status="active"] .tp-activation-mark {
+  background: rgba(34,197,94,0.12);
+  box-shadow: 0 0 0 8px rgba(34,197,94,0.05);
+}
+
+.tp-activation[data-status="active"] .tp-activation-spinner {
+  display: none;
+}
+
+.tp-activation[data-status="active"] .tp-activation-mark svg {
+  display: block;
+}
+
+.tp-activation-ring {
+  stroke: rgba(34,197,94,0.35);
+  stroke-width: 2.5;
+}
+
+.tp-activation-check {
+  stroke: var(--success);
+  stroke-width: 3.5;
+  stroke-dasharray: 32;
+  stroke-dashoffset: 32;
+  animation: tpActCheck 0.5s 0.18s ease forwards;
+}
+
+.tp-activation-kicker {
+  margin-bottom: 8px;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+.tp-activation-title {
+  font-size: 26px;
+  font-weight: 900;
+  line-height: 1.15;
+  letter-spacing: -0.4px;
+  outline: none;
+}
+
+.tp-activation-copy {
+  margin-top: 8px;
+  color: var(--act-muted);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.tp-activation-steps {
+  display: grid;
+  gap: 12px;
+  margin: 22px 0 0;
+  padding: 14px 16px;
+  list-style: none;
+  text-align: left;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+}
+
+.tp-activation-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--act-muted);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.tp-activation-step.done,
+.tp-activation-step.active {
+  color: var(--text);
+}
+
+.tp-activation-step-icon {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tp-activation-step.done .tp-activation-step-icon {
+  border-color: var(--success);
+  background: var(--success);
+}
+
+.tp-activation-step.done .tp-activation-step-icon::after {
+  content: '';
+  width: 5px;
+  height: 9px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: translateY(-1px) rotate(45deg);
+}
+
+.tp-activation-step.active .tp-activation-step-icon {
+  border: 2px solid rgba(99,102,241,0.25);
+  border-top-color: var(--accent);
+  animation: tpActSpin 0.8s linear infinite;
+}
+
+.tp-activation-step.waiting .tp-activation-step-icon {
+  border: 1.5px dashed #f59e0b;
+}
+
+.tp-activation-note {
+  margin-top: 16px;
+  color: var(--act-muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.tp-activation-note:empty,
+.tp-activation-actions:empty {
+  display: none;
+}
+
+.tp-activation-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.tp-activation-actions .btn-primary,
+.tp-activation-actions .btn-secondary {
+  flex: 1 1 0;
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.tp-activation-actions .btn-primary:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.tp-toast {
+  position: fixed;
+  right: max(20px, env(safe-area-inset-right));
+  bottom: max(20px, env(safe-area-inset-bottom));
+  z-index: 410;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: min(420px, calc(100vw - 32px));
+  padding: 10px 10px 10px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(34,197,94,0.35);
+  background: var(--bg2);
+  color: var(--text);
+  box-shadow: 0 18px 50px rgba(0,0,0,0.45);
+  font-size: 14px;
+  font-weight: 700;
+  opacity: 0;
+  transform: translateY(12px);
+  pointer-events: none;
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+.tp-toast.show {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+.tp-toast-dot {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 8px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 0 4px rgba(34,197,94,0.15);
+}
+
+.tp-toast-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.tp-toast-action {
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.tp-toast-action:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.pro-status-note {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  color: var(--text2);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.pro-status-warning {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(245,158,11,0.35);
+  border-radius: 8px;
+  background: rgba(245,158,11,0.08);
+  color: #f59e0b;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.55;
+}
+
+.pro-status-warning a {
+  color: inherit;
+  font-weight: 800;
+}
+
+@keyframes tpActFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes tpActRise { from { opacity: 0; transform: translateY(14px) scale(0.98); } to { opacity: 1; transform: none; } }
+@keyframes tpActCheck { to { stroke-dashoffset: 0; } }
+@keyframes tpActSpin { to { transform: rotate(360deg); } }
+
+@media (max-width: 520px) {
+  .tp-activation-card {
+    padding: 28px 18px 18px;
+  }
+
+  .tp-activation-title {
+    font-size: 22px;
+  }
+
+  .tp-activation-actions {
+    flex-direction: column;
+  }
+
+  .tp-toast {
+    left: max(16px, env(safe-area-inset-left));
+    right: max(16px, env(safe-area-inset-right));
+    bottom: max(16px, env(safe-area-inset-bottom));
+    max-width: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tp-activation.active,
+  .tp-activation-card {
+    animation: none;
+  }
+
+  .tp-activation-check {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+
+  .tp-activation-step.active .tp-activation-step-icon {
+    animation: none;
+    border: 2px dotted var(--accent);
+  }
+
+  .tp-activation-spinner {
+    animation: none;
+    border-style: dotted;
+  }
+
+  .tp-toast {
+    transition: none;
+  }
+}
     
   </style>
 </head>
@@ -7595,6 +7993,37 @@ function applyAuthRedirectIfPresent() {
   window.history.replaceState({}, document.title, window.location.pathname);
 }
 
+// ─── STRIPE CHECKOUT RETURN (capture) ────────────────────────
+// Stripe returns buyers to /dashboard?stripe_checkout=return&session_id=cs_...
+// Remember that in sessionStorage (it survives a login bounce through /app),
+// then remove only those two params from the address bar.
+// This grants nothing. Pro still comes only from the subscriptions table.
+const STRIPE_RETURN_STORAGE_KEY = 'tp_stripe_checkout_return';
+
+(function captureStripeCheckoutReturn() {
+  let url;
+
+  try {
+    url = new URL(window.location.href);
+  } catch (err) {
+    return;
+  }
+
+  if (url.searchParams.get('stripe_checkout') !== 'return') return;
+
+  const sessionId = String(url.searchParams.get('session_id') || '');
+
+  url.searchParams.delete('stripe_checkout');
+  url.searchParams.delete('session_id');
+  window.history.replaceState(window.history.state, document.title, url.pathname + url.search + url.hash);
+
+  if (!/^cs_(test|live)_[A-Za-z0-9_]+$/.test(sessionId)) return;
+
+  try {
+    sessionStorage.setItem(STRIPE_RETURN_STORAGE_KEY, JSON.stringify({ sessionId, startedAt: Date.now() }));
+  } catch (err) {}
+})();
+    
 applyAuthRedirectIfPresent();
     
     let user = null;
@@ -8880,40 +9309,119 @@ loadProfile()
     .catch(console.warn);
 }, 300);
 
-    async function loadSubscriptionStatus() {
+    let subscriptionRows = [];
+let activeSubscriptionRows = [];
+let subscriptionLoadPromise = null;
+let subscriptionCheckFailed = false;
+
+function isProStatus(status) {
+  return PRO_STATUSES.includes(String(status || '').toLowerCase());
+}
+
+function getSubscriptionSortTime(row) {
+  const value = row?.updated_at || row?.created_at || null;
+  const time = value ? new Date(value).getTime() : NaN;
+  return Number.isFinite(time) ? time : 0;
+}
+
+// Pro if ANY of the user's rows has a Pro status, whatever its source
+// (Stripe, a legacy Whop row, or manually granted access). The query loads
+// every row, with no limit. A newer canceled row can never hide an older
+// active one.
+function pickSubscription(rows) {
+  const sorted = (Array.isArray(rows) ? rows : [])
+    .filter(row => row && typeof row === 'object')
+    .sort((a, b) => getSubscriptionSortTime(b) - getSubscriptionSortTime(a));
+
+  const active = sorted.filter(row => isProStatus(row.status));
+
+  return {
+    rows: sorted,
+    active,
+    current: active[0] || sorted[0] || null,
+    hasPro: active.length > 0
+  };
+}
+
+// Called when an account goes from free to Pro while the dashboard is open
+// (for example after the Stripe webhook activates a new subscription).
+function handleProAccessGranted() {
+  printsWarmPromise = null;
+  pageLoaded.prints = false;
+  pageLoaded.tradeprint = false;
+  pageLoaded.calculator = false;
+}
+
+// Concurrent callers share one request, so boot, page switches and the
+// Stripe activation poll never race each other.
+async function loadSubscriptionStatus() {
+  if (subscriptionLoadPromise) return subscriptionLoadPromise;
+
+  subscriptionLoadPromise = fetchSubscriptionStatus().finally(() => {
+    subscriptionLoadPromise = null;
+  });
+
+  return subscriptionLoadPromise;
+}
+
+async function fetchSubscriptionStatus() {
+  const wasPro = hasPro;
+  const hadLoaded = subscriptionLoaded;
+  const hadFailed = subscriptionCheckFailed;
+
   if (!user?.id) {
+    subscriptionRows = [];
+    activeSubscriptionRows = [];
+    currentSubscription = null;
     hasPro = false;
     subscriptionLoaded = true;
-    currentSubscription = null;
+    renderProSettings();
     return false;
   }
 
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/subscriptions?user_id=eq.${user.id}&select=*&order=updated_at.desc&limit=1`, {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/subscriptions?user_id=eq.${user.id}&select=*&order=updated_at.desc.nullslast`, {
+      cache: 'no-store',
       headers: {
         'apikey': SUPABASE_KEY,
         'Authorization': `Bearer ${token}`
       }
     });
 
-    const data = await res.json();
-    const sub = Array.isArray(data) ? data[0] : null;
+    if (!res.ok) throw new Error(`Subscription check failed: ${res.status}`);
 
-        currentSubscription = sub || null;
-    hasPro = !!sub && PRO_STATUSES.includes(String(sub.status || '').toLowerCase());
+    const data = await res.json();
+    if (!Array.isArray(data)) throw new Error('Unexpected subscription response.');
+
+    const picked = pickSubscription(data);
+
+    subscriptionRows = picked.rows;
+    activeSubscriptionRows = picked.active;
+    currentSubscription = picked.current;
+    hasPro = picked.hasPro;
     subscriptionLoaded = true;
+    subscriptionCheckFailed = false;
     renderProSettings();
 
-    return hasPro;
+    if (hasPro && !wasPro && (hadLoaded || hadFailed)) handleProAccessGranted();
 
     return hasPro;
   } catch (err) {
     console.warn('Subscription check failed:', err);
-        hasPro = false;
-    subscriptionLoaded = true;
-    currentSubscription = null;
+
+    // A transient error must not downgrade someone already confirmed in this
+    // session. If nothing was ever confirmed, stay "not loaded" so the next
+    // ensureSubscriptionLoaded() (for example opening a Pro page) tries again.
+    if (!hadLoaded) {
+      subscriptionRows = [];
+      activeSubscriptionRows = [];
+      currentSubscription = null;
+      hasPro = false;
+      subscriptionCheckFailed = true;
+    }
+
     renderProSettings();
-    return false;
+    return hasPro;
   }
 }
 
@@ -8947,17 +9455,89 @@ function setProPaywallContent(sectionName) {
   copy.textContent = 'Upgrade to unlock your trading fingerprint, strategy rankings, confluence intelligence, best and worst trading windows, and upcoming AI feedback.';
 }
 
-    function getSubscriptionManageUrl() {
-  if (currentSubscription?.manage_url) return currentSubscription.manage_url;
+    const MANUAL_PROVIDER_VALUES = ['manual', 'complimentary', 'comp'];
 
-  const rawEvent = currentSubscription?.metadata?.raw_event;
-  const data = rawEvent?.data || {};
+// Where a subscription row came from:
+//   'stripe'  new paid subscriptions (the stripe-webhook should write provider = 'stripe')
+//   'whop'    legacy Whop rows, kept only so existing Whop subscribers keep working
+//   'manual'  complimentary / manually granted Pro, and any row with no billing markers
+// An explicit provider always wins. Unidentified rows are NOT assumed to be Whop.
+function getSubscriptionProvider(sub) {
+  if (!sub) return null;
 
-  return (
-    data?.manage_url ||
-    data?.membership?.manage_url ||
-    null
+  const explicit = String(sub.provider || sub.billing_provider || sub.payment_provider || sub.metadata?.provider || '').toLowerCase().trim();
+  if (explicit === 'stripe' || explicit === 'whop') return explicit;
+  if (MANUAL_PROVIDER_VALUES.includes(explicit)) return 'manual';
+
+  // Stripe markers
+  if (sub.stripe_subscription_id || sub.stripe_customer_id || sub.stripe_checkout_session_id) return 'stripe';
+
+  const ids = [sub.subscription_id, sub.external_id, sub.provider_subscription_id, sub.customer_id].map(value => String(value || ''));
+  if (ids.some(value => /^(sub|cus|cs)_/.test(value))) return 'stripe';
+
+  const rawEvent = sub.metadata?.raw_event;
+  if (rawEvent && (String(rawEvent.id || '').startsWith('evt_') || rawEvent.object === 'event')) return 'stripe';
+
+  // Legacy Whop markers (what whop-webhook stores)
+  if (sub.whop_membership_id || sub.manage_url || rawEvent) return 'whop';
+  if (ids.some(value => /^mem_/.test(value))) return 'whop';
+
+  return 'manual';
+}
+
+// Billed providers only. Manually granted access is never billed.
+function isBilledProvider(provider) {
+  return provider === 'stripe' || provider === 'whop';
+}
+
+// The row Settings describes: the newest active billed row if there is one
+// (so a paying customer always sees their billing), otherwise the newest
+// active row, otherwise the newest row.
+function getDisplaySubscription() {
+  return activeSubscriptionRows.find(row => isBilledProvider(getSubscriptionProvider(row)))
+    || currentSubscription;
+}
+
+function getWhopManageUrl(sub) {
+  if (!sub) return null;
+  if (sub.manage_url) return sub.manage_url;
+
+  const data = sub.metadata?.raw_event?.data || {};
+  return data.manage_url || data.membership?.manage_url || null;
+}
+
+// Kept so any existing caller keeps working. Only legacy Whop rows have one.
+function getSubscriptionManageUrl() {
+  const sub = getDisplaySubscription();
+  return getSubscriptionProvider(sub) === 'whop' ? getWhopManageUrl(sub) : null;
+}
+
+// Stripe self-serve billing is not wired up yet, so this returns null and
+// Settings shows a note instead of a button. Next step: return
+// { label: 'Manage billing', run: openStripeBilling } where openStripeBilling()
+// POSTs the user's access token to a new Edge Function and redirects to the
+// URL it returns. Never build a Stripe billing URL in the browser.
+function getStripeManageAction(sub) {
+  return null;
+}
+
+function isSubscriptionCanceling(sub) {
+  if (!sub) return false;
+
+  return !!(
+    sub.cancel_at_period_end ||
+    sub.metadata?.cancel_at_period_end ||
+    sub.metadata?.raw_event?.data?.cancel_at_period_end
   );
+}
+
+function safeExternalUrl(value) {
+  try {
+    const url = new URL(String(value || ''), window.location.origin);
+    return url.protocol === 'https:' ? url.href : null;
+  } catch (err) {
+    return null;
+  }
 }
 
 function formatSubscriptionDate(value) {
@@ -8981,51 +9561,96 @@ function renderProSettings() {
 
   if (!emailEl || !statusEl || !copyEl || !actionsEl) return;
 
-  const manageUrl = getSubscriptionManageUrl();
-  const status = String(currentSubscription?.status || (hasPro ? 'active' : 'free')).toLowerCase();
-  const periodEnd = formatSubscriptionDate(currentSubscription?.current_period_end);
-  const cancelAtPeriodEnd = !!currentSubscription?.metadata?.cancel_at_period_end ||
-    !!currentSubscription?.metadata?.raw_event?.data?.cancel_at_period_end;
+  const sub = hasPro ? getDisplaySubscription() : currentSubscription;
+  const provider = hasPro ? getSubscriptionProvider(sub) : null;
+  const status = String(sub?.status || (hasPro ? 'active' : 'free')).toLowerCase();
+  const periodEnd = formatSubscriptionDate(sub?.current_period_end);
+  const canceling = hasPro && provider !== 'manual' && isSubscriptionCanceling(sub);
 
   emailEl.textContent = user?.email || 'No account email found.';
-  statusEl.textContent = hasPro ? (cancelAtPeriodEnd ? 'Canceling' : status) : 'Free';
+  statusEl.textContent = hasPro ? (canceling ? 'Canceling' : status) : 'Free';
   statusEl.className = `pro-status-pill${hasPro ? '' : ' free'}`;
 
-  if (hasPro && cancelAtPeriodEnd) {
+  if (!hasPro && subscriptionCheckFailed) {
+    copyEl.textContent = "We couldn't confirm your subscription right now. Check your connection and try again.";
+    actionsEl.innerHTML = '<button class="pro-manage-btn" type="button" onclick="loadSubscriptionStatus()">Try again</button>';
+    return;
+  }
+
+  if (!hasPro) {
+    copyEl.textContent = 'Upgrade to unlock Tradeprint analytics, Prints, and the futures Calculator.';
+    actionsEl.innerHTML = `
+      <button class="pro-manage-btn primary" type="button" onclick="window.location.href='/checkout'">
+        Upgrade to Pro
+      </button>
+    `;
+    return;
+  }
+
+  // Manually granted / complimentary access: no billing, so no billing buttons.
+  if (provider === 'manual') {
+    copyEl.textContent = 'Complimentary Tradeprint Pro access is active.';
+    actionsEl.innerHTML = '';
+    return;
+  }
+
+  if (canceling) {
     copyEl.textContent = periodEnd
       ? `Your Pro subscription is set to cancel at the end of the current period on ${periodEnd}.`
       : 'Your Pro subscription is set to cancel at the end of the current period.';
-  } else if (hasPro) {
+  } else if (provider === 'stripe') {
+    copyEl.textContent = periodEnd
+      ? `Your Pro access is active and renews on ${periodEnd}. Billing is handled securely by Stripe.`
+      : 'Your Pro access is active. Billing is handled securely by Stripe.';
+  } else {
     copyEl.textContent = periodEnd
       ? `Your Pro access is active. Manage billing or cancel before your next renewal on ${periodEnd}.`
       : 'Your Pro access is active. Manage billing or cancel from Whop.';
+  }
+
+  const parts = [];
+  let stripeAction = null;
+
+  if (provider === 'stripe') {
+    stripeAction = getStripeManageAction(sub);
+
+    parts.push(stripeAction
+      ? `<button class="pro-manage-btn" type="button" data-billing-action="stripe">${escapeHtml(stripeAction.label)}</button>`
+      : '<div class="pro-status-note">Managing your subscription from Settings is coming soon. Your Pro access stays active in the meantime.</div>');
   } else {
-    copyEl.textContent = 'Upgrade to unlock Tradeprint, Calculator, and advanced review tools.';
+    // Legacy Whop row: unchanged Whop management.
+    const manageUrl = safeExternalUrl(getWhopManageUrl(sub));
+
+    parts.push(manageUrl
+      ? `<a class="pro-manage-btn" href="${escapeHtml(manageUrl)}" target="_blank" rel="noopener">Manage or Cancel Subscription</a>`
+      : '<a class="pro-manage-btn" href="https://whop.com/orders" target="_blank" rel="noopener">Manage on Whop</a>');
   }
 
-  if (hasPro && manageUrl) {
-    actionsEl.innerHTML = `
-      <a class="pro-manage-btn" href="${manageUrl}" target="_blank" rel="noopener">
-        Manage or Cancel Subscription
-      </a>
-    `;
-    return;
+  // A legacy Whop subscriber who also started a Stripe subscription is billed
+  // twice. Complimentary rows are never billed, so they don't count here.
+  const billedProviders = [...new Set(activeSubscriptionRows.map(getSubscriptionProvider).filter(isBilledProvider))];
+
+  if (billedProviders.length > 1) {
+    const legacyWhop = provider !== 'whop'
+      ? activeSubscriptionRows.find(row => getSubscriptionProvider(row) === 'whop')
+      : null;
+    const whopUrl = legacyWhop ? (safeExternalUrl(getWhopManageUrl(legacyWhop)) || 'https://whop.com/orders') : null;
+
+    parts.push(`
+      <div class="pro-status-warning">
+        You have an active Stripe subscription and an older Whop subscription.
+        To avoid being billed twice, cancel the Whop one.
+        ${whopUrl ? `<a href="${escapeHtml(whopUrl)}" target="_blank" rel="noopener">Manage on Whop</a>` : ''}
+      </div>
+    `);
   }
 
-  if (hasPro && !manageUrl) {
-    actionsEl.innerHTML = `
-      <a class="pro-manage-btn" href="https://whop.com/orders" target="_blank" rel="noopener">
-        Manage on Whop
-      </a>
-    `;
-    return;
-  }
+  actionsEl.innerHTML = parts.join('');
 
-  actionsEl.innerHTML = `
-    <button class="pro-manage-btn primary" onclick="window.location.href='/checkout'">
-      Upgrade to Pro
-    </button>
-  `;
+  const stripeButton = actionsEl.querySelector('[data-billing-action="stripe"]');
+  if (stripeButton && typeof stripeAction?.run === 'function') {
+    stripeButton.addEventListener('click', () => stripeAction.run(stripeButton));
+  }
 }
 
     function readActiveAccountIds() {
@@ -10553,7 +11178,26 @@ if (name === 'mentor-dashboard') {
     function toggleSidebar() { document.getElementById('sidebar').classList.toggle('collapsed'); }
     function openMobileSidebar() { document.getElementById('sidebar').classList.add('mobile-open'); document.getElementById('overlay').classList.add('active'); }
     function closeMobileSidebar() { document.getElementById('sidebar').classList.remove('mobile-open'); document.getElementById('overlay').classList.remove('active'); }
-    function logout() { localStorage.removeItem('tp_token'); localStorage.removeItem('tp_user'); window.location.href = '/app'; }
+        function logout() {
+      const oldToken = token;
+
+      // Revoke this session's refresh token server-side (fire and forget).
+      if (oldToken) {
+        nativeFetch(`${SUPABASE_URL}/auth/v1/logout?scope=local`, {
+          method: 'POST',
+          keepalive: true,
+          headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${oldToken}` }
+        }).catch(() => {});
+      }
+
+      ['tp_token', 'tp_refresh_token', 'tp_session', 'tp_user'].forEach(key => localStorage.removeItem(key));
+
+      try {
+        sessionStorage.removeItem(STRIPE_RETURN_STORAGE_KEY);
+      } catch (err) {}
+
+      window.location.href = '/app';
+    }
 
     // ─── CALCULATOR ──────────────────────────────────────────────
 function syncCalcDefaultsInputs() {
@@ -22739,6 +23383,315 @@ function cancelTradingRuleEdit() {
 }
 
 renderTradingRuleConfigInputs();
+
+    // ─── STRIPE CHECKOUT RETURN / ACTIVATION ─────────────────────
+// Shown after Stripe Embedded Checkout returns to the dashboard.
+// The return URL proves nothing, so this screen never says the payment
+// succeeded and never grants Pro. It only re-runs loadSubscriptionStatus()
+// and switches to "You're all set" once the subscriptions table has an
+// active / trialing / completed row for this user.
+
+const STRIPE_ACTIVATION_MAX_AGE_MS = 30 * 60 * 1000;
+// Fast checks for about 3.5 minutes, then a quiet check every minute.
+const STRIPE_ACTIVATION_POLL_DELAYS_MS = [1200, 2000, 3000, 4000, 5000, 6000, 8000, 10000, 12000, 15000, 20000, 25000, 30000, 30000, 30000];
+const STRIPE_ACTIVATION_SLOW_POLL_MS = 60000;
+
+const stripeActivation = {
+  status: 'idle', // idle | activating | slow | active
+  startedAt: 0,
+  attempt: 0,
+  timer: null,
+  checking: false,
+  visible: false
+};
+
+function readStripeCheckoutReturn() {
+  try {
+    const data = JSON.parse(sessionStorage.getItem(STRIPE_RETURN_STORAGE_KEY) || 'null');
+    if (!data?.sessionId || !(Number(data.startedAt) > 0)) return null;
+
+    if (Date.now() - Number(data.startedAt) > STRIPE_ACTIVATION_MAX_AGE_MS) {
+      clearStripeCheckoutReturn();
+      return null;
+    }
+
+    return data;
+  } catch (err) {
+    return null;
+  }
+}
+
+function clearStripeCheckoutReturn() {
+  try {
+    sessionStorage.removeItem(STRIPE_RETURN_STORAGE_KEY);
+  } catch (err) {}
+}
+
+function ensureStripeActivationUi() {
+  let root = document.getElementById('tpActivation');
+  if (root) return root;
+
+  root = document.createElement('div');
+  root.id = 'tpActivation';
+  root.className = 'tp-activation';
+  root.setAttribute('role', 'dialog');
+  root.setAttribute('aria-modal', 'true');
+  root.setAttribute('aria-labelledby', 'tpActivationTitle');
+  root.setAttribute('aria-describedby', 'tpActivationCopy');
+
+  root.innerHTML = `
+    <div class="tp-activation-card">
+      <button class="tp-activation-close" type="button" aria-label="Close" data-activation-action="dismiss">×</button>
+      <div class="tp-activation-mark" aria-hidden="true">
+        <span class="tp-activation-spinner"></span>
+        <svg viewBox="0 0 52 52"><circle class="tp-activation-ring" cx="26" cy="26" r="24"/><path class="tp-activation-check" d="M16 27l7 7 13-15"/></svg>
+      </div>
+      <div class="tp-activation-kicker">Tradeprint Pro</div>
+      <div class="tp-activation-title" id="tpActivationTitle" tabindex="-1"></div>
+      <div class="tp-activation-copy" id="tpActivationCopy" aria-live="polite"></div>
+      <ul class="tp-activation-steps" id="tpActivationSteps"></ul>
+      <div class="tp-activation-note" id="tpActivationNote"></div>
+      <div class="tp-activation-actions" id="tpActivationActions"></div>
+    </div>
+  `;
+
+  root.addEventListener('click', (event) => {
+    if (event.target === root) {
+      dismissStripeActivation();
+      return;
+    }
+
+    const action = event.target.closest('[data-activation-action]')?.dataset.activationAction;
+
+    if (action === 'dismiss') dismissStripeActivation();
+    if (action === 'open') openTradeprintAfterActivation();
+    if (action === 'retry') retryStripeActivationCheck();
+  });
+
+  document.body.appendChild(root);
+  return root;
+}
+
+function renderStripeActivation() {
+  const root = ensureStripeActivationUi();
+  const status = stripeActivation.status;
+  const active = status === 'active';
+  const slow = status === 'slow';
+
+  const steps = [
+    { label: 'Confirming your subscription', state: active ? 'done' : slow ? 'waiting' : 'active' },
+    { label: 'Unlocking Tradeprint, Prints and Calculator', state: active ? 'done' : 'pending' }
+  ];
+
+  let title = 'Checkout complete';
+  let copy = 'Confirming your Tradeprint subscription...';
+  let note = 'This usually takes a few seconds. You can keep using Tradeprint while we finish.';
+  let actions = '<button class="btn-secondary" type="button" data-activation-action="dismiss">Keep browsing</button>';
+
+  if (active) {
+    // Only reached after loadSubscriptionStatus() confirmed a Pro row.
+    title = "You're all set";
+    copy = 'Tradeprint Pro is active.';
+    note = '';
+    actions = `
+      <button class="btn-primary" type="button" data-activation-action="open">Open Tradeprint</button>
+      <button class="btn-secondary" type="button" data-activation-action="dismiss">Close</button>
+    `;
+  } else if (slow) {
+    copy = 'Confirming your subscription is taking longer than usual.';
+    note = "Please don't start a second checkout. Pro switches on automatically as soon as your subscription is confirmed, and we'll keep checking in the background.";
+    actions = `
+      <button class="btn-primary" type="button" data-activation-action="retry" ${stripeActivation.checking ? 'disabled' : ''}>${stripeActivation.checking ? 'Checking...' : 'Check again'}</button>
+      <button class="btn-secondary" type="button" data-activation-action="dismiss">Continue to dashboard</button>
+    `;
+  }
+
+  root.dataset.status = status;
+  document.getElementById('tpActivationTitle').textContent = title;
+  document.getElementById('tpActivationCopy').textContent = copy;
+  document.getElementById('tpActivationNote').textContent = note;
+  document.getElementById('tpActivationActions').innerHTML = actions;
+  document.getElementById('tpActivationSteps').innerHTML = steps.map(step => `
+    <li class="tp-activation-step ${step.state}">
+      <span class="tp-activation-step-icon" aria-hidden="true"></span>
+      <span>${escapeHtml(step.label)}</span>
+    </li>
+  `).join('');
+}
+
+function showStripeActivation() {
+  const root = ensureStripeActivationUi();
+  stripeActivation.visible = true;
+  renderStripeActivation();
+  root.classList.add('active');
+  requestAnimationFrame(() => document.getElementById('tpActivationTitle')?.focus({ preventScroll: true }));
+}
+
+// Hides the overlay. Checking continues quietly and a toast appears if Pro
+// activates later in this visit.
+function dismissStripeActivation() {
+  stripeActivation.visible = false;
+  document.getElementById('tpActivation')?.classList.remove('active');
+  clearStripeCheckoutReturn();
+
+  if (stripeActivation.status === 'active') stopStripeActivation();
+}
+
+function stopStripeActivation() {
+  clearTimeout(stripeActivation.timer);
+  stripeActivation.timer = null;
+  stripeActivation.status = 'idle';
+}
+
+// Finds a sidebar item by the page it opens, not by its position.
+// Matches data-page="..." if you ever add it, otherwise the item's
+// onclick="showPage('<page>', this)" handler.
+function findNavItemForPage(pageName) {
+  const pattern = new RegExp(`showPage\\(\\s*['"]${pageName}['"]`);
+
+  return Array.from(document.querySelectorAll('.nav-item, .settings-row')).find(el =>
+    el.dataset.page === pageName || pattern.test(el.getAttribute('onclick') || '')
+  ) || null;
+}
+
+function openTradeprintPage() {
+  showPage('tradeprint', findNavItemForPage('tradeprint'));
+}
+
+function openTradeprintAfterActivation() {
+  dismissStripeActivation();
+  openTradeprintPage();
+}
+
+function completeStripeActivation() {
+  clearTimeout(stripeActivation.timer);
+  stripeActivation.timer = null;
+  stripeActivation.status = 'active';
+  clearStripeCheckoutReturn();
+
+  if (stripeActivation.visible) {
+    renderStripeActivation();
+    return;
+  }
+
+  stopStripeActivation();
+  showTpToast('Tradeprint Pro is active.', { label: 'Open Tradeprint', run: openTradeprintPage });
+}
+
+async function checkStripeActivation() {
+  if (stripeActivation.checking || !['activating', 'slow'].includes(stripeActivation.status)) return hasPro;
+
+  stripeActivation.checking = true;
+  if (stripeActivation.visible && stripeActivation.status === 'slow') renderStripeActivation();
+
+  let isPro = false;
+
+  try {
+    isPro = await loadSubscriptionStatus();
+  } catch (err) {
+    isPro = false;
+  } finally {
+    stripeActivation.checking = false;
+  }
+
+  if (isPro) completeStripeActivation();
+  else if (stripeActivation.visible && stripeActivation.status === 'slow') renderStripeActivation();
+
+  return isPro;
+}
+
+function scheduleStripeActivationCheck() {
+  clearTimeout(stripeActivation.timer);
+  stripeActivation.timer = null;
+
+  if (stripeActivation.status === 'activating') {
+    const delay = STRIPE_ACTIVATION_POLL_DELAYS_MS[stripeActivation.attempt];
+
+    if (delay == null) {
+      stripeActivation.status = 'slow';
+      if (stripeActivation.visible) renderStripeActivation();
+    } else {
+      stripeActivation.timer = setTimeout(async () => {
+        stripeActivation.attempt++;
+        await checkStripeActivation();
+        scheduleStripeActivationCheck();
+      }, delay);
+      return;
+    }
+  }
+
+  if (stripeActivation.status === 'slow') {
+    if (Date.now() - stripeActivation.startedAt > STRIPE_ACTIVATION_MAX_AGE_MS) return;
+
+    stripeActivation.timer = setTimeout(async () => {
+      await checkStripeActivation();
+      scheduleStripeActivationCheck();
+    }, STRIPE_ACTIVATION_SLOW_POLL_MS);
+  }
+}
+
+async function retryStripeActivationCheck() {
+  await checkStripeActivation();
+  scheduleStripeActivationCheck();
+}
+
+function initStripeCheckoutReturn() {
+  if (!token || !user) return; // the /app login bounce keeps it in sessionStorage
+
+  const data = readStripeCheckoutReturn();
+  if (!data) return;
+
+  stripeActivation.status = 'activating';
+  stripeActivation.startedAt = Number(data.startedAt) || Date.now();
+  stripeActivation.attempt = 0;
+
+  showStripeActivation();
+  checkStripeActivation().then(() => scheduleStripeActivationCheck());
+}
+
+// Coming back to the tab (after checking email, another app, etc.) checks right away.
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && ['activating', 'slow'].includes(stripeActivation.status)) {
+    checkStripeActivation();
+  }
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && stripeActivation.visible) dismissStripeActivation();
+});
+
+let tpToastTimer = null;
+
+function showTpToast(message, action = null) {
+  let toast = document.getElementById('tpToast');
+
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'tpToast';
+    toast.className = 'tp-toast';
+    toast.setAttribute('role', 'status');
+    toast.setAttribute('aria-live', 'polite');
+    document.body.appendChild(toast);
+  }
+
+  toast.innerHTML = `
+    <span class="tp-toast-dot" aria-hidden="true"></span>
+    <span class="tp-toast-text">${escapeHtml(message)}</span>
+    ${action ? `<button class="tp-toast-action" type="button">${escapeHtml(action.label)}</button>` : ''}
+  `;
+
+  toast.querySelector('.tp-toast-action')?.addEventListener('click', () => {
+    toast.classList.remove('show');
+    action.run();
+  });
+
+  requestAnimationFrame(() => toast.classList.add('show'));
+
+  clearTimeout(tpToastTimer);
+  tpToastTimer = setTimeout(() => toast.classList.remove('show'), 8000);
+}
+
+initStripeCheckoutReturn();
     
     document.addEventListener('DOMContentLoaded', enhanceAllSelects);
 setTimeout(enhanceAllSelects, 0);
