@@ -235,7 +235,7 @@
     .doc-switch {
       position: relative;
       display: inline-grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(3, 1fr);
       gap: 4px;
       padding: 4px;
       border: 1px solid var(--border);
@@ -750,9 +750,10 @@
             <path pathLength="1" d="M9 6.8a6 6 0 0 1 9 5.2c0 .47 0 1.17-.02 2"/>
           </svg>
 
-          <nav class="doc-switch" aria-label="Legal documents">
-            <a href="/terms" aria-current="page">Terms of Service</a>
-            <a href="/privacy">Privacy Policy</a>
+          <nav class="doc-switch" aria-label="Policies and support">
+            <a href="/terms" aria-current="page">Terms</a>
+            <a href="/privacy">Privacy</a>
+            <a href="/support">Support</a>
           </nav>
 
           <h1>Tradeprint Terms of Service</h1>
@@ -959,7 +960,6 @@
           <section id="contact" aria-labelledby="contact-title">
             <h2 id="contact-title"><span class="sec-num">21.</span> <span>Contact</span></h2>
             <p>Questions regarding these Terms may be sent to:</p>
-            <!-- Contact details: replace the three bracketed placeholders below. -->
             <address class="contact">
               <span class="contact-name">Tradeprint</span>
               <span>Operated by: Konstantinos Tsiomplikas</span>
@@ -982,6 +982,7 @@
         <nav class="footer-links" aria-label="Footer">
           <a href="/terms" aria-current="page">Terms of Service</a>
           <a href="/privacy">Privacy Policy</a>
+          <a href="/support">Support</a>
           <a href="/">Home</a>
         </nav>
       </footer>
