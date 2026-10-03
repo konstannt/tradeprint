@@ -6351,6 +6351,69 @@ body.light .tp-activation-card {
     font-size: 22px;
   }
 }
+
+/* ─── CREATOR PAYOUTS (Stripe Connect, Phase 3A) ─── */
+#page-creator .settings-section {
+  max-width: 560px;
+}
+
+#page-creator .pro-status-pill {
+  text-transform: none;
+}
+
+.pro-status-pill.creator-pending {
+  background: rgba(245,158,11,0.12);
+  color: #f59e0b;
+  border-color: rgba(245,158,11,0.32);
+}
+
+.pro-status-pill.creator-attention {
+  background: rgba(239,68,68,0.12);
+  color: var(--danger);
+  border-color: rgba(239,68,68,0.32);
+}
+
+.pro-status-pill.creator-neutral {
+  background: var(--bg2);
+  color: var(--text2);
+  border-color: var(--border);
+}
+
+.creator-connect-env {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--text2);
+}
+
+.creator-connect-env.sandbox {
+  color: #f59e0b;
+}
+
+.creator-connect-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.creator-connect-actions:empty {
+  display: none;
+}
+
+.creator-connect-actions .pro-manage-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.creator-connect-actions .pro-manage-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 520px) {
+  .creator-connect-actions .pro-manage-btn {
+    width: 100%;
+  }
+}
     
   </style>
 </head>
@@ -7021,6 +7084,10 @@ body.light .tp-activation-card {
           <div class="settings-row" id="mentor-dashboard-nav" onclick="showPage('mentor-dashboard', this)" style="display:none;">
         <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         <span class="settings-label">Mentor View</span>
+      </div>
+                <div class="settings-row" id="creator-nav" onclick="showPage('creator', this)" style="display:none;">
+        <svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
+        <span class="settings-label">Creator</span>
       </div>
                 <div class="prop-nav-divider"></div>
       <div class="settings-row prop-nav-row" id="prop-nav" onclick="showPage('prop', this)">
@@ -7841,6 +7908,30 @@ body.light .tp-activation-card {
       </div>
     </div>
 
+<!-- CREATOR PAGE (Stripe Connect payout setup, Phase 3A) -->
+<div class="page" id="page-creator">
+  <div class="page-title">Creator</div>
+  <div class="page-subtitle">Set up the account your creator commissions are paid to.</div>
+
+  <div class="settings-section">
+    <div class="settings-section-title">Payouts</div>
+
+    <div class="pro-status-card">
+      <div class="pro-status-row">
+        <div>
+          <div class="pro-status-label">Payout account</div>
+          <div class="creator-connect-env" id="creatorConnectEnv"></div>
+        </div>
+        <div class="pro-status-pill creator-neutral" id="creatorConnectPill">Checking</div>
+      </div>
+      <div class="pro-status-copy" id="creatorConnectCopy">Checking your payout setup...</div>
+    </div>
+
+    <div class="creator-connect-actions" id="creatorConnectActions"></div>
+    <div class="msg" id="creatorConnectMsg" aria-live="polite"></div>
+  </div>
+</div>
+    
 <!-- MENTORSHIP PAGE (Trader side) -->
 <div class="page" id="page-mentorship">
   <div class="page-header" style="margin-bottom:24px;">
@@ -11467,6 +11558,8 @@ async function showPage(name, el) {
     try {
     if (name === 'prop') {
       await openPropCenterPage();
+        } else if (name === 'creator') {
+      await openCreatorPage();
     } else if (name === 'mentor-dashboard') {
       // Reloaded on every visit (not just the first), so a trader who removes
       // your access drops off the list and the sidebar link updates.
@@ -24180,6 +24273,360 @@ function showTpToast(message, action = null) {
 }
 
 initStripeCheckoutReturn();
+
+    // ─── CREATOR PAYOUTS (Stripe Connect, Phase 3A) ─────────────
+    // Payout setup and status only. No payouts or transfers yet.
+    // The server decides who is a creator, which Stripe environment to use
+    // and which connected account belongs to them. The browser sends only
+    // the signed-in user's session token: never ids, emails or environment.
+    const CREATOR_CONNECT_ONBOARDING_FN = 'creator-connect-onboarding';
+    const CREATOR_CONNECT_STATUS_FN = 'creator-connect-status';
+    const CREATOR_CONNECT_RETURN_KEY = 'tp_creator_connect_return';
+    const CREATOR_CONNECT_AUTO_REFRESH_KEY = 'tp_creator_connect_auto_refresh_at';
+    const CREATOR_CONNECT_RETURN_MAX_AGE_MS = 30 * 60 * 1000;
+    const CREATOR_CONNECT_AUTO_REFRESH_GAP_MS = 20000;
+
+    // Fallback copy. The status function sends the message it wants shown.
+    const CREATOR_CONNECT_VIEWS = {
+      not_started: {
+        label: 'Not set up',
+        tone: 'free',
+        action: 'Set up payouts',
+        copy: 'Set up payouts to receive your creator commissions. Stripe collects your identity and bank details.'
+      },
+      incomplete: {
+        label: 'Incomplete',
+        tone: 'free',
+        action: 'Continue payout setup',
+        copy: "Your payout setup isn't finished. Continue with Stripe to finish it."
+      },
+      pending: {
+        label: 'Pending',
+        tone: 'creator-pending',
+        action: null,
+        copy: 'Stripe is verifying your details. Check back soon.'
+      },
+      needs_attention: {
+        label: 'Needs attention',
+        tone: 'creator-attention',
+        action: 'Continue payout setup',
+        copy: 'Stripe needs more information before you can receive payouts.'
+      },
+      ready: {
+        label: 'Payouts ready',
+        tone: '',
+        action: null,
+        copy: 'Your payout account is ready to receive commissions.'
+      }
+    };
+
+    const creatorConnect = {
+      checked: false,     // a status call has finished at least once
+      isCreator: false,
+      denied: false,      // server said: not an active creator
+      data: null,         // last safe status payload from the server
+      loading: false,
+      redirecting: false,
+      error: '',
+      notice: ''
+    };
+
+    let creatorConnectStatusPromise = null;
+
+    // Stripe sends creators back to /dashboard?creator_connect=return|refresh.
+    // Remember which one (survives a login bounce through /app), then clean the URL.
+    (function captureCreatorConnectReturn() {
+      let url;
+
+      try {
+        url = new URL(window.location.href);
+      } catch (err) {
+        return;
+      }
+
+      const kind = url.searchParams.get('creator_connect');
+      if (kind === null) return;
+
+      url.searchParams.delete('creator_connect');
+      window.history.replaceState(window.history.state, document.title, url.pathname + url.search + url.hash);
+
+      if (kind !== 'return' && kind !== 'refresh') return;
+
+      try {
+        sessionStorage.setItem(CREATOR_CONNECT_RETURN_KEY, JSON.stringify({ kind, at: Date.now() }));
+      } catch (err) {}
+    })();
+
+    function consumeCreatorConnectReturn() {
+      let data = null;
+
+      try {
+        data = JSON.parse(sessionStorage.getItem(CREATOR_CONNECT_RETURN_KEY) || 'null');
+        sessionStorage.removeItem(CREATOR_CONNECT_RETURN_KEY);
+      } catch (err) {
+        return null;
+      }
+
+      if (!data || (data.kind !== 'return' && data.kind !== 'refresh')) return null;
+      if (!(Date.now() - Number(data.at) <= CREATOR_CONNECT_RETURN_MAX_AGE_MS)) return null;
+      return data.kind;
+    }
+
+    async function callCreatorConnect(fnName) {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/${fnName}`, {
+        method: 'POST',
+        cache: 'no-store',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: '{}'
+      });
+
+      const data = await res.json().catch(() => null);
+      return { ok: res.ok, status: res.status, data: data && typeof data === 'object' ? data : null };
+    }
+
+    function setCreatorNavVisible(visible) {
+      const nav = document.getElementById('creator-nav');
+      if (nav) nav.style.display = visible ? 'flex' : 'none';
+    }
+
+    function markCreatorConnectDenied() {
+      creatorConnect.isCreator = false;
+      creatorConnect.denied = true;
+      creatorConnect.data = null;
+      setCreatorNavVisible(false);
+    }
+
+    function creatorConnectCanContinue(data) {
+      if (!data) return false;
+      if (data.status === 'not_started' || data.status === 'incomplete') return true;
+      return data.status === 'needs_attention' && data.needs_information === true;
+    }
+
+    // Only ever leave the dashboard for a Stripe-hosted HTTPS page.
+    function getSafeStripeOnboardingUrl(value) {
+      try {
+        const url = new URL(String(value || ''));
+        const host = url.hostname.toLowerCase();
+        if (url.protocol !== 'https:') return null;
+        if (host !== 'stripe.com' && !host.endsWith('.stripe.com')) return null;
+        return url.href;
+      } catch (err) {
+        return null;
+      }
+    }
+
+    function redirectToCreatorConnect(url) {
+      window.location.assign(url);
+    }
+
+    // Shared in-flight request, so boot, page opens and button clicks never race.
+    function loadCreatorConnectStatus() {
+      if (!creatorConnectStatusPromise) {
+        creatorConnectStatusPromise = fetchCreatorConnectStatus().finally(() => {
+          creatorConnectStatusPromise = null;
+        });
+      }
+
+      return creatorConnectStatusPromise;
+    }
+
+    async function fetchCreatorConnectStatus() {
+      if (!token || !user?.id) return null;
+
+      creatorConnect.loading = true;
+      creatorConnect.error = '';
+      renderCreatorConnect();
+
+      try {
+        const { ok, status, data } = await callCreatorConnect(CREATOR_CONNECT_STATUS_FN);
+
+        if (status === 403) {
+          markCreatorConnectDenied();
+          return null;
+        }
+
+        if (!ok || !data || !CREATOR_CONNECT_VIEWS[data.status]) {
+          throw new Error((data && data.error) || `HTTP ${status}`);
+        }
+
+        creatorConnect.isCreator = true;
+        creatorConnect.denied = false;
+        creatorConnect.data = data;
+        setCreatorNavVisible(true);
+        return data;
+      } catch (err) {
+        console.warn('[Creator payouts] status check failed:', err);
+        creatorConnect.error = "Couldn't check your payout setup. Try again.";
+        return null;
+      } finally {
+        creatorConnect.loading = false;
+        creatorConnect.checked = true;
+        renderCreatorConnect();
+      }
+    }
+
+    async function startCreatorConnectOnboarding() {
+      if (creatorConnect.redirecting) return;
+
+      creatorConnect.redirecting = true;
+      creatorConnect.error = '';
+      creatorConnect.notice = '';
+      renderCreatorConnect();
+
+      let message = "Couldn't open Stripe. Try again.";
+
+      try {
+        const { ok, status, data } = await callCreatorConnect(CREATOR_CONNECT_ONBOARDING_FN);
+
+        if (status === 403) {
+          markCreatorConnectDenied();
+          message = '';
+        } else {
+          const url = ok ? getSafeStripeOnboardingUrl(data && data.url) : null;
+
+          if (url) {
+            // Stays in the "Opening Stripe..." state until the browser leaves.
+            redirectToCreatorConnect(url);
+            return;
+          }
+
+          if (data && typeof data.message === 'string' && data.message) message = data.message;
+        }
+      } catch (err) {
+        console.warn('[Creator payouts] could not create a setup link:', err);
+      }
+
+      creatorConnect.redirecting = false;
+      creatorConnect.error = message;
+      renderCreatorConnect();
+    }
+
+    // Stripe uses the refresh URL when a setup link expired or was already
+    // used. Make a fresh link automatically, but never loop.
+    async function resumeCreatorConnectOnboarding() {
+      if (!creatorConnect.isCreator || !creatorConnectCanContinue(creatorConnect.data)) return;
+
+      let last = 0;
+      try {
+        last = Number(sessionStorage.getItem(CREATOR_CONNECT_AUTO_REFRESH_KEY)) || 0;
+      } catch (err) {}
+
+      if (Date.now() - last < CREATOR_CONNECT_AUTO_REFRESH_GAP_MS) {
+        creatorConnect.notice = "Your Stripe link expired. Continue when you're ready.";
+        renderCreatorConnect();
+        return;
+      }
+
+      try {
+        sessionStorage.setItem(CREATOR_CONNECT_AUTO_REFRESH_KEY, String(Date.now()));
+      } catch (err) {}
+
+      await startCreatorConnectOnboarding();
+    }
+
+    function renderCreatorConnect() {
+      const pill = document.getElementById('creatorConnectPill');
+      const copy = document.getElementById('creatorConnectCopy');
+      const env = document.getElementById('creatorConnectEnv');
+      const actions = document.getElementById('creatorConnectActions');
+      const msg = document.getElementById('creatorConnectMsg');
+
+      if (!pill || !copy || !env || !actions || !msg) return;
+
+      const setPill = (text, tone) => {
+        pill.textContent = text;
+        pill.className = `pro-status-pill${tone ? ` ${tone}` : ''}`;
+      };
+
+      msg.textContent = creatorConnect.error || creatorConnect.notice || '';
+      msg.className = `msg${creatorConnect.error ? ' error' : ''}`;
+
+      if (creatorConnect.denied) {
+        setPill('Unavailable', 'creator-neutral');
+        copy.textContent = 'Payout setup is only available to Tradeprint creators.';
+        env.textContent = '';
+        env.className = 'creator-connect-env';
+        actions.innerHTML = '';
+        return;
+      }
+
+      const data = creatorConnect.data;
+      const view = data ? CREATOR_CONNECT_VIEWS[data.status] : null;
+
+      if (!view) {
+        const busy = creatorConnect.loading || !creatorConnect.checked;
+        setPill(busy ? 'Checking' : 'Unavailable', 'creator-neutral');
+        copy.textContent = busy ? 'Checking your payout setup...' : "Payout status couldn't be loaded.";
+        env.textContent = '';
+        env.className = 'creator-connect-env';
+        actions.innerHTML = busy
+          ? ''
+          : '<button class="pro-manage-btn" type="button" onclick="loadCreatorConnectStatus()">Try again</button>';
+        return;
+      }
+
+      setPill(view.label, view.tone);
+      copy.textContent = typeof data.message === 'string' && data.message ? data.message : view.copy;
+
+      const sandbox = data.environment === 'sandbox';
+      env.textContent = sandbox ? 'Stripe sandbox (test mode). No real money moves.' : 'Handled securely by Stripe.';
+      env.className = `creator-connect-env${sandbox ? ' sandbox' : ''}`;
+
+      const buttons = [];
+
+      if (creatorConnectCanContinue(data)) {
+        const busy = creatorConnect.redirecting || creatorConnect.loading;
+        const label = creatorConnect.redirecting ? 'Opening Stripe...' : view.action;
+        buttons.push(`<button class="pro-manage-btn primary" type="button" onclick="startCreatorConnectOnboarding()"${busy ? ' disabled' : ''}>${escapeHtml(label)}</button>`);
+      }
+
+      if (data.status === 'pending') {
+        const label = creatorConnect.loading ? 'Checking...' : 'Check status';
+        buttons.push(`<button class="pro-manage-btn" type="button" onclick="loadCreatorConnectStatus()"${creatorConnect.loading ? ' disabled' : ''}>${label}</button>`);
+      }
+
+      actions.innerHTML = buttons.join('');
+    }
+
+    async function openCreatorPage() {
+      creatorConnect.notice = '';
+      renderCreatorConnect();
+      await loadCreatorConnectStatus();
+    }
+
+    async function initCreatorConnect() {
+      if (!token || !user?.id) return;
+
+      const returnKind = consumeCreatorConnectReturn();
+
+      if (!returnKind) {
+        // Decides whether the Creator row shows in the sidebar.
+        await loadCreatorConnectStatus();
+        return;
+      }
+
+      // Back from Stripe. Returning alone means nothing: the page re-checks
+      // the real status with Stripe through creator-connect-status.
+      await showPage('creator', findNavItemForPage('creator'));
+
+      if (returnKind === 'refresh') await resumeCreatorConnectOnboarding();
+    }
+
+    // Back button from Stripe can restore this page from the browser cache.
+    window.addEventListener('pageshow', (event) => {
+      if (!event.persisted || !creatorConnect.redirecting) return;
+      creatorConnect.redirecting = false;
+      renderCreatorConnect();
+      if (creatorConnect.isCreator) loadCreatorConnectStatus();
+    });
+
+    setTimeout(() => {
+      initCreatorConnect().catch(err => console.warn('[Creator payouts] init failed:', err));
+    }, 400);
     
     document.addEventListener('DOMContentLoaded', enhanceAllSelects);
 setTimeout(enhanceAllSelects, 0);
