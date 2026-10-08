@@ -2317,7 +2317,14 @@ select.tp-native-select {
     .cal-nav-btn:hover { color: var(--text); border-color: var(--accent); }
     .cal-nav-btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
     .cal-nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-    .cal-month-label { font-size: 20px; font-weight: 700; min-width: 160px; text-align: center; }
+        .cal-month-label { font-size: 20px; font-weight: 700; min-width: 160px; text-align: center; }
+    .cal-share-btn { margin-left: -8px; }
+    .cal-share-btn:not(:disabled):hover { color: var(--accent); }
+    @media (max-width: 360px) {
+      .cal-nav { gap: 10px; }
+      .cal-month-label { min-width: 132px; font-size: 18px; }
+      .cal-share-btn { margin-left: -2px; }
+    }
     .cal-monthly-stats { display: flex; gap: 32px; }
     .cal-stat { text-align: right; }
     .cal-stat-label { font-size: 12px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
@@ -7345,7 +7352,8 @@ body.light .tp-activation-card {
         <div class="cal-nav">
           <button class="cal-nav-btn" onclick="changeMonth(-1)"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
           <div class="cal-month-label" id="calMonthLabel">April 2026</div>
-          <button class="cal-nav-btn" onclick="changeMonth(1)" id="calNextBtn"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+                    <button class="cal-nav-btn" onclick="changeMonth(1)" id="calNextBtn"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+          <button class="cal-nav-btn cal-share-btn" id="calMonthShareBtn" type="button" title="Share this month" aria-label="Share this month" onclick="openMonthShareCard()" disabled><svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg></button>
         </div>
 
         <div class="cal-header-right">
@@ -12056,7 +12064,8 @@ function resetPointsCalc() {
         grid.appendChild(weekCell);
       }
 
-      refreshWeekModalIfOpen(trades);
+            refreshWeekModalIfOpen(trades);
+      setMonthShareTrades(trades);
     }
 
     let dayModalPointerStartedInside = false;
@@ -18480,7 +18489,14 @@ function recapDrawWide(ctx, theme, data) {
 // TradeRecapCard — draws the selected format at full export resolution
 function drawTradeRecapCard(ctx, format, data, theme) {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.clearRect(0, 0, format.width, format.height);
+    ctx.clearRect(0, 0, format.width, format.height);
+
+  if (data.cardType === 'month') {
+    if (format.key === 'story') recapDrawMonthStory(ctx, theme, data);
+    else if (format.key === 'wide') recapDrawMonthWide(ctx, theme, data);
+    else recapDrawMonthSquare(ctx, theme, data);
+    return;
+  }
 
     if (data.cardType === 'summary') {
     if (format.key === 'story') recapDrawSummaryStory(ctx, theme, data);
@@ -18669,7 +18685,8 @@ function getTradeRecapFilename(format) {
   }
 
   const slug = String(tradeRecapSummaryLabel || tradeRecapMode).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || tradeRecapMode;
-  return `tradeprint-${tradeRecapMode === 'week' ? 'weekly' : 'daily'}-${slug}-${format.key}.png`;
+    const prefix = tradeRecapMode === 'month' ? 'monthly' : tradeRecapMode === 'week' ? 'weekly' : 'daily';
+  return `tradeprint-${prefix}-${slug}-${format.key}.png`;
 }
 
 function downloadTradeRecapImage() {
@@ -18734,7 +18751,8 @@ function getTradeRecapSelectedTrades() {
 
 function getTradeRecapCardData() {
   if (tradeRecapMode === 'trade') return getTradeRecapData(tradeRecapTrade);
-  if (tradeRecapMode === 'prop') return tradeRecapPropData;
+    if (tradeRecapMode === 'prop') return tradeRecapPropData;
+  if (tradeRecapMode === 'month') return getMonthRecapData(getTradeRecapSelectedTrades(), tradeRecapSummaryLabel, tradeRecapSelectedAccountKeys.size);
   return getSummaryRecapData(tradeRecapMode, getTradeRecapSelectedTrades(), tradeRecapSummaryLabel, tradeRecapSelectedAccountKeys.size);
 }
 
@@ -18945,7 +18963,7 @@ function openSummaryRecapModal(mode, trades, label) {
   const modal = document.getElementById('tradeRecapModal');
   if (!modal) return;
 
-  tradeRecapMode = mode === 'week' ? 'week' : 'day';
+    tradeRecapMode = mode === 'week' || mode === 'month' ? mode : 'day';
   tradeRecapTrade = null;
   tradeRecapSummaryTrades = Array.isArray(trades) ? [...trades] : [];
   tradeRecapSummaryLabel = label || '';
@@ -18956,7 +18974,7 @@ function openSummaryRecapModal(mode, trades, label) {
   const subtitle = document.getElementById('tradeRecapSubtitle');
   const accountsSection = document.getElementById('tradeRecapAccountsSection');
 
-  if (title) title.textContent = tradeRecapMode === 'week' ? 'Weekly Share Card' : 'Daily Share Card';
+    if (title) title.textContent = tradeRecapMode === 'month' ? 'Monthly Share Card' : tradeRecapMode === 'week' ? 'Weekly Share Card' : 'Daily Share Card';
   if (subtitle) subtitle.textContent = tradeRecapSummaryLabel;
   if (accountsSection) accountsSection.style.display = 'block';
 
@@ -18971,7 +18989,7 @@ function renderTradeRecapAccountPicker() {
   if (!list) return;
 
   if (!tradeRecapAccountOptions.length) {
-    list.innerHTML = `<div class="trade-recap-accounts-empty">No trades logged for this ${tradeRecapMode === 'week' ? 'week' : 'day'}.</div>`;
+        list.innerHTML = `<div class="trade-recap-accounts-empty">No trades logged for this ${getTradeRecapSummaryUnit()}.</div>`;
     return;
   }
 
@@ -19005,7 +19023,7 @@ function setAllTradeRecapAccounts(selectAll) {
 function updateTradeRecapSummaryState({ reset = false } = {}) {
   const note = document.getElementById('tradeRecapAccountsNote');
   const selected = getTradeRecapSelectedTrades();
-  const unit = tradeRecapMode === 'week' ? 'week' : 'day';
+    const unit = getTradeRecapSummaryUnit();
   const hasTrades = selected.length > 0;
   const accountCount = tradeRecapSelectedAccountKeys.size;
 
@@ -19058,6 +19076,308 @@ function openDayShareCard() {
 function openWeekShareCard() {
   if (!weekModalRange) return;
   openSummaryRecapModal('week', weekModalTrades, formatWeekRangeLabel(weekModalRange.start, weekModalRange.end));
+}
+
+    
+// ─── MONTHLY SHARE CARD ───────────────────────────────────────
+
+let calMonthShareTrades = [];
+let tradeRecapMonthInfo = null;
+
+// Called at the end of renderCalendar with the same trades the calendar grid just drew
+// (already filtered to the active account selection).
+function setMonthShareTrades(trades) {
+  calMonthShareTrades = Array.isArray(trades) ? trades : [];
+  updateMonthShareButtonState();
+}
+
+function getMonthShareTrades() {
+  const monthKey = `${calYear}-${String(calMonth + 1).padStart(2, '0')}`;
+  return calMonthShareTrades.filter(t => String(t.date || '').startsWith(monthKey));
+}
+
+function updateMonthShareButtonState() {
+  const btn = document.getElementById('calMonthShareBtn');
+  if (btn) btn.disabled = !getMonthShareTrades().length;
+}
+
+function getTradeRecapSummaryUnit() {
+  return tradeRecapMode === 'week' || tradeRecapMode === 'month' ? tradeRecapMode : 'day';
+}
+
+function openMonthShareCard() {
+  const trades = getMonthShareTrades();
+  if (!trades.length) return;
+
+  tradeRecapMonthInfo = { year: calYear, month: calMonth };
+  const label = new Date(calYear, calMonth, 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  openSummaryRecapModal('month', trades, label);
+}
+
+// Aggregates only the trades passed in (already filtered to the selected accounts).
+function getMonthRecapData(trades, monthLabel, accountCount) {
+  const info = tradeRecapMonthInfo || { year: calYear, month: calMonth };
+  const summary = getTradeSummary(trades);
+  const days = propDayGroups(trades);
+  const greenDays = days.filter(d => d.pnl > 0).length;
+  const bestDay = days.length ? Math.max(...days.map(d => d.pnl)) : 0;
+  const accounts = Number(accountCount) || 0;
+
+  return {
+    cardType: 'month',
+    kicker: 'Monthly Performance',
+    date: monthLabel || '',
+    year: info.year,
+    month: info.month,
+    days: new Map(days.map(d => [d.date, d])),
+    pnl: summary.totalPnl,
+    pnlText: formatPnl(summary.totalPnl),
+    subline: `${days.length} trading day${days.length !== 1 ? 's' : ''} across ${accounts} account${accounts !== 1 ? 's' : ''}`,
+    stats: [
+      { label: 'Trades', value: String(summary.total) },
+      { label: 'Win Rate', value: `${summary.winRate ?? 0}%` },
+      { label: 'Green Days', value: `${greenDays} / ${days.length}` },
+      { label: 'Best Day', value: formatPnl(bestDay) }
+    ]
+  };
+}
+
+// Short P&L for the small calendar cells: +$540, -$1,250, +$12.4K
+function recapCompactPnl(pnl) {
+  const n = Number(pnl) || 0;
+  const abs = Math.abs(n);
+  if (abs < 0.5) return '$0';
+  const sign = n > 0 ? '+' : '-';
+  if (abs >= 10000) return `${sign}$${(abs / 1000).toFixed(1).replace(/\.0$/, '')}K`;
+  return `${sign}$${Math.round(abs).toLocaleString('en-US')}`;
+}
+
+// Mini calendar: one cell per day of the month, tinted green/red by that day's P&L.
+function recapDrawMonthCalendar(ctx, theme, data, box) {
+  const { x, y, width, height, pad, radius, headerSize, dayNumSize, pnlSize, gap } = box;
+  const year = Number(data.year);
+  const month = Number(data.month);
+  const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`;
+  const firstDow = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const weeks = Math.ceil((firstDow + daysInMonth) / 7);
+
+  recapDrawPanel(ctx, theme, x, y, width, height, radius);
+
+  const gridX = x + pad;
+  const gridW = width - pad * 2;
+  const headerH = Math.round(headerSize * 2.2);
+  const cellW = (gridW - gap * 6) / 7;
+  const gridAreaY = y + pad + headerH;
+  const gridAreaH = height - pad * 2 - headerH;
+  const cellH = Math.min((gridAreaH - gap * (weeks - 1)) / weeks, cellW * 1.15);
+  const gridY = gridAreaY + (gridAreaH - (cellH * weeks + gap * (weeks - 1))) / 2;
+  const cellRadius = Math.round(Math.min(cellW, cellH) * 0.14);
+  const numPad = Math.round(dayNumSize * 0.6);
+
+  ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].forEach((label, i) => {
+    recapDrawLabel(ctx, theme, label, gridX + i * (cellW + gap) + cellW / 2, y + pad + headerSize, headerSize, theme.text2, 'center');
+  });
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const index = firstDow + day - 1;
+    const cx = gridX + (index % 7) * (cellW + gap);
+    const cy = gridY + Math.floor(index / 7) * (cellH + gap);
+    const info = data.days.get(`${monthKey}-${String(day).padStart(2, '0')}`);
+    const traded = !!info && info.trades > 0;
+    const tone = traded ? (info.pnl > 0 ? theme.success : info.pnl < 0 ? theme.danger : theme.text2) : null;
+
+    recapRoundRect(ctx, cx, cy, cellW, cellH, cellRadius);
+    ctx.fillStyle = traded ? recapWithAlpha(tone, 0.14) : theme.bg;
+    ctx.fill();
+
+    recapRoundRect(ctx, cx + 1, cy + 1, cellW - 2, cellH - 2, cellRadius);
+    ctx.strokeStyle = traded ? recapWithAlpha(tone, 0.45) : theme.border;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    ctx.font = recapFont(theme, 700, dayNumSize);
+    ctx.fillStyle = traded ? theme.text : theme.text2;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillText(String(day), cx + numPad, cy + numPad + dayNumSize * 0.8);
+
+    if (traded) {
+      const text = recapCompactPnl(info.pnl);
+      const size = recapFitText(ctx, text, theme, 900, pnlSize, Math.round(pnlSize * 0.5), cellW - numPad * 2);
+      ctx.fillStyle = recapPnlColor(theme, info.pnl);
+      ctx.textAlign = 'center';
+      ctx.fillText(text, cx + cellW / 2, cy + cellH / 2 + size * 0.36 + dayNumSize * 0.35);
+    }
+  }
+
+  ctx.textAlign = 'left';
+}
+
+// 9:16, 1080 × 1920
+function recapDrawMonthStory(ctx, theme, data) {
+  const W = 1080, H = 1920, P = 84;
+  const contentW = W - P * 2;
+
+  recapDrawBackground(ctx, theme, W, H, data.pnl);
+
+  const headerY = 300;
+  recapDrawHeader(ctx, theme, data, { x: P, y: headerY, width: contentW, wordmarkSize: 48, dateSize: 26 });
+  recapDrawLine(ctx, theme, P, headerY + 44, W - P, headerY + 44);
+
+  const kickerSize = 30;
+  const sublineSize = 28;
+  const calendarH = 560;
+  const panelH = 260;
+  const pnlSize = recapFitText(ctx, data.pnlText, theme, 900, 150, 90, contentW);
+
+  const contentH =
+    kickerSize +
+    64 + pnlSize * 0.74 +
+    44 + sublineSize +
+    56 + calendarH +
+    48 + panelH;
+
+  const regionTop = headerY + 44;
+  const regionBottom = H - 330;
+  let y = regionTop + Math.max(24, (regionBottom - regionTop - contentH) / 2);
+
+  y += kickerSize;
+  recapDrawLabel(ctx, theme, data.kicker, P, y, kickerSize, theme.accent);
+
+  y += 64 + pnlSize * 0.74;
+  ctx.font = recapFont(theme, 900, pnlSize);
+  ctx.fillStyle = recapPnlColor(theme, data.pnl);
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText(data.pnlText, P, y);
+
+  y += 44 + sublineSize;
+  ctx.font = recapFont(theme, 600, sublineSize);
+  ctx.fillStyle = theme.text2;
+  ctx.textAlign = 'left';
+  ctx.fillText(recapEllipsize(ctx, data.subline, contentW), P, y);
+
+  y += 56;
+  recapDrawMonthCalendar(ctx, theme, data, {
+    x: P, y, width: contentW, height: calendarH,
+    pad: 28, radius: 28, headerSize: 20, dayNumSize: 20, pnlSize: 26, gap: 8
+  });
+
+  y += calendarH + 48;
+  recapDrawStatsPanel(ctx, theme, data.stats, {
+    x: P, y, width: contentW, height: panelH,
+    columns: 2, labelSize: 22, valueSize: 44, padX: 40, padY: 28, radius: 28
+  });
+
+  recapDrawFooterBrand(ctx, theme, W / 2, H - 232, 30);
+}
+
+// 1:1, 1080 × 1080
+function recapDrawMonthSquare(ctx, theme, data) {
+  const W = 1080, H = 1080, P = 72;
+  const contentW = W - P * 2;
+
+  recapDrawBackground(ctx, theme, W, H, data.pnl);
+
+  const headerY = 118;
+  recapDrawHeader(ctx, theme, data, { x: P, y: headerY, width: contentW, wordmarkSize: 40, dateSize: 24 });
+  recapDrawLine(ctx, theme, P, headerY + 38, W - P, headerY + 38);
+
+  const kickerSize = 24;
+  const sublineSize = 24;
+
+  let y = headerY + 38 + 50 + kickerSize;
+  recapDrawLabel(ctx, theme, data.kicker, P, y, kickerSize, theme.accent);
+
+  const pnlSize = recapFitText(ctx, data.pnlText, theme, 900, 104, 64, contentW);
+  y += 34 + pnlSize * 0.74;
+  ctx.font = recapFont(theme, 900, pnlSize);
+  ctx.fillStyle = recapPnlColor(theme, data.pnl);
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText(data.pnlText, P, y);
+
+  y += 30 + sublineSize;
+  ctx.font = recapFont(theme, 600, sublineSize);
+  ctx.fillStyle = theme.text2;
+  ctx.textAlign = 'left';
+  ctx.fillText(recapEllipsize(ctx, data.subline, contentW), P, y);
+
+  const panelH = 120;
+  const panelY = H - P - 24 - panelH;
+  const calendarY = y + 30;
+  const calendarH = panelY - 24 - calendarY;
+
+  recapDrawMonthCalendar(ctx, theme, data, {
+    x: P, y: calendarY, width: contentW, height: calendarH,
+    pad: 20, radius: 24, headerSize: 16, dayNumSize: 14, pnlSize: 20, gap: 6
+  });
+
+  recapDrawStatsPanel(ctx, theme, data.stats, {
+    x: P, y: panelY, width: contentW, height: panelH,
+    columns: 4, labelSize: 18, valueSize: 30, padX: 28, padY: 22, radius: 24
+  });
+
+  recapDrawFooterBrand(ctx, theme, W / 2, H - 34, 22);
+}
+
+// 16:9, 1920 × 1080. P&L and stats on the left, mini calendar on the right.
+function recapDrawMonthWide(ctx, theme, data) {
+  const W = 1920, H = 1080, P = 96;
+
+  recapDrawBackground(ctx, theme, W, H, data.pnl);
+
+  const headerY = 150;
+  recapDrawHeader(ctx, theme, data, { x: P, y: headerY, width: W - P * 2, wordmarkSize: 44, dateSize: 26 });
+  recapDrawLine(ctx, theme, P, headerY + 40, W - P, headerY + 40);
+
+  const leftX = P;
+  const leftW = 760;
+  const dividerX = 896;
+  const rightX = 936;
+  const rightW = W - P - rightX;
+  const regionTop = headerY + 40 + 70;
+  const regionBottom = H - P;
+
+  const kickerSize = 28;
+  const sublineSize = 30;
+  const panelH = 300;
+  const pnlSize = recapFitText(ctx, data.pnlText, theme, 900, 170, 90, leftW);
+
+  const leftH = kickerSize + 64 + pnlSize * 0.74 + 44 + sublineSize + 64 + panelH;
+  let y = regionTop + Math.max(0, (regionBottom - regionTop - leftH) / 2);
+
+  y += kickerSize;
+  recapDrawLabel(ctx, theme, data.kicker, leftX, y, kickerSize, theme.accent);
+
+  y += 64 + pnlSize * 0.74;
+  ctx.font = recapFont(theme, 900, pnlSize);
+  ctx.fillStyle = recapPnlColor(theme, data.pnl);
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText(data.pnlText, leftX, y);
+
+  y += 44 + sublineSize;
+  ctx.font = recapFont(theme, 600, sublineSize);
+  ctx.fillStyle = theme.text2;
+  ctx.textAlign = 'left';
+  ctx.fillText(recapEllipsize(ctx, data.subline, leftW), leftX, y);
+
+  y += 64;
+  recapDrawStatsPanel(ctx, theme, data.stats, {
+    x: leftX, y, width: leftW, height: panelH,
+    columns: 2, labelSize: 22, valueSize: 46, padX: 40, padY: 32, radius: 28
+  });
+
+  recapDrawLine(ctx, theme, dividerX, regionTop, dividerX, regionBottom);
+
+  recapDrawMonthCalendar(ctx, theme, data, {
+    x: rightX, y: regionTop, width: rightW, height: regionBottom - regionTop,
+    pad: 28, radius: 28, headerSize: 20, dayNumSize: 20, pnlSize: 26, gap: 8
+  });
+
+  recapDrawFooterBrand(ctx, theme, W / 2, H - 40, 24);
 }
 
     // ─── WEEK MODAL ───────────────────────────────────────────────
