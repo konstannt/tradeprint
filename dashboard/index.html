@@ -23424,7 +23424,10 @@ function renderPropWizard() {
         + propField('Program type', propSelectHtml('propCustomStageType', [{ value: 'evaluation', label: 'Evaluation / Challenge' }, { value: 'funded', label: 'Funded / Sim Funded (direct or after evaluation)' }, { value: 'live', label: 'Live' }], w.customStageType, "propWizardSet('customStageType', this.value)"));
     } else {
       const firm = getPropFirm(w.firmKey);
-      body = `<div class="prop-choice-list">${firm.programs.map(p => `<button type="button" class="prop-choice row ${w.programKey === p.key ? 'active' : ''}" onclick="propWizardPickProgram('${p.key}')"><div><b>${escapeHtml(p.name)}</b><span>${PROP_STAGE_LABELS[p.stageType]}${p.next?.length ? ` → ${p.next.map(k => getPropProgram(w.firmKey, k)?.name || k).join(' / ')}` : ''}</span></div>${p.kind ? `<span class="prop-pill gray">${p.kind === 'legacy' ? 'Legacy / import' : 'Invite only'}</span>` : ''}</button>`).join('')}</div>`;
+      // Funded / live stages that are reached by passing another program are for importing an account the firm already funded.
+      const alreadyFunded = p => p.stageType !== 'evaluation' && propPassedFrom(w.firmKey, p.key).length > 0;
+      body = `<div class="prop-field-hint" style="margin-bottom:12px;">New purchase? Pick the evaluation. Programs marked "Already funded" are for adding an account ${escapeHtml(firm.name)} has already funded.</div>`
+        + `<div class="prop-choice-list">${firm.programs.map(p => `<button type="button" class="prop-choice row ${w.programKey === p.key ? 'active' : ''}" onclick="propWizardPickProgram('${p.key}')"><div><b>${escapeHtml(p.name)}</b><span>${PROP_STAGE_LABELS[p.stageType]}${p.next?.length ? ` → ${p.next.map(k => getPropProgram(w.firmKey, k)?.name || k).join(' / ')}` : ''}</span></div>${p.kind ? `<span class="prop-pill gray">${p.kind === 'legacy' ? 'Legacy / import' : 'Invite only'}</span>` : alreadyFunded(p) ? '<span class="prop-pill gray">Already funded</span>' : ''}</button>`).join('')}</div>`;
     }
   }
 
@@ -23444,7 +23447,11 @@ function renderPropWizard() {
       : program.stageType === 'funded'
         ? [{ value: 'active', label: 'Funded and active' }, { value: 'failed', label: 'Failed / breached (importing history)' }, { value: 'archived', label: 'Closed (importing history)' }]
         : [{ value: 'active', label: 'Live and active' }, { value: 'archived', label: 'Closed (importing history)' }];
-    body = propField('Current stage', propSelectHtml('propWizardStatus', stageOpts, w.status, "propWizardSet('status', this.value)"), `${escapeHtml(program.name)} · ${PROP_STAGE_LABELS[program.stageType]}`)
+    const passedFrom = w.firmKey === 'custom' || program.stageType === 'evaluation' ? [] : propPassedFrom(w.firmKey, program.key);
+    const importNote = passedFrom.length
+      ? `<div class="prop-alert info" style="margin-bottom:14px;"><div><b>Adding an account that is already funded.</b> If you just bought the ${escapeHtml(passedFrom.map(p => p.name).join(' or '))}, go back and pick that instead; you can switch it to funded once ${escapeHtml(getPropFirm(w.firmKey).name)} activates it. For an existing funded account, set "Current stage started on" to the activation date and log payouts you already took (or enter the firm MLL after creating it).</div></div>`
+      : '';
+    body = importNote + propField('Current stage', propSelectHtml('propWizardStatus', stageOpts, w.status, "propWizardSet('status', this.value)"), `${escapeHtml(program.name)} · ${PROP_STAGE_LABELS[program.stageType]}`)
       + propField('Nickname (optional)', `<input type="text" value="${escapeHtml(w.nickname)}" oninput="propWizardSet('nickname', this.value)" placeholder="e.g. Topstep 1, Apex PA #2"/>`)
       + (propWizardOptionsFor(program).length ? `<div class="form-field"><label>Account options</label>${propWizardOptionsFor(program).map(o => `<label class="rule-radio-option" style="display:flex !important;margin-bottom:8px;"><input type="checkbox" ${w.options[o.key] ? 'checked' : ''} onchange="propWizardToggleOption('${o.key}', this.checked)"/> ${escapeHtml(o.label)}</label>`).join('')}</div>` : '');
   }
@@ -23964,6 +23971,57 @@ async function deletePropPayout(acctId, eventId) {
 }
 
 // ── Stage transitions (user-confirmed, never automatic)
+// Programs a funded/live program is reached from (e.g. Freedom XFA ← Freedom Trading Combine).
+function propPassedFrom(firmKey, programKey) {
+  return (getPropFirm(firmKey)?.programs || []).filter(p => (p.next || []).includes(programKey));
+}
+
+// Stats of a finished stage: the summary saved at transition, or (older history entries) rebuilt from the
+// TradePrint account that stage used, between its start and end dates.
+function getPropHistoryStats(acct, entry) {
+  if (!entry) return null;
+  if (entry.summary) return entry.summary;
+  const accountId = entry.tradeprintAccountId || acct.tradeprint_account_id;
+  const trades = accountId ? allLoadedTrades.filter(t => t.account_id === accountId && (!entry.startedAt || t.date >= entry.startedAt) && (!entry.endedAt || t.date < entry.endedAt)) : [];
+  const s = getTradeSummary(trades);
+  return { trades: trades.length, days: propDayGroups(trades).length, pnl: entry.finalPnl ?? s.totalPnl, winRate: s.winRate };
+}
+
+// Trade source for the new stage. Firms often issue a new account after an evaluation (a Topstep XFA is a separate
+// account), so the user can keep the current TradePrint account, pick another one, or create one.
+function propTransitionLinkHtml(a) {
+  const current = getPropLinkedAccount(a);
+  const linkedElsewhere = id => propState.accounts.filter(x => x.id !== a.id && x.tradeprint_account_id === id).map(x => propAccountLabel(x));
+  const options = [
+    { value: '__keep', label: current ? `Keep ${current.name} (current)` : a.tradeprint_account_id ? 'Keep current link (account no longer exists)' : 'Keep not linked' },
+    ...allAccounts.filter(x => x.id !== a.tradeprint_account_id).map(x => ({ value: x.id, label: `${x.name}${linkedElsewhere(x.id).length ? ` (already linked to ${linkedElsewhere(x.id).join(', ')})` : ''}` })),
+    { value: '__new', label: '+ Create new TradePrint account' }
+  ];
+  return propField('Trades for the new stage come from', propSelectHtml('propTransitionLink', options, '__keep', `updatePropTransitionPreview('${a.id}')`), 'Pick the TradePrint account you log the new account\'s trades to. The current stage keeps its own trades and stats either way.')
+    + `<div id="propTransitionNewWrap" style="display:none;">${propField('New TradePrint account name', `<input type="text" id="propTransitionNewName" maxlength="80" placeholder="e.g. ${escapeHtml(a.firm_name)} ${escapeHtml(propSizeLabel(a.account_size))} XFA"/>`)}</div>`;
+}
+
+// Shows which already-logged trades will count toward the new stage for the chosen account and date.
+function updatePropTransitionPreview(id) {
+  const a = getPropAccount(id);
+  const el = document.getElementById('propTransitionPreview');
+  if (!a || !el) return;
+  const link = document.getElementById('propTransitionLink')?.value || '__keep';
+  const date = document.getElementById('propTransitionDate')?.value || '';
+  const wrap = document.getElementById('propTransitionNewWrap');
+  if (wrap) wrap.style.display = link === '__new' ? 'block' : 'none';
+  if (!date || link === '__new') { el.textContent = ''; return; }
+
+  const same = link === '__keep' || link === a.tradeprint_account_id;
+  const count = same
+    ? getPropStageTrades(a).filter(t => t.date >= date).length
+    : allLoadedTrades.filter(t => t.account_id === link && t.date >= date).length;
+  const trades = `${count} trade${count === 1 ? '' : 's'} already logged`;
+  el.textContent = !count ? ''
+    : same ? `${trades} on or after ${propDateLabel(date)} will count toward the new stage instead of the current one. Use the activation date, or link the new stage to the account you trade it on.`
+    : `${trades} to that account on or after ${propDateLabel(date)} will count toward the new stage.`;
+}
+
 function openPropTransitionDialog(id, showAll = false) {
   const a = getPropAccount(id);
   if (!a) return;
@@ -23974,47 +24032,92 @@ function openPropTransitionDialog(id, showAll = false) {
   const candidates = listed.filter(p => getPropSizeIndex(p, a.account_size) >= 0);
   const skipped = listed.filter(p => getPropSizeIndex(p, a.account_size) < 0);
   const st = evaluatePropAccount(a);
+  const toFunded = st.isEval && candidates.some(p => p.stageType !== 'evaluation');
 
   const body = `
     ${program?.choiceLabel && !showAll ? `<div class="prop-field-hint" style="margin-bottom:12px;">${escapeHtml(program.choiceLabel)}</div>` : ''}
     ${skipped.length ? `<div class="prop-field-hint" style="margin-bottom:12px;">Not offered at ${escapeHtml(propSizeLabel(a.account_size))}: ${escapeHtml(skipped.map(p => p.name).join(', '))}. If the firm moves you to one of these, add it as a separate prop account.</div>` : ''}
     <div class="prop-choice-list">${candidates.map((p, i) => `<label class="prop-choice row ${i === 0 ? 'active' : ''}"><input type="radio" name="propNextProgram" value="${p.key}" ${i === 0 ? 'checked' : ''} onchange="document.querySelectorAll('#propModalBody .prop-choice').forEach(el => el.classList.remove('active')); this.closest('.prop-choice').classList.add('active');"/><div><b>${escapeHtml(p.name)}</b><span>${PROP_STAGE_LABELS[p.stageType]}${p.kind ? ` · ${p.kind}` : ''}</span></div></label>`).join('') || '<div class="dashboard-empty">No further stage in this template. Use Change stage to pick any program.</div>'}</div>
-    <div class="calc-row">${propField('Transition date', `<input type="date" id="propTransitionDate" value="${propTodayKey()}"/>`, 'Only trades on/after this date count for the new stage.')}${propField('Note (optional)', `<input type="text" id="propTransitionNote" placeholder="e.g. Activated in firm dashboard"/>`)}</div>
-    <div class="prop-field-hint">Evaluation trades, costs, timeline and the current rule snapshot are preserved in stage history. The new stage gets its own rule snapshot${a.firm_key === 'custom' ? ' (set its rules afterwards)' : ''}. ${escapeHtml(a.firm_name)} still has to approve or activate the account.</div>`;
+    <div class="calc-row">${propField(toFunded ? 'Funded activation date' : 'Transition date', `<input type="date" id="propTransitionDate" value="${propTodayKey()}" onchange="updatePropTransitionPreview('${a.id}')"/>`, toFunded ? `The day ${a.firm_name} activated the funded account. Only trades on/after this date count as funded.` : 'Only trades on/after this date count for the new stage.')}${propField('Note (optional)', `<input type="text" id="propTransitionNote" placeholder="e.g. Activated in firm dashboard"/>`)}</div>
+    ${candidates.length ? propTransitionLinkHtml(a) : ''}
+    <div id="propTransitionPreview" class="prop-field-hint" style="margin-bottom:10px;"></div>
+    <div class="prop-field-hint">Trades, costs, timeline, stats and the current rule snapshot of this stage are preserved in stage history. The new stage gets its own rule snapshot${a.firm_key === 'custom' ? ' (set its rules afterwards)' : ''}, starts its own balance and payout cycle, and never inherits this stage's profit target. ${escapeHtml(a.firm_name)} still has to approve or activate the account.</div>`;
 
-  openPropModal({ title: showAll ? 'Change Stage' : (st.isEval ? 'Switch to Funded' : 'Advance Stage'), subtitle: propAccountLabel(a), body, footer: `<button class="btn-secondary" onclick="closePropModal()">Cancel</button><button class="btn-primary" ${candidates.length ? '' : 'disabled'} onclick="confirmPropTransition('${a.id}')">Confirm Transition</button>` });
+  openPropModal({ title: showAll ? 'Change Stage' : (st.isEval ? 'Switch to Funded' : 'Advance Stage'), subtitle: propAccountLabel(a), body, footer: `<button class="btn-secondary" onclick="closePropModal()">Cancel</button><button class="btn-primary" id="propTransitionBtn" ${candidates.length ? '' : 'disabled'} onclick="confirmPropTransition('${a.id}')">Confirm Transition</button>` });
+  updatePropTransitionPreview(a.id);
 }
+
+let propTransitionCreatedLink = null;
 
 async function confirmPropTransition(id) {
   const a = getPropAccount(id);
   const nextKey = document.querySelector('input[name="propNextProgram"]:checked')?.value;
   const date = document.getElementById('propTransitionDate').value;
   const note = document.getElementById('propTransitionNote').value.trim() || null;
+  const link = document.getElementById('propTransitionLink')?.value || '__keep';
+  const newName = (document.getElementById('propTransitionNewName')?.value || '').trim();
+  const btn = document.getElementById('propTransitionBtn');
   if (!a || !nextKey || !date) { setPropModalMsg('Pick the next program and a date.', 'error'); return; }
+  if (a.stage_started_at && date < a.stage_started_at) { setPropModalMsg(`The date can't be before the current stage started (${propDateLabel(a.stage_started_at)}).`, 'error'); return; }
+  if (link === '__new' && !newName) { setPropModalMsg('Enter a name for the new TradePrint account.', 'error'); return; }
+
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+  setPropModalMsg('');
   try {
-    await transitionPropAccount(a, nextKey, date, note);
+    let linkedId;
+    if (link === '__new') {
+      // Reuse the account created by an earlier attempt that failed later, instead of creating a duplicate.
+      if (propTransitionCreatedLink?.propId === a.id && propTransitionCreatedLink.name === newName) linkedId = propTransitionCreatedLink.id;
+      else {
+        const created = await insertBrokerAccountWithLimit(newName);
+        allAccounts.push(created);
+        renderAccountControls();
+        populateTradeAccountSelect();
+        propTransitionCreatedLink = { propId: a.id, name: newName, id: created.id };
+        linkedId = created.id;
+      }
+    } else if (link !== '__keep') linkedId = link;
+
+    await transitionPropAccount(a, nextKey, date, note, linkedId);
+    propTransitionCreatedLink = null;
     closePropModal();
     renderPropCenter();
-  } catch (err) { setPropModalMsg(err.message, 'error'); }
+  } catch (err) {
+    console.warn('[Prop] transition failed:', err);
+    if (err?.code === BROKER_ACCOUNT_LIMIT_ERROR) openAccountLimitModal();
+    setPropModalMsg(err.message || 'Could not save the transition.', 'error');
+    if (btn) { btn.disabled = false; btn.textContent = 'Confirm Transition'; }
+  }
 }
 
-async function transitionPropAccount(a, nextKey, date, note) {
+// linkedId: undefined keeps the current TradePrint account; an id switches the new stage to that account.
+async function transitionPropAccount(a, nextKey, date, note, linkedId) {
   const next = getPropProgram(a.firm_key, nextKey);
   if (!next) throw new Error('Unknown program.');
   const st = evaluatePropAccount(a);
   const rules = resolvePropRuleTemplate(a.firm_key, nextKey, a.account_size, a.purchase_date, a.options || {});
   if (!rules) throw new Error(`${next.name} is not offered at ${propSizeLabel(a.account_size)}. Pick another program or add a separate prop account.`);
   const reason = a.stage_key === 'evaluation' && next.stageType !== 'evaluation' ? 'passed' : 'advanced';
+  const fromAccount = a.tradeprint_account_id || null;
+  const toAccount = linkedId === undefined ? fromAccount : (linkedId || null);
 
-  const history = (a.stage_history || []).map((h, i, arr) => i === arr.length - 1 && !h.endedAt ? { ...h, endedAt: date, reason, payoutCount: a.payout_count, finalPnl: st.stagePnl } : h);
-  history.push({ programKey: next.key, programName: next.name, stageKey: next.stageType, startedAt: date, endedAt: null, reason: null, attempt: 1, previousProgramKey: a.program_key, ruleSnapshot: rules });
+  // The ending stage keeps the trades that belong to it: before the transition date when the new stage stays on
+  // the same TradePrint account, through the transition date when the new stage moves to another account.
+  const ended = st.stageTrades.filter(t => toAccount === fromAccount ? t.date < date : t.date <= date);
+  const endedSummary = getTradeSummary(ended);
+  const endedDays = propDayGroups(ended);
+  const summary = { trades: ended.length, days: endedDays.length, pnl: endedSummary.totalPnl, winRate: endedSummary.winRate, bestDay: endedDays.reduce((m, d) => Math.max(m, d.pnl), 0), worstDay: endedDays.reduce((m, d) => Math.min(m, d.pnl), 0), profitTarget: st.rules.profitTarget ?? null };
+
+  const history = (a.stage_history || []).map((h, i, arr) => i === arr.length - 1 && !h.endedAt ? { ...h, endedAt: date, reason, payoutCount: a.payout_count, finalPnl: summary.pnl, tradeprintAccountId: fromAccount, summary } : h);
+  history.push({ programKey: next.key, programName: next.name, stageKey: next.stageType, startedAt: date, endedAt: null, reason: null, attempt: 1, previousProgramKey: a.program_key, ruleSnapshot: rules, tradeprintAccountId: toAccount });
 
   await savePropAccount(a, {
-    program_key: next.key, program_name: next.name, stage_key: next.stageType, status: 'active', stage_started_at: date,
+    program_key: next.key, program_name: next.name, stage_key: next.stageType, status: 'active', stage_started_at: date, tradeprint_account_id: toAccount,
     rule_snapshot: rules, rule_overrides: {}, template_version: PROP_RULESETS_VERSION, template_verified_at: PROP_RULESETS_VERIFIED_AT,
-    stage_history: history, cycles: next.stageType !== 'evaluation' ? [{ number: 1, startDate: date, endDate: null }] : [], payout_count: 0, archived_at: null
+    stage_history: history, cycles: next.stageType !== 'evaluation' ? [{ number: 1, startDate: date, endDate: null }] : [], payout_count: 0, archived_at: null,
+    options: { ...(a.options || {}), attempt: 1 }
   });
-  await addPropEvent(getPropAccount(a.id), { event_type: 'stage_transition', event_date: date, note, meta: { from: a.program_key, to: next.key, reason } });
+  await addPropEvent(getPropAccount(a.id), { event_type: 'stage_transition', event_date: date, note, meta: { from: a.program_key, to: next.key, reason, from_account: fromAccount, to_account: toAccount } });
 }
 
 // ── Fail / reset / archive / delete
@@ -24163,8 +24266,11 @@ function buildPropShareData(acct, st, type, variant) {
 
   if (type === 'passed') {
     const passedEntry = (acct.stage_history || []).find(h => h.reason === 'passed');
-    const pnl = st.isEval ? st.stagePnl : (passedEntry?.finalPnl ?? st.stagePnl);
-    return { ...base, kicker: 'Evaluation Passed', big: propSigned(pnl, 0), bigValue: pnl, bgPnl: pnl, subline: passedEntry?.endedAt ? `Passed ${propDateLabel(passedEntry.endedAt)}` : 'Tracked evaluation requirements met', stats: [{ label: 'Profit Target', value: st.rules.profitTarget != null ? propMoney(st.rules.profitTarget) : (passedEntry?.ruleSnapshot?.profitTarget != null ? propMoney(passedEntry.ruleSnapshot.profitTarget) : '—') }, { label: 'Trading Days', value: String(days) }, { label: 'Win Rate', value: `${st.summary.winRate ?? 0}%` }, { label: 'Trades', value: String(st.stageTrades.length) }] };
+    // After the switch to funded, the card must show the evaluation's stats, not the funded stage's.
+    const evalStats = st.isEval ? null : getPropHistoryStats(acct, passedEntry);
+    const pnl = st.isEval ? st.stagePnl : (passedEntry?.finalPnl ?? evalStats?.pnl ?? st.stagePnl);
+    const target = st.isEval ? st.rules.profitTarget : (passedEntry?.ruleSnapshot?.profitTarget ?? passedEntry?.summary?.profitTarget ?? null);
+    return { ...base, kicker: 'Evaluation Passed', big: propSigned(pnl, 0), bigValue: pnl, bgPnl: pnl, subline: passedEntry?.endedAt ? `Passed ${propDateLabel(passedEntry.endedAt)}` : 'Tracked evaluation requirements met', stats: [{ label: 'Profit Target', value: target != null ? propMoney(target) : '—' }, { label: 'Trading Days', value: String(evalStats ? evalStats.days : days) }, { label: 'Win Rate', value: `${(evalStats ? evalStats.winRate : st.summary.winRate) ?? 0}%` }, { label: 'Trades', value: String(evalStats ? evalStats.trades : st.stageTrades.length) }] };
   }
 
   if (type === 'payout') {
