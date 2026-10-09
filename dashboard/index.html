@@ -15506,10 +15506,14 @@ async function renderEditorHtmlLazy(editor, html, label) {
       nodes.slice(i, i + batchSize).forEach(node => batch.appendChild(node));
       editor.appendChild(batch);
 
-      if (nodes.length > batchSize) {
+            if (nodes.length > batchSize) {
         await new Promise(resolve => requestAnimationFrame(resolve));
       }
     }
+
+    // A newer render, or a different note being opened, took over during the last
+    // frame. Leave the editor to it instead of unlocking it from here.
+    if (editor.dataset.renderToken !== renderToken) return false;
 
     ensureEditableTypingSpace(editor);
     hydrateLazyImages(editor);
@@ -16562,9 +16566,10 @@ async function loadNoteContent(note) {
     }
   );
 
-  const content = data?.[0]?.content || '';
-  writeNoteContentCache(note.id, content);
+    const content = data?.[0]?.content || '';
 
+  // openNote decides whether this copy may replace the cached copy. A response that
+  // was requested before a save finished can be older than what is cached.
   return { ...stripNoteMeta(note), content };
 }
 
@@ -16631,14 +16636,23 @@ function bindNoteEditorHandlers() {
 }
 
 function openNote(id) {
+  const note = allPageNotes.find(n => n.id === id);
+  if (!note) return;
+
+  const body = document.getElementById('noteBodyEditor');
+  const titleInput = document.getElementById('noteTitleInput');
+
+  // Clicking the note that is already open and loaded leaves it as it is, so a
+  // waiting autosave and anything typed since the last save are never thrown away.
+  if (currentNoteId === id && body.dataset.loadedNoteId === id && body.dataset.loadingNote !== 'true') {
+    return;
+  }
+
   if (currentNoteId && currentNoteId !== id) {
     flushCurrentNote('note switch').catch(console.warn);
   } else {
     clearTimeout(noteSaveTimer);
   }
-
-  const note = allPageNotes.find(n => n.id === id);
-  if (!note) return;
 
   const openToken = ++noteOpenToken;
   currentNoteId = id;
@@ -16648,44 +16662,116 @@ function openNote(id) {
   const inner = document.getElementById('notesEditorInner');
   inner.style.display = 'flex';
 
-  document.getElementById('noteTitleInput').value = note.title || '';
+  titleInput.value = note.title || '';
 
-  const body = document.getElementById('noteBodyEditor');
   body.dataset.loadedNoteId = id;
   body.dataset.dirty = 'false';
   body.dataset.loadingNote = 'true';
+
+  // Take the previous note out of the editor and lock typing until this note's
+  // content is in. The new render token also stops a render still running for the
+  // previous note, so that note's content can never end up saved into this one.
+  body.dataset.renderToken = `open-${openToken}`;
+  body.classList.add('is-loading');
+  body.setAttribute('contenteditable', 'false');
+  body.innerHTML = '<div class="note-load-placeholder">Loading...</div>';
 
   setSaveStatus('notesAutosaveStatus', 'Saved', 'Loading...');
   renderNotesList();
   bindNoteEditorHandlers();
 
-  const cachedContent = readNoteContentCache(id);
+  // Used below to tell whether the database copy is still the newest version.
+  const versionAtOpen = noteSaveVersion;
+  const hadPendingSaveAtOpen = pendingNoteSaves.has(id);
+  const isStillOpen = () => currentNoteId === id && openToken === noteOpenToken;
 
-  if (cachedContent !== null && cachedContent !== undefined) {
-    renderEditorHtmlLazy(body, cachedContent, 'note cached').then(rendered => {
-      if (!rendered || currentNoteId !== id || openToken !== noteOpenToken) return;
+  // Runs once this note's content is in the editor and it can be typed in and autosaved.
+  const finishNoteLoad = () => {
+    const savedTitle = String(allPageNotes.find(n => n.id === id)?.title || '').trim() || 'Untitled';
+    const typedTitle = titleInput.value.trim() || 'Untitled';
 
-      setSaveStatus('notesAutosaveStatus', 'Saved', 'Saved');
-      setTimeout(() => setSaveStatus('notesAutosaveStatus', '', ''), 1200);
+    if (typedTitle !== savedTitle) {
+      // The title was changed while the content was loading. Save it now.
+      scheduleNoteSave(false, 'title edited while loading');
+      return;
+    }
+
+    if (pendingNoteSaves.has(id)) {
+      // An earlier save of this note has not reached the database yet (still sending,
+      // or it failed). Show it as unsaved and send it, instead of reporting Saved.
+      body.dataset.dirty = 'true';
+      setSaveStatus('notesAutosaveStatus', 'Unsaved', 'Unsaved');
+      saveCurrentNote(id).catch(console.warn);
+      return;
+    }
+
+    setSaveStatus('notesAutosaveStatus', 'Saved', 'Saved');
+    setTimeout(() => {
+      const status = document.getElementById('notesAutosaveStatus');
+      if (isStillOpen() && status?.textContent === 'Saved') setSaveStatus(status, '', '');
+    }, 1200);
+  };
+
+  const showNoteContent = (content, label) => {
+    renderEditorHtmlLazy(body, content, label).then(rendered => {
+      if (!isStillOpen()) return;
+
+      if (!rendered) {
+        // Either a newer render took over (it reports its own status), or this one failed.
+        if (body.querySelector('.note-render-error')) {
+          // Keep typing locked so the error message can never be autosaved over the
+          // note. The note itself is untouched in the database.
+          body.dataset.loadingNote = 'true';
+          body.setAttribute('contenteditable', 'false');
+          setSaveStatus('notesAutosaveStatus', 'Error', 'Error');
+        }
+        return;
+      }
+
+      finishNoteLoad();
     });
+  };
+
+  const cachedContent = readNoteContentCache(id);
+  const hasCachedContent = cachedContent !== null && cachedContent !== undefined;
+
+  // Show the copy saved on this device right away. createNote caches every new note
+  // as empty, so a new note opens here without waiting on the database.
+  if (hasCachedContent) {
+    showNoteContent(cachedContent, 'note cached');
   }
 
   loadNoteContent(note)
     .then(freshNote => {
-      if (!freshNote || currentNoteId !== id || openToken !== noteOpenToken) return;
+      if (!freshNote) return;
 
-      const currentHtml = serializeEditorHtml(body);
-      const userIsEditing = body.dataset.dirty === 'true' || document.activeElement === body;
+      const serverContent = freshNote.content || '';
 
-      if (!userIsEditing && freshNote.content !== currentHtml) {
-        renderEditorHtmlLazy(body, freshNote.content || '', 'note server').then(() => {
-          if (currentNoteId === id) {
-            body.dataset.dirty = 'false';
-            setSaveStatus('notesAutosaveStatus', 'Saved', 'Saved');
-            setTimeout(() => setSaveStatus('notesAutosaveStatus', '', ''), 1200);
-          }
-        });
+      // The database copy is the newest only if this note had no save waiting when it
+      // was requested or now, and nothing has been typed since it was opened.
+      const serverIsLatest =
+        !hadPendingSaveAtOpen &&
+        !pendingNoteSaves.has(id) &&
+        noteSaveVersion === versionAtOpen;
+
+      if (serverIsLatest) writeNoteContentCache(id, serverContent);
+
+      if (!isStillOpen()) return;
+
+      if (!hasCachedContent) {
+        // Nothing is in the editor yet, so always show the database copy, even when it
+        // is empty. Before this fix an empty note (every new note) was never shown here,
+        // so it stayed on Loading and autosave stayed switched off.
+        showNoteContent(serverContent, 'note server');
+        return;
       }
+
+      // The cached copy is shown or still rendering. Swap in the database copy only
+      // if it is newer and different, and not while the cursor is in the editor.
+      if (!serverIsLatest || serverContent === cachedContent) return;
+      if (document.activeElement === body) return;
+
+      showNoteContent(serverContent, 'note server');
     })
     .catch(err => {
       tpLog('error', {
@@ -16694,12 +16780,15 @@ function openNote(id) {
         message: err.message
       });
 
-      if (currentNoteId === id && cachedContent === null) {
-        body.dataset.loadingNote = 'false';
-        body.setAttribute('contenteditable', 'true');
-        body.innerHTML = '<div class="note-render-error">Could not load this note. Try refreshing.</div>';
-        setSaveStatus('notesAutosaveStatus', 'Error', 'Error');
-      }
+      if (!isStillOpen() || hasCachedContent) return;
+
+      // There is no copy of this note to show. Keep typing locked so an empty editor
+      // can never be autosaved over the real note, and show the error.
+      body.dataset.loadingNote = 'true';
+      body.classList.remove('is-loading');
+      body.setAttribute('contenteditable', 'false');
+      body.innerHTML = '<div class="note-render-error">Could not load this note. Try refreshing.</div>';
+      setSaveStatus('notesAutosaveStatus', 'Error', 'Error');
     });
 }
 
@@ -16768,8 +16857,13 @@ function buildCurrentNotePayload(noteId, pending = {}) {
 async function saveCurrentNote(noteId = currentNoteId, options = {}) {
   if (!noteId) return;
 
-  if (noteSaveInFlight) {
-    return noteSaveDrainPromise;
+    if (noteSaveInFlight) {
+    // Another save is still running, and it only sends the note it started with.
+    // Run this one after it instead of dropping it. For the same note, the running
+    // save already picks up the newest edit, so this pass finds nothing left to send.
+    return noteSaveDrainPromise
+      .catch(() => {})
+      .then(() => saveCurrentNote(noteId, options));
   }
 
   noteSaveInFlight = true;
@@ -16785,7 +16879,11 @@ async function saveCurrentNote(noteId = currentNoteId, options = {}) {
       const useKeepalive = !!options.keepalive && bytes <= KEEPALIVE_MAX_BYTES;
       const imageStats = getNoteImageStatsFromHtml(payload.content);
 
-      setSaveStatus('notesAutosaveStatus', 'Saving', 'Saving');
+            // The status belongs to the note on screen. A note saving in the background
+      // after you switched away must not change it.
+      if (noteId === currentNoteId) {
+        setSaveStatus('notesAutosaveStatus', 'Saving', 'Saving');
+      }
 
       tpLog('info', {
         event: 'note_save_start',
@@ -16797,8 +16895,8 @@ async function saveCurrentNote(noteId = currentNoteId, options = {}) {
         ...imageStats
       });
 
-      await saveFetchLogged(
-        `${SUPABASE_URL}/rest/v1/notes?id=eq.${noteId}`,
+            const savedRows = await saveFetchLogged(
+        `${SUPABASE_URL}/rest/v1/notes?id=eq.${noteId}&select=id`,
         {
           method: 'PATCH',
           keepalive: useKeepalive,
@@ -16806,7 +16904,7 @@ async function saveCurrentNote(noteId = currentNoteId, options = {}) {
             'apikey': SUPABASE_KEY,
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
-            'Prefer': 'return=minimal'
+            'Prefer': 'return=representation'
           },
           body: bodyText
         },
@@ -16820,6 +16918,13 @@ async function saveCurrentNote(noteId = currentNoteId, options = {}) {
           ...imageStats
         }
       );
+
+      // Supabase answers a PATCH that matched no row with success, so check that the
+      // note row really was updated (the note may have been deleted, or row-level
+      // security may not let this user update it).
+      if (!Array.isArray(savedRows) || savedRows.length === 0) {
+        throw new Error('Note not saved: no note row was updated (deleted, or blocked by row-level security).');
+      }
 
       const latest = pendingNoteSaves.get(noteId);
 
@@ -16883,7 +16988,16 @@ async function flushCurrentNote(reason = 'flush') {
 
   clearTimeout(noteSaveTimer);
 
-  if (pendingNoteSaves.has(noteId)) {
+  const pending = pendingNoteSaves.get(noteId);
+
+  if (pending) {
+    // Capture this note's title and content now, while it is still the note in the
+    // editor. If another save is still running, this one waits its turn, and by then
+    // the editor may already be showing a different note.
+    if (body?.dataset.loadedNoteId === noteId && body.dataset.loadingNote !== 'true') {
+      pending.payload = buildCurrentNotePayload(noteId, pending);
+    }
+
     await saveCurrentNote(noteId, { reason });
   }
 }
@@ -16918,36 +17032,63 @@ function flushCurrentNoteBeforeLeave(event) {
   }
 }
 
-        async function createNote() {
-      allPageNotes = allPageNotes.map(n => ({
-        ...n,
-        sort_order: (parseInt(n.sort_order, 10) || 0) + 1
-      }));
+            let noteCreateInFlight = false;
 
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/notes`, {
-        method: 'POST',
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=representation'
-        },
-        body: JSON.stringify({
-          user_id: user.id,
-          title: 'Untitled',
-          content: '',
-          sort_order: 0
-        })
-      });
+    async function createNote() {
+      // One click creates one note. Extra clicks while it is being created are ignored.
+      if (noteCreateInFlight) return;
+      noteCreateInFlight = true;
 
-      const data = await res.json();
+      try {
+        const data = await fetchJsonLogged(
+          `${SUPABASE_URL}/rest/v1/notes`,
+          {
+            method: 'POST',
+            headers: {
+              'apikey': SUPABASE_KEY,
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+              'Prefer': 'return=representation'
+            },
+            body: JSON.stringify({
+              user_id: user.id,
+              title: 'Untitled',
+              content: '',
+              sort_order: 0
+            })
+          },
+          { event: 'note_create' }
+        );
 
-      if (data && data[0]) {
-        allPageNotes.unshift(data[0]);
+        const created = Array.isArray(data) ? data[0] : null;
+        if (!created?.id) throw new Error('The database did not return the new note.');
+
+        const newNote = stripNoteMeta(created);
+
+        // A new note is empty, so cache it as empty. openNote then shows it and
+        // unlocks typing right away instead of waiting on a second request.
+        writeNoteContentCache(newNote.id, '');
+
+        // Move the existing notes down one place only now that the new note exists.
+        allPageNotes = allPageNotes.map(n => ({
+          ...n,
+          sort_order: (parseInt(n.sort_order, 10) || 0) + 1
+        }));
+
+        allPageNotes.unshift(newNote);
         renderNotesList();
-        openNote(data[0].id);
+        openNote(newNote.id);
         saveNoteOrder().catch(console.warn);
         setTimeout(() => document.getElementById('noteTitleInput').focus(), 50);
+      } catch (err) {
+        tpLog('error', {
+          event: 'note_create_failed',
+          message: err.message
+        });
+
+        showTpToast('Could not create a new note. Check your connection and try again.');
+      } finally {
+        noteCreateInFlight = false;
       }
     }
 
