@@ -7353,8 +7353,7 @@ body.light .tp-activation-card {
     <div class="dashboard-panel-title">PNL Trend</div>
         <select class="dashboard-range-select" id="dashboardRangeSelect" onchange="setDashboardChartRange(this.value)">
       <option value="7d">Last week</option>
-      <option value="14d" selected>Last 14 days</option>
-      <option value="30d">Last month</option>
+      <option value="30d" selected>Last month</option>
       <option value="90d">Last 3 months</option>
       <option value="ytd">Year to date</option>
       <option value="1y">Last 1 year</option>
@@ -7377,14 +7376,14 @@ body.light .tp-activation-card {
   </div>
 
   <div class="dashboard-chart-summary">
-    <div class="dashboard-chart-date" id="dashboardChartDate">Last 14 days</div>
+       <div class="dashboard-chart-date" id="dashboardChartDate">Last month</div>
     <div class="dashboard-chart-pnl flat" id="dashboardChartPnl">$0.00</div>
   </div>
 
   <div class="dashboard-bars" id="dashboardBars"></div>
 
   <div class="dashboard-bar-labels">
-    <span id="dashboardRangeStartLabel">14 days ago</span>
+        <span id="dashboardRangeStartLabel">30 days ago</span>
     <span id="dashboardRangeEndLabel">Today</span>
   </div>
 </div>
@@ -13605,18 +13604,18 @@ function renderDashboard() {
 
 let dashboardDailyBars = [];
 let dashboardChartSummary = { label: 'PNL Trend', pnl: 0 };
-let dashboardChartRange = localStorage.getItem('tp_dashboard_chart_range') || '14d';
+let dashboardChartRange = localStorage.getItem('tp_dashboard_chart_range') || '30d';
 
-const DASHBOARD_CHART_RANGES = ['7d', '14d', '30d', '90d', 'ytd', '1y', 'all', 'custom'];
+const DASHBOARD_CHART_RANGES = ['7d', '30d', '90d', 'ytd', '1y', 'all', 'custom'];
 const DASHBOARD_CUSTOM_START_KEY = 'tp_dashboard_custom_start';
 const DASHBOARD_CUSTOM_END_KEY = 'tp_dashboard_custom_end';
 const DASHBOARD_CUSTOM_DAILY_MAX_DAYS = 92;   // custom ranges up to ~3 months: one bar per day
 const DASHBOARD_CUSTOM_WEEKLY_MAX_DAYS = 371; // up to ~1 year: one bar per week, longer: one bar per month
 
-if (!DASHBOARD_CHART_RANGES.includes(dashboardChartRange)) dashboardChartRange = '14d';
+if (!DASHBOARD_CHART_RANGES.includes(dashboardChartRange)) dashboardChartRange = '30d';
 
 function setDashboardChartRange(value) {
-  dashboardChartRange = DASHBOARD_CHART_RANGES.includes(value) ? value : '14d';
+  dashboardChartRange = DASHBOARD_CHART_RANGES.includes(value) ? value : '30d';
   localStorage.setItem('tp_dashboard_chart_range', dashboardChartRange);
 
   if (dashboardChartRange === 'custom') {
@@ -13728,7 +13727,6 @@ function saveDashboardCustomRange(range) {
 
 function getDashboardRangeLabel(range) {
   if (range === '7d') return 'Last week';
-  if (range === '14d') return 'Last 14 days';
   if (range === '30d') return 'Last month';
   if (range === '90d') return 'Last 3 months';
   if (range === 'ytd') return 'Year to date';
@@ -13740,7 +13738,7 @@ function getDashboardRangeLabel(range) {
     return formatDateRangeLabel(custom.start, custom.end);
   }
 
-  return 'Last 14 days';
+    return 'Last month';
 }
 
 function makeDashboardBucket(start, end, label, shortLabel, type) {
@@ -13850,7 +13848,6 @@ function buildCustomDashboardBuckets(range) {
 
 function buildDashboardBuckets(trades, range) {
   if (range === '7d') return buildDailyDashboardBuckets(7);
-  if (range === '14d') return buildDailyDashboardBuckets(14);
   if (range === '30d') return buildDailyDashboardBuckets(30);
   if (range === '90d') return buildDailyDashboardBuckets(90);
   if (range === 'ytd') return buildWeeklyDashboardBuckets('ytd');
@@ -13858,7 +13855,7 @@ function buildDashboardBuckets(trades, range) {
   if (range === 'all') return buildMonthlyDashboardBuckets(trades);
   if (range === 'custom') return buildCustomDashboardBuckets(getDashboardCustomRange() || getDefaultDashboardCustomRange());
 
-  return buildDailyDashboardBuckets(14);
+    return buildDailyDashboardBuckets(30);
 }
 
 function shouldShowDashboardBarLabel(index, total) {
@@ -13992,8 +13989,8 @@ function renderDashboardBars(trades) {
   if (!bars) return;
 
   const list = Array.isArray(trades) ? trades : [];
-  const requested = rangeSelect?.value || dashboardChartRange || '14d';
-  const range = DASHBOARD_CHART_RANGES.includes(requested) ? requested : '14d';
+    const requested = rangeSelect?.value || dashboardChartRange || '30d';
+  const range = DASHBOARD_CHART_RANGES.includes(requested) ? requested : '30d';
 
   dashboardChartRange = range;
   localStorage.setItem('tp_dashboard_chart_range', range);
