@@ -21385,10 +21385,10 @@ function toggleEconEventCard(btn) {
 // ═══════════════════════════════════════════════════════════════
 // PROP COMMAND CENTER · RULE TEMPLATES (versioned data)
 // ═══════════════════════════════════════════════════════════════
-const PROP_RULESETS_VERSION = '2026.09.25';
-const PROP_RULESETS_VERIFIED_AT = '2026-09-25';
+const PROP_RULESETS_VERSION = '2026.10.09';
+const PROP_RULESETS_VERIFIED_AT = '2026-10-09';
 const PROP_DATA_LIMITATION = 'Days are grouped by the trade date saved in TradePrint. Firm session cutoffs, unrealized P&L, open positions and commissions not logged here are not applied.';
-const PROP_INTRADAY_NOTE = 'Intraday trailing drawdown follows peak balance including unrealized profit. TradePrint only has closed trades, so this drawdown is an estimate. Verify with the firm dashboard.';
+const PROP_INTRADAY_NOTE = 'Intraday trailing drawdown follows the peak balance including open (unrealized) profit. TradePrint only sees closed trades, so the floor shown is the lowest it can be and the remaining room is the most you can have. Check the firm dashboard or enter the firm MLL.';
 
 // bySize([...]) = one value per account size (same order as the program's `sizes`)
 // byDate([{ from: 'YYYY-MM-DD', value }, { value }]) = purchase-date dependent; the entry without `from` is the fallback
@@ -21401,142 +21401,213 @@ const APEX_PA_TIERS = bySize([
   [{ minProfit: 0, contracts: 3, dailyLoss: 1750 }, { minProfit: 2000, contracts: 4, dailyLoss: 1750 }, { minProfit: 3000, contracts: 5, dailyLoss: 1750 }, { minProfit: 5000, contracts: 6, dailyLoss: 2500 }, { minProfit: 10000, contracts: 6, dailyLoss: 3500 }],
   [{ minProfit: 0, contracts: 4, dailyLoss: 2500 }, { minProfit: 2000, contracts: 5, dailyLoss: 2500 }, { minProfit: 3000, contracts: 7, dailyLoss: 2500 }, { minProfit: 5000, contracts: 10, dailyLoss: 3000 }, { minProfit: 10000, contracts: 10, dailyLoss: 4000 }]
 ]);
+const APEX_RITHMIC_LOCK = { key: 'rithmicLock', label: 'Rithmic or WealthCharts evaluation (drawdown stops trailing at the profit-target balance)', whenOn: { drawdownLockOffset: bySize([1500, 3000, 6000, 9000]) } };
 
 const LUCID_SIZES = [25000, 50000, 100000, 150000];
 const LUCID_TARGETS = bySize([1250, 3000, 6000, 9000]);
 const LUCID_MLL = bySize([1000, 2000, 3000, 4500]);
 const LUCID_MINIS = bySize([2, 4, 6, 10]);
 const LUCID_MICROS = bySize([20, 40, 60, 100]);
+const LUCID_PRO_DLL = bySize([null, 1200, 1800, 2700]);
+const LUCID_DAILY_DLL = bySize([600, 1200, 1800, 2700]);
+const LUCID_MAX_PAYOUTS = byDate([{ from: '2026-02-28', value: 5 }, { value: 6 }]);
+const LUCID_DLL_OFF = { key: 'dllOff', label: 'DLL Off selected at checkout (no daily loss limit)', whenOn: { dailyLoss: null } };
+const LUCID_FLEX_TIERS = bySize([
+  [{ minProfit: 0, contracts: 1 }, { minProfit: 1000, contracts: 2 }],
+  [{ minProfit: 0, contracts: 2 }, { minProfit: 1000, contracts: 3 }, { minProfit: 2000, contracts: 4 }],
+  [{ minProfit: 0, contracts: 3 }, { minProfit: 1000, contracts: 4 }, { minProfit: 2000, contracts: 5 }, { minProfit: 3000, contracts: 6 }],
+  [{ minProfit: 0, contracts: 4 }, { minProfit: 1000, contracts: 5 }, { minProfit: 2000, contracts: 6 }, { minProfit: 3000, contracts: 8 }, { minProfit: 4500, contracts: 10 }]
+]);
+const LUCID_LIVE_TIERS = bySize([
+  [{ minProfit: 0, contracts: 1 }, { minProfit: 2000, contracts: 2 }],
+  [{ minProfit: 0, contracts: 2 }, { minProfit: 2000, contracts: 3 }, { minProfit: 4000, contracts: 4 }],
+  [{ minProfit: 0, contracts: 3 }, { minProfit: 2000, contracts: 4 }, { minProfit: 4000, contracts: 5 }, { minProfit: 6000, contracts: 6 }],
+  [{ minProfit: 0, contracts: 4 }, { minProfit: 2000, contracts: 5 }, { minProfit: 4000, contracts: 6 }, { minProfit: 6000, contracts: 8 }, { minProfit: 9000, contracts: 10 }]
+]);
+const LUCID_LOCK_NOTE = 'MLL locks at start + $100 once the end-of-day balance exceeds start + MLL + $100.';
+
+const TRADEIFY_SELECT_TIERS = bySize([
+  [{ minProfit: 0, contracts: 1 }, { minProfit: 1500, contracts: 2 }],
+  [{ minProfit: 0, contracts: 2 }, { minProfit: 1500, contracts: 3 }, { minProfit: 2000, contracts: 4 }],
+  [{ minProfit: 0, contracts: 3 }, { minProfit: 1500, contracts: 4 }, { minProfit: 2000, contracts: 5 }, { minProfit: 3000, contracts: 8 }],
+  [{ minProfit: 0, contracts: 3 }, { minProfit: 1500, contracts: 4 }, { minProfit: 2000, contracts: 5 }, { minProfit: 3000, contracts: 8 }, { minProfit: 4500, contracts: 12 }],
+  [{ minProfit: 0, contracts: 3 }, { minProfit: 1500, contracts: 4 }, { minProfit: 3000, contracts: 6 }, { minProfit: 5000, contracts: 10 }, { minProfit: 7000, contracts: 16 }]
+]);
+const TRADEIFY_GROWTH_DLL_TIERS = bySize([
+  [{ minProfit: 0, contracts: 1, dailyLoss: 600 }, { minProfit: 1500, contracts: 1, dailyLoss: 1000 }],
+  [{ minProfit: 0, contracts: 4, dailyLoss: 1250 }, { minProfit: 3000, contracts: 4, dailyLoss: 2000 }],
+  [{ minProfit: 0, contracts: 8, dailyLoss: 2500 }, { minProfit: 6000, contracts: 8, dailyLoss: 3500 }],
+  [{ minProfit: 0, contracts: 12, dailyLoss: 3750 }, { minProfit: 9000, contracts: 12, dailyLoss: 5000 }]
+]);
+const TRADEIFY_LIGHTNING_DLL_TIERS = bySize([
+  [{ minProfit: 0, contracts: 1 }],
+  [{ minProfit: 0, contracts: 4, dailyLoss: 1250 }, { minProfit: 3000, contracts: 4, dailyLoss: 2000 }],
+  [{ minProfit: 0, contracts: 8, dailyLoss: 2500 }, { minProfit: 6000, contracts: 8, dailyLoss: 4000 }],
+  [{ minProfit: 0, contracts: 12, dailyLoss: 3000 }, { minProfit: 9000, contracts: 12, dailyLoss: 5250 }]
+]);
+const TRADEIFY_FUNDED_LOCK_NOTE = 'Sim Funded drawdown locks at start + $100 at the end-of-day lock point or as soon as you request a payout, whichever comes first. TradePrint applies the payout lock from the request.';
+
+const TOPSTEP_DLL_OPTION = { key: 'dllOption', label: 'Daily loss limit added at Combine checkout', whenOn: { dailyLoss: bySize([1000, 2000, 3000]), dailyLossHard: false } };
+const TOPSTEP_DLL_BENEFIT = { key: 'dllBenefit', label: 'DLL added at Combine checkout on/after Jun 2, 2026 3:30 PM CT (doubles payout caps)', whenOn: { dllBenefitDoublesCaps: true, dailyLoss: bySize([1000, 2000, 3000]), dailyLossHard: false } };
+const TOPSTEP_XFA_NOTES = [
+  'Balance starts at $0. The MLL starts at -$2,000 / -$3,000 / -$4,500, trails the end-of-day balance and locks at $0 once the EOD balance reaches +$2,000 / +$3,000 / +$4,500.',
+  'After your first payout the MLL is set to $0 permanently. Topstep says payout funds leave the account on request, so TradePrint applies the $0 MLL from the first request (conservative).',
+  'The MLL is checked in real time, including open positions. TradePrint checks closed trades only.',
+  'Scaling Plan applies (ceiling 5 / 10 / 15 minis). Topstep publishes the tiers only as an image, so add your tiers under Scaling tiers in Rules.',
+  'Max 5 active XFAs. Live is a Risk Team call-up; it is never automatic.',
+  'Joined the new Topstep dashboard before Jan 12, 2026: 100% of the first $10,000 in lifetime profits, then 90/10 (legacy).'
+];
+const TOPSTEP_FREEDOM_TIERS = [
+  { minProfit: 0, contracts: 3 }, { minProfit: 1500, contracts: 4 }, { minProfit: 2000, contracts: 5 }, { minProfit: 3000, contracts: 10 },
+  { minProfit: 4500, contracts: 15 }, { minProfit: 6000, contracts: 20 }, { minProfit: 8000, contracts: 25 }
+];
+
+const MFFU_MLL_ADDON = { key: 'mll1500', label: '50K $1,500 MLL add-on', sizes: [50000], whenOn: { maxLoss: bySize([1000, 1500, 3000, 4500]) } };
+
+const ALPHA_LOCK_NOTE = 'MLL trails the end-of-day balance and stops at the starting balance.';
+const ALPHA_PAYOUT_NOTE = 'Payouts do not move the MLL.';
 
 const PROP_FIRM_RULESETS = {
   lucid: { name: 'Lucid Trading', short: 'LUCID', programs: [
-    { key: 'lucid_pro_eval', name: 'LucidPro Evaluation', stageType: 'evaluation', sizes: LUCID_SIZES, next: ['lucid_pro_funded'],
-      rules: { profitTarget: LUCID_TARGETS, maxLoss: LUCID_MLL, drawdownType: 'eod', dailyLoss: bySize([null, 1200, 1800, 2700]), dailyLossHard: false, minDays: 1, maxContracts: LUCID_MINIS, maxMicros: LUCID_MICROS, notes: ['No activation fee.', 'Can pass in one trading day.'] } },
-    { key: 'lucid_pro_funded', name: 'LucidPro Funded', stageType: 'funded', sizes: LUCID_SIZES, next: ['lucid_live'],
-      rules: { maxLoss: LUCID_MLL, drawdownType: 'eod', profitSplit: 0.9, cycleProfitMin: bySize([250, 500, 750, 1000]), consistencyPct: 40, consistencyScope: 'cycle', bufferAbove: bySize([1100, 2100, 3100, 4600]), payoutMin: 500, payoutMode: 'fixed', payoutMaxByNumber: bySize([[1000, 1500], [2000, 2500], [2500, 3000], [3000, 3500]]), payoutFrequency: 'No fixed payout window', notes: ['Buffer = initial max loss + $100.'] } },
+    { key: 'lucid_pro_eval', name: 'LucidPro Evaluation', stageType: 'evaluation', sizes: LUCID_SIZES, next: ['lucid_pro_funded'], options: [LUCID_DLL_OFF],
+      rules: { profitTarget: LUCID_TARGETS, maxLoss: LUCID_MLL, drawdownType: 'eod', drawdownLockOffset: 100, dailyLoss: LUCID_PRO_DLL, dailyLossHard: false, minDays: 1, maxContracts: LUCID_MINIS, maxMicros: LUCID_MICROS, notes: [LUCID_LOCK_NOTE, 'DLL On/Off is chosen at checkout and applies to evaluation and funded. All Lucid DLLs are soft (locked out until the next session).', 'No activation fee. Can pass in one trading day.'] } },
+    { key: 'lucid_pro_funded', name: 'LucidPro Funded', stageType: 'funded', sizes: LUCID_SIZES, next: ['lucid_live'], options: [LUCID_DLL_OFF],
+      rules: { maxLoss: LUCID_MLL, drawdownType: 'eod', drawdownLockOffset: 100, dailyLoss: bySize([600, 1200, 1800, 2700]), dailyLossHard: false, maxContracts: LUCID_MINIS, maxMicros: LUCID_MICROS, profitSplit: 0.9, cycleProfitMin: bySize([250, 500, 750, 1000]), consistencyPct: byDate([{ from: '2025-11-28', value: 40 }, { value: 35 }]), consistencyScope: 'cycle', bufferAbove: bySize([1100, 2100, 3100, 4600]), payoutMin: 500, payoutMode: 'fixed', payoutMaxByNumber: bySize([[1000, 1500], [2000, 2500], [2500, 3000], [3000, 3500]]), maxPayouts: LUCID_MAX_PAYOUTS, payoutFrequency: 'No fixed payout window', notes: [LUCID_LOCK_NOTE, 'Buffer = initial max loss + $100.', 'DLL On: once the account closes above the lock point, Lucid replaces the fixed DLL with LucidScale (60% of the highest end-of-day profit). TradePrint keeps the fixed value; update it in Rules.', '25K DLL: the newer funded page says $600, the DLL article says none. TradePrint uses $600 (the stricter reading); clear it in Rules if your dashboard shows none.', 'Purchased or reset before Nov 28, 2025 3:00 PM EST: 35% consistency and 100% of the first $10K (legacy). TradePrint switches by date only; enter a reset date as the purchase date.', 'Purchased or reset on or before Feb 27, 2026: 6 payouts before live review (legacy).'] } },
     { key: 'lucid_flex_eval', name: 'LucidFlex Evaluation', stageType: 'evaluation', sizes: LUCID_SIZES, next: ['lucid_flex_funded'], options: [{ key: 'dllEnabled', label: 'Optional daily loss limit selected at checkout' }],
-      rules: { profitTarget: LUCID_TARGETS, maxLoss: LUCID_MLL, drawdownType: 'eod', consistencyPct: 50, consistencyScope: 'stage', minDays: 2, maxContracts: LUCID_MINIS, maxMicros: LUCID_MICROS, notes: ['Consistency uses Lucid\'s cushion logic; TradePrint applies a plain best-day / total-profit check.', 'Two-day pass is possible.', 'If the DLL option was selected, set its value under Daily loss limit in Rules.'] } },
-    { key: 'lucid_flex_funded', name: 'LucidFlex Funded', stageType: 'funded', sizes: LUCID_SIZES, next: ['lucid_live'],
-      rules: { maxLoss: LUCID_MLL, drawdownType: 'eod', profitSplit: 0.9, qualifyingDays: 5, qualifyingDayProfit: bySize([100, 150, 200, 250]), cycleProfitMin: 0, payoutMin: 500, payoutMode: 'pct_profit', payoutPct: 0.5, payoutMax: bySize([1000, 2000, 2500, 3000]), maxPayouts: 5, scalingTiers: [], notes: ['No payout consistency and no payout buffer.', 'Uses a scaling plan: add the tiers under Scaling in Rules.', 'Max 5 sim payouts before live transition/review.'] } },
-    { key: 'lucid_daily_eval', name: 'LucidDaily Evaluation', stageType: 'evaluation', sizes: LUCID_SIZES, next: ['lucid_daily_funded'], options: [{ key: 'dllEnabled', label: 'Daily loss limit ON (selected at checkout)', whenOff: { dailyLoss: null } }],
-      rules: { profitTarget: LUCID_TARGETS, maxLoss: LUCID_MLL, drawdownType: 'eod', consistencyPct: 50, consistencyScope: 'stage', dailyLoss: bySize([600, 1200, 1800, 2700]), dailyLossHard: false, maxContracts: LUCID_MINIS, maxMicros: LUCID_MICROS, notes: ['Drawdown treatment and DLL are selected at checkout; adjust Rules to match your account.'] } },
-    { key: 'lucid_daily_funded', name: 'LucidDaily Funded', stageType: 'funded', sizes: LUCID_SIZES, next: ['lucid_live'],
-      rules: { maxLoss: LUCID_MLL, drawdownType: 'intraday', profitSplit: 0.9, bufferAbove: bySize([1100, 2100, 3100, 4600]), cycleProfitMin: 0, payoutMin: 500, payoutMode: 'above_buffer', payoutFrequency: 'Daily once above buffer', notes: ['Max daily sim profit that can trigger live review: $6,000 / $8,000 / $10,000 / $12,000 by size.', 'Funded news restrictions may apply (manual).'], limitations: [PROP_INTRADAY_NOTE] } },
+      rules: { profitTarget: LUCID_TARGETS, maxLoss: LUCID_MLL, drawdownType: 'eod', drawdownLockOffset: 100, consistencyPct: 50, consistencyScope: 'stage', maxContracts: LUCID_MINIS, maxMicros: LUCID_MICROS, notes: [LUCID_LOCK_NOTE, 'Consistency uses Lucid\'s cushion logic; TradePrint applies a plain best-day / total-profit check.', 'Two-day pass is possible. Lucid publishes no minimum trading days.', 'Lucid does not publish Flex DLL amounts. If you chose the DLL at checkout, set its value under Daily loss limit in Rules.'] } },
+    { key: 'lucid_flex_funded', name: 'LucidFlex Funded', stageType: 'funded', sizes: LUCID_SIZES, next: ['lucid_live'], options: [{ key: 'dllEnabled', label: 'Optional daily loss limit selected at checkout' }],
+      rules: { maxLoss: LUCID_MLL, drawdownType: 'eod', drawdownLockOffset: 100, drawdownLockAfterPayout: 100, drawdownLockPayoutTrigger: 'requested', maxContracts: LUCID_MINIS, maxMicros: LUCID_MICROS, scalingTiers: LUCID_FLEX_TIERS, scalingBasis: 'balance', profitSplit: 0.9, qualifyingDays: 5, qualifyingDayProfit: bySize([100, 150, 200, 250]), cycleProfitMin: 0, payoutMin: 500, payoutMode: 'pct_profit', payoutPct: 0.5, payoutMax: bySize([1000, 2000, 2500, 3000]), maxPayouts: LUCID_MAX_PAYOUTS, notes: ['MLL locks at start + $100 at the end-of-day lock point or as soon as you request a payout, whichever comes first.', 'No payout consistency and no payout buffer.', 'Scaling follows the balance at the last session close; payouts can lower the tier.', 'Up to 5 sim payouts, then live review (6 for accounts purchased or reset on or before Feb 27, 2026).', 'Lucid does not publish Flex DLL amounts. If you chose the DLL at checkout, set its value in Rules.'] } },
+    { key: 'lucid_daily_eval', name: 'LucidDaily Evaluation', stageType: 'evaluation', sizes: LUCID_SIZES, next: ['lucid_daily_funded'], options: [{ key: 'dllEnabled', label: 'Daily loss limit ON (selected at checkout)', whenOff: { dailyLoss: null } }, { key: 'intradayDrawdown', label: 'Intraday drawdown selected at checkout (instead of end-of-day)', whenOn: { drawdownType: 'intraday', limitations: [PROP_INTRADAY_NOTE] } }],
+      rules: { profitTarget: LUCID_TARGETS, maxLoss: LUCID_MLL, drawdownType: 'eod', drawdownLockOffset: 100, consistencyPct: 50, consistencyScope: 'stage', dailyLoss: LUCID_DAILY_DLL, dailyLossHard: false, maxContracts: LUCID_MINIS, maxMicros: LUCID_MICROS, notes: ['MLL locks at start + $100 once the balance exceeds start + MLL + $100.', 'Drawdown type (end-of-day or intraday) and DLL On/Off are chosen at checkout and cannot change.'] } },
+    { key: 'lucid_daily_funded', name: 'LucidDaily Funded', stageType: 'funded', sizes: LUCID_SIZES, next: ['lucid_live'], options: [{ key: 'dllEnabled', label: 'Daily loss limit ON (selected at checkout)', whenOff: { dailyLoss: null } }],
+      rules: { maxLoss: LUCID_MLL, drawdownType: 'intraday', drawdownLockOffset: 100, dailyLoss: LUCID_DAILY_DLL, dailyLossHard: false, maxContracts: LUCID_MINIS, maxMicros: LUCID_MICROS, profitSplit: 0.9, bufferAbove: bySize([1100, 2100, 3100, 4600]), cycleProfitMin: 0, payoutMin: 500, payoutMode: 'above_buffer', payoutFrequency: 'Daily once above buffer', notes: ['Funded drawdown is always intraday and locks at start + $100.', 'Max daily sim profit: $6,000 / $8,000 / $10,000 / $12,000 by size. Lucid pages conflict on whether reaching it moves you live automatically or into a review pool.', 'Trading US high-impact news is a hard breach: be flat from 1 minute before to 1 minute after (manual).'], limitations: [PROP_INTRADAY_NOTE] } },
     { key: 'lucid_direct', name: 'LucidDirect (Direct Funded)', stageType: 'funded', sizes: LUCID_SIZES, next: ['lucid_live'],
-      rules: { maxLoss: bySize([1000, 2000, 3500, 5000]), drawdownType: 'eod', dailyLoss: bySize([null, 1200, 2100, 3000]), dailyLossHard: true, profitSplit: 0.9, consistencyPct: 20, consistencyScope: 'cycle', cycleProfitMinFirst: bySize([1500, 3000, 6000, 9000]), cycleProfitMin: bySize([1250, 2500, 3500, 4500]), payoutMin: 500, payoutMode: 'fixed', payoutMaxByNumber: bySize([[1000, 1000, 1000, 1000, 1000], [2000, 2000, 2000, 2500, 2500], [2500, 2500, 2500, 3000, 3000], [3000, 3000, 3000, 3500, 3500]]), payoutFrequency: 'No fixed payout window', notes: ['Verify the current LucidDirect drawdown values; Lucid has revised plan parameters.', 'LucidScale DLL later becomes highest EOD profit × 60% once triggered (manual).'] } },
-    { key: 'lucid_maxx_eval', name: 'LucidMaxx Evaluation (invite only)', stageType: 'evaluation', kind: 'invite', sizes: LUCID_SIZES, next: ['lucid_live'],
-      rules: { profitTarget: LUCID_TARGETS, maxLoss: LUCID_MLL, drawdownType: 'eod', consistencyPct: 40, consistencyScope: 'stage', minDays: 5, notes: ['Invite-only / performance-earned. Passing moves directly to live.'] } },
+      rules: { maxLoss: bySize([1000, 2000, 3500, 5000]), drawdownType: 'eod', drawdownLockOffset: 100, dailyLoss: bySize([null, 1200, 2100, 3000]), dailyLossHard: false, maxContracts: LUCID_MINIS, maxMicros: LUCID_MICROS, profitSplit: 0.9, consistencyPct: 20, consistencyScope: 'cycle', cycleProfitMinFirst: bySize([1500, 3000, 6000, 9000]), cycleProfitMin: bySize([1250, 2500, 3500, 4500]), payoutMin: 500, payoutMode: 'fixed', payoutMaxByNumber: bySize([[1000, 1000, 1000, 1000, 1000], [2000, 2000, 2000, 2500, 2500], [2500, 2500, 2500, 3000, 3000], [3000, 3000, 3000, 3500, 3500]]), maxPayouts: LUCID_MAX_PAYOUTS, payoutFrequency: 'No fixed payout window', notes: ['MLL locks at start + $100 once the end-of-day balance exceeds $26,100 / $52,100 / $103,600 / $155,100.', 'DLL is soft. Once the account closes above the lock point Lucid replaces it with LucidScale (60% of the highest end-of-day profit). TradePrint keeps the fixed value; update it in Rules.'] } },
+    { key: 'lucid_maxx_eval', name: 'LucidMaxx Evaluation (invite only)', stageType: 'evaluation', kind: 'invite', sizes: LUCID_SIZES, next: ['lucid_maxx_prelive', 'lucid_live'], choiceLabel: 'Current LucidMaxx continues to Step 2 Pre-Live. Legacy LucidMaxx went straight to Lucid Live.',
+      rules: { profitTarget: LUCID_TARGETS, maxLoss: LUCID_MLL, drawdownType: 'eod', consistencyPct: 40, consistencyScope: 'stage', notes: ['Invite only. No DLL.', 'Lucid does not publish a drawdown lock for LucidMaxx, so TradePrint keeps trailing (conservative).', 'Legacy LucidMaxx required 5 trading days; set Minimum trading days in Rules for a legacy account.'] } },
+    { key: 'lucid_maxx_prelive', name: 'LucidMaxx Step 2 Pre-Live (invite only)', stageType: 'evaluation', kind: 'invite', sizes: LUCID_SIZES, next: ['lucid_maxx_live'],
+      rules: { profitTarget: bySize([1000, 2000, 3000, 4500]), maxLoss: LUCID_MLL, drawdownType: 'eod', notes: ['No consistency rule. The standard Live Scaling Plan applies (manual).', 'Lucid does not publish a drawdown lock for this step, so TradePrint keeps trailing (conservative).'] } },
+    { key: 'lucid_maxx_live', name: 'LucidMaxx Live (invite only)', stageType: 'live', kind: 'invite', sizes: LUCID_SIZES, next: [],
+      rules: { startingBalance: bySize([1000, 2000, 3000, 4500]), maxLoss: bySize([900, 1900, 2900, 4400]), drawdownType: 'static', profitSplit: 0.9, payoutMode: 'above_buffer', bufferAbove: 0, payoutFrequency: 'Daily', notes: ['Starts with $1,000 / $2,000 / $3,000 / $4,500 that Lucid says is withdrawable from day 1. Static MLL at $100.', 'TradePrint only shows profit above the starting balance as eligible.', 'Live bonus after 20 trading days and +$2,000 / $4,000 / $6,000 / $9,000 (manual).'] } },
     { key: 'lucid_live', name: 'Lucid Live', stageType: 'live', sizes: LUCID_SIZES, next: [],
-      rules: { accounting: 'zero', startingBalance: 0, maxLoss: LUCID_MLL, drawdownType: 'eod', profitSplit: 0.9, payoutMode: 'above_buffer', bufferAbove: 0, payoutFrequency: 'Daily', notes: ['Live transition is discretionary (risk team). TradePrint never claims automatic live eligibility.', 'Live MLL can eventually lock at $100 (set Drawdown lock in Rules once it applies).'] } }
+      rules: { accounting: 'zero', startingBalance: 0, maxLoss: LUCID_MLL, drawdownType: 'eod', drawdownLockOffset: 100, drawdownLockAfterPayout: 100, drawdownLockPayoutTrigger: 'requested', maxContracts: LUCID_MINIS, maxMicros: LUCID_MICROS, scalingTiers: LUCID_LIVE_TIERS, scalingBasis: 'balance', profitSplit: 0.9, payoutMode: 'above_buffer', bufferAbove: 0, payoutFrequency: 'Daily', notes: ['Live transition is discretionary (risk team). TradePrint never claims automatic live eligibility.', 'MLL locks at $100. Lucid\'s wording also allows the lock to engage as soon as live profit equals the starting drawdown; TradePrint locks once the trailing floor reaches $100. A payout request before then locks it at $100 immediately.', 'No DLL. CBOT, NYMEX and COMEX contracts have lower limits (manual).', 'Lucid states the 90% split only for the Live Bonus; verify it for regular live payouts.'] } }
   ] },
 
   tradeify: { name: 'Tradeify', short: 'TRADEIFY', programs: [
     { key: 'growth_eval', name: 'Growth Evaluation', stageType: 'evaluation', sizes: [25000, 50000, 100000, 150000], next: ['growth_funded'],
-      rules: { profitTarget: bySize([1500, 3000, 6000, 9000]), maxLoss: bySize([1000, 2000, 3500, 5000]), drawdownType: 'eod', dailyLoss: bySize([600, 1250, 2500, 3750]), dailyLossHard: false, minDays: 1, maxContracts: bySize([1, 4, 8, 12]), maxMicros: bySize([10, 40, 80, 120]), notes: ['No evaluation consistency per the dedicated Growth Evaluation article. Generic Tradeify pages have shown conflicting wording; adjust in Rules if needed.'] } },
+      rules: { profitTarget: bySize([1500, 3000, 6000, 9000]), maxLoss: bySize([1000, 2000, 3500, 5000]), drawdownType: 'eod', dailyLoss: bySize([600, 1250, 2500, 3750]), dailyLossHard: false, minDays: 1, maxContracts: bySize([1, 4, 8, 12]), maxMicros: bySize([10, 40, 80, 120]), notes: ['Evaluation drawdown never locks (Tradeify locks only Sim Funded accounts).', 'No evaluation consistency per the dedicated Growth Evaluation article. Generic Tradeify pages have shown conflicting wording; adjust in Rules if needed.', 'Purchased before Sep 12, 2025 8:00 AM EST: 5 / 10 / 15 contracts for 50K / 100K / 150K (legacy).'] } },
     { key: 'growth_funded', name: 'Growth Funded', stageType: 'funded', sizes: [25000, 50000, 100000, 150000], next: [],
-      rules: { maxLoss: bySize([1000, 2000, 3500, 5000]), drawdownType: 'eod', dailyLoss: bySize([600, 1250, 2500, 3750]), dailyLossHard: false, profitSplit: 0.9, qualifyingDays: 5, qualifyingDayProfit: bySize([100, 150, 200, 250]), bufferAbove: bySize([1500, 3000, 4500, 6500]), payoutMin: bySize([250, 500, 1000, 1500]), payoutMode: 'fixed', payoutMaxByNumber: bySize([[1000, 1000, 1000, 1000], [1500, 2000, 2500, 3000], [2000, 2500, 3000, 4000], [2500, 3000, 4000, 5000]]), notes: ['Minimum qualifying balance $26,500 / $53,000 / $104,500 / $156,500.', 'Purchase-date legacy rules exist; verify for older accounts.'] } },
+      rules: { maxLoss: bySize([1000, 2000, 3500, 5000]), drawdownType: 'eod', drawdownLockOffset: 100, drawdownLockAfterPayout: 100, drawdownLockPayoutTrigger: 'requested', dailyLoss: bySize([600, 1250, 2500, 3750]), dailyLossHard: false, maxContracts: bySize([1, 4, 8, 12]), maxMicros: bySize([10, 40, 80, 120]), scalingTiers: TRADEIFY_GROWTH_DLL_TIERS, scalingBasis: 'balance', profitSplit: 0.9, consistencyPct: 35, consistencyScope: 'cycle', qualifyingDays: 5, qualifyingDayProfit: bySize([100, 150, 200, 250]), bufferAbove: bySize([1500, 3000, 4500, 6500]), payoutMin: bySize([250, 500, 1000, 1500]), payoutMode: 'fixed', payoutMaxByNumber: bySize([[1000, 1000, 1000, 1000], [1500, 2000, 2500, 3000], [2000, 2500, 3000, 4000], [2500, 3000, 4000, 5000]]), notes: [TRADEIFY_FUNDED_LOCK_NOTE, 'DLL rises to $1,000 / $2,000 / $3,500 / $5,000 from the session after the balance reaches +6%. Tradeify does not say whether it drops back; TradePrint uses the last closed balance (conservative).', 'Contract limits come from Tradeify\'s universal rules table (no Growth-funded-specific page).', 'Minimum qualifying balance $26,500 / $53,000 / $104,500 / $156,500.', 'Purchased before Sep 12, 2025 8:00 AM EST: legacy minimum balances, 6-step caps and the DLL is removed at +6% (edit the dailyLoss values inside Scaling tiers to match).'] } },
     { key: 'select_eval', name: 'Select Evaluation', stageType: 'evaluation', sizes: [25000, 50000, 100000, 150000, 300000], next: ['select_flex', 'select_daily'], choiceLabel: 'Select Flex or Select Daily (permanent choice)',
-      rules: { profitTarget: bySize([1500, 3000, 6000, 9000, 14000]), maxLoss: bySize([1000, 2000, 3000, 4500, 8000]), drawdownType: 'eod', dailyLoss: bySize([null, null, null, null, 4000]), dailyLossHard: false, consistencyPct: 40, consistencyScope: 'stage', minDays: 3, maxContracts: bySize([1, 4, 8, 12, 16]), maxMicros: bySize([10, 40, 80, 120, 160]), notes: ['Optional 50% consistency add-on may exist.', '300K values are V2 (purchases on/after Aug 27, 2026). V1 differs; override in Rules for older 300K accounts.'] } },
+      rules: { profitTarget: bySize([1500, 3000, 6000, 9000, 14000]), maxLoss: byDate([{ from: '2026-08-27', value: bySize([1000, 2000, 3000, 4500, 8000]) }, { value: bySize([1000, 2000, 3000, 4500, 6000]) }]), drawdownType: 'eod', dailyLoss: byDate([{ from: '2026-08-27', value: bySize([null, null, null, null, 4000]) }, { value: null }]), dailyLossHard: false, consistencyPct: 40, consistencyScope: 'stage', minDays: 3, maxContracts: bySize([1, 4, 8, 12, 16]), maxMicros: bySize([10, 40, 80, 120, 160]), notes: ['Evaluation drawdown never locks (Tradeify locks only Sim Funded accounts).', 'Optional 50% consistency add-on allows a 2-day pass.', '300K: V2 (bought on/after Aug 27, 2026) MLL $8,000 + $4,000 DLL (soft per Tradeify\'s general DLL article); V1 MLL $6,000, no DLL. Applied from the purchase date.', '50K bought before the new dashboard launch keeps a $2,500 target (legacy, date not published); set it in Rules.'] } },
     { key: 'select_flex', name: 'Select Flex Funded', stageType: 'funded', sizes: [25000, 50000, 100000, 150000, 300000], next: [],
-      rules: { maxLoss: bySize([1000, 2000, 3000, 4500, 8000]), drawdownType: 'eod', drawdownLockOffset: 100, dailyLoss: bySize([null, null, null, null, 4000]), dailyLossHard: false, profitSplit: 0.9, qualifyingDays: 5, qualifyingDayProfit: bySize([100, 150, 200, 250, 250]), cycleProfitMin: 0, payoutMode: 'pct_profit', payoutPct: 0.5, payoutMax: byDate([{ from: '2026-09-01', value: bySize([1250, 2500, 3500, 4500, 10000]) }, { value: bySize([1250, 3000, 4000, 5000, 10000]) }]), maxContracts: bySize([2, 4, 8, 12, 16]), scalingTiers: [], notes: ['Starting contracts 1 / 2 / 3 / 3 minis, scaled up to 2 / 4 / 8 / 12.', 'Payout caps depend on purchase date (before vs on/after Sep 1, 2026).', 'No buffer requirement for Flex payouts.'] } },
+      rules: { maxLoss: byDate([{ from: '2026-08-27', value: bySize([1000, 2000, 3000, 4500, 8000]) }, { value: bySize([1000, 2000, 3000, 4500, 6000]) }]), drawdownType: 'eod', drawdownLockOffset: 100, drawdownLockAfterPayout: 100, drawdownLockPayoutTrigger: 'requested', dailyLoss: byDate([{ from: '2026-08-27', value: bySize([null, null, null, null, 4000]) }, { value: null }]), dailyLossHard: false, maxContracts: bySize([2, 4, 8, 12, 16]), maxMicros: bySize([20, 40, 80, 120, 160]), scalingTiers: TRADEIFY_SELECT_TIERS, scalingBasis: 'peak', profitSplit: 0.9, qualifyingDays: 5, qualifyingDayProfit: bySize([100, 150, 200, 250, 750]), cycleProfitMin: 0, payoutMin: 250, payoutMode: 'pct_profit', payoutPct: 0.5, payoutMax: byDate([{ from: '2026-09-01', value: bySize([1250, 2500, 3500, 4500, 10000]) }, { value: bySize([1250, 3000, 4000, 5000, 10000]) }]), notes: [TRADEIFY_FUNDED_LOCK_NOTE, 'The 300K article says the payout lock happens when the payout is approved; TradePrint applies it from the request (conservative).', 'Scaling is cumulative: once a tier is reached you keep it.', 'Payout caps depend on purchase date. Tradeify says "before" and "after" Sep 1, 2026; TradePrint treats Sep 1 itself as the new caps. No buffer requirement for Flex payouts.'] } },
     { key: 'select_daily', name: 'Select Daily Funded', stageType: 'funded', sizes: [25000, 50000, 100000, 150000, 300000], next: [],
-      rules: { maxLoss: bySize([1000, 2000, 2500, 3500, 6000]), drawdownType: 'eod', dailyLoss: bySize([500, 1000, 1250, 1750, 3000]), dailyLossHard: true, profitSplit: 0.9, bufferAbove: bySize([1100, 2100, 2600, 3600, 6100]), cycleProfitMin: 0, payoutMin: 250, payoutMode: 'double_fresh_profit', payoutMax: byDate([{ from: '2026-09-01', value: bySize([600, 1250, 1750, 2500, 4000]) }, { value: bySize([600, 1250, 1750, 2500, 4000]) }]), payoutFrequency: 'Daily', notes: ['Payout cap = 2 × fresh profit, capped (post Sep 1, 2026 formula). Older purchase-date versions differ; override in Rules.'] } },
+      rules: { maxLoss: byDate([{ from: '2026-08-27', value: bySize([1000, 2000, 2500, 3500, 6000]) }, { value: bySize([1000, 2000, 2500, 3500, 5000]) }]), drawdownType: 'eod', drawdownLockOffset: 100, drawdownLockAfterPayout: 100, drawdownLockPayoutTrigger: 'requested', dailyLoss: byDate([{ from: '2026-08-27', value: bySize([500, 1000, 1250, 1750, 3000]) }, { value: bySize([500, 1000, 1250, 1750, 2500]) }]), dailyLossHard: false, maxContracts: bySize([2, 4, 8, 12, 16]), maxMicros: bySize([20, 40, 80, 120, 160]), scalingTiers: TRADEIFY_SELECT_TIERS, scalingBasis: 'peak', profitSplit: 0.9, bufferAbove: byDate([{ from: '2026-08-27', value: bySize([1100, 2100, 2600, 3600, 6100]) }, { value: bySize([1100, 2100, 2600, 3600, 5100]) }]), cycleProfitMin: 0, payoutMin: 250, payoutMode: 'double_fresh_profit', payoutMax: byDate([{ from: '2026-09-01', value: bySize([600, 1250, 1750, 2500, 4000]) }, { from: '2026-08-27', value: bySize([600, 1000, 1500, 2500, 4000]) }, { value: bySize([600, 1000, 1500, 2500, 3500]) }]), payoutFrequency: 'Daily', notes: [TRADEIFY_FUNDED_LOCK_NOTE, 'DLL is soft per Tradeify\'s DLL article (the Select payout page does not say).', 'Payout cap = 2 × fresh profit, capped by purchase date (before vs on/after Sep 1, 2026; 300K V1 before Aug 27, 2026).', 'Scaling is identical to Flex and cumulative.'] } },
     { key: 'lightning_funded', name: 'Lightning Funded (Direct)', stageType: 'funded', sizes: [25000, 50000, 100000, 150000], next: [],
-      rules: { drawdownType: 'eod', maxLoss: null, profitSplit: 0.9, consistencyByPayout: [20, 25, 30], consistencyScope: 'cycle', cycleProfitMinFirst: bySize([1500, 3000, 6000, 9000]), cycleProfitMin: bySize([1000, 2000, 3500, 4500]), payoutMin: 1000, payoutMode: 'fixed', payoutMaxByNumber: bySize([[1000, 1000, 1000, 1000], [2000, 2000, 2000, 2500], [2500, 2500, 2500, 3000], [3000, 3000, 3000, 3500]]), notes: ['Set the Lightning max drawdown in Rules (not part of the verified snapshot).', 'Consistency 20% / 25% / 30%+ by payout number applies to accounts purchased after Sep 12, 2025; older purchases differ.'] } }
+      rules: { maxLoss: bySize([1000, 2000, 4000, 5250]), drawdownType: 'eod', drawdownLockOffset: 100, drawdownLockAfterPayout: 100, drawdownLockPayoutTrigger: 'requested', dailyLoss: bySize([null, 1250, 2500, 3000]), dailyLossHard: false, maxContracts: bySize([1, 4, 8, 12]), maxMicros: bySize([10, 40, 80, 120]), scalingTiers: TRADEIFY_LIGHTNING_DLL_TIERS, scalingBasis: 'balance', profitSplit: 0.9, consistencyByPayout: byDate([{ from: '2025-09-12', value: [20, 25, 30] }, { value: [20] }]), consistencyScope: 'cycle', cycleProfitMinFirst: bySize([1500, 3000, 6000, 9000]), cycleProfitMin: bySize([1000, 2000, 3500, 4500]), payoutMin: 1000, payoutMode: 'fixed', payoutMaxByNumber: bySize([[1000, 1000, 1000, 1000], [2000, 2000, 2000, 2500], [2500, 2500, 2500, 3000], [3000, 3000, 3000, 3500]]), notes: [TRADEIFY_FUNDED_LOCK_NOTE, 'DLL rises to $2,000 / $4,000 / $5,250 from the session after the balance reaches +6% (TradePrint uses the last closed balance).', '150K bought before the new dashboard launch: $6,000 MLL and $3,750 DLL (legacy, date not published). Set Max loss in Rules and the dailyLoss values inside Scaling tiers (the tier DLL overrides the plain DLL field).', 'Purchased before Sep 12, 2025 8:00 AM EST: flat 20% consistency, older profit goals and 5 / 10 / 15 contracts for 50K / 100K / 150K (legacy). TradePrint switches by purchase date only, not time of day.'] } }
   ] },
 
   topstep: { name: 'Topstep', short: 'TOPSTEP', programs: [
-    { key: 'combine', name: 'Trading Combine', stageType: 'evaluation', sizes: [50000, 100000, 150000], next: ['xfa_standard', 'xfa_consistency'], choiceLabel: 'XFA Standard or XFA Consistency (chosen at activation)', options: [{ key: 'dllOption', label: 'Optional daily loss limit purchased' }],
-      rules: { profitTarget: bySize([3000, 6000, 9000]), maxLoss: bySize([2000, 3000, 4500]), drawdownType: 'eod', consistencyPct: 55, consistencyScope: 'stage', maxContracts: bySize([5, 10, 15]), maxMicros: bySize([50, 100, 150]), notes: ['Best day must stay at or below 55% of total profit or the required profit adjusts (manual).', 'If you bought the daily loss limit option, set its value under Daily loss limit in Rules.'] } },
-    { key: 'xfa_standard', name: 'XFA Standard', stageType: 'funded', sizes: [50000, 100000, 150000], next: ['topstep_live'], options: [{ key: 'dllBenefit', label: 'Eligible daily loss limit benefit (doubles payout caps)', whenOn: { dllBenefitDoublesCaps: true } }],
-      rules: { accounting: 'zero', startingBalance: 0, maxLoss: bySize([2000, 3000, 4500]), drawdownType: 'eod', drawdownLockAfterPayout: 0, profitSplit: 0.9, qualifyingDays: 5, qualifyingDayProfit: 150, cycleProfitMin: 0, payoutMode: 'pct_balance', payoutPct: 0.5, payoutMax: bySize([2000, 3000, 5000]), notes: ['Winning days do not need to be consecutive.', 'After the first payout, positive net profit since the previous payout is required.', 'After a payout: MLL resets to $0 permanently and the winning-day count resets.', 'Maximum 5 active XFAs.', 'Some grandfathered users have legacy first-$10K treatment.'] } },
-    { key: 'xfa_consistency', name: 'XFA Consistency', stageType: 'funded', sizes: [50000, 100000, 150000], next: ['topstep_live'], options: [{ key: 'dllBenefit', label: 'Eligible daily loss limit benefit (doubles payout caps)', whenOn: { dllBenefitDoublesCaps: true } }],
-      rules: { accounting: 'zero', startingBalance: 0, maxLoss: bySize([2000, 3000, 4500]), drawdownType: 'eod', drawdownLockAfterPayout: 0, profitSplit: 0.9, minDays: 3, minDaysScope: 'cycle', consistencyPct: 40, consistencyScope: 'cycle', cycleProfitMin: 0, payoutMode: 'pct_balance', payoutPct: 0.5, payoutMax: bySize([3000, 4000, 6000]), notes: ['At least one trade each trading day in the cycle (manual).', 'After a payout: MLL resets to $0, consistency cycle and day count reset.'] } },
+    { key: 'combine', name: 'Trading Combine', stageType: 'evaluation', sizes: [50000, 100000, 150000], next: ['xfa_standard', 'xfa_consistency'], choiceLabel: 'XFA Standard or XFA Consistency (chosen at activation)', options: [TOPSTEP_DLL_OPTION],
+      rules: { profitTarget: bySize([3000, 6000, 9000]), maxLoss: bySize([2000, 3000, 4500]), drawdownType: 'eod', drawdownLockOffset: 0, consistencyPct: 55, consistencyScope: 'stage', maxContracts: bySize([5, 10, 15]), maxMicros: bySize([50, 100, 150]), notes: ['MLL trails your highest end-of-day balance and locks permanently at the starting balance ($50,000 / $100,000 / $150,000) once the EOD balance reaches start + MLL.', 'The MLL is checked in real time, including open positions. TradePrint checks closed trades only.', 'Best day must stay at or below 55% of total profit or the required profit adjusts (manual).', 'Optional DLL ($1,000 / $2,000 / $3,000) is soft: it pauses trading for the day and carries into the XFA.', 'Traders in the Responsible Trading Program can only choose XFA Consistency.'] } },
+    { key: 'xfa_standard', name: 'XFA Standard', stageType: 'funded', sizes: [50000, 100000, 150000], next: ['topstep_live'], options: [TOPSTEP_DLL_OPTION, TOPSTEP_DLL_BENEFIT],
+      rules: { accounting: 'zero', startingBalance: 0, maxLoss: bySize([2000, 3000, 4500]), drawdownType: 'eod', drawdownLockOffset: 0, drawdownLockAfterPayout: 0, drawdownLockPayoutTrigger: 'requested', profitSplit: 0.9, qualifyingDays: 5, qualifyingDayProfit: 150, cycleProfitMin: 0, payoutMin: 125, payoutMode: 'pct_balance', payoutPct: 0.5, payoutMax: bySize([2000, 3000, 5000]), notes: [...TOPSTEP_XFA_NOTES, '5 winning days of $150+ (not consecutive). The request day does not count toward the next 5.'] } },
+    { key: 'xfa_consistency', name: 'XFA Consistency', stageType: 'funded', sizes: [50000, 100000, 150000], next: ['topstep_live'], options: [TOPSTEP_DLL_OPTION, TOPSTEP_DLL_BENEFIT],
+      rules: { accounting: 'zero', startingBalance: 0, maxLoss: bySize([2000, 3000, 4500]), drawdownType: 'eod', drawdownLockOffset: 0, drawdownLockAfterPayout: 0, drawdownLockPayoutTrigger: 'requested', profitSplit: 0.9, minDays: 3, minDaysScope: 'cycle', consistencyPct: 40, consistencyScope: 'cycle', cycleProfitMin: 0, payoutMin: 125, payoutMode: 'pct_balance', payoutPct: 0.5, payoutMax: bySize([3000, 4000, 6000]), notes: [...TOPSTEP_XFA_NOTES, 'At least one trade each trading day in the cycle (manual). Consistency and the 3-day count reset after each payout.'] } },
     { key: 'topstep_live', name: 'Live Funded Account', stageType: 'live', sizes: [50000, 100000, 150000], next: [],
-      rules: { accounting: 'zero', startingBalance: 0, drawdownType: 'none', profitSplit: 0.9, qualifyingDays: 5, qualifyingDayProfit: 150, payoutMode: 'pct_balance', payoutPct: 0.5, payoutMin: 125, notes: ['Move to Live is risk-team controlled; payout count alone does not earn it.', 'After 30 qualifying $150+ winning days in Live, daily payouts may unlock.', 'Live uses daily loss controls and real account behavior (manual).'] } }
+      rules: { accounting: 'zero', startingBalance: 0, drawdownType: 'none', dailyLoss: bySize([2000, 3000, 4500]), dailyLossHard: false, maxContracts: bySize([5, 10, 15]), profitSplit: 0.9, qualifyingDays: 5, qualifyingDayProfit: 150, payoutMode: 'pct_balance', payoutPct: 0.5, payoutMin: 125, notes: ['Move to Live is a Risk Team call-up; payout count alone does not earn it.', 'TradePrint tracks Live P&L from $0. Your real starting balance is 20% of your cumulative XFA balance (minimum $10,000); the rest is held in Reserve.', 'Topstep pages conflict on the Live floor ($0 vs $1,000), so TradePrint does not track a Live MLL. Check your Topstep dashboard.', 'Starting DLL and max position shown; both are dynamic (they drop at low balances and grow with profit tiers). The DLL is soft. Topstep says micros are not available at the usual 10:1 ratio in Live.', 'After 30 qualifying $150+ winning days in Live, daily payouts may unlock.'] } },
+    { key: 'freedom_combine', name: 'Freedom Trading Combine', stageType: 'evaluation', sizes: [250000], next: ['freedom_xfa'],
+      rules: { profitTarget: 15000, maxLoss: 10000, drawdownType: 'eod', drawdownLockOffset: 0, dailyLoss: 5000, dailyLossHard: false, consistencyPct: 55, consistencyScope: 'stage', maxContracts: 25, maxMicros: 250, notes: ['MLL $10,000 trailing end of day: starts at $240,000 and locks at the $250,000 starting balance once the EOD balance reaches $260,000. The lock is Topstep\'s standard Combine rule; the Freedom page does not restate it.', 'Mandatory $5,000 daily loss limit. Topstep\'s DLL article treats every DLL as soft (pauses trading for the day); the Freedom page does not say.', 'Best day must stay at or below 55% of total profit or the required profit adjusts (manual).', 'Restricted energies are capped at 15 minis / 150 micros (manual).', '$499 one-time, 90-day expiration, no resets, free activation. Passing leads to the 250K Freedom XFA (Standard path only).'] } },
+    { key: 'freedom_xfa', name: 'Freedom XFA', stageType: 'funded', sizes: [250000], next: [],
+      rules: { accounting: 'zero', startingBalance: 0, maxLoss: 10000, drawdownType: 'eod', drawdownLockOffset: 0, drawdownLockAfterPayout: 0, drawdownLockPayoutTrigger: 'requested', dailyLoss: 5000, dailyLossHard: false, maxContracts: 25, maxMicros: 250, scalingTiers: TOPSTEP_FREEDOM_TIERS, scalingBasis: 'balance', profitSplit: 0.9, qualifyingDays: 5, qualifyingDayProfit: 150, cycleProfitMin: 0, payoutMin: 125, payoutMode: 'pct_balance', payoutPct: 0.5, payoutMax: 25000, notes: ['Balance starts at $0. The MLL starts at -$10,000, trails the end-of-day balance and locks at $0 once the EOD balance reaches +$10,000 (standard XFA rule; the Freedom page does not restate it).', 'After your first payout the MLL is set to $0 permanently. TradePrint applies it from the first payout request (conservative).', 'Scaling by balance at the last session close: below $1,500 = 3 lots, $1,500 = 4, $2,000 = 5, $3,000 = 10, $4,500 = 15, $6,000 = 20, $8,000+ = 25. Each threshold counts from its lower bound. Limits never increase mid-session.', 'Payouts: $25,000 cap per payout (Freedom page). The rest follows the Standard XFA path: 5 winning days of $150+, up to 50% of balance, $125 minimum, 90/10.', 'Topstep does not list a DLL for the Freedom XFA. A DLL bought with the Combine carries into the XFA, so TradePrint applies the $5,000 soft DLL; clear it in Rules if your dashboard shows none.', 'Live is a Risk Team call-up only and Topstep pages conflict on the Live size ($150K tier vs the average of your XFAs). When you are called up, add the Live account separately with the size Topstep assigns. TradePrint never creates a $250K Live account.'] } }
   ] },
 
   apex: { name: 'Apex Trader Funding', short: 'APEX', programs: [
-    { key: 'eod_eval', name: 'EOD Evaluation', stageType: 'evaluation', sizes: [25000, 50000, 100000, 150000], next: ['eod_pa'],
-      rules: { profitTarget: bySize([1500, 3000, 6000, 9000]), maxLoss: bySize([1000, 2000, 3000, 4000]), drawdownType: 'eod', dailyLoss: bySize([500, 1000, 1500, 2000]), dailyLossHard: false, minDays: 0, maxContracts: bySize([4, 6, 8, 12]), notes: ['30-day access period. Can pass in one day.', 'After passing there is a limited PA activation window; verify the deadline.'] } },
-    { key: 'intraday_eval', name: 'Intraday Evaluation', stageType: 'evaluation', sizes: [25000, 50000, 100000, 150000], next: ['intraday_pa'],
-      rules: { profitTarget: bySize([1500, 3000, 6000, 9000]), maxLoss: bySize([1000, 2000, 3000, 4000]), drawdownType: 'intraday', minDays: 0, maxContracts: bySize([4, 6, 8, 12]), notes: ['30-day access period.'], limitations: [PROP_INTRADAY_NOTE] } },
+    { key: 'eod_eval', name: 'EOD Evaluation', stageType: 'evaluation', sizes: [25000, 50000, 100000, 150000], next: ['eod_pa'], options: [APEX_RITHMIC_LOCK],
+      rules: { profitTarget: bySize([1500, 3000, 6000, 9000]), maxLoss: bySize([1000, 2000, 3000, 4000]), drawdownType: 'eod', dailyLoss: bySize([500, 1000, 1500, 2000]), dailyLossHard: false, minDays: 0, maxContracts: bySize([4, 6, 8, 12]), notes: ['Tradovate evaluations trail indefinitely. Rithmic / WealthCharts evaluations stop trailing at start + profit target (Apex prints only the 50K example).', 'The DLL pauses trading for the session; it does not fail the account.', '30-day access period. Can pass in one day. After passing you have 7 calendar days to activate the PA.'] } },
+    { key: 'intraday_eval', name: 'Intraday Evaluation', stageType: 'evaluation', sizes: [25000, 50000, 100000, 150000], next: ['intraday_pa'], options: [APEX_RITHMIC_LOCK],
+      rules: { profitTarget: bySize([1500, 3000, 6000, 9000]), maxLoss: bySize([1000, 2000, 3000, 4000]), drawdownType: 'intraday', minDays: 0, maxContracts: bySize([4, 6, 8, 12]), notes: ['Tradovate evaluations trail indefinitely. Rithmic / WealthCharts evaluations stop trailing at start + profit target.', 'No DLL. 30-day access period. 7 calendar days to activate the PA after passing.'], limitations: [PROP_INTRADAY_NOTE] } },
     { key: 'eod_pa', name: 'EOD Performance Account', stageType: 'funded', sizes: [25000, 50000, 100000, 150000], next: [],
-      rules: { maxLoss: bySize([1000, 2000, 3000, 4000]), drawdownType: 'eod', profitSplit: 1, qualifyingDays: 5, qualifyingDayProfit: bySize([100, 250, 300, 350]), consistencyPct: 50, consistencyScope: 'cycle', bufferAbove: bySize([1100, 2100, 3100, 4100]), requestMinBalanceAbove: bySize([1600, 2600, 3600, 4600]), payoutMin: 500, maxPayouts: 6, payoutMode: 'fixed', payoutMaxByNumber: bySize([[1000, 1000, 1000, 1000, 1000, 1000], [1500, 1500, 2000, 2500, 2500, 3000], [2000, 2500, 2500, 3000, 4000, 4000], [2500, 3000, 3000, 3000, 4000, 5000]]), scalingTiers: APEX_PA_TIERS, dailyLossHard: true, notes: ['100% approved payout split under current policy.', 'Safety net $26,100 / $52,100 / $103,100 / $154,100; minimum balance to request $26,600 / $52,600 / $103,600 / $154,600.'] } },
+      rules: { maxLoss: bySize([1000, 2000, 3000, 4000]), drawdownType: 'eod', drawdownLockOffset: 100, profitSplit: 1, qualifyingDays: 5, qualifyingDayProfit: bySize([100, 250, 300, 350]), consistencyPct: 50, consistencyScope: 'cycle', bufferAbove: bySize([1100, 2100, 3100, 4100]), requestMinBalanceAbove: bySize([1600, 2600, 3600, 4600]), payoutMin: 500, maxPayouts: 6, payoutMode: 'fixed', payoutMaxByNumber: bySize([[1000, 1000, 1000, 1000, 1000, 1000], [1500, 1500, 2000, 2500, 2500, 3000], [2000, 2500, 2500, 3000, 4000, 4000], [2500, 3000, 3000, 3000, 4000, 5000]]), scalingTiers: APEX_PA_TIERS, scalingBasis: 'balance', dailyLossHard: false, notes: ['Threshold locks at start + $100 once the highest end-of-day balance reaches start + MLL + $100. Payouts do not move it.', 'Tier contracts and DLL use the balance at the prior session close. The DLL pauses trading for the session.', '100% approved payout split under current policy.', 'Safety net $26,100 / $52,100 / $103,100 / $154,100; minimum balance to request $26,600 / $52,600 / $103,600 / $154,600.', 'Inactivity: two $50+ net profit days within 30 calendar days or the account closes (manual).'] } },
     { key: 'intraday_pa', name: 'Intraday Performance Account', stageType: 'funded', sizes: [25000, 50000, 100000, 150000], next: [],
-      rules: { maxLoss: bySize([1000, 2000, 3000, 4000]), drawdownType: 'intraday', profitSplit: 1, qualifyingDays: 5, qualifyingDayProfit: bySize([100, 200, 250, 300]), consistencyPct: 50, consistencyScope: 'cycle', bufferAbove: bySize([1100, 2100, 3100, 4100]), requestMinBalanceAbove: bySize([1600, 2600, 3600, 4600]), payoutMin: 500, maxPayouts: 6, payoutMode: 'fixed', payoutMaxByNumber: bySize([[1000, 1000, 1000, 1000, 1000, 1000], [1500, 2000, 2500, 2500, 3000, 3000], [2000, 2500, 3000, 3000, 4000, 4000], [2500, 3000, 3000, 4000, 4000, 5000]]), scalingTiers: APEX_PA_TIERS, dailyLossHard: true, notes: ['Tier-based scaling and DLL (same tier table as EOD PA; verify).'], limitations: [PROP_INTRADAY_NOTE] } },
+      rules: { maxLoss: bySize([1000, 2000, 3000, 4000]), drawdownType: 'intraday', drawdownLockOffset: 100, profitSplit: 1, qualifyingDays: 5, qualifyingDayProfit: bySize([100, 200, 250, 300]), consistencyPct: 50, consistencyScope: 'cycle', bufferAbove: bySize([1100, 2100, 3100, 4100]), requestMinBalanceAbove: bySize([1600, 2600, 3600, 4600]), payoutMin: 500, maxPayouts: 6, payoutMode: 'fixed', payoutMaxByNumber: bySize([[1000, 1000, 1000, 1000, 1000, 1000], [1500, 2000, 2500, 2500, 3000, 3000], [2000, 2500, 3000, 3000, 4000, 4000], [2500, 3000, 3000, 4000, 4000, 5000]]), scalingTiers: APEX_PA_TIERS, scalingBasis: 'balance', dailyLossHard: false, notes: ['Threshold locks at start + $100 once the peak balance (including open profit) reaches start + MLL + $100.', 'Tier contracts and DLL use the balance at the prior session close. The DLL pauses trading for the session.', 'Inactivity: two $50+ net profit days within 30 calendar days or the account closes (manual).'], limitations: [PROP_INTRADAY_NOTE] } },
     { key: 'apex_legacy', name: 'Legacy Account (import only)', stageType: 'funded', kind: 'legacy', sizes: [25000, 50000, 100000, 150000], next: [],
-      rules: { maxLoss: bySize([1500, 2500, 3000, 5000]), drawdownType: 'intraday', profitSplit: 0.9, notes: ['Legacy Apex plans vary by purchase date. Set your actual rules in Rules.'], limitations: [PROP_INTRADAY_NOTE] } }
+      rules: { maxLoss: bySize([1500, 2500, 3000, 5000]), drawdownType: 'intraday', drawdownLockOffset: 100, profitSplit: 0.9, notes: ['Legacy accounts (bought before Mar 1, 2026) lock at start + $100 once the peak balance reaches start + drawdown + $100.', 'Legacy split: 100% of the first $25,000 paid per account, then 90%.', 'Legacy rules vary by plan (75K / 250K / 300K / static plans exist). Set your actual rules in Rules.'], limitations: [PROP_INTRADAY_NOTE] } }
   ] },
 
   mffu: { name: 'My Funded Futures', short: 'MFFU', programs: [
-    { key: 'builder_eval', name: 'Builder Evaluation', stageType: 'evaluation', sizes: [25000, 50000, 100000, 150000], next: ['builder_funded'],
-      rules: { profitTarget: bySize([1500, 3000, 6000, 9000]), maxLoss: bySize([1000, 2000, 3000, 4500]), drawdownType: 'eod', dailyLoss: bySize([600, 1000, 1750, 2500]), dailyLossHard: false, minDays: 1, maxContracts: bySize([2, 4, 6, 9]), maxMicros: bySize([20, 40, 60, 90]), notes: ['Builder has MLL / DLL add-on variants (50K especially); adjust Rules to your configuration.', 'News trading allowed.'] } },
-    { key: 'builder_funded', name: 'Builder Sim Funded', stageType: 'funded', sizes: [25000, 50000, 100000, 150000], next: [],
-      rules: { accounting: 'zero', startingBalance: 0, maxLoss: bySize([1000, 2000, 3000, 4500]), drawdownType: 'eod', dailyLoss: bySize([600, 1000, 1750, 2500]), dailyLossHard: false, profitSplit: 0.8, consistencyPct: 50, consistencyScope: 'cycle', qualifyingDays: 2, qualifyingDayProfit: 0, bufferAbove: bySize([1100, 2100, 3100, 4600]), cycleProfitAboveBuffer: bySize([250, 500, 1000, 1500]), cycleProfitMin: bySize([250, 500, 1000, 1500]), payoutMin: bySize([250, 500, 1000, 1500]), payoutMode: 'fixed', payoutMax: bySize([1000, 2000, 3000, null]), maxPayouts: 5, notes: ['Starts at $0 under the current Builder structure.', 'Some 50K add-on configurations use a $1,600 buffer.', '150K payout cap: the official guide has inconsistent figures; set it in Rules after checking the current plan article.'] } },
-    { key: 'rapid_eval', name: 'Rapid Evaluation', stageType: 'evaluation', sizes: [25000, 50000, 100000, 150000], next: ['rapid_funded_intraday', 'rapid_funded_eod'], choiceLabel: 'Rapid Intraday or Rapid EOD funded (per your plan)',
-      rules: { profitTarget: bySize([1500, 3000, 6000, 9000]), maxLoss: bySize([1000, 2000, 3000, 4500]), drawdownType: 'eod', consistencyPct: 50, consistencyScope: 'stage', minDays: 2, maxContracts: bySize([3, 5, 8, 10]), maxMicros: bySize([30, 50, 80, 100]) } },
-    { key: 'rapid_funded_intraday', name: 'Rapid Sim Funded (Intraday)', stageType: 'funded', sizes: [25000, 50000, 100000, 150000], next: [],
-      rules: { maxLoss: bySize([1000, 2000, 3000, 4500]), drawdownType: 'intraday', profitSplit: 0.9, bufferAbove: bySize([1100, 2100, 3100, 4600]), payoutMin: 500, payoutMode: 'above_buffer', payoutFrequency: 'Daily (first payout after 24h from first trade)', notes: ['A $10,000 net-profit single day may trigger an automatic live transition; risk-review moves are discretionary.'], limitations: [PROP_INTRADAY_NOTE] } },
-    { key: 'rapid_funded_eod', name: 'Rapid Sim Funded (EOD)', stageType: 'funded', sizes: [25000, 50000, 100000, 150000], next: [],
-      rules: { maxLoss: bySize([1000, 2000, 3000, 4500]), drawdownType: 'eod', profitSplit: 0.9, bufferAbove: bySize([1100, 2100, 3100, 4600]), cycleProfitMin: 0, payoutMin: 500, payoutMode: 'above_buffer', payoutFrequency: 'Daily', notes: ['New profit is required after each payout.', 'Rapid EOD configurations differ by size and release; verify.'] } },
-    { key: 'pro_eval', name: 'Pro Evaluation', stageType: 'evaluation', sizes: [50000, 100000, 150000], next: ['pro_funded'], options: [{ key: 'oneDayAddon', label: 'Pro one-day add-on purchased' }],
-      rules: { profitTarget: bySize([3000, 6000, 9000]), maxLoss: bySize([2000, 3000, 4500]), drawdownType: 'eod', consistencyPct: 50, consistencyScope: 'stage', notes: ['One-day add-on can change consistency/target behavior; adjust Rules.', 'Evaluation MLL mirrors the funded values; verify.'] } },
+    { key: 'builder_eval', name: 'Builder Evaluation', stageType: 'evaluation', sizes: [25000, 50000, 100000, 150000], next: ['builder_funded'], options: [MFFU_MLL_ADDON],
+      rules: { profitTarget: bySize([1500, 3000, 6000, 9000]), maxLoss: bySize([1000, 2000, 3000, 4500]), drawdownType: 'eod', drawdownLockOffset: 100, dailyLoss: bySize([600, 1000, 1750, 2500]), dailyLossHard: false, minDays: 1, maxContracts: bySize([2, 4, 6, 9]), maxMicros: bySize([20, 40, 60, 90]), notes: ['MLL locks permanently at start + $100.', 'The DLL is a soft pause.', '"Builder 25K - Legacy No DLL" accounts have no DLL; clear it in Rules.'] } },
+    { key: 'builder_funded', name: 'Builder Sim Funded', stageType: 'funded', sizes: [25000, 50000, 100000, 150000], next: [], options: [{ ...MFFU_MLL_ADDON, whenOn: { maxLoss: bySize([1000, 1500, 3000, 4500]), bufferAbove: bySize([1100, 1600, 3100, 4600]) } }],
+      rules: { accounting: 'zero', startingBalance: 0, maxLoss: bySize([1000, 2000, 3000, 4500]), drawdownType: 'eod', drawdownLockOffset: 100, drawdownLockAfterPayout: 100, drawdownLockPayoutTrigger: 'requested', dailyLoss: bySize([600, 1000, 1750, 2500]), dailyLossHard: false, maxContracts: bySize([2, 4, 6, 9]), maxMicros: bySize([20, 40, 60, 90]), profitSplit: 0.8, consistencyPct: 50, consistencyScope: 'cycle', minDays: 2, minDaysScope: 'cycle', bufferAbove: bySize([1100, 2100, 3100, 4600]), cycleProfitAboveBuffer: bySize([250, 500, 1000, 1500]), cycleProfitMin: bySize([250, 500, 1000, 1500]), payoutMin: bySize([250, 500, 1000, 1500]), payoutMode: 'fixed', payoutMax: bySize([1000, 2000, 3000, 4500]), maxPayouts: 5, notes: ['Starts at $0, so the balance can go negative until the MLL trails up.', 'MLL locks at $100 (MFFU pages also say it "trails up to breakeven"; TradePrint uses $100, the stricter reading).', 'After the first payout the MLL resets to $100. MFFU does not say request or paid; TradePrint applies it from the request (conservative).', 'Live after the 5th approved sim payout (not tracked as a stage here).'] } },
+    { key: 'rapid_eval', name: 'Rapid Evaluation', stageType: 'evaluation', sizes: [25000, 50000, 100000, 150000], next: ['rapid_funded_intraday', 'rapid_funded_eod'], choiceLabel: 'Rapid Intraday or Rapid EOD funded (per your plan)', options: [{ key: 'rapidEod', label: 'Rapid EOD plan (30% consistency, 4 days)', sizes: [25000, 50000], whenOn: { consistencyPct: 30, minDays: 4, maxContracts: bySize([2, 3, null, null]), maxMicros: bySize([20, 30, null, null]) } }],
+      rules: { profitTarget: bySize([1500, 3000, 6000, 9000]), maxLoss: bySize([1000, 2000, 3000, 4500]), drawdownType: 'eod', drawdownLockOffset: 100, consistencyPct: 50, consistencyScope: 'stage', minDays: 2, maxContracts: bySize([3, 5, 8, 10]), maxMicros: bySize([30, 50, 80, 100]), notes: ['MLL locks at start + $100 (MFFU general rule; the Rapid guides do not restate it).', 'Rapid EOD is documented only at 25K and 50K: 30% consistency, 4 days, 2 / 3 contracts.'] } },
+    { key: 'rapid_funded_intraday', name: 'Rapid Sim Funded (Intraday)', stageType: 'funded', sizes: [25000, 50000, 100000, 150000], next: ['rapid_live'],
+      rules: { accounting: 'zero', startingBalance: 0, maxLoss: bySize([1000, 2000, 3000, 4500]), drawdownType: 'intraday', drawdownLockOffset: 100, maxContracts: bySize([3, 5, 8, 10]), maxMicros: bySize([30, 50, 80, 100]), profitSplit: 0.9, bufferAbove: bySize([1100, 2100, 3100, 4600]), payoutMin: 500, payoutMode: 'above_buffer', payoutFrequency: 'Daily (first payout after 24h from first trade)', notes: ['Starts at $0. The trailing max loss locks at $100 once the high-water mark reaches +MLL + $100.', 'A $10,000 net-profit single day may trigger an automatic live transition; risk-review moves are discretionary.', 'No T1 news trading in sim (manual).'], limitations: [PROP_INTRADAY_NOTE] } },
+    { key: 'rapid_funded_eod', name: 'Rapid Sim Funded (EOD)', stageType: 'funded', sizes: [25000, 50000, 100000, 150000], next: ['rapid_live'],
+      rules: { accounting: 'zero', startingBalance: 0, maxLoss: bySize([1000, 2000, 3000, 4500]), drawdownType: 'eod', drawdownLockOffset: 100, maxContracts: bySize([2, 3, null, null]), maxMicros: bySize([20, 30, null, null]), profitSplit: 0.9, bufferAbove: bySize([1100, 2100, 3100, 4600]), cycleProfitMin: bySize([250, 500, null, null]), payoutMin: 500, payoutMode: 'above_buffer', payoutFrequency: 'Daily', notes: ['Starts at $0. The trailing max loss locks at $100; keep at least $100 in the account.', 'After the buffer clears, each payout needs $250 / $500 net profit since the last payout. No payout cap.', 'MFFU documents Rapid EOD only at 25K and 50K; 100K / 150K values are not published.'] } },
+    { key: 'rapid_live', name: 'Rapid Live', stageType: 'live', sizes: [25000, 50000, 100000, 150000], next: [],
+      rules: { accounting: 'zero', startingBalance: 0, maxLoss: bySize([1000, 2000, 3000, 4500]), drawdownType: 'eod', drawdownLockOffset: 0, maxContracts: bySize([2, 3, 6, 8]), maxMicros: bySize([20, 30, 60, 80]), profitSplit: 0.9, payoutMode: 'above_buffer', bufferAbove: 0, payoutFrequency: 'Daily', notes: ['Starts at $0. The MLL trails the end-of-day balance and stops at $0.', 'Up to $5,000 of sim profit goes to a Reserve on transition (manual).', 'MFFU does not publish a Rapid Live DLL.'] } },
+    { key: 'pro_eval', name: 'Pro Evaluation', stageType: 'evaluation', sizes: [50000, 100000, 150000], next: ['pro_funded'], options: [{ key: 'oneDayAddon', label: 'Pro one-day add-on ($4,000 target, no consistency)', sizes: [50000], whenOn: { profitTarget: 4000, consistencyPct: null, minDays: 1 } }],
+      rules: { profitTarget: bySize([3000, 6000, 9000]), maxLoss: bySize([2000, 3000, 4500]), drawdownType: 'eod', drawdownLockOffset: 100, consistencyPct: 50, consistencyScope: 'stage', minDays: 2, maxContracts: bySize([3, 6, 9]), maxMicros: bySize([30, 60, 90]), notes: ['MLL locks at start + $100 (MFFU general rule; the Pro guide does not restate it).', 'The one-day add-on (50K, limited time) has a $4,000 target and no consistency rule.'] } },
     { key: 'pro_funded', name: 'Pro Sim Funded', stageType: 'funded', sizes: [50000, 100000, 150000], next: [],
-      rules: { maxLoss: bySize([2000, 3000, 4500]), drawdownType: 'eod', drawdownLockAfterPayout: 100, profitSplit: 0.8, bufferAbove: bySize([2100, 3100, 4600]), minCalendarDays: 14, payoutMin: 1000, payoutMode: 'above_buffer', notes: ['Maximum payout uses a high user-level limit rather than a per-account cap.', 'Early withdrawal / buffer-specific rules may apply.', 'Live promotion may follow consecutive payouts or risk review.'] } },
+      rules: { maxLoss: bySize([2000, 3000, 4500]), drawdownType: 'eod', drawdownLockOffset: 100, drawdownLockAfterPayout: 100, drawdownLockPayoutTrigger: 'requested', maxContracts: bySize([5, 10, 15]), profitSplit: 0.8, bufferAbove: bySize([2100, 3100, 4600]), minCalendarDays: 14, payoutMin: 1000, payoutMode: 'above_buffer', notes: ['Before a payout the MLL locks at start + $100 (MFFU general rule, not restated in the Pro guide). After the first payout it moves to start + $100 and stays static; TradePrint applies that from the request (MFFU does not say request or paid).', 'MFFU prints micros as 5 / 10 / 15, likely a typo; TradePrint leaves the micro limit blank.', 'Maximum payout uses a high user-level limit rather than a per-account cap. Up to 60% of profit can be withdrawn before the buffer is cleared (manual).', 'Live after 3 consecutive payouts or risk review.'] } },
     { key: 'flex_legacy_eval', name: 'Legacy Flex Evaluation (import only)', stageType: 'evaluation', kind: 'legacy', sizes: [25000], next: ['flex_legacy_funded'],
-      rules: { profitTarget: 1500, maxLoss: 1000, drawdownType: 'eod', consistencyPct: 50, consistencyScope: 'stage', minDays: 2, maxContracts: 2, maxMicros: 20, notes: ['Flex was discontinued for new purchases in Aug 2026. Values shown are the 25K example; verify your size.'] } },
+      rules: { profitTarget: 1500, maxLoss: 1000, drawdownType: 'eod', drawdownLockOffset: 100, consistencyPct: 50, consistencyScope: 'stage', minDays: 2, maxContracts: 2, maxMicros: 20, notes: ['Flex was discontinued for new purchases in Aug 2026. Values are the newer 25K version; older 25K accounts allowed 3 / 30 contracts. A 50K Flex also existed (target $3,000, MLL $2,000); set it in Rules.', 'MLL locks at start + $100 (MFFU general evaluation rule; the Flex guide does not restate it).'] } },
     { key: 'flex_legacy_funded', name: 'Legacy Flex Sim Funded (import only)', stageType: 'funded', kind: 'legacy', sizes: [25000], next: [],
-      rules: { maxLoss: 1000, drawdownType: 'eod', profitSplit: 0.8, qualifyingDays: 5, qualifyingDayProfit: 100, cycleProfitMin: 250, payoutMin: 250, payoutMode: 'pct_profit', payoutPct: 0.5, payoutMax: 1000, notes: ['MLL changes after the first payout (manual).'] } }
+      rules: { accounting: 'zero', startingBalance: 0, maxLoss: 1000, drawdownType: 'eod', drawdownLockAfterPayout: 100, drawdownLockPayoutTrigger: 'requested', scalingTiers: [{ minProfit: 0, contracts: 1 }, { minProfit: 750, contracts: 2 }], scalingBasis: 'balance', profitSplit: 0.8, qualifyingDays: 5, qualifyingDayProfit: 100, cycleProfitMin: 250, payoutMin: 250, payoutMode: 'pct_profit', payoutPct: 0.5, payoutMax: 1000, maxPayouts: 5, notes: ['Starts at $0. Before the first payout MFFU only says the MLL "trails up to $0 or higher", so TradePrint keeps trailing (conservative).', 'After the first payout the MLL moves to $100 permanently (applied from the request).', 'First request needs $500 total net profit (manual). Older 25K accounts had a $3,000 cap.'] } }
   ] },
 
   fundednext: { name: 'FundedNext Futures', short: 'FUNDEDNEXT', programs: [
-    { key: 'rapid_pro_challenge', name: 'Rapid Pro Challenge', stageType: 'evaluation', sizes: [25000, 50000, 100000], next: ['rapid_pro_funded'], options: [{ key: 'dllAddon', label: 'Optional DLL add-on purchased' }],
-      rules: { profitTarget: null, maxLoss: bySize([1000, 2000, 2500]), drawdownType: 'eod', drawdownLockOffset: 100, notes: ['1-step, one-time fee, 1-day pass possible, no activation fee.', 'Profit target is not in the verified snapshot: set it in Rules from the current official article.'] } },
-    { key: 'rapid_pro_funded', name: 'Rapid Pro Funded', stageType: 'funded', sizes: [25000, 50000, 100000], next: [],
-      rules: { maxLoss: bySize([1000, 2000, 2500]), drawdownType: 'eod', drawdownLockOffset: 100, profitSplit: 0.9, consistencyPct: 40, consistencyScope: 'cycle', payoutMin: 250, payoutMode: 'fixed', payoutMax: bySize([800, 1200, 2500]), maxPayouts: 5, payoutFrequency: 'Every 3 days', notes: ['Program concludes after the 5th Performance Reward.'] } },
+    { key: 'rapid_pro_challenge', name: 'Rapid Pro Challenge', stageType: 'evaluation', sizes: [25000, 50000, 100000], next: ['rapid_pro_funded'], options: [{ key: 'dllAddon', label: 'Optional DLL add-on purchased', whenOn: { dailyLoss: bySize([500, 1000, 1250]), dailyLossHard: false } }],
+      rules: { profitTarget: bySize([1500, 3000, 5000]), maxLoss: bySize([1000, 2000, 2500]), drawdownType: 'eod', drawdownLockOffset: 100, maxContracts: bySize([2, 4, 6]), maxMicros: bySize([20, 40, 60]), notes: ['MLL locks at start + $100.', '1-day pass possible, no consistency in the Challenge, no activation fee.', 'The DLL add-on is soft and carries into the funded account.'] } },
+    { key: 'rapid_pro_funded', name: 'Rapid Pro Funded', stageType: 'funded', sizes: [25000, 50000, 100000], next: [], options: [{ key: 'dllAddon', label: 'Optional DLL add-on purchased', whenOn: { dailyLoss: bySize([500, 1000, 1250]), dailyLossHard: false } }],
+      rules: { maxLoss: bySize([1000, 2000, 2500]), drawdownType: 'eod', drawdownLockOffset: 100, maxContracts: bySize([2, 4, 6]), maxMicros: bySize([20, 40, 60]), profitSplit: 0.9, consistencyPct: 40, consistencyScope: 'cycle', cycleProfitMin: 500, payoutMin: 250, payoutMode: 'fixed', payoutMax: bySize([800, 1200, 2500]), maxPayouts: 5, payoutFrequency: 'Every 3 days', notes: ['MLL locks at start + $100. FundedNext does not say whether a withdrawal before the lock changes the MLL.', 'Program concludes after the 5th Performance Reward.'] } },
     { key: 'rapid_daily_challenge', name: 'Rapid Daily Challenge', stageType: 'evaluation', sizes: [25000, 50000, 100000], next: ['rapid_daily_funded'],
-      rules: { profitTarget: null, maxLoss: bySize([1000, 2000, 2500]), drawdownType: 'eod', drawdownLockOffset: 100, dailyLossHard: true, notes: ['DLL applies; set the value in Rules from the current official article.', 'Profit target is not in the verified snapshot.'] } },
+      rules: { profitTarget: bySize([1500, 3000, 5000]), maxLoss: bySize([1000, 2000, 2500]), drawdownType: 'eod', drawdownLockOffset: 100, dailyLoss: bySize([500, 1000, 1250]), dailyLossHard: false, maxContracts: bySize([2, 4, 6]), maxMicros: bySize([20, 40, 60]), notes: ['MLL locks at start + $100.', 'The DLL is soft: trading stops for the day, the account is not lost.', 'No consistency rule at any stage.'] } },
     { key: 'rapid_daily_funded', name: 'Rapid Daily Funded', stageType: 'funded', sizes: [25000, 50000, 100000], next: [],
-      rules: { maxLoss: bySize([1000, 2000, 2500]), drawdownType: 'eod', drawdownLockOffset: 100, dailyLossHard: true, profitSplit: 0.9, payoutMin: 250, payoutMode: 'fixed', payoutMax: bySize([800, 1200, 2500]), maxPayouts: 5, payoutFrequency: 'Daily', notes: ['DLL and buffer apply; set both in Rules from the current official article.'] } },
+      rules: { maxLoss: bySize([1000, 2000, 2500]), drawdownType: 'eod', drawdownLockOffset: 100, dailyLoss: bySize([500, 1000, 1250]), dailyLossHard: false, maxContracts: bySize([2, 4, 6]), maxMicros: bySize([20, 40, 60]), profitSplit: 0.9, bufferAbove: bySize([1100, 2100, 2600]), cycleProfitMin: 500, payoutMin: 250, payoutMode: 'fixed', payoutMax: bySize([800, 1200, 2500]), maxPayouts: 5, payoutFrequency: 'Daily', notes: ['MLL locks at start + $100 (the buffer equals the lock point).', 'The DLL is soft. Concludes after the 5th reward.'] } },
     { key: 'flex_challenge', name: 'Flex Challenge', stageType: 'evaluation', sizes: [50000, 100000, 150000], next: ['flex_funded'],
-      rules: { profitTarget: bySize([2500, 5000, 8000]), maxLoss: bySize([1500, 2500, 4000]), drawdownType: 'eod', drawdownLockOffset: 100, consistencyPct: 40, consistencyScope: 'stage' } },
+      rules: { profitTarget: bySize([2500, 5000, 8000]), maxLoss: bySize([1500, 2500, 4000]), drawdownType: 'eod', drawdownLockOffset: 100, consistencyPct: 40, consistencyScope: 'stage', maxContracts: bySize([3, 5, 8]), maxMicros: bySize([30, 50, 80]), notes: ['MLL locks at start + $100.', 'Consistency is measured against the profit target: no day above $1,000 / $2,000 / $3,200 without raising the required total (TradePrint applies a best-day / total-profit check).'] } },
     { key: 'flex_funded', name: 'Flex Funded', stageType: 'funded', sizes: [50000, 100000, 150000], next: [],
-      rules: { maxLoss: bySize([1500, 2500, 4000]), drawdownType: 'eod', drawdownLockOffset: 100, profitSplit: 0.95, qualifyingDays: 5, qualifyingDayProfit: bySize([200, 200, 250]), cycleProfitMin: 500, payoutMin: 250, payoutMode: 'pct_profit', payoutPct: 0.5, payoutMax: bySize([1500, 2500, 4000]), maxPayouts: 5, notes: ['Funded account concludes after 5 withdrawals.'] } },
+      rules: { maxLoss: bySize([1500, 2500, 4000]), drawdownType: 'eod', drawdownLockOffset: 100, drawdownLockAfterPayout: 100, drawdownLockPayoutTrigger: 'requested', maxContracts: bySize([3, 5, 8]), maxMicros: bySize([30, 50, 80]), profitSplit: 0.95, qualifyingDays: 5, qualifyingDayProfit: bySize([200, 200, 250]), cycleProfitMin: 500, payoutMin: 250, payoutMode: 'pct_profit', payoutPct: 0.5, payoutMax: bySize([1500, 2500, 4000]), maxPayouts: 5, notes: ['MLL locks at start + $100. The first withdrawal also resets it to start + $100 (FundedNext does not say request or paid; TradePrint applies it from the request).', 'Funded account concludes after 5 withdrawals.'] } },
     { key: 'legacy_challenge', name: 'Legacy Challenge', stageType: 'evaluation', sizes: [25000, 50000, 100000], next: ['legacy_funded'],
-      rules: { profitTarget: bySize([1250, 3000, 6000]), maxLoss: bySize([1000, 2000, 3000]), drawdownType: 'eod', consistencyPct: 40, consistencyScope: 'stage' } },
+      rules: { profitTarget: bySize([1250, 3000, 6000]), maxLoss: bySize([1000, 2000, 3000]), drawdownType: 'eod', drawdownLockOffset: 0, consistencyPct: 40, consistencyScope: 'stage', maxContracts: bySize([2, 3, 5]), maxMicros: bySize([20, 30, 50]), notes: ['MLL stops trailing at the initial balance.'] } },
     { key: 'legacy_funded', name: 'Legacy Funded', stageType: 'funded', sizes: [25000, 50000, 100000], next: [],
-      rules: { maxLoss: bySize([1000, 2000, 3000]), drawdownType: 'eod', drawdownLockAfterPayout: 0, profitSplit: 0.8, qualifyingDays: 5, qualifyingDayProfit: bySize([100, 200, 200]), cycleProfitMin: 500, payoutMin: 250, payoutMode: 'pct_profit', payoutPct: 0.5, payoutMax: bySize([3000, 6000, 6000]), notes: ['50% / cap structure applies before 30 benchmark days and changes after (manual).', 'First withdrawal locks MLL at the initial balance.'] } },
-    { key: 'fnl003_instant', name: 'FNL:003 50K Instant (Direct)', stageType: 'funded', sizes: [50000], next: [],
-      rules: { maxLoss: 2000, drawdownType: 'eod', drawdownLockOffset: 100, dailyLoss: 1000, dailyLossHard: false, maxContracts: 3, maxMicros: 30, consistencyPct: 20, consistencyScope: 'perpetual', bufferAbove: 2100, cycleProfitAboveBuffer: 800, payoutMin: 800, payoutMode: 'above_buffer', payoutMax: 1200, profitSplit: 0.9, maxPayouts: 5, notes: ['Perpetual consistency: the best-day record persists across payout cycles.'] } }
+      rules: { maxLoss: bySize([1000, 2000, 3000]), drawdownType: 'eod', drawdownLockOffset: 0, drawdownLockAfterPayout: 0, drawdownLockPayoutTrigger: 'requested', maxContracts: bySize([3, 5, 7]), maxMicros: bySize([30, 50, 70]), profitSplit: 0.8, qualifyingDays: 5, qualifyingDayProfit: bySize([100, 200, 200]), cycleProfitMin: 500, payoutMin: 250, payoutMode: 'pct_profit', payoutPct: 0.5, payoutMax: bySize([3000, 6000, 6000]), notes: ['MLL stops trailing at the initial balance; the first withdrawal resets it to the initial balance (applied from the request).', 'Withdrawing all simulated profit in a single request is a hard breach.', '50% / cap structure applies before 30 benchmark days and is removed after (manual).', 'Not concluded after 5 rewards.'] } },
+    { key: 'direct_account', name: 'Direct Account (50K)', stageType: 'funded', sizes: [50000], next: [],
+      rules: { maxLoss: 2000, drawdownType: 'eod', drawdownLockOffset: 100, drawdownLockAfterPayout: 100, drawdownLockPayoutTrigger: 'requested', dailyLoss: 1000, dailyLossHard: false, maxContracts: 3, maxMicros: 30, consistencyPct: 20, consistencyScope: 'perpetual', bufferAbove: 2100, cycleProfitAboveBuffer: 800, payoutMin: 800, payoutMode: 'above_buffer', payoutMax: 1200, profitSplit: 0.9, maxPayouts: 5, notes: ['MLL locks at $50,100; the first withdrawal also locks it there.', 'The $1,000 DLL is soft. Perpetual 20% consistency.', 'Concludes after 5 withdrawals.'] } },
+    { key: 'fnl003_instant', name: 'FNL:003 50K Instant (legacy)', stageType: 'funded', kind: 'legacy', sizes: [50000], next: [],
+      rules: { maxLoss: 2000, drawdownType: 'eod', drawdownLockOffset: 100, dailyLoss: null, dailyLossHard: false, maxContracts: 3, maxMicros: 30, consistencyPct: 20, consistencyScope: 'perpetual', bufferAbove: 2100, cycleProfitAboveBuffer: 800, payoutMin: 800, payoutMode: 'above_buffer', payoutMax: 1200, profitSplit: 0.9, maxPayouts: 5, notes: ['No longer sold. MLL locks at $50,100.', 'Perpetual consistency: the best-day record persists across payout cycles.', 'FundedNext does not publish a DLL for FNL:003 (the $1,000 soft DLL belongs to the separate Direct Account). Set one in Rules if your dashboard shows it.'] } }
   ] },
 
   tpt: { name: 'Take Profit Trader', short: 'TPT', programs: [
     { key: 'test', name: 'Test', stageType: 'evaluation', sizes: [25000, 50000, 75000, 100000, 150000], next: ['pro'],
-      rules: { profitTarget: bySize([1500, 3000, 4500, 6000, 9000]), maxLoss: bySize([1500, 2000, 2500, 3000, 4500]), drawdownType: 'eod', consistencyPct: 50, consistencyScope: 'stage', minDays: 3, maxContracts: bySize([3, 6, 9, 12, 15]), maxMicros: bySize([30, 60, 90, 120, 150]), notes: ['Highest profit day must stay below 50% of total net profit.', 'No bots/algos, no counter positions and other universal rules apply (manual).', 'Verify the 25K / 75K / 100K / 150K contract rows against TPT\'s selector.'] } },
+      rules: { profitTarget: bySize([1500, 3000, 4500, 6000, 9000]), maxLoss: bySize([1500, 2000, 2500, 3000, 4500]), drawdownType: 'eod', drawdownLockOffset: 0, consistencyPct: 50, consistencyScope: 'stage', minDays: 3, maxContracts: bySize([3, 6, 9, 12, 15]), maxMicros: bySize([30, 60, 90, 120, 150]), notes: ['Minimum balance trails the highest end-of-day balance and stops at the starting balance.', 'Best day must stay below 50% of total net profit (not a fail; keep trading).', 'No bots/algos, no counter positions and other universal rules apply (manual).'] } },
     { key: 'pro', name: 'PRO (Sim Funded)', stageType: 'funded', sizes: [25000, 50000, 75000, 100000, 150000], next: ['pro_plus'],
-      rules: { maxLoss: bySize([1500, 2000, 2500, 3000, 4500]), drawdownType: 'intraday', profitSplit: 0.8, bufferAbove: bySize([1500, 2000, 2500, 3000, 4500]), payoutMode: 'above_buffer', payoutFrequency: 'Daily once above buffer', notes: ['Buffer equals the drawdown amount.', 'Withdrawing inside the buffer can close the account (manual).', 'Up to 5 active funded accounts.'], limitations: [PROP_INTRADAY_NOTE] } },
+      rules: { maxLoss: bySize([1500, 2000, 2500, 3000, 4500]), drawdownType: 'intraday', drawdownLockOffset: 0, profitSplit: 0.8, bufferAbove: bySize([1500, 2000, 2500, 3000, 4500]), payoutMode: 'above_buffer', payoutFrequency: 'Daily once above buffer', notes: ['Intraday trailing (including open profit) stops at the starting balance.', 'Buffer equals the drawdown amount. Withdrawals inside the buffer require closing the account (50% split within 60 trading days, 80% after).', 'Trade at least one day per calendar week. Up to 5 funded accounts.', 'TPT does not publish PRO contract numbers ("maximum contract allotment per account size").'], limitations: [PROP_INTRADAY_NOTE] } },
     { key: 'pro_plus', name: 'PRO+ (Live)', stageType: 'live', sizes: [25000, 50000, 75000, 100000, 150000], next: [],
-      rules: { accounting: 'zero', startingBalance: 0, maxLoss: bySize([1500, 2000, 2500, 3000, 4500]), drawdownType: 'eod', profitSplit: 0.9, payoutMode: 'above_buffer', bufferAbove: 0, payoutFrequency: 'Daily', notes: ['Upgrade is discretionary. TradePrint never claims automatic PRO+ eligibility.', 'At least one traded day per calendar week required (manual).'] } }
+      rules: { accounting: 'zero', startingBalance: 0, maxLoss: bySize([1500, 2000, 2500, 3000, 4500]), drawdownType: 'eod', drawdownLockOffset: 0, profitSplit: 0.9, payoutMode: 'above_buffer', bufferAbove: 0, payoutFrequency: 'Daily', notes: ['Starts at $0. The EOD drawdown trails realized end-of-day profit and stops at $0.', 'Upgrade is discretionary. TradePrint never claims automatic PRO+ eligibility.', '$5,000 of PRO profit stays frozen while PRO+ is active (manual).', 'At least one traded day per calendar week required (manual). PRO+ Development accounts use smaller limits; set them in Rules.'] } }
   ] },
 
   alpha: { name: 'Alpha Futures', short: 'ALPHA', programs: [
     { key: 'zero_eval', name: 'Zero Evaluation', stageType: 'evaluation', sizes: [25000, 50000, 100000], next: ['zero_qualified'],
-      rules: { profitTarget: bySize([1500, 3000, 6000]), maxLoss: bySize([1000, 2000, 3000]), drawdownType: 'eod', dailyLoss: bySize([500, 1000, 2000]), dailyLossHard: true, minDays: 0, maxContracts: bySize([1, 3, 6]), maxMicros: bySize([10, 30, 60]), notes: ['No activation fee. Can pass in one day.'] } },
+      rules: { profitTarget: bySize([1500, 3000, 6000]), maxLoss: bySize([1000, 2000, 3000]), drawdownType: 'eod', drawdownLockOffset: 0, dailyLoss: bySize([500, 1000, 2000]), dailyLossHard: false, minDays: 1, maxContracts: bySize([1, 3, 6]), maxMicros: bySize([10, 30, 60]), notes: [ALPHA_LOCK_NOTE, 'The Daily Loss Guard is soft: the account is locked until the next trading day.', 'No activation fee. Can pass in one day.'] } },
     { key: 'zero_qualified', name: 'Zero Qualified', stageType: 'funded', sizes: [25000, 50000, 100000], next: ['alpha_live'],
-      rules: { maxLoss: bySize([1000, 2000, 3000]), drawdownType: 'eod', dailyLoss: bySize([500, 1000, 2000]), dailyLossHard: true, profitSplit: 0.9, consistencyPct: 40, consistencyScope: 'cycle', qualifyingDays: 5, qualifyingDayProfit: 200, payoutMode: 'pct_profit', payoutPct: 0.5, payoutMin: 200, payoutMax: bySize([1000, 1500, 2500]), notes: ['Up to four withdrawal requests per month (manual).', 'Scaling applies to certain sizes; add tiers in Rules.'] } },
+      rules: { maxLoss: bySize([1000, 2000, 3000]), drawdownType: 'eod', drawdownLockOffset: 0, dailyLoss: bySize([500, 1000, 2000]), dailyLossHard: false, maxContracts: bySize([1, 3, 6]), maxMicros: bySize([10, 30, 60]), scalingTiers: bySize([[{ minProfit: 0, contracts: 1 }], [{ minProfit: 0, contracts: 1 }, { minProfit: 1500, contracts: 2 }, { minProfit: 2000, contracts: 3 }], [{ minProfit: 0, contracts: 2 }, { minProfit: 1500, contracts: 3 }, { minProfit: 2000, contracts: 4 }, { minProfit: 3000, contracts: 5 }, { minProfit: 4500, contracts: 6 }]]), scalingBasis: 'balance', profitSplit: 0.9, consistencyPct: 40, consistencyScope: 'cycle', qualifyingDays: 5, qualifyingDayProfit: 200, payoutMode: 'pct_profit', payoutPct: 0.5, payoutMin: 200, payoutMax: bySize([1000, 1500, 2500]), notes: [ALPHA_LOCK_NOTE, ALPHA_PAYOUT_NOTE, 'Daily Loss Guard is soft. Up to four withdrawal requests per month (manual).', 'Alpha does not say which profit figure drives scaling; TradePrint uses the balance at the last session close (conservative).'] } },
     { key: 'standard_eval', name: 'Standard Evaluation', stageType: 'evaluation', sizes: [50000, 100000, 150000], next: ['standard_qualified'],
-      rules: { profitTarget: bySize([3000, 6000, 9000]), maxLoss: bySize([2000, 3000, 4500]), drawdownType: 'eod', consistencyPct: 50, consistencyScope: 'stage', maxContracts: bySize([5, 10, 15]), maxMicros: bySize([50, 100, 150]), notes: ['No activation fee.'] } },
+      rules: { profitTarget: bySize([3000, 6000, 9000]), maxLoss: bySize([2000, 3000, 4500]), drawdownType: 'eod', drawdownLockOffset: 0, consistencyPct: 50, consistencyScope: 'stage', minDays: 2, maxContracts: bySize([5, 10, 15]), maxMicros: bySize([50, 100, 150]), notes: [ALPHA_LOCK_NOTE, 'No Daily Loss Guard on the evaluation. No activation fee.'] } },
     { key: 'standard_qualified', name: 'Standard Qualified', stageType: 'funded', sizes: [50000, 100000, 150000], next: ['alpha_live'],
-      rules: { maxLoss: bySize([2000, 3000, 4500]), drawdownType: 'eod', dailyLoss: bySize([1000, 2000, 3000]), dailyLossHard: true, profitSplit: 0.9, consistencyPct: 40, consistencyScope: 'cycle', qualifyingDays: 5, qualifyingDayProfit: 200, payoutMode: 'pct_profit', payoutPct: 0.5, payoutMin: 500, payoutMax: bySize([3000, 4000, 5000]), notes: ['Scaling applies; add tiers in Rules.'] } },
+      rules: { maxLoss: bySize([2000, 3000, 4500]), drawdownType: 'eod', drawdownLockOffset: 0, dailyLoss: bySize([1000, 2000, 3000]), dailyLossHard: false, maxContracts: bySize([5, 10, 15]), maxMicros: bySize([50, 100, 150]), scalingTiers: bySize([[{ minProfit: 0, contracts: 2 }, { minProfit: 1500, contracts: 3 }, { minProfit: 2000, contracts: 5 }], [{ minProfit: 0, contracts: 3 }, { minProfit: 1500, contracts: 4 }, { minProfit: 2000, contracts: 5 }, { minProfit: 3000, contracts: 10 }], [{ minProfit: 0, contracts: 3 }, { minProfit: 1500, contracts: 4 }, { minProfit: 2000, contracts: 5 }, { minProfit: 3000, contracts: 10 }, { minProfit: 4500, contracts: 15 }]]), scalingBasis: 'balance', profitSplit: 0.9, consistencyPct: 40, consistencyScope: 'cycle', qualifyingDays: 5, qualifyingDayProfit: 200, payoutMode: 'pct_profit', payoutPct: 0.5, payoutMin: 500, payoutMax: bySize([3000, 4000, 5000]), notes: [ALPHA_LOCK_NOTE, ALPHA_PAYOUT_NOTE, 'Daily Loss Guard is soft.', 'Alpha does not say which profit figure drives scaling; TradePrint uses the balance at the last session close (conservative).'] } },
     { key: 'advanced_eval', name: 'Advanced Evaluation', stageType: 'evaluation', sizes: [50000, 100000, 150000], next: ['advanced_qualified'],
-      rules: { profitTarget: bySize([4000, 8000, 12000]), maxLoss: bySize([1750, 3500, 5250]), drawdownType: 'eod', consistencyPct: 40, consistencyScope: 'stage', maxContracts: bySize([5, 10, 15]), maxMicros: bySize([50, 100, 150]) } },
+      rules: { profitTarget: bySize([4000, 8000, 12000]), maxLoss: bySize([1750, 3500, 5250]), drawdownType: 'eod', drawdownLockOffset: 0, consistencyPct: 40, consistencyScope: 'stage', minDays: 3, maxContracts: bySize([5, 10, 15]), maxMicros: bySize([50, 100, 150]), notes: [ALPHA_LOCK_NOTE, 'No Daily Loss Guard on Advanced.'] } },
     { key: 'advanced_qualified', name: 'Advanced Qualified', stageType: 'funded', sizes: [50000, 100000, 150000], next: ['alpha_live'],
-      rules: { maxLoss: bySize([1750, 3500, 5250]), drawdownType: 'eod', profitSplit: 0.9, qualifyingDays: 5, qualifyingDayProfit: 200, payoutMode: 'pct_profit', payoutPct: 0.5, payoutMin: 1000, payoutMax: 15000, notes: ['No consistency, no DLG, no scaling, no normal news restrictions.'] } },
+      rules: { maxLoss: bySize([1750, 3500, 5250]), drawdownType: 'eod', drawdownLockOffset: 0, maxContracts: bySize([5, 10, 15]), maxMicros: bySize([50, 100, 150]), profitSplit: 0.9, qualifyingDays: 5, qualifyingDayProfit: 200, payoutMode: 'pct_profit', payoutPct: 0.5, payoutMin: 1000, payoutMax: 15000, notes: [ALPHA_LOCK_NOTE, 'No consistency, no DLG, no scaling, no normal news restrictions.'] } },
     { key: 'direct', name: 'Direct (Funded)', stageType: 'funded', sizes: [25000, 50000, 100000, 150000], next: ['alpha_live'],
-      rules: { maxLoss: bySize([1000, 2000, 3000, 4500]), drawdownType: 'eod', dailyLoss: bySize([500, 1000, 2000, 3000]), dailyLossHard: true, maxContracts: bySize([2, 4, 8, 10]), maxMicros: bySize([20, 40, 80, 100]), profitSplit: 0.9, consistencyPct: 20, consistencyScope: 'cycle', cycleProfitMinFirst: bySize([1500, 3000, 6000, 9000]), cycleProfitMin: bySize([1000, 2000, 4000, 6000]), payoutMin: 500, payoutMode: 'fixed', payoutMax: bySize([1000, 2000, 2500, 3000]) } },
+      rules: { maxLoss: bySize([1000, 2000, 3000, 4500]), drawdownType: 'eod', drawdownLockOffset: 0, dailyLoss: bySize([500, 1000, 2000, 3000]), dailyLossHard: false, maxContracts: bySize([2, 4, 8, 10]), maxMicros: bySize([20, 40, 80, 100]), profitSplit: 0.9, consistencyPct: 20, consistencyScope: 'cycle', cycleProfitMinFirst: bySize([1500, 3000, 6000, 9000]), cycleProfitMin: bySize([1000, 2000, 4000, 6000]), payoutMin: 500, payoutMode: 'fixed', payoutMax: bySize([1000, 2000, 2500, 3000]), notes: [ALPHA_LOCK_NOTE, 'Daily Loss Guard is soft (Alpha\'s general rule).', '50K max withdrawal: $2,000 on most Alpha pages, $1,500 on one. TradePrint uses $2,000.'] } },
     { key: 'alpha_live', name: 'Live', stageType: 'live', sizes: [25000, 50000, 100000, 150000], next: [],
-      rules: { accounting: 'zero', startingBalance: 0, drawdownType: 'none', profitSplit: 0.9, payoutMode: 'above_buffer', bufferAbove: 0, notes: ['Live movement is firm/risk driven. Transition manually when you actually receive a live account, then set the official live rules.'] } }
+      rules: { accounting: 'zero', startingBalance: 0, maxLoss: bySize([1000, 2000, 3000, 4500]), drawdownType: 'eod', drawdownLockOffset: 0, maxContracts: bySize([2, 4, 8, 12]), maxMicros: bySize([20, 40, 80, 120]), scalingTiers: bySize([[{ minProfit: 0, contracts: 1 }, { minProfit: 1000, contracts: 2 }], [{ minProfit: 0, contracts: 2 }, { minProfit: 2000, contracts: 4 }], [{ minProfit: 0, contracts: 4 }, { minProfit: 3000, contracts: 8 }], [{ minProfit: 0, contracts: 6 }, { minProfit: 4500, contracts: 12 }]]), scalingBasis: 'peak', profitSplit: 0.8, payoutMode: 'above_buffer', bufferAbove: 0, notes: ['Starts at $0 with an end-of-day drawdown that stops at $0 (Alpha\'s general rule; the Live page implies it).', 'Contracts double once the MLL reaches $0.', 'Live uses a scaling daily loss limit (30% of account); Alpha does not say 30% of what, so TradePrint does not track it.', 'Live movement is review based. 80% split (60% for Alpha Prime).'] } }
   ] },
 
   custom: { name: 'Custom Prop Firm', short: 'CUSTOM', programs: [
@@ -21555,13 +21626,15 @@ const PROP_RULE_FIELDS = [
   { key: 'minDaysScope', label: 'Minimum days scope', type: 'select', options: ['stage', 'cycle'], group: 'Evaluation' },
   { key: 'maxLoss', label: 'Max loss / drawdown amount', type: 'money', group: 'Risk' },
   { key: 'drawdownType', label: 'Drawdown type', type: 'select', options: ['static', 'eod', 'intraday', 'none'], group: 'Risk' },
-  { key: 'drawdownLockOffset', label: 'Drawdown floor locks at start + $', type: 'money', group: 'Risk' },
+  { key: 'drawdownLockOffset', label: 'Drawdown floor locks at start + $ (0 = starting balance)', type: 'money', group: 'Risk', hint: 'Leave blank if the floor never stops trailing.' },
   { key: 'drawdownLockAfterPayout', label: 'After first payout, floor = start + $', type: 'money', group: 'Risk' },
+  { key: 'drawdownLockPayoutTrigger', label: 'Payout floor change applies on', type: 'select', options: ['paid', 'requested'], group: 'Risk', hint: 'requested = from the first payout request that is not denied or canceled' },
   { key: 'dailyLoss', label: 'Daily loss limit', type: 'money', group: 'Risk' },
   { key: 'dailyLossHard', label: 'Daily loss limit is a hard breach', type: 'bool', group: 'Risk' },
   { key: 'maxContracts', label: 'Max contracts (minis)', type: 'number', group: 'Risk' },
   { key: 'maxMicros', label: 'Max micros', type: 'number', group: 'Risk' },
   { key: 'scalingTiers', label: 'Scaling tiers (JSON: [{"minProfit":0,"contracts":2,"dailyLoss":1000}])', type: 'json', group: 'Risk' },
+  { key: 'scalingBasis', label: 'Scaling tiers measured on', type: 'select', options: ['profit', 'balance', 'peak'], group: 'Risk', hint: 'profit = stage trading P&L; balance = last closed-session balance minus start (payouts can lower the tier); peak = best closed-session balance minus start (tiers never drop)' },
   { key: 'consistencyPct', label: 'Consistency % (best day of total profit)', type: 'number', group: 'Consistency & days' },
   { key: 'consistencyScope', label: 'Consistency scope', type: 'select', options: ['stage', 'cycle', 'perpetual'], group: 'Consistency & days' },
   { key: 'consistencyByPayout', label: 'Consistency % by payout number (comma list)', type: 'list', group: 'Consistency & days' },
@@ -21586,15 +21659,19 @@ const PROP_RULE_FIELDS = [
   { key: 'limitations', label: 'Data limitations (one per line)', type: 'lines', group: 'Notes' }
 ];
 
+// Rule keys that change the drawdown floor. A template change to one of these (not overridden by the user)
+// means the account's saved numbers may be wrong, so the dashboard shows both results until the user decides.
+const PROP_DRAWDOWN_RULE_KEYS = ['accounting', 'startingBalance', 'maxLoss', 'drawdownType', 'drawdownLockOffset', 'drawdownLockAfterPayout', 'drawdownLockPayoutTrigger'];
+
 function propRuleDefaults(program) {
   return {
     accounting: 'nominal', startingBalance: null, profitTarget: null, minDays: null, minDaysScope: 'stage',
-    maxLoss: null, drawdownType: 'eod', drawdownLockOffset: null, drawdownLockAfterPayout: null, dailyLoss: null, dailyLossHard: false,
+    maxLoss: null, drawdownType: 'eod', drawdownLockOffset: null, drawdownLockAfterPayout: null, drawdownLockPayoutTrigger: 'paid', dailyLoss: null, dailyLossHard: false,
     consistencyPct: null, consistencyScope: program?.stageType === 'evaluation' ? 'stage' : 'cycle', consistencyByPayout: null,
     qualifyingDayProfit: null, qualifyingDays: null, bufferAbove: null, cycleProfitMin: null, cycleProfitMinFirst: null,
     cycleProfitAboveBuffer: null, requestMinBalanceAbove: null, minCalendarDays: null, payoutMin: null, payoutMax: null,
     payoutMaxByNumber: null, payoutMode: 'fixed', payoutPct: null, profitSplit: null, maxPayouts: null, payoutFrequency: '',
-    dllBenefitDoublesCaps: false, maxContracts: null, maxMicros: null, scalingTiers: [], notes: [], limitations: []
+    dllBenefitDoublesCaps: false, maxContracts: null, maxMicros: null, scalingTiers: [], scalingBasis: 'profit', notes: [], limitations: []
   };
 }
 
@@ -21613,22 +21690,35 @@ function resolvePropRuleValue(value, sizeIndex, purchaseDate) {
   return value === undefined ? null : value;
 }
 
+// Position of `size` in the program's size list. Custom programs (no list) accept any size. -1 = not offered.
+function getPropSizeIndex(program, size) {
+  if (!program) return -1;
+  if (!Array.isArray(program.sizes) || !program.sizes.length) return 0;
+  return program.sizes.indexOf(Number(size));
+}
+
 // Resolves the master template for firm + program + size + purchase date + account options into a flat, size-specific rule object.
+// Returns null when the program does not offer that size (never falls back to another size's rules)
+// or when the program's template failed the integrity check below.
 function resolvePropRuleTemplate(firmKey, programKey, size, purchaseDate, options = {}) {
   const program = getPropProgram(firmKey, programKey);
   if (!program) return null;
+  if (PROP_RULESET_PROBLEMS.some(p => p.firmKey === firmKey && p.programKey === programKey)) return null;
 
-  const sizeIndex = Math.max(0, program.sizes.indexOf(Number(size)));
+  const sizeIndex = getPropSizeIndex(program, size);
+  if (sizeIndex < 0) return null;
+
+  const date = purchaseDate || '';
   const rules = propRuleDefaults(program);
 
   Object.entries(program.rules || {}).forEach(([key, value]) => {
-    rules[key] = resolvePropRuleValue(value, sizeIndex, purchaseDate || '');
+    rules[key] = resolvePropRuleValue(value, sizeIndex, date);
   });
 
   (program.options || []).forEach(opt => {
-    const on = !!options[opt.key];
-    const patch = on ? opt.whenOn : opt.whenOff;
-    if (patch) Object.assign(rules, patch);
+    if (Array.isArray(opt.sizes) && !opt.sizes.includes(Number(size))) return;
+    const patch = (options || {})[opt.key] ? opt.whenOn : opt.whenOff;
+    if (patch) Object.entries(patch).forEach(([key, value]) => { rules[key] = resolvePropRuleValue(value, sizeIndex, date); });
   });
 
   if (rules.accounting === 'zero') rules.startingBalance = 0;
@@ -21641,6 +21731,47 @@ function resolvePropRuleTemplate(firmKey, programKey, size, purchaseDate, option
 
   return rules;
 }
+
+// Template integrity check, run once at load. Every bySize list needs exactly one value per program size,
+// every byDate needs a fallback, option sizes and next-stage keys must exist. A program that fails is never
+// resolved, so a misaligned list can never hand one size another size's rules.
+function auditPropRulesets() {
+  const problems = [];
+  Object.entries(PROP_FIRM_RULESETS).forEach(([firmKey, firm]) => (firm.programs || []).forEach(program => {
+    const add = (path, message) => problems.push({ firmKey, programKey: program.key, path, message });
+    if (!Array.isArray(program.sizes)) { add('sizes', 'sizes must be an array'); return; }
+
+    const walk = (value, path) => {
+      if (!value || typeof value !== 'object') return;
+      if (Array.isArray(value)) { value.forEach((v, i) => walk(v, `${path}[${i}]`)); return; }
+      if ('__bySize' in value) {
+        const list = Array.isArray(value.__bySize) ? value.__bySize : [];
+        if (list.length !== program.sizes.length) add(path, `bySize has ${list.length} values for ${program.sizes.length} sizes`);
+        list.forEach((v, i) => walk(v, `${path}[${program.sizes[i] ?? i}]`));
+        return;
+      }
+      if ('__byDate' in value) {
+        const variants = Array.isArray(value.__byDate) ? value.__byDate : [];
+        if (!variants.some(v => v && !v.from)) add(path, 'byDate has no fallback entry');
+        variants.forEach(v => walk(v?.value, `${path}<${v?.from || 'fallback'}>`));
+        return;
+      }
+      Object.entries(value).forEach(([k, v]) => walk(v, `${path}.${k}`));
+    };
+
+    walk(program.rules || {}, 'rules');
+    (program.options || []).forEach(opt => {
+      walk(opt.whenOn || {}, `options.${opt.key}.whenOn`);
+      walk(opt.whenOff || {}, `options.${opt.key}.whenOff`);
+      (opt.sizes || []).forEach(s => { if (!program.sizes.includes(s)) add(`options.${opt.key}.sizes`, `size ${s} is not offered`); });
+    });
+    (program.next || []).forEach(k => { if (!firm.programs.some(p => p.key === k)) add('next', `unknown next program ${k}`); });
+  }));
+  if (problems.length) console.error('[Prop] Rule template problems (affected programs are disabled):', problems);
+  return problems;
+}
+
+const PROP_RULESET_PROBLEMS = auditPropRulesets();
 
 // ═══════════════════════════════════════════════════════════════
 // PROP COMMAND CENTER · STATE, PERSISTENCE, HELPERS
@@ -21804,7 +21935,9 @@ function getPropPayouts(acct) {
     .sort((a, b) => (Number(a.meta?.payout_number) || 0) - (Number(b.meta?.payout_number) || 0) || String(a.created_at).localeCompare(String(b.created_at)));
 }
 function getPropStagePayouts(acct) { const start = acct.stage_started_at || ''; return getPropPayouts(acct).filter(p => !start || p.event_date >= start); }
-function getPropEffectiveRules(acct) { return { ...(acct.rule_snapshot || {}), ...(acct.rule_overrides || {}) }; }
+// Saved snapshot, with defaults for rule keys added after the snapshot was saved (older snapshots lack them).
+function getPropSnapshotRules(acct) { return { drawdownLockPayoutTrigger: 'paid', scalingBasis: 'profit', ...(acct.rule_snapshot || {}) }; }
+function getPropEffectiveRules(acct) { return { ...getPropSnapshotRules(acct), ...(acct.rule_overrides || {}) }; }
 function getPropLinkedAccount(acct) { return acct.tradeprint_account_id ? (allAccounts.find(a => a.id === acct.tradeprint_account_id) || null) : null; }
 function getPropLinkedTrades(acct) { return acct.tradeprint_account_id ? allLoadedTrades.filter(t => t.account_id === acct.tradeprint_account_id) : []; }
 function getPropStageTrades(acct) {
@@ -21838,34 +21971,91 @@ function propDayGroups(trades) {
   return [...map.values()].sort((a, b) => a.date.localeCompare(b.date));
 }
 
-// Deterministic balance: start + trading P&L (by day) + manual adjustments - paid payout deductions, in date order.
+// Money with cents only when the value has cents, so MLL math is never rounded away ($1,627.56, $50,000).
+function propMoneyAuto(value) {
+  const n = Math.round((Number(value) || 0) * 100) / 100;
+  return propMoney(n, Number.isInteger(n) ? 0 : 2);
+}
+
+// Seconds after midnight of a trade's exit (or entry) time, "HH:MM" or "HH:MM:SS". null when not logged.
+function propTradeClock(t) {
+  const m = String(t?.exit_time || t?.trade_time || '').match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+  return m ? Number(m[1]) * 3600 + Number(m[2]) * 60 + Number(m[3] || 0) : null;
+}
+
+// Deterministic balance: start + trading P&L + manual adjustments - paid payout deductions, in date order.
+// A date's close = balance after that date's trades and adjustments (before payouts paid that date).
+//   peak         = highest close (what an end-of-day trailing drawdown follows)
+//   realizedPeak = highest closed-trade balance inside any day. Open profit is never logged, so this is a
+//                  lower bound of the true intraday peak (used only for intraday estimates).
+//   closedBalance / closedPeak = the same figures for sessions before today (today's session may still be open).
 function computePropBalance(acct, rules, stageTrades) {
   const start = Number(rules.startingBalance) || 0;
   const days = propDayGroups(stageTrades);
-  const entries = [];
+  const today = propTodayKey();
+  const byDate = new Map();
+  const slot = date => {
+    if (!byDate.has(date)) byDate.set(date, { trading: 0, adjustments: 0, deductions: 0, trades: [] });
+    return byDate.get(date);
+  };
 
-  days.forEach(d => entries.push({ date: d.date, order: 0, delta: d.pnl, kind: 'trading' }));
+  stageTrades.forEach(t => {
+    const s = slot(t.date);
+    s.trading += parseFloat(t.pnl) || 0;
+    s.trades.push(t);
+  });
 
   getPropStageEvents(acct).forEach(e => {
-    if (e.event_type === 'balance_adjustment') entries.push({ date: e.event_date, order: 1, delta: Number(e.amount) || 0, kind: 'adjustment' });
+    if (e.event_type === 'balance_adjustment') slot(e.event_date).adjustments += Number(e.amount) || 0;
     if (e.event_type === 'payout' && e.status === 'paid') {
-      const deduction = Number(e.meta?.account_deduction) || Number(e.meta?.requested_amount) || 0;
-      entries.push({ date: e.meta?.paid_date || e.event_date, order: 2, delta: -deduction, kind: 'payout' });
+      slot(e.meta?.paid_date || e.event_date).deductions += Number(e.meta?.account_deduction) || Number(e.meta?.requested_amount) || 0;
     }
   });
 
-  entries.sort((a, b) => a.date.localeCompare(b.date) || a.order - b.order);
+  let balance = start, peak = start, realizedPeak = start, closedBalance = start, closedPeak = start;
+  let tradingPnl = 0, adjustments = 0, deductions = 0;
+  const eod = [];
 
-  let balance = start, peak = start, tradingPnl = 0, adjustments = 0, deductions = 0;
+  [...byDate.keys()].sort().forEach(date => {
+    const s = byDate.get(date);
+    const open = balance;
+    let high = open;
 
-  entries.forEach(en => {
-    balance += en.delta;
-    if (en.kind === 'trading') { tradingPnl += en.delta; peak = Math.max(peak, balance); }
-    else if (en.kind === 'adjustment') { adjustments += en.delta; peak = Math.max(peak, balance); }
-    else deductions += -en.delta;
+    // Walk the day's closed trades in time order only when every trade has a time; otherwise only the
+    // open and close balances are known points.
+    if (s.trades.length > 1 && s.trades.every(t => propTradeClock(t) != null)) {
+      let run = open;
+      s.trades.slice().sort((a, b) => propTradeClock(a) - propTradeClock(b)).forEach(t => {
+        run += parseFloat(t.pnl) || 0;
+        high = Math.max(high, run);
+      });
+    }
+
+    balance = open + s.trading + s.adjustments;
+    high = Math.max(high, balance);
+    peak = Math.max(peak, balance);
+    realizedPeak = Math.max(realizedPeak, high);
+    tradingPnl += s.trading;
+    adjustments += s.adjustments;
+    eod.push({ date, open, close: balance, high });
+
+    balance -= s.deductions;
+    deductions += s.deductions;
+
+    if (date < today) { closedBalance = balance; closedPeak = peak; }
   });
 
-  return { start, balance, peak, tradingPnl, adjustments, deductions, days };
+  return { start, balance, peak, realizedPeak, closedBalance, closedPeak, tradingPnl, adjustments, deductions, days, eod };
+}
+
+// Figure the scaling tiers are measured on:
+//   profit  = stage trading P&L (default)
+//   balance = balance at the last closed session minus start (payouts and losses can lower the tier)
+//   peak    = best closed-session balance minus start (a tier, once reached, is kept)
+function propScalingValue(rules, bal, stagePnl) {
+  if (rules.scalingBasis === 'balance') return { basis: 'balance', value: bal.closedBalance - bal.start };
+  if (rules.scalingBasis === 'peak') return { basis: 'peak', value: bal.closedPeak - bal.start };
+  return { basis: 'profit', value: stagePnl };
 }
 
 function evaluatePropScaling(rules, stagePnl) {
@@ -21882,34 +22072,134 @@ function evaluatePropScaling(rules, stagePnl) {
   return { contracts: current.contracts ?? null, micros: current.micros ?? (current.contracts != null ? current.contracts * 10 : null), dailyLoss: current.dailyLoss ?? null, next, tiered: true };
 }
 
-function evaluatePropDrawdown(rules, bal, paidCount) {
+// Drawdown floor (MLL) for every supported model. It never claims more precision than the data allows.
+//   static   : floor = start - maxLoss
+//   eod      : floor trails the highest end-of-day balance (exact for the closed trades logged here)
+//   intraday : floor trails the highest balance including open profit, which TradePrint cannot see. The floor
+//              shown is the lowest it can be and the room the most you can have, so it is always an estimate,
+//              except once a lock has fixed the floor.
+//   drawdownLockOffset      : trailing stops for good once the floor reaches start + offset (0 = starting balance)
+//   drawdownLockAfterPayout : after the first payout the floor is set to start + value
+//   drawdownLockPayoutTrigger : 'paid' (payout marked Paid) or 'requested' (any request not denied/canceled)
+// ctx: { payouts: stage payout events, pendingDeduction: requested-but-unpaid amount, report: firm-reported MLL }
+function evaluatePropDrawdown(rules, bal, ctx = {}) {
   const type = rules.drawdownType || 'none';
-  if (type === 'none' || rules.maxLoss == null) return null;
+  const num = v => v == null || v === '' || !Number.isFinite(Number(v)) ? null : Number(v);
+  const maxLoss = num(rules.maxLoss);
+  if (type === 'none' || maxLoss == null) return null;
 
-  const maxLoss = Number(rules.maxLoss) || 0;
-  let floor = type === 'static' ? bal.start - maxLoss : bal.peak - maxLoss;
-  let lockedAt = null;
+  const start = bal.start;
+  const lockOffset = type === 'static' ? null : num(rules.drawdownLockOffset);
+  const lockLevel = lockOffset != null ? start + lockOffset : null;
+  const trail = high => lockLevel != null ? Math.min(high - maxLoss, lockLevel) : high - maxLoss;
+  const dayHigh = d => type === 'intraday' ? d.high : d.close;
 
-  if (type !== 'static' && rules.drawdownLockOffset != null) {
-    const lock = bal.start + Number(rules.drawdownLockOffset);
-    if (floor >= lock) { floor = lock; lockedAt = lock; }
+  const peak = type === 'intraday' ? Math.max(bal.peak, bal.realizedPeak ?? bal.peak) : bal.peak;
+  let floor = type === 'static' ? start - maxLoss : trail(peak);
+  let estimated = type === 'intraday';
+  let source = estimated ? 'estimated' : 'calculated';
+
+  // Firm-reported MLL for this stage: authoritative as of its date. Later end-of-day highs can only move a
+  // trailing floor up from there (never above the lock level).
+  const report = ctx.report && num(ctx.report.floor) != null && ctx.report.asOf ? ctx.report : null;
+  if (report) {
+    const reported = Number(report.floor);
+    const later = (bal.eod || []).filter(d => d.date >= report.asOf);
+    floor = type === 'static' ? reported : later.reduce((f, d) => Math.max(f, trail(dayHigh(d))), reported);
+    estimated = type === 'intraday' && later.length > 0;
+    source = 'firm';
   }
 
-  if (paidCount > 0 && rules.drawdownLockAfterPayout != null) {
-    floor = bal.start + Number(rules.drawdownLockAfterPayout);
-    lockedAt = floor;
+  // Payout-triggered floor change (first qualifying payout of this stage).
+  const payoutOffset = num(rules.drawdownLockAfterPayout);
+  const payoutLock = payoutOffset != null ? start + payoutOffset : null;
+  const payoutTrigger = rules.drawdownLockPayoutTrigger === 'requested' ? 'requested' : 'paid';
+  const payoutEvent = payoutLock == null ? null : (ctx.payouts || [])
+    .filter(p => payoutTrigger === 'requested' ? !['denied', 'canceled'].includes(p.status) : p.status === 'paid')
+    .map(p => ({ number: p.meta?.payout_number || null, status: p.status, date: payoutTrigger === 'requested' ? (p.meta?.request_date || p.event_date) : (p.meta?.paid_date || p.event_date) }))
+    .sort((a, b) => String(a.date).localeCompare(String(b.date)))[0] || null;
+
+  let lockReason = null;
+  if (payoutEvent) {
+    // A firm figure dated after the payout already includes the reset; otherwise the rule sets the floor.
+    if (report && payoutEvent.date < report.asOf) floor = Number(report.floor);
+    else { floor = payoutLock; source = 'calculated'; }
+    estimated = false;
+    lockReason = 'payout';
+  } else if (lockLevel != null && floor >= lockLevel) {
+    // Once the lock is reached the floor is known exactly, even for intraday drawdowns.
+    estimated = false;
+    lockReason = 'balance';
   }
 
-  const remaining = bal.balance - floor;
-  const estimated = type === 'intraday';
-  const labels = { static: 'Max Loss', eod: 'EOD Trailing Drawdown', intraday: 'Intraday Trailing Drawdown' };
+  const pendingDeduction = Math.max(0, Number(ctx.pendingDeduction) || 0);
+  const remainingNow = bal.balance - floor;
+  const remaining = remainingNow - pendingDeduction;
+  const possibleBreach = estimated && remaining <= 0;
 
-  let status = remaining <= 0 ? 'breach' : remaining < maxLoss * 0.25 ? 'warning' : 'passed';
+  let status;
   if (estimated) status = remaining <= 0 ? 'warning' : 'unknown';
+  else if (remainingNow <= 0) status = 'breach';
+  else if (remaining <= 0 || remaining < maxLoss * 0.25) status = 'warning';
+  else status = 'passed';
 
-  return propCheck('drawdown', labels[type] || 'Drawdown', status,
-    `${propMoney(remaining)} remaining${estimated ? ' (estimated from closed trades)' : ''}`,
-    { type, floor, remaining, maxLoss, peak: bal.peak, lockedAt, estimated, detail: `Floor ${propMoney(floor)} · peak ${propMoney(bal.peak)}${lockedAt != null ? ' · locked' : ''}` });
+  // EOD floors move after the session closes. If today's closed trades already raised it, say what the firm
+  // dashboard most likely still shows.
+  let firmMayShow = null;
+  if (type === 'eod' && source === 'calculated' && !payoutEvent && bal.closedPeak != null && bal.closedPeak < bal.peak) {
+    const before = trail(bal.closedPeak);
+    if (before < floor) firmMayShow = before;
+  }
+
+  const labels = { static: 'Max Loss (static)', eod: 'EOD Trailing Drawdown', intraday: 'Intraday Trailing Drawdown' };
+  const text = estimated
+    ? `At most ${propMoneyAuto(remaining)} remaining (estimated from closed trades)`
+    : `${propMoneyAuto(remaining)} remaining${pendingDeduction > 0 ? ' after pending payout' : ''}${source === 'firm' ? ' (firm-reported MLL)' : ''}`;
+  const detail = `Floor ${propMoneyAuto(floor)}${estimated ? ' or higher' : ''}${type !== 'static' ? ` · ${type === 'intraday' ? 'closed-trade high' : 'EOD high'} ${propMoneyAuto(peak)}` : ''}${lockReason ? ' · locked' : ''}`;
+
+  return propCheck('drawdown', labels[type] || 'Drawdown', status, text, {
+    type, start, maxLoss, floor, remaining, remainingNow, pendingDeduction, peak,
+    lockLevel, lockActivation: lockLevel != null ? lockLevel + maxLoss : null, lockReason, locked: !!lockReason, lockedAt: lockReason ? floor : null,
+    payoutLock, payoutTrigger, payoutEvent, report, source, estimated, reliable: !estimated, possibleBreach, firmMayShow, detail
+  });
+}
+
+// Firm-reported MLL saved in options.drawdownReport. Only valid for the stage and attempt it was entered for.
+function getPropDrawdownReport(acct) {
+  const r = acct.options?.drawdownReport;
+  if (!r || typeof r !== 'object' || !r.asOf || r.floor == null || r.floor === '' || !Number.isFinite(Number(r.floor))) return null;
+  if (r.programKey !== acct.program_key) return null;
+  if ((r.stageStartedAt || '') !== (acct.stage_started_at || '')) return null;
+  if ((Number(r.attempt) || 1) !== (Number(acct.options?.attempt) || 1)) return null;
+  return { ...r, floor: Number(r.floor) };
+}
+
+// Drawdown with the account's saved rules. When the current template corrects a drawdown rule the user has not
+// overridden, the corrected result is computed too. If the two differ, nothing is shown as exact until the user
+// reviews the update (status unknown, or warning / breach only when a breach is possible).
+function evaluatePropAccountDrawdown(acct, rules, bal, stageTrades, stagePayouts, pendingDeduction) {
+  const ctx = { payouts: stagePayouts, pendingDeduction, report: getPropDrawdownReport(acct) };
+  const saved = evaluatePropDrawdown(rules, bal, ctx);
+  const update = getPropTemplateUpdate(acct);
+  if (!update.available || !update.drawdownDiffs.length) return saved;
+
+  const correctedRules = { ...update.current, ...(acct.rule_overrides || {}) };
+  const corrected = evaluatePropDrawdown(correctedRules, computePropBalance(acct, correctedRules, stageTrades), ctx);
+  const same = (a, b) => Math.abs((Number(a) || 0) - (Number(b) || 0)) < 0.005;
+  const material = !saved || !corrected || !same(saved.floor, corrected.floor) || !same(saved.remaining, corrected.remaining) || saved.estimated !== corrected.estimated;
+
+  if (!material) return { ...saved, outdated: true, material: false, saved, corrected };
+
+  const statuses = [saved?.status, corrected?.status];
+  const status = saved?.status === 'breach' && corrected?.status === 'breach' ? 'breach'
+    : statuses.some(s => s === 'breach' || s === 'warning') ? 'warning' : 'unknown';
+
+  return {
+    ...(saved || corrected), status, outdated: true, material: true, saved, corrected, reliable: false,
+    possibleBreach: statuses.includes('breach') || !!saved?.possibleBreach || !!corrected?.possibleBreach,
+    text: `${saved ? `${propMoneyAuto(saved.remaining)} with saved rules` : 'No drawdown in saved rules'} · ${corrected ? `${propMoneyAuto(corrected.remaining)} with corrected rules` : 'no drawdown in corrected rules'}`,
+    detail: 'Review the rule update before relying on this number'
+  };
 }
 
 function evaluatePropDailyLoss(rules, days, tierDailyLoss) {
@@ -22002,8 +22292,11 @@ function evaluatePropAccount(acct) {
   const cyclePnl = cycleDays.reduce((s, d) => s + d.pnl, 0);
   const cycleSummary = getTradeSummary(cycleTrades);
 
-  const scaling = evaluatePropScaling(rules, stagePnl);
-  const drawdown = evaluatePropDrawdown(rules, bal, paidPayouts.length);
+  const pendingDeduction = pendingPayouts.reduce((s, p) => s + (Number(p.meta?.account_deduction) || Number(p.meta?.requested_amount) || 0), 0);
+  const scalingInput = propScalingValue(rules, bal, stagePnl);
+  const scaling = evaluatePropScaling(rules, scalingInput.value);
+  if (scaling) { scaling.basis = scalingInput.basis; scaling.value = scalingInput.value; }
+  const drawdown = evaluatePropAccountDrawdown(acct, rules, bal, stageTrades, stagePayouts, pendingDeduction);
   const dailyLoss = evaluatePropDailyLoss(rules, stageDays, scaling?.tiered ? scaling.dailyLoss : null);
   const bufferBalance = rules.bufferAbove != null ? bal.start + Number(rules.bufferAbove) : null;
 
@@ -22099,8 +22392,9 @@ function evaluatePropAccount(acct) {
 
   const isMeasurable = c => !['manual', 'unknown'].includes(c.status);
   const hardBreach = riskChecks.some(c => c.status === 'breach');
-  const evalPassed = isEval && evalChecks.length > 0 && stageTrades.length > 0 && evalChecks.filter(isMeasurable).every(c => c.status === 'passed') && evalChecks.some(c => c.id === 'profitTarget' && c.status === 'passed') && !hardBreach;
-  const payoutEligible = !isEval && payoutChecks.filter(isMeasurable).every(c => c.status === 'passed') && !pendingPayouts.length && limits.max > 0 && limits.max >= limits.min && !hardBreach;
+  const drawdownDoubt = !!drawdown?.possibleBreach;
+  const evalPassed = isEval && evalChecks.length > 0 && stageTrades.length > 0 && evalChecks.filter(isMeasurable).every(c => c.status === 'passed') && evalChecks.some(c => c.id === 'profitTarget' && c.status === 'passed') && !hardBreach && !drawdownDoubt;
+  const payoutEligible = !isEval && payoutChecks.filter(isMeasurable).every(c => c.status === 'passed') && !pendingPayouts.length && limits.max > 0 && limits.max >= limits.min && !hardBreach && !drawdownDoubt;
   const anyWarning = [...evalChecks, ...payoutChecks, ...riskChecks].some(c => c.status === 'warning');
 
   // First date the stage P&L crossed the target (for timeline / share cards)
@@ -22116,6 +22410,8 @@ function evaluatePropAccount(acct) {
   else if (acct.status === 'completed') { statusLabel = 'Completed'; statusTone = 'gray'; }
   else if (linkMissing) { statusLabel = 'Relink Needed'; statusTone = 'yellow'; }
   else if (hardBreach) { statusLabel = 'Potential Breach'; statusTone = 'red'; }
+  else if (drawdown?.outdated && drawdown.material) { statusLabel = 'Rules Update Needed'; statusTone = 'yellow'; }
+  else if (drawdownDoubt) { statusLabel = 'Check Drawdown'; statusTone = 'yellow'; }
   else if (evalPassed) { statusLabel = 'Goals Met'; statusTone = 'green'; }
   else if (payoutEligible) { statusLabel = 'Payout Appears Eligible'; statusTone = 'green'; }
   else if (pendingPayouts.length) { statusLabel = 'Payout Pending'; statusTone = 'yellow'; }
@@ -22130,6 +22426,8 @@ function evaluatePropAccount(acct) {
     bestDay: stageDays.reduce((m, d) => Math.max(m, d.pnl), 0), worstDay: stageDays.reduce((m, d) => Math.min(m, d.pnl), 0)
   };
 
+  state.pendingDeduction = pendingDeduction;
+  state.drawdownDoubt = drawdownDoubt;
   state.nextObjective = buildPropNextObjective(acct, state);
   return state;
 }
@@ -22141,6 +22439,8 @@ function buildPropNextObjective(acct, st) {
   if (!acct.tradeprint_account_id) return 'Link a TradePrint account so trades flow into this dashboard.';
   if (st.linkMissing) return 'The linked TradePrint account no longer exists. Relink it from Manage.';
   if (st.hardBreach) return 'A hard rule appears breached based on TradePrint data. Verify with the firm before trading on.';
+  if (st.drawdown?.outdated && st.drawdown.material && acct.status === 'active') return 'TradePrint corrected the drawdown rules for this program. Review the rule update so the MLL shown here matches the firm.';
+  if (st.drawdownDoubt && acct.status === 'active') return 'The drawdown may be breached (estimate from closed trades). Check the MLL in your firm dashboard before trading on.';
 
   const firm = acct.firm_name;
 
@@ -22252,13 +22552,29 @@ function computePropPortfolioEconomics() {
 }
 
 // ── Template version check (account snapshot vs current master template)
+// Keys missing from an older snapshot are compared as their defaults, so newly added rule fields never show as
+// changes by themselves. "Keep Current" (options.dismissedTemplateVersion) hides the update for this version.
 function getPropTemplateUpdate(acct) {
-  if (acct.firm_key === 'custom') return { available: false, diffs: [] };
+  const none = { available: false, dismissed: false, current: null, diffs: [], drawdownDiffs: [] };
+  if (acct.firm_key === 'custom') return none;
+  const program = getPropProgram(acct.firm_key, acct.program_key);
   const current = resolvePropRuleTemplate(acct.firm_key, acct.program_key, acct.account_size, acct.purchase_date, acct.options || {});
-  if (!current) return { available: false, diffs: [] };
+  if (!program || !current) return none;
+
+  const defaults = propRuleDefaults(program);
   const snap = acct.rule_snapshot || {};
-  const diffs = PROP_RULE_FIELDS.filter(f => JSON.stringify(snap[f.key] ?? null) !== JSON.stringify(current[f.key] ?? null)).map(f => ({ key: f.key, label: f.label, from: snap[f.key] ?? null, to: current[f.key] ?? null }));
-  return { available: acct.template_version !== PROP_RULESETS_VERSION && diffs.length > 0, current, diffs };
+  const overrides = acct.rule_overrides || {};
+  const norm = (obj, key) => obj[key] === undefined ? (defaults[key] ?? null) : obj[key];
+
+  const diffs = PROP_RULE_FIELDS
+    .filter(f => JSON.stringify(norm(snap, f.key) ?? null) !== JSON.stringify(norm(current, f.key) ?? null))
+    .map(f => ({ key: f.key, label: f.label, from: norm(snap, f.key) ?? null, to: norm(current, f.key) ?? null, overridden: Object.prototype.hasOwnProperty.call(overrides, f.key) }));
+
+  const pending = acct.template_version !== PROP_RULESETS_VERSION && diffs.length > 0;
+  const dismissed = pending && acct.options?.dismissedTemplateVersion === PROP_RULESETS_VERSION;
+  const drawdownDiffs = pending ? diffs.filter(d => PROP_DRAWDOWN_RULE_KEYS.includes(d.key) && !d.overridden) : [];
+
+  return { available: pending && !dismissed, dismissed, current, diffs, drawdownDiffs };
 }
 
     // ═══════════════════════════════════════════════════════════════
@@ -22373,7 +22689,16 @@ function renderPropAlerts(acct, st) {
 
   const update = getPropTemplateUpdate(acct);
   if (update.available && acct.status === 'active') {
-    alerts.push(`<div class="prop-alert info"><div><b>Newer TradePrint rule template available</b> (${escapeHtml(PROP_RULESETS_VERSION)}). Your account keeps its saved snapshot until you choose to update.</div><div class="prop-alert-actions"><button class="btn-secondary" onclick="openPropTemplateDiff('${acct.id}')">View Changes</button><button class="btn-secondary" onclick="keepPropTemplate('${acct.id}')">Keep Current</button><button class="btn-primary" onclick="applyPropTemplateUpdate('${acct.id}')">Update Account Rules</button></div></div>`);
+    const actions = `<div class="prop-alert-actions"><button class="btn-secondary" onclick="openPropTemplateDiff('${acct.id}')">View Changes</button><button class="btn-secondary" onclick="keepPropTemplate('${acct.id}')">Keep Current</button><button class="btn-primary" onclick="applyPropTemplateUpdate('${acct.id}')">Update Account Rules</button></div>`;
+    const dd = st.drawdown;
+    if (update.drawdownDiffs.length) {
+      const impact = dd?.outdated && dd.material
+        ? `Saved rules put your MLL at ${dd.saved ? propMoneyAuto(dd.saved.floor) : 'none'}; the corrected rules put it at ${dd.corrected ? `${propMoneyAuto(dd.corrected.floor)} (${propMoneyAuto(dd.corrected.remaining)} remaining)` : 'none'}.`
+        : 'It does not change today\'s numbers, but it will as the account moves.';
+      alerts.push(`<div class="prop-alert warn"><div><b>Drawdown rule correction available</b> (template ${escapeHtml(PROP_RULESETS_VERSION)}). ${escapeHtml(impact)} Nothing changes until you update; your custom overrides are kept.</div>${actions}</div>`);
+    } else {
+      alerts.push(`<div class="prop-alert info"><div><b>Newer TradePrint rule template available</b> (${escapeHtml(PROP_RULESETS_VERSION)}). Your account keeps its saved snapshot until you choose to update.</div>${actions}</div>`);
+    }
   }
 
   return alerts.join('');
@@ -22415,7 +22740,11 @@ function renderPropHero(acct, st) {
   }
 
   const health = [];
-  if (st.drawdown) health.push(['Drawdown Remaining', st.drawdown.maxLoss > 0 ? `${Math.round(Math.max(0, st.drawdown.remaining) / st.drawdown.maxLoss * 100)}%${st.drawdown.estimated ? ' est.' : ''}` : propMoney(st.drawdown.remaining)]);
+  if (st.drawdown) {
+    const dd = st.drawdown;
+    const pct = dd.maxLoss > 0 ? ` · ${Math.round(Math.max(0, dd.remaining) / dd.maxLoss * 100)}%` : '';
+    health.push(['Drawdown Remaining', `${propMoneyAuto(Math.max(0, dd.remaining))}${pct}${dd.estimated ? ' est.' : dd.outdated && dd.material ? ' (rules outdated)' : ''}`]);
+  }
   if (st.dailyLoss) health.push(['Daily Loss Room', propMoney(Math.max(0, st.dailyLoss.remaining))]);
   if (st.scaling?.contracts != null) health.push(['Contract Limit', `${st.scaling.contracts} minis${st.scaling.micros != null ? ` / ${st.scaling.micros} micros` : ''}`]);
   health.push([st.isEval ? 'Evaluation' : 'Cycle', st.statusLabel]);
@@ -22510,15 +22839,41 @@ function renderPropRuleStatusCard(acct, st) {
 function renderPropRiskCard(acct, st) {
   const r = st.rules;
   const kv = [];
+  const boxes = [];
   const dd = st.drawdown;
+  const money = v => propMoneyAuto(v);
 
   if (dd) {
+    const days = st.stageDays.length;
+    const sourceText = dd.source === 'firm'
+      ? `Firm-reported${dd.report?.source ? ` (${dd.report.source})` : ''} on ${propShortDate(dd.report?.asOf)}${dd.estimated ? ', estimated since' : ''}`
+      : dd.estimated ? 'Estimated from closed trades' : `Calculated from ${days} logged trading day${days === 1 ? '' : 's'}`;
+
     kv.push(['Drawdown type', dd.type === 'static' ? 'Static' : dd.type === 'eod' ? 'EOD trailing' : 'Intraday trailing']);
-    kv.push([dd.estimated ? 'Estimated floor' : 'Current floor (MLL)', propMoney(dd.floor)]);
-    kv.push(['Drawdown remaining', `${propMoney(dd.remaining)}${dd.estimated ? ' est.' : ''}`]);
-    kv.push(['Highest tracked balance', propMoney(dd.peak)]);
-    if (r.drawdownLockOffset != null) kv.push(['Lock level', `${propMoney(st.bal.start + Number(r.drawdownLockOffset))}${dd.lockedAt != null ? ' · locked' : ''}`]);
-    if (r.drawdownLockAfterPayout != null) kv.push(['After first payout', `Floor = ${propMoney(st.bal.start + Number(r.drawdownLockAfterPayout))}`]);
+    kv.push(['MLL source', sourceText]);
+    kv.push([dd.estimated ? 'Floor (lowest it can be)' : 'Current floor (MLL)', money(dd.floor)]);
+    kv.push(['Tracked balance', r.accounting === 'zero' ? propSigned(st.bal.balance, 2) : propMoney(st.bal.balance, 2)]);
+    if (dd.pendingDeduction > 0) kv.push(['Pending payout deduction', `-${money(dd.pendingDeduction)}`]);
+    kv.push(['Drawdown remaining', `${money(dd.remaining)}${dd.estimated ? ' at most' : ''}`]);
+    if (dd.type !== 'static') kv.push([dd.type === 'intraday' ? 'Highest closed-trade balance' : 'Highest end-of-day balance', money(dd.peak)]);
+
+    if (dd.lockReason === 'payout') {
+      kv.push(['Floor lock', `Set to ${money(dd.payoutLock)} by payout${dd.payoutEvent?.number ? ` #${dd.payoutEvent.number}` : ''} ${dd.payoutTrigger === 'requested' ? 'request' : '(paid)'}`]);
+    } else if (dd.lockLevel != null) {
+      kv.push(['Floor lock', dd.lockReason === 'balance' ? `Locked at ${money(dd.floor)}` : `Locks at ${money(dd.lockLevel)} once the ${dd.type === 'intraday' ? 'balance' : 'end-of-day balance'} reaches ${money(dd.lockActivation)}`]);
+    } else if (dd.type !== 'static') {
+      kv.push(['Floor lock', 'None, keeps trailing']);
+    }
+    if (dd.payoutLock != null && dd.lockReason !== 'payout') kv.push(['After first payout', `Floor = ${money(dd.payoutLock)} (on ${dd.payoutTrigger === 'requested' ? 'request' : 'paid payout'})`]);
+
+    if (dd.outdated && dd.material) {
+      const c = dd.corrected;
+      boxes.push(`<div class="prop-limitation strong">These numbers use this account's saved rules, which TradePrint has corrected. With the corrected rules: ${c ? `MLL ${escapeHtml(money(c.floor))}, ${escapeHtml(money(c.remaining))} remaining` : 'no drawdown rule'}. <button class="prop-link-btn" onclick="openPropTemplateDiff('${acct.id}')">Review update</button></div>`);
+    }
+    if (dd.firmMayShow != null) boxes.push(`<div class="prop-limitation">Today's closed trades already raised the MLL. The firm dashboard may still show ${escapeHtml(money(dd.firmMayShow))} until the session closes.</div>`);
+    if (acct.options?.drawdownReport && !dd.report) boxes.push('<div class="prop-limitation">A firm MLL saved for an earlier stage or attempt is ignored.</div>');
+    const upd = getPropTemplateUpdate(acct);
+    if (upd.dismissed && upd.drawdownDiffs.length) boxes.push(`<div class="prop-limitation">You kept this account's saved drawdown rules instead of TradePrint template ${escapeHtml(PROP_RULESETS_VERSION)}. <button class="prop-link-btn" onclick="openPropTemplateDiff('${acct.id}')">View changes</button></div>`);
   } else {
     kv.push(['Drawdown', r.drawdownType === 'none' ? 'No drawdown rule' : 'Set Max loss in Rules']);
   }
@@ -22529,18 +22884,27 @@ function renderPropRiskCard(acct, st) {
   }
 
   if (st.scaling?.contracts != null) {
+    const basisText = st.scaling.basis === 'balance' ? 'closed balance' : st.scaling.basis === 'peak' ? 'best closed balance' : 'stage profit';
+    const next = st.scaling.next;
     kv.push(['Contract limit', `${st.scaling.contracts} minis${st.scaling.micros != null ? ` / ${st.scaling.micros} micros` : ''}`]);
-    if (st.scaling.next) kv.push(['Next scaling level', `${st.scaling.next.contracts} contracts at ${propSigned(st.scaling.next.minProfit, 0)} profit`]);
+    if (next) kv.push(['Next scaling level', `${[next.contracts != null ? `${next.contracts} minis` : '', next.dailyLoss != null ? `DLL ${propMoney(next.dailyLoss)}` : ''].filter(Boolean).join(' · ')} at ${basisText} ${propSigned(next.minProfit, 0)}`]);
   }
 
   const limitations = Array.isArray(r.limitations) ? r.limitations : [];
+  const bigLabel = !dd ? '' : dd.outdated && dd.material ? (dd.saved ? 'remaining with saved rules' : 'remaining with corrected rules (not applied)')
+    : dd.estimated ? 'estimated remaining (at most)' : dd.source === 'firm' ? 'remaining from firm-reported MLL'
+    : dd.pendingDeduction > 0 ? 'remaining after pending payout' : 'remaining';
+  const tone = !dd ? '' : dd.status === 'breach' ? 'red' : dd.status === 'warning' ? 'yellow' : dd.status === 'passed' ? 'green' : '';
+  const canReport = dd && acct.status !== 'archived';
 
   return `
     <div class="dashboard-panel prop-card">
       <div class="dashboard-panel-title">Drawdown &amp; Risk</div>
-      ${dd ? `<div class="prop-big-stat ${dd.status === 'breach' ? 'red' : dd.status === 'warning' ? 'yellow' : dd.estimated ? '' : 'green'}">${propMoney(Math.max(0, dd.remaining))}<span>${dd.estimated ? 'estimated remaining' : 'remaining'}</span></div>${propProgressBar(dd.maxLoss > 0 ? Math.max(0, dd.remaining) / dd.maxLoss * 100 : 0, dd.status === 'breach' ? 'red' : dd.status === 'warning' ? 'yellow' : 'green')}` : ''}
+      ${dd ? `<div class="prop-big-stat ${tone}">${money(Math.max(0, dd.remaining))}<span>${bigLabel}</span></div>${propProgressBar(dd.maxLoss > 0 ? Math.max(0, dd.remaining) / dd.maxLoss * 100 : 0, tone || 'accent')}` : ''}
       ${kv.map(([k, v]) => `<div class="prop-kv"><span>${escapeHtml(k)}</span><b>${escapeHtml(v)}</b></div>`).join('')}
+      ${boxes.join('')}
       ${limitations.map(l => `<div class="prop-limitation strong">${escapeHtml(l)}</div>`).join('')}
+      ${canReport ? `<div class="prop-inline-actions"><button class="btn-secondary" onclick="openPropDrawdownReportDialog('${acct.id}')">${dd.source === 'firm' ? 'Update firm MLL' : 'Enter firm MLL'}</button></div>` : ''}
     </div>`;
 }
 
@@ -22993,6 +23357,8 @@ function propRulePreviewRows(rules) {
     ['Profit target', money(rules.profitTarget)],
     ['Max loss', money(rules.maxLoss)],
     ['Drawdown type', rules.drawdownType || '—'],
+    ['Drawdown lock', ['eod', 'intraday'].includes(rules.drawdownType) ? (rules.drawdownLockOffset != null && rules.drawdownLockOffset !== '' ? `Stops at ${propMoneyAuto((Number(rules.startingBalance) || 0) + Number(rules.drawdownLockOffset))}` : 'Keeps trailing (no lock)') : '—'],
+    ['After first payout', rules.drawdownLockAfterPayout != null && rules.drawdownLockAfterPayout !== '' ? `Floor = ${propMoneyAuto((Number(rules.startingBalance) || 0) + Number(rules.drawdownLockAfterPayout))} (on ${rules.drawdownLockPayoutTrigger === 'requested' ? 'request' : 'paid payout'})` : 'No change'],
     ['Daily loss limit', rules.dailyLoss != null ? `${money(rules.dailyLoss)}${rules.dailyLossHard ? ' (hard)' : ' (soft)'}` : 'None'],
     ['Consistency', rules.consistencyPct != null ? `${rules.consistencyPct}% (${rules.consistencyScope})` : Array.isArray(rules.consistencyByPayout) ? `${rules.consistencyByPayout.join(' / ')}% by payout` : 'None'],
     ['Minimum days', rules.minDays != null ? `${rules.minDays} (${rules.minDaysScope})` : 'None'],
@@ -23036,6 +23402,9 @@ function propWizardRules() {
   return resolvePropRuleTemplate(propWizard.firmKey, program.key, propWizardSize() || 0, propWizard.purchaseDate, propWizard.options);
 }
 
+// Account options that apply to the chosen size (some add-ons exist for one size only).
+function propWizardOptionsFor(program) { return (program?.options || []).filter(o => !Array.isArray(o.sizes) || o.sizes.includes(Number(propWizardSize()))); }
+
 function renderPropWizard() {
   const w = propWizard;
   if (!w) return;
@@ -23077,7 +23446,7 @@ function renderPropWizard() {
         : [{ value: 'active', label: 'Live and active' }, { value: 'archived', label: 'Closed (importing history)' }];
     body = propField('Current stage', propSelectHtml('propWizardStatus', stageOpts, w.status, "propWizardSet('status', this.value)"), `${escapeHtml(program.name)} · ${PROP_STAGE_LABELS[program.stageType]}`)
       + propField('Nickname (optional)', `<input type="text" value="${escapeHtml(w.nickname)}" oninput="propWizardSet('nickname', this.value)" placeholder="e.g. Topstep 1, Apex PA #2"/>`)
-      + ((program.options || []).length ? `<div class="form-field"><label>Account options</label>${program.options.map(o => `<label class="rule-radio-option" style="display:flex !important;margin-bottom:8px;"><input type="checkbox" ${w.options[o.key] ? 'checked' : ''} onchange="propWizardToggleOption('${o.key}', this.checked)"/> ${escapeHtml(o.label)}</label>`).join('')}</div>` : '');
+      + (propWizardOptionsFor(program).length ? `<div class="form-field"><label>Account options</label>${propWizardOptionsFor(program).map(o => `<label class="rule-radio-option" style="display:flex !important;margin-bottom:8px;"><input type="checkbox" ${w.options[o.key] ? 'checked' : ''} onchange="propWizardToggleOption('${o.key}', this.checked)"/> ${escapeHtml(o.label)}</label>`).join('')}</div>` : '');
   }
 
   if (w.step === 5) {
@@ -23102,7 +23471,9 @@ function renderPropWizard() {
       + `<div class="calc-row">${propField('Other cost ($)', `<input type="number" step="0.01" value="${escapeHtml(w.otherFee)}" oninput="propWizardSet('otherFee', this.value)" placeholder="0"/>`)}${propField('Current stage started on', `<input type="date" value="${escapeHtml(w.stageStart)}" onchange="propWizardSet('stageStart', this.value)"/>`, 'Leave blank to use the purchase date. Only trades on/after this date count for this stage.')}</div>`;
   }
 
-  if (w.step === 7) {
+  if (w.step === 7 && !propWizardRules()) {
+    body = '<div class="prop-alert warn"><div>TradePrint has no rule template for this program at this size. Go back and pick one of the listed sizes.</div></div>';
+  } else if (w.step === 7) {
     const rules = propWizardRules();
     body = `
       <div class="prop-rule-preview">${propRulePreviewRows(rules)}</div>
@@ -23148,6 +23519,7 @@ async function createPropAccountFromWizard() {
   const program = propWizardProgram();
   const rules = propWizardRules();
   const size = propWizardSize() || 0;
+  if (!program || !rules) { setPropModalMsg('TradePrint has no rule template for this program at this size. Go back and pick one of the listed sizes.', 'error'); return; }
 
   let overrides = {};
   if (w.rulesMode === 'custom') {
@@ -23286,7 +23658,7 @@ function openPropRulesDialog(id) {
       <div><b>${customized ? 'Customized by you' : 'TradePrint default'}</b> · template ${escapeHtml(a.template_version || '—')} · verified ${escapeHtml(propDateLabel(a.template_verified_at || PROP_RULESETS_VERIFIED_AT))} · snapshot ${escapeHtml(a.rule_snapshot?.templateId || 'custom')}</div>
       <div class="prop-field-hint">Edits change only this account. The master TradePrint template is never modified.</div>
     </div>
-    <div id="propRuleFields">${renderPropRuleFieldsHtml(eff, a.rule_snapshot || {})}</div>`;
+    <div id="propRuleFields">${renderPropRuleFieldsHtml(eff, getPropSnapshotRules(a))}</div>`;
   openPropModal({ title: 'Account Rules', subtitle: propAccountLabel(a), body, footer: `<button class="btn-secondary" onclick="resetPropRules('${a.id}')">Reset to TradePrint Default</button><button class="btn-secondary" onclick="closePropModal()">Cancel</button><button class="btn-primary" onclick="savePropRules('${a.id}')">Save Rules</button>`, wide: true });
 }
 
@@ -23296,7 +23668,7 @@ async function savePropRules(id) {
   const read = readPropRuleFields(document.getElementById('propRuleFields'));
   if (read.errors.length) { setPropModalMsg(read.errors.join(' · '), 'error'); return; }
   try {
-    await savePropAccount(a, { rule_overrides: propDiffOverrides(read.values, a.rule_snapshot || {}) });
+    await savePropAccount(a, { rule_overrides: propDiffOverrides(read.values, getPropSnapshotRules(a)) });
     closePropModal();
     renderPropCenter();
   } catch (err) { setPropModalMsg(err.message, 'error'); }
@@ -23312,33 +23684,122 @@ async function resetPropRules(id) {
   } catch (err) { setPropModalMsg(err.message, 'error'); }
 }
 
+function propShowError(err, fallback = 'Could not save. Try again.') {
+  const message = err?.message || fallback;
+  console.warn('[Prop]', err);
+  if (document.getElementById('propModal')?.classList.contains('active')) setPropModalMsg(message, 'error');
+  else alert(message);
+}
+
 function openPropTemplateDiff(id) {
   const a = getPropAccount(id);
   if (!a) return;
   const upd = getPropTemplateUpdate(a);
-  const fmt = v => v == null ? '—' : Array.isArray(v) ? JSON.stringify(v) : String(v);
+  const dd = evaluatePropAccount(a).drawdown;
+  const fmt = (v, key) => {
+    if (v == null) return '—';
+    if (key === 'notes' || key === 'limitations') return `${v.length} item${v.length === 1 ? '' : 's'}`;
+    if (key === 'scalingTiers') return v.length ? v.map(t => `${propSigned(t.minProfit, 0)}: ${t.contracts ?? '—'}${t.dailyLoss != null ? ` (DLL ${propMoney(t.dailyLoss)})` : ''}`).join(', ') : 'none';
+    return Array.isArray(v) ? v.join(' / ') : String(v);
+  };
+  const row = (label, from, to) => `<div class="prop-kv"><span>${escapeHtml(label)}</span><b>${escapeHtml(from)} → ${escapeHtml(to)}</b></div>`;
+  const lockText = d => !d ? 'none' : d.lockReason ? `locked at ${propMoneyAuto(d.floor)}` : d.lockLevel != null ? `locks at ${propMoneyAuto(d.lockLevel)}` : 'no lock';
+
+  const impact = dd?.outdated
+    ? `<div class="prop-rule-source-box">
+        <div><b>Effect on this account today</b></div>
+        ${row('MLL / floor', dd.saved ? propMoneyAuto(dd.saved.floor) : 'none', dd.corrected ? propMoneyAuto(dd.corrected.floor) : 'none')}
+        ${row('Drawdown remaining', dd.saved ? propMoneyAuto(dd.saved.remaining) : '—', dd.corrected ? propMoneyAuto(dd.corrected.remaining) : '—')}
+        ${row('Floor lock', lockText(dd.saved), lockText(dd.corrected))}
+      </div>`
+    : '';
+
   const body = upd.diffs.length
-    ? `<div class="prop-diff-list">${upd.diffs.map(d => `<div class="prop-kv"><span>${escapeHtml(d.label)}</span><b>${escapeHtml(fmt(d.from))} → ${escapeHtml(fmt(d.to))}</b></div>`).join('')}</div><div class="prop-field-hint">Your custom overrides are kept either way.</div>`
+    ? `${impact}<div class="prop-diff-list">${upd.diffs.map(d => `<div class="prop-kv"><span>${escapeHtml(d.label)}${d.overridden ? ' (your override stays in effect)' : ''}</span><b>${escapeHtml(fmt(d.from, d.key))} → ${escapeHtml(fmt(d.to, d.key))}</b></div>`).join('')}</div><div class="prop-field-hint">Notes are listed in full under Rules after the update. Updating replaces this account's saved template snapshot only. Custom overrides, trades, payouts, costs and stage history are kept, and the previous snapshot is saved in the account timeline.</div>`
     : '<div class="dashboard-empty">No differences between your snapshot and the current template.</div>';
-  openPropModal({ title: 'Template Changes', subtitle: `${a.template_version || '—'} → ${PROP_RULESETS_VERSION}`, body, footer: `<button class="btn-secondary" onclick="keepPropTemplate('${a.id}')">Keep Current</button><button class="btn-primary" onclick="applyPropTemplateUpdate('${a.id}')">Update Account Rules</button>` });
+
+  openPropModal({ title: 'Template Changes', subtitle: `${a.template_version || '—'} → ${PROP_RULESETS_VERSION}`, body, footer: `<button class="btn-secondary" onclick="keepPropTemplate('${a.id}')">Keep Current</button>${upd.current && upd.diffs.length ? `<button class="btn-primary" onclick="applyPropTemplateUpdate('${a.id}')">Update Account Rules</button>` : ''}` });
 }
 
 async function keepPropTemplate(id) {
   const a = getPropAccount(id);
   if (!a) return;
-  await savePropAccount(a, { options: { ...(a.options || {}), dismissedTemplateVersion: PROP_RULESETS_VERSION } });
-  closePropModal();
-  renderPropCenter();
+  try {
+    await savePropAccount(a, { options: { ...(a.options || {}), dismissedTemplateVersion: PROP_RULESETS_VERSION } });
+    closePropModal();
+    renderPropCenter();
+  } catch (err) { propShowError(err); }
 }
 
+// User-confirmed only. Replaces the saved template snapshot; overrides, events and history are untouched.
+// The previous snapshot is kept in a timeline note so the change can be traced (and undone by hand).
 async function applyPropTemplateUpdate(id) {
   const a = getPropAccount(id);
   if (!a) return;
   const upd = getPropTemplateUpdate(a);
-  if (!upd.current) return;
-  await savePropAccount(a, { rule_snapshot: upd.current, template_version: PROP_RULESETS_VERSION, template_verified_at: PROP_RULESETS_VERIFIED_AT });
+  if (!upd.current) { propShowError(null, 'There is no current template for this program and size.'); return; }
+  const previous = { version: a.template_version || null, snapshot: a.rule_snapshot || {} };
+  try {
+    await savePropAccount(a, { rule_snapshot: upd.current, template_version: PROP_RULESETS_VERSION, template_verified_at: PROP_RULESETS_VERIFIED_AT });
+  } catch (err) { propShowError(err); return; }
+  try {
+    await addPropEvent(getPropAccount(a.id), { event_type: 'note', event_date: propTodayKey(), note: `Rules updated to TradePrint template ${PROP_RULESETS_VERSION}`, meta: { kind: 'template_update', from_version: previous.version, to_version: PROP_RULESETS_VERSION, changed: upd.diffs.map(d => d.key), previous_snapshot: previous.snapshot } });
+  } catch (err) { console.warn('[Prop] template update note not saved:', err); }
   closePropModal();
   renderPropCenter();
+}
+
+// ── Firm-reported MLL. Stored only in options.drawdownReport for the current stage and attempt; trades,
+// payouts, balances and history are never changed.
+function openPropDrawdownReportDialog(id) {
+  const a = getPropAccount(id);
+  if (!a) return;
+  const st = evaluatePropAccount(a);
+  const dd = st.drawdown;
+  const r = getPropDrawdownReport(a);
+  const zero = st.rules.accounting === 'zero';
+  const body = `
+    <div class="prop-rule-source-box">
+      <div class="prop-kv"><span>TradePrint balance</span><b>${zero ? propSigned(st.bal.balance, 2) : propMoney(st.bal.balance, 2)}</b></div>
+      ${dd ? `<div class="prop-kv"><span>TradePrint MLL now</span><b>${propMoneyAuto(dd.floor)}${dd.estimated ? ' (estimate)' : ''}</b></div>` : ''}
+      <div class="prop-field-hint">Enter the Max Loss Limit exactly as your firm dashboard shows it. TradePrint uses it as the floor from that date, then only moves it up for later end-of-day highs, locks and payout rules. If the firm balance differs from TradePrint, log a Balance adjustment instead.</div>
+    </div>
+    <div class="calc-row">${propField('Firm MLL / floor ($)', `<input type="number" step="0.01" id="propReportFloor" value="${escapeHtml(r ? String(r.floor) : '')}" placeholder="${zero ? 'e.g. -1500 or 0' : 'e.g. 50000'}"/>`)}${propField('As of', `<input type="date" id="propReportDate" value="${escapeHtml(r?.asOf || propTodayKey())}"/>`, 'The trading day the firm figure belongs to.')}</div>
+    ${propField('Source', `<input type="text" id="propReportSource" maxlength="80" value="${escapeHtml(r?.source || `${a.firm_name} dashboard`)}"/>`)}`;
+  openPropModal({ title: 'Firm-Reported MLL', subtitle: propAccountLabel(a), body, footer: `${r ? `<button class="btn-secondary" onclick="clearPropDrawdownReport('${a.id}')">Clear</button>` : ''}<button class="btn-secondary" onclick="closePropModal()">Cancel</button><button class="btn-primary" onclick="savePropDrawdownReport('${a.id}')">Save</button>` });
+}
+
+async function savePropDrawdownReport(id) {
+  const a = getPropAccount(id);
+  if (!a) return;
+  const floor = propNumOrNull(document.getElementById('propReportFloor').value);
+  const asOf = document.getElementById('propReportDate').value;
+  const source = document.getElementById('propReportSource').value.trim().slice(0, 80) || 'Firm dashboard';
+  if (floor == null) { setPropModalMsg('Enter the MLL your firm shows.', 'error'); return; }
+  if (!asOf) { setPropModalMsg('Enter the date of the firm figure.', 'error'); return; }
+  if (asOf > propTodayKey()) { setPropModalMsg('The date cannot be in the future.', 'error'); return; }
+  if (a.stage_started_at && asOf < a.stage_started_at) { setPropModalMsg('That date is before this stage started.', 'error'); return; }
+  const balance = evaluatePropAccount(a).bal.balance;
+  if (floor >= balance && !confirm(`The MLL you entered (${propMoneyAuto(floor)}) is at or above the TradePrint balance (${propMoneyAuto(balance)}), which would mean the account is breached. Save it anyway?`)) return;
+
+  const report = { floor, asOf, source, programKey: a.program_key, stageStartedAt: a.stage_started_at || '', attempt: Number(a.options?.attempt) || 1, enteredAt: new Date().toISOString() };
+  try {
+    await savePropAccount(a, { options: { ...(a.options || {}), drawdownReport: report } });
+    closePropModal();
+    renderPropCenter();
+  } catch (err) { setPropModalMsg(err.message, 'error'); }
+}
+
+async function clearPropDrawdownReport(id) {
+  const a = getPropAccount(id);
+  if (!a || !confirm('Remove the firm-reported MLL and go back to the calculated floor?')) return;
+  const options = { ...(a.options || {}) };
+  delete options.drawdownReport;
+  try {
+    await savePropAccount(a, { options });
+    closePropModal();
+    renderPropCenter();
+  } catch (err) { setPropModalMsg(err.message, 'error'); }
 }
 
 // ── Ledger (expenses, refunds, adjustments)
@@ -23508,11 +23969,15 @@ function openPropTransitionDialog(id, showAll = false) {
   if (!a) return;
   const firm = getPropFirm(a.firm_key);
   const program = getPropProgram(a.firm_key, a.program_key);
-  const candidates = showAll ? firm.programs.filter(p => p.key !== a.program_key) : (program?.next || []).map(k => getPropProgram(a.firm_key, k)).filter(Boolean);
+  const listed = showAll ? firm.programs.filter(p => p.key !== a.program_key) : (program?.next || []).map(k => getPropProgram(a.firm_key, k)).filter(Boolean);
+  // Only programs offered at this account's size. A stage the firm assigns at another size is a separate account.
+  const candidates = listed.filter(p => getPropSizeIndex(p, a.account_size) >= 0);
+  const skipped = listed.filter(p => getPropSizeIndex(p, a.account_size) < 0);
   const st = evaluatePropAccount(a);
 
   const body = `
     ${program?.choiceLabel && !showAll ? `<div class="prop-field-hint" style="margin-bottom:12px;">${escapeHtml(program.choiceLabel)}</div>` : ''}
+    ${skipped.length ? `<div class="prop-field-hint" style="margin-bottom:12px;">Not offered at ${escapeHtml(propSizeLabel(a.account_size))}: ${escapeHtml(skipped.map(p => p.name).join(', '))}. If the firm moves you to one of these, add it as a separate prop account.</div>` : ''}
     <div class="prop-choice-list">${candidates.map((p, i) => `<label class="prop-choice row ${i === 0 ? 'active' : ''}"><input type="radio" name="propNextProgram" value="${p.key}" ${i === 0 ? 'checked' : ''} onchange="document.querySelectorAll('#propModalBody .prop-choice').forEach(el => el.classList.remove('active')); this.closest('.prop-choice').classList.add('active');"/><div><b>${escapeHtml(p.name)}</b><span>${PROP_STAGE_LABELS[p.stageType]}${p.kind ? ` · ${p.kind}` : ''}</span></div></label>`).join('') || '<div class="dashboard-empty">No further stage in this template. Use Change stage to pick any program.</div>'}</div>
     <div class="calc-row">${propField('Transition date', `<input type="date" id="propTransitionDate" value="${propTodayKey()}"/>`, 'Only trades on/after this date count for the new stage.')}${propField('Note (optional)', `<input type="text" id="propTransitionNote" placeholder="e.g. Activated in firm dashboard"/>`)}</div>
     <div class="prop-field-hint">Evaluation trades, costs, timeline and the current rule snapshot are preserved in stage history. The new stage gets its own rule snapshot${a.firm_key === 'custom' ? ' (set its rules afterwards)' : ''}. ${escapeHtml(a.firm_name)} still has to approve or activate the account.</div>`;
@@ -23538,6 +24003,7 @@ async function transitionPropAccount(a, nextKey, date, note) {
   if (!next) throw new Error('Unknown program.');
   const st = evaluatePropAccount(a);
   const rules = resolvePropRuleTemplate(a.firm_key, nextKey, a.account_size, a.purchase_date, a.options || {});
+  if (!rules) throw new Error(`${next.name} is not offered at ${propSizeLabel(a.account_size)}. Pick another program or add a separate prop account.`);
   const reason = a.stage_key === 'evaluation' && next.stageType !== 'evaluation' ? 'passed' : 'advanced';
 
   const history = (a.stage_history || []).map((h, i, arr) => i === arr.length - 1 && !h.endedAt ? { ...h, endedAt: date, reason, payoutCount: a.payout_count, finalPnl: st.stagePnl } : h);
@@ -23683,13 +24149,13 @@ function buildPropShareData(acct, st, type, variant) {
     if (st.isEval) {
       if (cons && cons.status !== 'pending') stats.push({ label: 'Consistency', value: `${cons.current}% / ${cons.required}%` });
       stats.push({ label: 'Trading Days', value: String(days) });
-      if (dd && !dd.estimated) stats.push({ label: 'Drawdown Left', value: propMoney(Math.max(0, dd.remaining)) });
+      if (dd && dd.reliable) stats.push({ label: 'Drawdown Left', value: propMoney(Math.max(0, dd.remaining)) });
       stats.push({ label: 'Win Rate', value: `${st.summary.winRate ?? 0}%` });
     } else {
       const q = st.payoutChecks.find(c => c.id === 'qualifyingDays');
       if (q) stats.push({ label: 'Winning Days', value: `${q.current} / ${q.required}` });
       if (cons && cons.status !== 'pending') stats.push({ label: 'Consistency', value: `${cons.current}% / ${cons.required}%` });
-      if (dd && !dd.estimated) stats.push({ label: 'Drawdown Left', value: propMoney(Math.max(0, dd.remaining)) });
+      if (dd && dd.reliable) stats.push({ label: 'Drawdown Left', value: propMoney(Math.max(0, dd.remaining)) });
       stats.push({ label: 'Payouts', value: String(acct.payout_count || 0) });
     }
     return { ...base, kicker: st.isEval ? 'Prop Account Progress' : 'Funded Account Progress', big: target && target.status !== 'manual' ? `${propSigned(st.stagePnl, 0)} / ${propMoney(target.required)}` : propSigned(st.isEval ? st.stagePnl : st.cyclePnl, 0), bigValue: st.isEval ? st.stagePnl : st.cyclePnl, subline: target && target.status !== 'manual' ? `${target.progress.toFixed(0)}% complete` : (st.isEval ? 'Evaluation profit' : 'Current cycle profit'), stats: stats.slice(0, 4) };
