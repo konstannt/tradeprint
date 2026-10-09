@@ -454,6 +454,126 @@ select.tp-native-select {
   color: var(--danger);
 }
 
+    
+/* Manage Accounts: rename + reorder */
+.account-sort-hint {
+  font-size: 12px;
+  color: var(--text2);
+  margin-top: -4px;
+}
+
+.account-list-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.account-list-main .account-list-name {
+  overflow-wrap: anywhere;
+}
+
+.account-list-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.account-drag-handle {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--text2);
+  cursor: grab;
+  padding: 4px 6px;
+  margin-left: -6px;
+  border-radius: 6px;
+  font-size: 18px;
+  line-height: 1;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.account-drag-handle:hover,
+.account-drag-handle:focus-visible {
+  color: var(--text);
+}
+
+.account-drag-handle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.account-drag-handle:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.account-list-item.dragging {
+  border-color: var(--accent);
+  background: rgba(99,102,241,0.08);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+}
+
+.account-list-item.dragging .account-drag-handle {
+  cursor: grabbing;
+  color: var(--accent);
+}
+
+.account-rename-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.account-rename-input {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg2);
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.account-rename-input:focus {
+  border-color: var(--accent);
+}
+
+.account-rename-row .add-confluence-btn,
+.account-rename-row .btn-secondary {
+  padding: 9px 14px;
+}
+
+.account-rename-row button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+@media (max-width: 768px) {
+  .account-drag-handle {
+    padding: 8px 10px;
+    margin-left: -10px;
+    font-size: 20px;
+  }
+
+  .account-rename-row {
+    flex-wrap: wrap;
+  }
+
+  .account-rename-input {
+    flex-basis: 100%;
+    font-size: 16px;
+  }
+}
+
 .strategy-example-card .account-delete-btn:first-child:hover {
   color: var(--accent);
 }
@@ -10239,12 +10359,20 @@ function loadAccounts() {
 async function fetchAndApplyAccounts() {
   if (!user) return;
 
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/broker_accounts?user_id=eq.${user.id}&order=created_at.asc`, {
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${token}`
-    }
-  });
+  const headers = {
+    'apikey': SUPABASE_KEY,
+    'Authorization': `Bearer ${token}`
+  };
+
+  const baseUrl = `${SUPABASE_URL}/rest/v1/broker_accounts?user_id=eq.${user.id}`;
+
+  // The user's saved order first, then oldest first. If the sort_order column
+  // doesn't exist yet (migration not run), fall back to the old creation order.
+  let res = await fetch(`${baseUrl}&order=sort_order.asc.nullslast,created_at.asc,id.asc`, { headers });
+
+  if (!res.ok) {
+    res = await fetch(`${baseUrl}&order=created_at.asc`, { headers });
+  }
 
   const data = await res.json().catch(() => null);
 
@@ -10255,7 +10383,7 @@ async function fetchAndApplyAccounts() {
     return;
   }
 
-  allAccounts = data;
+  allAccounts = getOrderedAccounts(data);
 
   if (!allAccounts.length) {
     await createDefaultAccount();
@@ -10371,6 +10499,7 @@ function refreshAccountScopedViews(options = {}) {
 function openAccountModal() {
   document.getElementById('accountMsg').textContent = '';
   document.getElementById('accountNameInput').value = '';
+  if (!accountRenameSaving) renamingAccountId = null;
   renderAccountList();
   document.getElementById('accountModal').classList.add('active');
 }
@@ -10387,15 +10516,431 @@ function renderAccountList() {
   const list = document.getElementById('accountList');
   renderBrokerAccountLimitUsage();
 
-  list.innerHTML = allAccounts.map(a => `
-    <div class="account-list-item">
-      <div>
-        <div class="account-list-name">${escapeHtml(a.name)}</div>
+  // Keep a name that's being typed if the list redraws (for example after adding an account).
+  const renameInput = document.getElementById('accountRenameInput');
+  const renameDraft = renameInput && renameInput.dataset.accountId === renamingAccountId ? renameInput.value : null;
+
+  stopAccountDrag();
+  if (renamingAccountId && !allAccounts.some(a => a.id === renamingAccountId)) renamingAccountId = null;
+
+  const canReorder = allAccounts.length > 1;
+  const pencilIcon = '<svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+
+  list.innerHTML = (canReorder ? '<div class="account-sort-hint">Drag ≡ to reorder. Your accounts show in this order everywhere.</div>' : '') +
+    allAccounts.map((a, index) => {
+      const name = escapeHtml(a.name);
+
+      if (a.id === renamingAccountId) {
+        return `
+    <div class="account-list-item editing" data-account-id="${a.id}">
+      <div class="account-rename-row">
+        <input type="text" class="account-rename-input" id="accountRenameInput" data-account-id="${a.id}" value="${name}" aria-label="Account name" onkeydown="handleAccountRenameKeydown(event, '${a.id}')"/>
+        <button class="add-confluence-btn" id="accountRenameSaveBtn" type="button" onclick="saveAccountRename('${a.id}')">Save</button>
+        <button class="btn-secondary" id="accountRenameCancelBtn" type="button" onclick="cancelAccountRename()">Cancel</button>
+      </div>
+    </div>
+  `;
+      }
+
+      const handle = canReorder
+        ? `<button class="account-drag-handle" type="button" title="Drag to reorder" aria-label="Reorder ${name}, position ${index + 1} of ${allAccounts.length}. Use the up and down arrow keys."${renamingAccountId ? ' disabled' : ''} onpointerdown="startAccountDrag(event)" onkeydown="handleAccountHandleKeydown(event, '${a.id}')">≡</button>`
+        : '';
+
+      return `
+    <div class="account-list-item" data-account-id="${a.id}">
+      ${handle}
+      <div class="account-list-main">
+        <div class="account-list-name">${name}</div>
           <div class="dashboard-list-sub">${activeAccountIds.includes(a.id) ? 'Currently selected' : 'Trading account'}</div>
       </div>
-      <button class="account-delete-btn" onclick="deleteBrokerAccount('${a.id}')">Delete</button>
+      <div class="account-list-actions">
+        <button class="strategy-action-btn account-rename-btn" type="button" title="Rename account" aria-label="Rename ${name}" onclick="startAccountRename('${a.id}')">${pencilIcon}</button>
+        <button class="account-delete-btn" onclick="deleteBrokerAccount('${a.id}')">Delete</button>
+      </div>
     </div>
-  `).join('');
+  `;
+    }).join('');
+
+  if (renamingAccountId) {
+    const input = document.getElementById('accountRenameInput');
+    if (input && renameDraft !== null) input.value = renameDraft;
+    if (accountRenameSaving) setAccountRenameBusy(true);
+  }
+}
+
+    // ─── ACCOUNT ORDER, RENAME AND REORDER (Manage Accounts) ─────
+// Order comes from broker_accounts.sort_order (0 = first). Accounts that were
+// never reordered (NULL) come after, oldest first, so a new account always
+// lands at the end. Renaming changes only the name: the id, and every trade,
+// prop link and stat tied to it, stay the same.
+
+let renamingAccountId = null;
+let accountRenameSaving = false;
+let accountOrderSaving = false;
+let accountOrderSaveQueued = false;
+let accountDrag = null;
+
+function getAccountSortOrder(account) {
+  const value = account?.sort_order;
+  return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
+// Stable: saved position, then creation date, then the order the list came in.
+function getOrderedAccounts(accounts) {
+  return (Array.isArray(accounts) ? accounts : [])
+    .map((account, index) => ({ account, index }))
+    .sort((a, b) => {
+      const aOrder = getAccountSortOrder(a.account);
+      const bOrder = getAccountSortOrder(b.account);
+
+      if (aOrder !== bOrder) {
+        if (aOrder === null) return 1;
+        if (bOrder === null) return -1;
+        return aOrder - bOrder;
+      }
+
+      const aCreated = Date.parse(a.account?.created_at || '');
+      const bCreated = Date.parse(b.account?.created_at || '');
+
+      if (Number.isFinite(aCreated) && Number.isFinite(bCreated) && aCreated !== bCreated) {
+        return aCreated - bCreated;
+      }
+
+      return a.index - b.index;
+    })
+    .map(item => item.account);
+}
+
+function setAccountModalMsg(text, tone = '') {
+  const msg = document.getElementById('accountMsg');
+  if (!msg) return;
+
+  msg.textContent = text || '';
+  msg.className = `modal-msg${tone ? ` ${tone}` : ''}`;
+}
+
+function focusAccountRenameButton(accountId) {
+  document.querySelector(`#accountList .account-list-item[data-account-id="${accountId}"] .account-rename-btn`)?.focus();
+}
+
+// ── Rename
+
+function startAccountRename(accountId) {
+  if (accountRenameSaving || accountDrag || !allAccounts.some(a => a.id === accountId)) return;
+
+  renamingAccountId = accountId;
+  setAccountModalMsg('');
+  renderAccountList();
+
+  const input = document.getElementById('accountRenameInput');
+  if (input) {
+    input.focus();
+    input.select();
+  }
+}
+
+function cancelAccountRename() {
+  if (accountRenameSaving) return;
+
+  const accountId = renamingAccountId;
+  renamingAccountId = null;
+
+  setAccountModalMsg('');
+  renderAccountList();
+  focusAccountRenameButton(accountId);
+}
+
+function handleAccountRenameKeydown(event, accountId) {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    saveAccountRename(accountId);
+  } else if (event.key === 'Escape') {
+    event.preventDefault();
+    event.stopPropagation();
+    cancelAccountRename();
+  }
+}
+
+function setAccountRenameBusy(busy) {
+  accountRenameSaving = !!busy;
+
+  const input = document.getElementById('accountRenameInput');
+  const saveBtn = document.getElementById('accountRenameSaveBtn');
+  const cancelBtn = document.getElementById('accountRenameCancelBtn');
+
+  if (input) input.readOnly = !!busy;
+
+  if (saveBtn) {
+    saveBtn.disabled = !!busy;
+    saveBtn.textContent = busy ? 'Saving...' : 'Save';
+  }
+
+  if (cancelBtn) cancelBtn.disabled = !!busy;
+}
+
+// Trades loaded before a rename carry the old name in broker_accounts(name).
+// Update them in place so every list shows the new name straight away.
+function applyAccountNameToLoadedTrades(accountId, name) {
+  const lists = [allLoadedTrades, calTradesCache, dayTrades];
+  calendarDataCache.forEach(entry => lists.push(entry?.trades));
+
+  lists.forEach(list => {
+    if (!Array.isArray(list)) return;
+
+    list.forEach(t => {
+      if (t?.account_id === accountId && t.broker_accounts) t.broker_accounts.name = name;
+    });
+  });
+}
+
+async function saveAccountRename(accountId) {
+  if (accountRenameSaving) return;
+
+  const account = allAccounts.find(a => a.id === accountId);
+  const input = document.getElementById('accountRenameInput');
+  if (!account || !input) return;
+
+  const name = input.value.trim();
+
+  if (!name) {
+    setAccountModalMsg('Enter an account name.', 'error');
+    input.focus();
+    return;
+  }
+
+  if (name === account.name) {
+    cancelAccountRename();
+    return;
+  }
+
+  // Same rule as adding an account: no two accounts with the same name (ignoring case).
+  const duplicate = allAccounts.some(a => a.id !== accountId && String(a.name || '').toLowerCase() === name.toLowerCase());
+  if (duplicate) {
+    setAccountModalMsg('That account already exists.', 'error');
+    input.focus();
+    return;
+  }
+
+  setAccountModalMsg('');
+  setAccountRenameBusy(true);
+
+  let savedName = null;
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/broker_accounts?id=eq.${accountId}&select=id,name`, {
+      method: 'PATCH',
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify({ name })
+    });
+
+    const data = await res.json().catch(() => null);
+
+    // Supabase answers a PATCH that matched no row with success, so make sure
+    // the account row really came back updated.
+    if (!res.ok || !Array.isArray(data) || !data[0]) {
+      throw new Error(data?.message || `Rename failed: ${res.status}`);
+    }
+
+    savedName = data[0].name;
+  } catch (err) {
+    console.warn('[Accounts] could not rename account:', err);
+    setAccountModalMsg('Could not rename the account. Check your connection and try again.', 'error');
+  } finally {
+    setAccountRenameBusy(false);
+  }
+
+  if (savedName === null) {
+    document.getElementById('accountRenameInput')?.focus();
+    return;
+  }
+
+  const saved = allAccounts.find(a => a.id === accountId);
+  if (saved) saved.name = savedName;
+  applyAccountNameToLoadedTrades(accountId, savedName);
+
+  renamingAccountId = null;
+  renderAccountList();
+  setAccountModalMsg('Account renamed.', 'success');
+  focusAccountRenameButton(accountId);
+
+  // Redraws every page with the new name and reloads trades, the same way switching accounts does.
+  refreshAccountScopedViews();
+}
+
+// ── Reorder
+
+// Shows a new order everywhere right away, then saves it.
+function applyAccountOrder(accountIds) {
+  const byId = new Map(allAccounts.map(a => [a.id, a]));
+  const next = accountIds.map(id => byId.get(id)).filter(Boolean);
+
+  if (next.length !== allAccounts.length) return;
+  if (next.every((a, i) => a === allAccounts[i])) return;
+
+  allAccounts = next;
+
+  renderAccountList();
+  renderAccountControls();
+  populateTradeAccountSelect();
+
+  saveAccountOrder();
+}
+
+async function requestAccountOrderSave(accountIds) {
+  // One database call that saves every position together, or none of them.
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/reorder_broker_accounts`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ account_ids: accountIds })
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(text || `Account order save failed: ${res.status}`);
+  }
+}
+
+async function saveAccountOrder() {
+  // A save is already running: it sends the newest order when it finishes.
+  if (accountOrderSaving) {
+    accountOrderSaveQueued = true;
+    return;
+  }
+
+  accountOrderSaving = true;
+  setAccountModalMsg('Saving order...');
+
+  try {
+    do {
+      accountOrderSaveQueued = false;
+
+      const accountIds = allAccounts.map(a => a.id);
+      await requestAccountOrderSave(accountIds);
+
+      // Record what the database now holds, so a later failure can go back to it.
+      accountIds.forEach((id, index) => {
+        const account = allAccounts.find(a => a.id === id);
+        if (account) account.sort_order = index;
+      });
+    } while (accountOrderSaveQueued);
+
+    setAccountModalMsg('Order saved.', 'success');
+  } catch (err) {
+    accountOrderSaveQueued = false;
+    console.warn('[Accounts] could not save account order:', err);
+
+    // Put the accounts back in the last order the database confirmed.
+    allAccounts = getOrderedAccounts(allAccounts);
+    renderAccountList();
+    renderAccountControls();
+    populateTradeAccountSelect();
+
+    setAccountModalMsg('Could not save the new order. Your accounts are back in their last saved order.', 'error');
+  } finally {
+    accountOrderSaving = false;
+  }
+}
+
+// Keyboard: focus the ≡ handle, then use the up and down arrow keys.
+function handleAccountHandleKeydown(event, accountId) {
+  if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return;
+
+  event.preventDefault();
+  if (renamingAccountId || accountDrag) return;
+
+  const from = allAccounts.findIndex(a => a.id === accountId);
+  const to = from + (event.key === 'ArrowUp' ? -1 : 1);
+  if (from < 0 || to < 0 || to >= allAccounts.length) return;
+
+  const ids = allAccounts.map(a => a.id);
+  ids.splice(to, 0, ids.splice(from, 1)[0]);
+
+  applyAccountOrder(ids);
+  document.querySelector(`#accountList .account-list-item[data-account-id="${accountId}"] .account-drag-handle`)?.focus();
+}
+
+// Mouse, touch and pen: drag the ≡ handle (pointer events, no library).
+function startAccountDrag(event) {
+  if (event.button !== 0 || renamingAccountId || accountRenameSaving || accountDrag) return;
+
+  const handle = event.currentTarget;
+  const item = handle.closest('.account-list-item');
+  if (!item) return;
+
+  event.preventDefault();
+  handle.setPointerCapture?.(event.pointerId);
+
+  accountDrag = { pointerId: event.pointerId, item };
+  item.classList.add('dragging');
+
+  document.addEventListener('pointermove', moveAccountDrag);
+  document.addEventListener('pointerup', endAccountDrag);
+  document.addEventListener('pointercancel', endAccountDrag);
+}
+
+function moveAccountDrag(event) {
+  if (!accountDrag || event.pointerId !== accountDrag.pointerId) return;
+  event.preventDefault();
+
+  const list = document.getElementById('accountList');
+  const dragging = accountDrag.item;
+  if (!list || !list.contains(dragging)) return;
+
+  // Scroll the modal when dragging near its top or bottom edge.
+  const box = document.querySelector('#accountModal .modal-box');
+  if (box) {
+    const rect = box.getBoundingClientRect();
+    if (event.clientY < rect.top + 40) box.scrollTop -= 12;
+    else if (event.clientY > rect.bottom - 40) box.scrollTop += 12;
+  }
+
+  const others = Array.from(list.querySelectorAll('.account-list-item[data-account-id]')).filter(el => el !== dragging);
+  if (!others.length) return;
+
+  const before = others.find(el => {
+    const rect = el.getBoundingClientRect();
+    return event.clientY < rect.top + rect.height / 2;
+  });
+
+  if (before) {
+    if (dragging.nextElementSibling !== before) list.insertBefore(dragging, before);
+  } else {
+    const last = others[others.length - 1];
+    if (last.nextElementSibling !== dragging) last.after(dragging);
+  }
+}
+
+function stopAccountDrag() {
+  document.removeEventListener('pointermove', moveAccountDrag);
+  document.removeEventListener('pointerup', endAccountDrag);
+  document.removeEventListener('pointercancel', endAccountDrag);
+
+  accountDrag?.item?.classList.remove('dragging');
+  accountDrag = null;
+}
+
+function endAccountDrag(event) {
+  if (!accountDrag || (event && event.pointerId !== accountDrag.pointerId)) return;
+
+  stopAccountDrag();
+
+  // The browser cancelled the drag: put the list back as it was.
+  if (event?.type === 'pointercancel') {
+    renderAccountList();
+    return;
+  }
+
+  const ids = Array.from(document.querySelectorAll('#accountList .account-list-item[data-account-id]')).map(el => el.dataset.accountId);
+  applyAccountOrder(ids);
 }
 
 // ─── BROKER ACCOUNT LIMIT (Free: 5, Pro: unlimited) ──────────
