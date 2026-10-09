@@ -22894,7 +22894,9 @@ function renderPropRiskCard(acct, st) {
   const bigLabel = !dd ? '' : dd.outdated && dd.material ? (dd.saved ? 'remaining with saved rules' : 'remaining with corrected rules (not applied)')
     : dd.estimated ? 'estimated remaining (at most)' : dd.source === 'firm' ? 'remaining from firm-reported MLL'
     : dd.pendingDeduction > 0 ? 'remaining after pending payout' : 'remaining';
-  const tone = !dd ? '' : dd.status === 'breach' ? 'red' : dd.status === 'warning' ? 'yellow' : dd.status === 'passed' ? 'green' : '';
+  // Normal state: big number in the default text color (white in dark mode) and the bar in the Tradeprint accent.
+  // Warning / breach keep their yellow / red alert colors.
+  const tone = !dd ? '' : dd.status === 'breach' ? 'red' : dd.status === 'warning' ? 'yellow' : '';
   const canReport = dd && acct.status !== 'archived';
 
   return `
@@ -22918,8 +22920,8 @@ function renderPropEvalCard(acct, st) {
     <div class="dashboard-panel prop-card">
       <div class="dashboard-panel-title">Evaluation Progress</div>
       ${target && target.status !== 'manual' ? `
-        <div class="prop-big-stat ${target.status === 'passed' ? 'green' : ''}">${propSigned(target.current)}<span>of ${propMoney(target.required)} target</span></div>
-        ${propProgressBar(target.progress, target.status === 'passed' ? 'green' : 'accent')}
+        <div class="prop-big-stat ${propTone(target.current)}">${propSigned(target.current)}<span>of ${propMoney(target.required)} target</span></div>
+        ${propProgressBar(target.progress, 'green')}
         <div class="prop-kv"><span>Amount remaining</span><b>${propMoney(target.remaining)}</b></div>
         <div class="prop-kv"><span>Progress</span><b>${target.progress.toFixed(1)}%</b></div>` : '<div class="dashboard-empty">Set a profit target in Rules to track this evaluation.</div>'}
       <div class="prop-kv"><span>Best day</span><b>${propSigned(st.bestDay)}${bestDayPct != null ? ` (${bestDayPct}% of profit)` : ''}</b></div>
