@@ -64,29 +64,35 @@
     .sidebar.collapsed .settings-row { padding: 10px 0; justify-content: center; }
     .sidebar.collapsed .settings-label { display: none; }
     .settings-row svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
-    .prints-nav-row {
-  margin: 0 10px 10px;
+        /* Prop Firm Center + Prints sidebar buttons: one shared inactive / hover / active style */
+.prop-nav-row,
+.prints-nav-row {
+  margin: 0 10px 8px;
   padding: 11px 10px;
-  border: 1px solid rgba(99,102,241,0.28);
-  border-left: 1px solid rgba(99,102,241,0.28);
+  border: 1px solid var(--border);
   border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+}
+
+.prop-nav-row:hover,
+.prints-nav-row:hover {
+  border: 1px solid rgba(99,102,241,0.45);
   background: rgba(99,102,241,0.08);
   color: var(--text);
 }
 
-.prints-nav-row:hover,
+.prop-nav-row.active,
 .prints-nav-row.active {
-  border-color: rgba(99,102,241,0.55);
+  border: 1px solid rgba(99,102,241,0.55);
   background: rgba(99,102,241,0.16);
-  color: #fff;
-}
-
-.prints-nav-row.active {
+  color: var(--text);
   box-shadow: inset 0 0 0 1px rgba(99,102,241,0.22);
 }
 
+.sidebar.collapsed .prop-nav-row,
 .sidebar.collapsed .prints-nav-row {
-  margin: 0 8px 10px;
+  margin: 0 8px 8px;
   padding: 11px 0;
   justify-content: center;
 }
@@ -645,6 +651,99 @@ select.tp-native-select {
   display: none;
 }
 
+    
+.dashboard-custom-range {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: -4px 0 16px;
+}
+
+.dashboard-custom-range[hidden] {
+  display: none;
+}
+
+.dashboard-custom-range-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 150px;
+}
+
+.dashboard-custom-range-field label {
+  font-size: 11px;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.dashboard-custom-range-field input {
+  min-height: 38px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  outline: none;
+}
+
+.dashboard-custom-range-field input:focus {
+  border-color: var(--accent);
+}
+
+.dashboard-custom-range-field input::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+}
+
+body.light .dashboard-custom-range-field input::-webkit-calendar-picker-indicator {
+  filter: none;
+}
+
+.dashboard-custom-range-apply {
+  min-height: 38px;
+}
+
+.dashboard-custom-range-msg {
+  flex-basis: 100%;
+  font-size: 12px;
+  color: var(--text2);
+}
+
+.dashboard-custom-range-msg:empty {
+  display: none;
+}
+
+.dashboard-custom-range-msg.error {
+  color: var(--danger);
+}
+
+.dashboard-chart-empty {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  align-self: center;
+  background: var(--bg2);
+}
+
+@media (max-width: 768px) {
+  .dashboard-custom-range-field {
+    flex: 1 1 140px;
+  }
+
+  .dashboard-custom-range-field input {
+    font-size: 16px;
+  }
+
+  .dashboard-custom-range-apply {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+}
+
 @media (max-width: 768px) {
   .dashboard-panel-heading {
     align-items: flex-start;
@@ -1179,6 +1278,67 @@ select.tp-native-select {
 .tradeprint-review-copy span {
   color: var(--accent);
   font-weight: 800;
+}
+
+    
+.tradeprint-hold-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.tradeprint-hold-stat {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+  min-width: 0;
+}
+
+.tradeprint-hold-label.green {
+  color: var(--success);
+}
+
+.tradeprint-hold-label.red {
+  color: var(--danger);
+}
+
+.tradeprint-hold-value {
+  font-size: 22px;
+  font-weight: 950;
+  line-height: 1.2;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tradeprint-hold-insight {
+  margin-bottom: 16px;
+}
+
+.tradeprint-hold-section-label {
+  margin-bottom: 8px;
+}
+
+.tradeprint-hold-note {
+  margin-top: 12px;
+  color: var(--text2);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+@media (max-width: 900px) {
+  .tradeprint-hold-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 420px) {
+  .tradeprint-hold-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 520px) {
@@ -3003,15 +3163,9 @@ body.light .econ-card-head:hover { background: rgba(0, 0, 0, 0.025); }
 }
     
         /* ─── PROP COMMAND CENTER ─────────────────────────────────── */
-    .prop-nav-divider { height: 1px; background: var(--border); margin: 6px 16px 10px; }
-    .prop-nav-row { margin: 0 10px 8px; padding: 11px 10px; border: 1px solid var(--border); border-left: 1px solid var(--border); border-radius: 8px; color: var(--text); position: relative; }
-    .prop-nav-row:hover, .prop-nav-row.active { border-color: rgba(99,102,241,0.45); background: rgba(99,102,241,0.1); }
-    .prop-nav-row.active { box-shadow: inset 0 0 0 1px rgba(99,102,241,0.18); }
-    .prop-nav-badge { margin-left: auto; font-size: 9px; font-weight: 900; letter-spacing: 0.6px; color: var(--accent); border: 1px solid rgba(99,102,241,0.4); border-radius: 6px; padding: 2px 5px; }
-    .sidebar.collapsed .prop-nav-row { margin: 0 8px 8px; padding: 11px 0; justify-content: center; }
-    .sidebar.collapsed .prop-nav-badge, .sidebar.collapsed .prop-nav-divider { display: none; }
+        .sidebar.collapsed .prop-nav-divider { display: none; }
 
-    #page-prop { width: 100%; max-width: 1360px; }
+        #page-prop { width: 100%; max-width: none; min-width: 0; }
     .prop-page-header { margin-bottom: 18px; }
     .prop-share-btn { border: 1px solid var(--border); background: var(--bg2); border-radius: 8px; min-height: 38px; min-width: 38px; }
     .prop-disclaimer { display: flex; gap: 12px; align-items: flex-start; background: var(--bg2); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 10px; padding: 12px 16px; color: var(--text2); font-size: 12px; line-height: 1.55; margin-bottom: 20px; }
@@ -5413,7 +5567,7 @@ select::-ms-expand {
     /* ─── SETUP GRADE, MISTAKE TAGS, TRADING RULES ──────────────── */
 .trade-extras-grid {
   display: grid;
-  grid-template-columns: 112px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 16px;
   align-items: start;
 }
@@ -5858,6 +6012,15 @@ select::-ms-expand {
 
 #logTradeModal.mistake-open .log-trade-layout {
   overflow: visible;
+}
+
+    
+#logTradeModal.advanced-open.mistake-open .advanced-trade-panel {
+  overflow: visible;
+}
+
+.advanced-mistakes-field {
+  margin-top: 18px;
 }
 
     /* ─── STRIPE CHECKOUT RETURN / ACTIVATION ─────────────────── */
@@ -6688,7 +6851,14 @@ body.light .tp-activation-card {
           <input type="number" id="tradePnl" placeholder="e.g. 540" step="0.01"/>
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="form-field">
+          <label>Setup Grade</label>
+          <input type="text" id="tradeSetupGrade" maxlength="3" placeholder="e.g. A+" autocomplete="off"/>
+        </div>
+                <div class="form-field"><label>R:R</label><input type="number" id="tradeActualRR" placeholder="e.g. 2.5" step="0.1"/></div>
+      </div>
+      <div class="trade-extras-grid">
         <div class="form-field">
           <label>Time of Trade</label>
           <div class="time-input-row">
@@ -6699,18 +6869,14 @@ body.light .tp-activation-card {
             </select>
           </div>
         </div>
-                <div class="form-field"><label>R:R</label><input type="number" id="tradeActualRR" placeholder="e.g. 2.5" step="0.1"/></div>
-      </div>
-      <div class="trade-extras-grid">
         <div class="form-field">
-          <label>Setup Grade</label>
-          <input type="text" id="tradeSetupGrade" maxlength="3" placeholder="e.g. A+" autocomplete="off"/>
-        </div>
-                <div class="form-field">
-          <label>Mistakes</label>
-          <div class="mistake-picker" id="mistakePicker">
-            <button class="account-picker-btn" id="mistakePickerBtn" type="button" onclick="toggleMistakePicker(event)">Select mistakes</button>
-            <div class="account-menu" id="mistakeMenu" onclick="event.stopPropagation()"></div>
+          <label>Time of Exit</label>
+          <div class="time-input-row">
+            <input type="text" id="tradeExitTime" placeholder="e.g. 10:25" maxlength="5" oninput="this.value=this.value.replace(/[^0-9:]/g,'').slice(0,5)"/>
+            <select id="tradeExitAmPm" style="padding:10px 10px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;cursor:pointer;">
+              <option value="AM">AM</option>
+              <option value="PM">PM</option>
+            </select>
           </div>
         </div>
       </div>
@@ -6779,6 +6945,14 @@ body.light .tp-activation-card {
           </div>
 
           <div class="advanced-partials-list" id="advancedPartialsList"></div>
+          
+          <div class="form-field advanced-mistakes-field">
+            <label>Mistakes</label>
+            <div class="mistake-picker" id="mistakePicker">
+              <button class="account-picker-btn" id="mistakePickerBtn" type="button" onclick="toggleMistakePicker(event)">Select mistakes</button>
+              <div class="account-menu" id="mistakeMenu" onclick="event.stopPropagation()"></div>
+            </div>
+          </div>
         </aside>
       </div>
 
@@ -7099,8 +7273,7 @@ body.light .tp-activation-card {
                 <div class="prop-nav-divider"></div>
       <div class="settings-row prop-nav-row" id="prop-nav" onclick="showPage('prop', this)">
         <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
-        <span class="settings-label">Prop Center</span>
-        <span class="prop-nav-badge">PROP</span>
+                <span class="settings-label">Prop Firm Center</span>
       </div>
       <div class="settings-row prints-nav-row" id="prints-nav" onclick="showPage('prints', this)">
         <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -7178,7 +7351,7 @@ body.light .tp-activation-card {
                 <div class="dashboard-panel">
   <div class="dashboard-panel-heading">
     <div class="dashboard-panel-title">PNL Trend</div>
-    <select class="dashboard-range-select" id="dashboardRangeSelect" onchange="setDashboardChartRange(this.value)">
+        <select class="dashboard-range-select" id="dashboardRangeSelect" onchange="setDashboardChartRange(this.value)">
       <option value="7d">Last week</option>
       <option value="14d" selected>Last 14 days</option>
       <option value="30d">Last month</option>
@@ -7186,7 +7359,21 @@ body.light .tp-activation-card {
       <option value="ytd">Year to date</option>
       <option value="1y">Last 1 year</option>
       <option value="all">All time</option>
+      <option value="custom">Custom date range</option>
     </select>
+  </div>
+
+  <div class="dashboard-custom-range" id="dashboardCustomRange" hidden>
+    <div class="dashboard-custom-range-field">
+      <label for="dashboardCustomStart">Start date</label>
+      <input type="date" id="dashboardCustomStart" oninput="syncDashboardCustomRangeLimits()" onkeydown="if(event.key==='Enter'){event.preventDefault();applyDashboardCustomRange();}"/>
+    </div>
+    <div class="dashboard-custom-range-field">
+      <label for="dashboardCustomEnd">End date</label>
+      <input type="date" id="dashboardCustomEnd" oninput="syncDashboardCustomRangeLimits()" onkeydown="if(event.key==='Enter'){event.preventDefault();applyDashboardCustomRange();}"/>
+    </div>
+    <button class="btn-primary dashboard-custom-range-apply" type="button" onclick="applyDashboardCustomRange()">Apply</button>
+    <div class="dashboard-custom-range-msg" id="dashboardCustomRangeMsg" aria-live="polite"></div>
   </div>
 
   <div class="dashboard-chart-summary">
@@ -7305,6 +7492,17 @@ body.light .tp-activation-card {
 <div class="tradeprint-panel">
   <div class="tradeprint-panel-title">Performance by Direction</div>
   <div id="tradeprintByDirection"></div>
+</div>
+
+    
+<div class="tradeprint-panel tradeprint-panel-wide">
+  <div class="tradeprint-panel-heading">
+    <div>
+      <div class="tradeprint-panel-title">Hold Time</div>
+      <div class="tradeprint-panel-sub">How long you hold trades, from Time of Trade to Time of Exit, and how hold time lines up with results.</div>
+    </div>
+  </div>
+  <div id="tradeprintHoldTime"></div>
 </div>
     
 <div class="tradeprint-panel tradeprint-panel-wide">
@@ -8788,7 +8986,7 @@ function hasAdvancedTradeData(trade) {
     return value !== null && value !== undefined && String(value).trim() !== '';
   });
 
-  return hasField || parseTradePartials(trade.partials).length > 0;
+    return hasField || parseTradePartials(trade.partials).length > 0 || (Array.isArray(trade.mistakes) && trade.mistakes.length > 0);
 }
 
 function collectAdvancedTradePayload() {
@@ -9697,7 +9895,7 @@ function setProPaywallContent(sectionName) {
   }
 
   if (sectionName === 'prop') {
-    title.textContent = 'The Prop Center is only available through Tradeprint Pro.';
+        title.textContent = 'The Prop Firm Center is only available through Tradeprint Pro.';
     copy.textContent = 'Upgrade to track evaluations, funded accounts, payouts, drawdown, and your true prop firm profitability in one place.';
     return;
   }
@@ -11802,6 +12000,7 @@ function runCalc() {
 }
 
 function resetCalc() {
+  document.getElementById('calcContracts').value = '';
   document.getElementById('calcEntry').value = '';
   document.getElementById('calcSL').value = '';
   document.getElementById('calcTP').value = '';
@@ -11834,6 +12033,7 @@ function runPointsCalc() {
 }
 
 function resetPointsCalc() {
+  document.getElementById('pointsCalcContracts').value = '';
   document.getElementById('pointsCalcSL').value = '';
   document.getElementById('pointsCalcTP').value = '';
   document.getElementById('pointsCalcResultsCard').style.display = 'none';
@@ -12820,7 +13020,7 @@ populateTradeAccountSelect();
       document.getElementById('tradeActualRR').value = '';
       document.getElementById('tradeResult').value = 'win';
       document.getElementById('tradeDateField').style.display = 'block';
-      document.getElementById('tradeDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('tradeDate').value = toLocalDateKey(new Date());
       document.querySelector('input[name="followedRules"][value="true"]').checked = true;
 applyLogTradeDefaults();
 document.getElementById('tradeMsg').textContent = '';
@@ -12941,6 +13141,8 @@ async function openEditTrade(id) {
     resetTradeExtras();
     document.getElementById('tradeSetupGrade').value = t.setup_grade || '';
     setSelectedMistakes(t.mistakes);
+    
+    setTradeExitTimeInputs(t.exit_time);
 
     msg.textContent = '';
     saveBtn.disabled = false;
@@ -13059,7 +13261,9 @@ const direction = document.getElementById('tradeDirection').value;
   const msg = document.getElementById('tradeMsg');
   const saveBtn = document.getElementById('saveTradeBtn');
   const confluencesUsed = Array.from(document.querySelectorAll('#confluenceChecklist input:checked')).map(cb => cb.value);
-    const tradeTime = parseTradeTime(document.getElementById('tradeTime').value, document.getElementById('tradeAmPm').value);
+        const tradeTime = parseTradeTime(document.getElementById('tradeTime').value, document.getElementById('tradeAmPm').value);
+  const exitTimeRaw = String(document.getElementById('tradeExitTime')?.value || '').trim();
+  const exitTime = exitTimeRaw ? parseTradeTime(exitTimeRaw, document.getElementById('tradeExitAmPm')?.value || 'AM') : null;
   const setupGrade = document.getElementById('tradeSetupGrade').value.trim().slice(0, 3) || null;
   const mistakes = getSelectedMistakes();
 
@@ -13091,6 +13295,24 @@ if (!direction) {
   msg.className = 'modal-msg error';
   return;
 }
+
+        if (exitTimeRaw && !exitTime) {
+    msg.textContent = 'Enter a valid Time of Exit, like 10:25.';
+    msg.className = 'modal-msg error';
+    return;
+  }
+
+  if (exitTime && !tradeTime) {
+    msg.textContent = 'Enter a valid Time of Trade (entry) to save a Time of Exit.';
+    msg.className = 'modal-msg error';
+    return;
+  }
+
+  if (exitTime && tradeTime && parseClockMinutes(exitTime) < parseClockMinutes(tradeTime)) {
+    msg.textContent = `Time of Exit (${formatDisplayTime(exitTime)}) is before Time of Trade (${formatDisplayTime(tradeTime)}). Check AM/PM. The exit must be on the same day as the trade.`;
+    msg.className = 'modal-msg error';
+    return;
+  }
 
   const tradeDate = logFromPage ? document.getElementById('tradeDate').value : selectedDate;
 
@@ -13141,7 +13363,8 @@ const payload = {
       followed_rules: followedRules,
       confluences_used: confluencesUsed,
             chart_images: chartImages,
-            trade_time: tradeTime,
+                        trade_time: tradeTime,
+      exit_time: exitTime,
       setup_grade: setupGrade,
       mistakes: mistakes,
       ...advancedTrade.payload
@@ -13384,9 +13607,24 @@ let dashboardDailyBars = [];
 let dashboardChartSummary = { label: 'PNL Trend', pnl: 0 };
 let dashboardChartRange = localStorage.getItem('tp_dashboard_chart_range') || '14d';
 
+const DASHBOARD_CHART_RANGES = ['7d', '14d', '30d', '90d', 'ytd', '1y', 'all', 'custom'];
+const DASHBOARD_CUSTOM_START_KEY = 'tp_dashboard_custom_start';
+const DASHBOARD_CUSTOM_END_KEY = 'tp_dashboard_custom_end';
+const DASHBOARD_CUSTOM_DAILY_MAX_DAYS = 92;   // custom ranges up to ~3 months: one bar per day
+const DASHBOARD_CUSTOM_WEEKLY_MAX_DAYS = 371; // up to ~1 year: one bar per week, longer: one bar per month
+
+if (!DASHBOARD_CHART_RANGES.includes(dashboardChartRange)) dashboardChartRange = '14d';
+
 function setDashboardChartRange(value) {
-  dashboardChartRange = value || '14d';
+  dashboardChartRange = DASHBOARD_CHART_RANGES.includes(value) ? value : '14d';
   localStorage.setItem('tp_dashboard_chart_range', dashboardChartRange);
+
+  if (dashboardChartRange === 'custom') {
+    if (!getDashboardCustomRange()) saveDashboardCustomRange(getDefaultDashboardCustomRange());
+    prefillDashboardCustomRangeInputs();
+  }
+
+  setDashboardCustomRangeMsg('');
   renderDashboardBars(allTrades);
 }
 
@@ -13430,6 +13668,64 @@ function getLastDayOfMonth(date) {
   return makeLocalDate(date.getFullYear(), date.getMonth() + 1, 0);
 }
 
+// Weeks run Sunday to Saturday, the same as the Calendar and the "This Week" card.
+function getSundayOfWeek(date) {
+  const d = cloneDate(date);
+  d.setDate(d.getDate() - d.getDay());
+  return d;
+}
+
+// Local calendar date as YYYY-MM-DD. Never toISOString(), which converts to UTC.
+function toLocalDateKey(date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+function parseLocalDateKey(value) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value || '').trim());
+  if (!match) return null;
+
+  const date = makeLocalDate(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  return toLocalDateKey(date) === match[0] ? date : null;
+}
+
+// The trade's saved date (YYYY-MM-DD) or '' when missing/invalid.
+function getTradeDateKey(t) {
+  const key = String(t?.date || '').slice(0, 10);
+  return parseLocalDateKey(key) ? key : '';
+}
+
+function getDayCountInclusive(start, end) {
+  return Math.round((cloneDate(end) - cloneDate(start)) / 86400000) + 1;
+}
+
+function formatDateRangeLabel(start, end) {
+  if (toLocalDateKey(start) === toLocalDateKey(end)) return formatDateFull(start);
+
+  const startText = start.getFullYear() === end.getFullYear()
+    ? start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    : formatDateFull(start);
+
+  return `${startText} – ${formatDateFull(end)}`;
+}
+
+function getDefaultDashboardCustomRange() {
+  const end = cloneDate(new Date());
+  return { start: addDays(end, -29), end };
+}
+
+function getDashboardCustomRange() {
+  const start = parseLocalDateKey(localStorage.getItem(DASHBOARD_CUSTOM_START_KEY));
+  const end = parseLocalDateKey(localStorage.getItem(DASHBOARD_CUSTOM_END_KEY));
+
+  if (!start || !end || end < start) return null;
+  return { start, end };
+}
+
+function saveDashboardCustomRange(range) {
+  localStorage.setItem(DASHBOARD_CUSTOM_START_KEY, toLocalDateKey(range.start));
+  localStorage.setItem(DASHBOARD_CUSTOM_END_KEY, toLocalDateKey(range.end));
+}
+
 function getDashboardRangeLabel(range) {
   if (range === '7d') return 'Last week';
   if (range === '14d') return 'Last 14 days';
@@ -13438,50 +13734,49 @@ function getDashboardRangeLabel(range) {
   if (range === 'ytd') return 'Year to date';
   if (range === '1y') return 'Last 1 year';
   if (range === 'all') return 'All time';
+
+  if (range === 'custom') {
+    const custom = getDashboardCustomRange() || getDefaultDashboardCustomRange();
+    return formatDateRangeLabel(custom.start, custom.end);
+  }
+
   return 'Last 14 days';
 }
 
-function buildDailyDashboardBuckets(days) {
-  const today = cloneDate(new Date());
-  const start = addDays(today, -(days - 1));
+function makeDashboardBucket(start, end, label, shortLabel, type) {
+  return {
+    start: cloneDate(start),
+    end: cloneDate(end),
+    startKey: toLocalDateKey(start),
+    endKey: toLocalDateKey(end),
+    label,
+    shortLabel,
+    type
+  };
+}
+
+function buildDailyBucketsBetween(start, end) {
   const buckets = [];
 
-  for (let i = 0; i < days; i++) {
-    const date = addDays(start, i);
-
-    buckets.push({
-      start: date,
-      end: date,
-      label: formatDateFull(date),
-      shortLabel: formatDateShort(date),
-      type: 'day'
-    });
+  for (let cursor = cloneDate(start); cursor <= end; cursor = addDays(cursor, 1)) {
+    buckets.push(makeDashboardBucket(cursor, cursor, formatDateFull(cursor), formatDateShort(cursor), 'day'));
   }
 
   return buckets;
 }
 
-function buildWeeklyDashboardBuckets(range) {
-  const today = cloneDate(new Date());
-  const start = range === 'ytd'
-    ? makeLocalDate(today.getFullYear(), 0, 1)
-    : addDays(today, -364);
-
+// Full Sunday to Saturday weeks, clipped to the range. Weekend trades are included.
+function buildWeeklyBucketsBetween(start, end) {
   const buckets = [];
-  let cursor = getMonday(start);
+  let cursor = getSundayOfWeek(start);
 
-  while (cursor <= today) {
+  while (cursor <= end) {
     const weekStart = cursor < start ? cloneDate(start) : cloneDate(cursor);
-    const weekEnd = addDays(cursor, 4) > today ? cloneDate(today) : addDays(cursor, 4);
+    const saturday = addDays(cursor, 6);
+    const weekEnd = saturday > end ? cloneDate(end) : saturday;
 
     if (weekStart <= weekEnd) {
-      buckets.push({
-        start: weekStart,
-        end: weekEnd,
-        label: `${formatDateShort(weekStart)} - ${formatDateShort(weekEnd)}`,
-        shortLabel: formatDateShort(weekStart),
-        type: 'week'
-      });
+      buckets.push(makeDashboardBucket(weekStart, weekEnd, formatDateRangeLabel(weekStart, weekEnd), formatDateShort(weekStart), 'week'));
     }
 
     cursor = addDays(cursor, 7);
@@ -13490,43 +13785,67 @@ function buildWeeklyDashboardBuckets(range) {
   return buckets;
 }
 
-function buildMonthlyDashboardBuckets(trades) {
-  const today = cloneDate(new Date());
-  const datedTrades = trades.filter(t => t.date);
-
-  if (!datedTrades.length) {
-    return [{
-      start: makeLocalDate(today.getFullYear(), today.getMonth(), 1),
-      end: today,
-      label: formatMonthLabel(today),
-      shortLabel: formatMonthLabel(today),
-      type: 'month'
-    }];
-  }
-
-  const earliest = datedTrades
-    .map(t => getTradeDate(t))
-    .sort((a, b) => a - b)[0];
-
+function buildMonthlyBucketsBetween(start, end) {
   const buckets = [];
-  let cursor = makeLocalDate(earliest.getFullYear(), earliest.getMonth(), 1);
+  const spansYears = start.getFullYear() !== end.getFullYear();
+  let cursor = makeLocalDate(start.getFullYear(), start.getMonth(), 1);
 
-  while (cursor <= today) {
-    const monthStart = cloneDate(cursor);
-    const monthEnd = getLastDayOfMonth(cursor) > today ? cloneDate(today) : getLastDayOfMonth(cursor);
+  while (cursor <= end) {
+    const lastDay = getLastDayOfMonth(cursor);
+    const monthStart = cursor < start ? cloneDate(start) : cloneDate(cursor);
+    const monthEnd = lastDay > end ? cloneDate(end) : lastDay;
+    const clipped = toLocalDateKey(monthStart) !== toLocalDateKey(cursor) || toLocalDateKey(monthEnd) !== toLocalDateKey(lastDay);
+    const monthName = cursor.toLocaleDateString('en-US', { month: 'short' });
 
-    buckets.push({
-      start: monthStart,
-      end: monthEnd,
-      label: formatMonthLabel(monthStart),
-      shortLabel: monthStart.toLocaleDateString('en-US', { month: 'short' }),
-      type: 'month'
-    });
+    buckets.push(makeDashboardBucket(
+      monthStart,
+      monthEnd,
+      clipped ? formatDateRangeLabel(monthStart, monthEnd) : formatMonthLabel(cursor),
+      spansYears ? `${monthName} '${String(cursor.getFullYear()).slice(-2)}` : monthName,
+      'month'
+    ));
 
     cursor = makeLocalDate(cursor.getFullYear(), cursor.getMonth() + 1, 1);
   }
 
   return buckets;
+}
+
+function buildDailyDashboardBuckets(days) {
+  const today = cloneDate(new Date());
+  return buildDailyBucketsBetween(addDays(today, -(days - 1)), today);
+}
+
+function buildWeeklyDashboardBuckets(range) {
+  const today = cloneDate(new Date());
+  const start = range === 'ytd'
+    ? makeLocalDate(today.getFullYear(), 0, 1)
+    : addDays(today, -364);
+
+  return buildWeeklyBucketsBetween(start, today);
+}
+
+function buildMonthlyDashboardBuckets(trades) {
+  const today = cloneDate(new Date());
+  const keys = trades.map(getTradeDateKey).filter(Boolean).sort();
+
+  if (!keys.length) {
+    return buildMonthlyBucketsBetween(makeLocalDate(today.getFullYear(), today.getMonth(), 1), today);
+  }
+
+  const earliest = parseLocalDateKey(keys[0]);
+  const latest = parseLocalDateKey(keys[keys.length - 1]);
+  const end = latest > today ? latest : today;
+
+  return buildMonthlyBucketsBetween(makeLocalDate(earliest.getFullYear(), earliest.getMonth(), 1), end);
+}
+
+function buildCustomDashboardBuckets(range) {
+  const days = getDayCountInclusive(range.start, range.end);
+
+  if (days <= DASHBOARD_CUSTOM_DAILY_MAX_DAYS) return buildDailyBucketsBetween(range.start, range.end);
+  if (days <= DASHBOARD_CUSTOM_WEEKLY_MAX_DAYS) return buildWeeklyBucketsBetween(range.start, range.end);
+  return buildMonthlyBucketsBetween(range.start, range.end);
 }
 
 function buildDashboardBuckets(trades, range) {
@@ -13537,6 +13856,7 @@ function buildDashboardBuckets(trades, range) {
   if (range === 'ytd') return buildWeeklyDashboardBuckets('ytd');
   if (range === '1y') return buildWeeklyDashboardBuckets('1y');
   if (range === 'all') return buildMonthlyDashboardBuckets(trades);
+  if (range === 'custom') return buildCustomDashboardBuckets(getDashboardCustomRange() || getDefaultDashboardCustomRange());
 
   return buildDailyDashboardBuckets(14);
 }
@@ -13546,6 +13866,71 @@ function shouldShowDashboardBarLabel(index, total) {
   if (total <= 31) return index === 0 || index === total - 1 || index % 5 === 0;
   if (total <= 95) return index === 0 || index === total - 1 || index % 14 === 0;
   return index === 0 || index === total - 1 || index % 8 === 0;
+}
+
+// ── Custom date range controls
+function setDashboardCustomRangeMsg(text, tone = '') {
+  const el = document.getElementById('dashboardCustomRangeMsg');
+  if (!el) return;
+
+  el.textContent = text || '';
+  el.className = `dashboard-custom-range-msg${tone ? ` ${tone}` : ''}`;
+}
+
+function syncDashboardCustomRangeLimits() {
+  const startInput = document.getElementById('dashboardCustomStart');
+  const endInput = document.getElementById('dashboardCustomEnd');
+  if (!startInput || !endInput) return;
+
+  endInput.min = startInput.value || '';
+  startInput.max = endInput.value || '';
+}
+
+function prefillDashboardCustomRangeInputs() {
+  const range = getDashboardCustomRange() || getDefaultDashboardCustomRange();
+  const startInput = document.getElementById('dashboardCustomStart');
+  const endInput = document.getElementById('dashboardCustomEnd');
+
+  if (startInput) startInput.value = toLocalDateKey(range.start);
+  if (endInput) endInput.value = toLocalDateKey(range.end);
+
+  syncDashboardCustomRangeLimits();
+}
+
+function syncDashboardCustomRangeUi() {
+  const row = document.getElementById('dashboardCustomRange');
+  if (row) row.hidden = dashboardChartRange !== 'custom';
+}
+
+function applyDashboardCustomRange() {
+  const startValue = document.getElementById('dashboardCustomStart')?.value || '';
+  const endValue = document.getElementById('dashboardCustomEnd')?.value || '';
+
+  if (!startValue || !endValue) {
+    setDashboardCustomRangeMsg('Choose both a start date and an end date.', 'error');
+    return;
+  }
+
+  const start = parseLocalDateKey(startValue);
+  const end = parseLocalDateKey(endValue);
+
+  if (!start || !end) {
+    setDashboardCustomRangeMsg('Enter valid dates.', 'error');
+    return;
+  }
+
+  if (end < start) {
+    setDashboardCustomRangeMsg('The end date cannot be before the start date.', 'error');
+    return;
+  }
+
+  saveDashboardCustomRange({ start, end });
+  setDashboardCustomRangeMsg('');
+
+  dashboardChartRange = 'custom';
+  localStorage.setItem('tp_dashboard_chart_range', 'custom');
+
+  renderDashboardBars(allTrades);
 }
 
 function setDashboardChartInactive() {
@@ -13606,36 +13991,75 @@ function renderDashboardBars(trades) {
 
   if (!bars) return;
 
-  const range = rangeSelect?.value || dashboardChartRange || '14d';
+  const list = Array.isArray(trades) ? trades : [];
+  const requested = rangeSelect?.value || dashboardChartRange || '14d';
+  const range = DASHBOARD_CHART_RANGES.includes(requested) ? requested : '14d';
+
   dashboardChartRange = range;
   localStorage.setItem('tp_dashboard_chart_range', range);
 
-  if (rangeSelect) rangeSelect.value = range;
+  if (rangeSelect) {
+    rangeSelect.value = range;
+    rangeSelect._syncPrettySelect?.();
+  }
 
-  const buckets = buildDashboardBuckets(trades, range).map(bucket => {
-    const pnl = trades
-      .filter(t => {
-        const tradeDate = getTradeDate(t);
-        return tradeDate >= bucket.start && tradeDate <= bucket.end;
-      })
-      .reduce((sum, t) => sum + (parseFloat(t.pnl) || 0), 0);
+  syncDashboardCustomRangeUi();
 
-    return { ...bucket, pnl };
+  const buckets = buildDashboardBuckets(list, range).map(bucket => ({ ...bucket, pnl: 0, trades: 0 }));
+  const firstKey = buckets.length ? buckets[0].startKey : '';
+  const lastKey = buckets.length ? buckets[buckets.length - 1].endKey : '';
+  let rangeTradeCount = 0;
+
+  // Same P&L rule as the rest of Tradeprint: each trade's saved pnl.
+  // `trades` is already filtered to the selected accounts.
+  list.forEach(t => {
+    const key = getTradeDateKey(t);
+    if (!key || key < firstKey || key > lastKey) return;
+
+    const bucket = buckets.find(b => key >= b.startKey && key <= b.endKey);
+    if (!bucket) return;
+
+    bucket.pnl += parseFloat(t.pnl) || 0;
+    bucket.trades += 1;
+    rangeTradeCount += 1;
+  });
+
+  buckets.forEach(bucket => {
+    bucket.pnl = Math.round(bucket.pnl * 100) / 100;
   });
 
   dashboardDailyBars = buckets;
-
-  const totalPnl = buckets.reduce((sum, bucket) => sum + bucket.pnl, 0);
   dashboardChartSummary = {
     label: getDashboardRangeLabel(range),
-    pnl: totalPnl
+    pnl: Math.round(buckets.reduce((sum, bucket) => sum + bucket.pnl, 0) * 100) / 100
   };
 
-  if (startLabel && buckets[0]) startLabel.textContent = buckets[0].shortLabel;
-  if (endLabel && buckets[buckets.length - 1]) endLabel.textContent = buckets[buckets.length - 1].shortLabel;
+  if (buckets.length) {
+    const first = buckets[0];
+    const last = buckets[buckets.length - 1];
+
+    if (startLabel) startLabel.textContent = range === 'custom' ? formatDateFull(first.start) : first.shortLabel;
+    if (endLabel) endLabel.textContent = range === 'custom' ? formatDateFull(last.end) : last.shortLabel;
+  }
+
+  if (range === 'custom' && !rangeTradeCount) {
+    dashboardDailyBars = [];
+    bars.onpointermove = null;
+    bars.onpointerdown = null;
+    bars.onpointerleave = null;
+    bars.style.gap = '';
+    bars.innerHTML = buckets.length
+      ? `<div class="dashboard-empty dashboard-chart-empty">No trades logged between ${formatDateFull(buckets[0].start)} and ${formatDateFull(buckets[buckets.length - 1].end)}.</div>`
+      : '<div class="dashboard-empty dashboard-chart-empty">No trades logged in this date range.</div>';
+    setDashboardChartInactive();
+    return;
+  }
 
   const maxAbs = Math.max(...buckets.map(d => Math.abs(d.pnl)), 1);
   const maxBarWidth = buckets.length > 70 ? 6 : buckets.length > 35 ? 10 : 18;
+
+  // Dense charts get a smaller gap so the bars never push past the panel.
+  bars.style.gap = buckets.length > 70 ? '1px' : buckets.length > 35 ? '3px' : '';
 
   bars.innerHTML = buckets.map((d, index) => {
     const height = d.pnl === 0 ? 3 : Math.max(8, Math.round((Math.abs(d.pnl) / maxAbs) * 78));
@@ -13670,6 +14094,16 @@ function renderDashboardBars(trades) {
 
   setDashboardChartInactive();
 }
+
+// Sets the saved range on the dropdown before the custom dropdowns are built,
+// so the button label always matches the range the chart is showing.
+(function initDashboardChartRangeControls() {
+  const select = document.getElementById('dashboardRangeSelect');
+  if (select) select.value = dashboardChartRange;
+
+  if (dashboardChartRange === 'custom') prefillDashboardCustomRangeInputs();
+  syncDashboardCustomRangeUi();
+})();
 
 function renderDashboardStrategies(trades) {
   const container = document.getElementById('dashboardStrategies');
@@ -14017,6 +14451,8 @@ renderTradeprintRules(summary);
 renderTradeprintBestDay(bestDay, worstDay);
 renderTradeprintBestTime(bestTime, worstTime);
   renderTradeprintTypeDirectionBreakdowns(trades);
+  
+renderTradeprintHoldTime(trades);
 renderTradeprintReviewFocus({ trades, summary, ranks, bestDay, worstDay, bestTime, worstTime });
 renderTradeprintConfluences(strategies, trades);
 renderTradeprintCoach({ trades, summary, clarity, bestStrategy, bestDay, bestTime });
@@ -14341,6 +14777,204 @@ function renderTradeprintCoach({ trades, summary, clarity, bestStrategy, bestDay
     </div>
   `;
 }
+
+        // ─── HOLD TIME ANALYTICS ─────────────────────────────────────
+    // Hold time = Time of Trade (trades.trade_time) to Time of Exit (trades.exit_time),
+    // both on the trade's date and both saved to the minute. When a trade is scaled out
+    // with partials, Time of Exit is the final exit. Partials have no timestamps, so they
+    // are not timed individually. Trades missing either time, or with an exit before the
+    // entry, are excluded (never counted as a 0-minute hold).
+    // Winning / losing / breakeven here use net P&L: the trade's saved pnl.
+
+    const HOLD_TIME_MIN_COMPARE_TRADES = 5;
+
+    const HOLD_TIME_RANGES = [
+      { key: 'under5', label: 'Under 5m', min: 0, max: 5 },
+      { key: '5to15', label: '5m to 15m', min: 5, max: 15 },
+      { key: '15to30', label: '15m to 30m', min: 15, max: 30 },
+      { key: '30to60', label: '30m to 1h', min: 30, max: 60 },
+      { key: '60to120', label: '1h to 2h', min: 60, max: 120 },
+      { key: '120plus', label: '2h or longer', min: 120, max: Infinity }
+    ];
+
+    // "HH:MM" or "HH:MM:SS" (how trade_time / exit_time come back) to minutes after midnight.
+    function parseClockMinutes(value) {
+      const match = /^(\d{1,2}):(\d{2})/.exec(String(value ?? '').trim());
+      if (!match) return null;
+
+      const hours = Number(match[1]);
+      const minutes = Number(match[2]);
+      if (hours > 23 || minutes > 59) return null;
+
+      return hours * 60 + minutes;
+    }
+
+    function getTradeHoldMinutes(t) {
+      const entry = parseClockMinutes(t?.trade_time);
+      const exit = parseClockMinutes(t?.exit_time);
+      if (entry === null || exit === null) return null;
+
+      const minutes = exit - entry;
+      return minutes >= 0 ? minutes : null;
+    }
+
+    function getTradeNetPnl(t) {
+      return Math.round((parseFloat(t?.pnl) || 0) * 100) / 100;
+    }
+
+    function formatHoldDuration(minutes) {
+      if (!Number.isFinite(minutes) || minutes < 0) return '';
+
+      if (minutes >= 60) {
+        const totalMinutes = Math.round(minutes);
+        const hours = Math.floor(totalMinutes / 60);
+        const mins = totalMinutes % 60;
+        return mins ? `${hours}h ${mins}m` : `${hours}h`;
+      }
+
+      const totalSeconds = Math.round(minutes * 60);
+      if (totalSeconds === 0) return 'Under 1m';
+      if (totalSeconds < 60) return `${totalSeconds}s`;
+      if (totalSeconds >= 3600) return '1h';
+
+      const mins = Math.floor(totalSeconds / 60);
+      const secs = totalSeconds % 60;
+      return secs ? `${mins}m ${secs}s` : `${mins}m`;
+    }
+
+    function getHoldTimeStats(trades) {
+      const list = Array.isArray(trades) ? trades : [];
+      const measured = [];
+      let missing = 0;
+      let invalid = 0;
+
+      list.forEach(t => {
+        if (parseClockMinutes(t?.trade_time) === null || parseClockMinutes(t?.exit_time) === null) {
+          missing++;
+          return;
+        }
+
+        const minutes = getTradeHoldMinutes(t);
+
+        if (minutes === null) {
+          invalid++;
+          return;
+        }
+
+        measured.push({ minutes, pnl: getTradeNetPnl(t) });
+      });
+
+      const average = items => items.length ? items.reduce((sum, item) => sum + item.minutes, 0) / items.length : null;
+      const winners = measured.filter(item => item.pnl > 0);
+      const losers = measured.filter(item => item.pnl < 0);
+      const breakeven = measured.filter(item => item.pnl === 0);
+
+      const ranges = HOLD_TIME_RANGES.map(range => {
+        const items = measured.filter(item => item.minutes >= range.min && item.minutes < range.max);
+        const pnl = Math.round(items.reduce((sum, item) => sum + item.pnl, 0) * 100) / 100;
+        const wins = items.filter(item => item.pnl > 0).length;
+
+        return {
+          ...range,
+          count: items.length,
+          pnl,
+          avgPnl: items.length ? pnl / items.length : 0,
+          winRate: items.length ? Math.round((wins / items.length) * 100) : 0
+        };
+      }).filter(range => range.count > 0);
+
+      return {
+        total: list.length,
+        measured: measured.length,
+        missing,
+        invalid,
+        avgAll: average(measured),
+        winners: winners.length,
+        losers: losers.length,
+        breakeven: breakeven.length,
+        avgWin: average(winners),
+        avgLoss: average(losers),
+        avgBreakeven: average(breakeven),
+        ranges
+      };
+    }
+
+    function renderTradeprintHoldTime(trades) {
+      const el = document.getElementById('tradeprintHoldTime');
+      if (!el) return;
+
+      const stats = getHoldTimeStats(trades);
+      const min = HOLD_TIME_MIN_COMPARE_TRADES;
+      const plural = n => `${n} trade${n === 1 ? '' : 's'}`;
+
+      if (!stats.total) {
+        el.innerHTML = '<div class="tradeprint-empty">Log trades with a Time of Trade and a Time of Exit to see how long you hold trades.</div>';
+        return;
+      }
+
+      if (!stats.measured) {
+        el.innerHTML = `<div class="tradeprint-empty">${stats.total === 1 ? 'Your trade does not' : `None of your ${stats.total} trades`} have both a Time of Trade and a Time of Exit yet. Add Time of Exit when you log or edit a trade to unlock hold-time analytics.</div>`;
+        return;
+      }
+
+      const tile = (label, minutes, count, tone = '') => `
+        <div class="tradeprint-hold-stat">
+          <div class="tradeprint-split-label tradeprint-hold-label ${tone}">${label}</div>
+          <div class="tradeprint-hold-value">${minutes === null ? 'No trades' : formatHoldDuration(minutes)}</div>
+          <div class="tradeprint-simple-meta">${plural(count)}</div>
+        </div>`;
+
+      let insight;
+
+      if (stats.winners >= min && stats.losers >= min) {
+        insight = `Your winning trades are held for an average of <span>${formatHoldDuration(stats.avgWin)}</span>, compared to <span>${formatHoldDuration(stats.avgLoss)}</span> for losing trades.`;
+
+        const longer = Math.max(stats.avgWin, stats.avgLoss);
+        const shorter = Math.min(stats.avgWin, stats.avgLoss);
+
+        if (shorter > 0 && longer / shorter >= 1.5) {
+          const ratio = (longer / shorter).toFixed(1);
+          insight += stats.avgLoss > stats.avgWin
+            ? ` In this data, losing trades stay open about ${ratio}x as long as winning trades.`
+            : ` In this data, winning trades stay open about ${ratio}x as long as losing trades.`;
+        }
+      } else {
+        insight = `Winner vs loser comparisons appear once you have at least ${min} winning and ${min} losing trades with both times logged (you have ${stats.winners} winning and ${stats.losers} losing so far).`;
+      }
+
+      const rangesHtml = stats.ranges.map(range => {
+        const tone = range.pnl > 0 ? 'green' : range.pnl < 0 ? 'red' : '';
+
+        return `
+          <div class="tradeprint-breakdown-item">
+            <div class="tradeprint-breakdown-top">
+              <div class="tradeprint-breakdown-name">${escapeHtml(range.label)}</div>
+              <div class="tradeprint-breakdown-pnl ${tone}">${formatPnl(range.pnl)}</div>
+            </div>
+            <div class="tradeprint-breakdown-meta">
+              ${plural(range.count)} · ${range.winRate}% win rate · Avg ${formatPnl(range.avgPnl)}${range.count < min ? ' · Small sample' : ''}
+            </div>
+          </div>`;
+      }).join('');
+
+      const excluded = [];
+      if (stats.missing) excluded.push(`${stats.missing} without both times`);
+      if (stats.invalid) excluded.push(`${stats.invalid} with an exit before the entry`);
+
+      el.innerHTML = `
+        <div class="tradeprint-hold-grid">
+          ${tile('Average Hold Time', stats.avgAll, stats.measured)}
+          ${tile('Winning Trades', stats.avgWin, stats.winners, 'green')}
+          ${tile('Losing Trades', stats.avgLoss, stats.losers, 'red')}
+          ${tile('Breakeven', stats.avgBreakeven, stats.breakeven)}
+        </div>
+        <div class="tradeprint-review-copy tradeprint-hold-insight">${insight}</div>
+        <div class="tradeprint-edge-label tradeprint-hold-section-label">Performance by Hold Time</div>
+        <div class="tradeprint-breakdown-list">${rangesHtml}</div>
+        <div class="tradeprint-hold-note">
+          Based on ${stats.measured} of ${plural(stats.total)}${excluded.length ? `. Excluded: ${excluded.join(', ')}` : ''}. Wins and losses use net P&amp;L, and $0.00 trades count as breakeven. Times are saved to the minute, so a trade opened and closed in the same minute shows as under 1 minute.
+        </div>`;
+    }
     
     // ─── TRADES PAGE ────────────────────────────────────────────
     let allTrades = [];
@@ -14484,7 +15118,7 @@ function clearTradeFilters() {
   filterTrades();
 }
 
-    function renderTradesStats() {
+        function renderTradesStats() {
       const trades = filteredTrades;
       const grid = document.getElementById('tradesStatsGrid');
       if (!trades.length) { grid.innerHTML = ''; return; }
@@ -14495,6 +15129,7 @@ function clearTradeFilters() {
       const avgRR = trades.filter(t => t.actual_rr).reduce((sum, t, _, arr) => sum + parseFloat(t.actual_rr) / arr.length, 0);
       const bestTrade = Math.max(...trades.map(t => parseFloat(t.pnl)||0));
       const worstTrade = Math.min(...trades.map(t => parseFloat(t.pnl)||0));
+      const holdStats = getHoldTimeStats(trades);
       grid.innerHTML = `
         <div class="stat-card"><div class="stat-label">Total Trades</div><div class="stat-value">${trades.length}</div></div>
         <div class="stat-card"><div class="stat-label">Total PNL</div><div class="stat-value" style="color:${totalPnl>0?'var(--success)':totalPnl<0?'var(--danger)':'var(--text)'}">${formatPnl(totalPnl)}</div></div>
@@ -14502,7 +15137,8 @@ function clearTradeFilters() {
         <div class="stat-card"><div class="stat-label">Wins / Losses</div><div class="stat-value"><span style="color:var(--success)">${wins}</span> / <span style="color:var(--danger)">${losses}</span></div></div>
         <div class="stat-card"><div class="stat-label">Avg R:R</div><div class="stat-value">${avgRR ? avgRR.toFixed(2) : '—'}</div></div>
         <div class="stat-card"><div class="stat-label">Best Trade</div><div class="stat-value" style="color:var(--success)">${bestTrade > -Infinity ? formatPnl(bestTrade) : '—'}</div></div>
-        <div class="stat-card"><div class="stat-label">Worst Trade</div><div class="stat-value" style="color:var(--danger)">${worstTrade < Infinity ? formatPnl(worstTrade) : '—'}</div></div>`;
+        <div class="stat-card"><div class="stat-label">Worst Trade</div><div class="stat-value" style="color:var(--danger)">${worstTrade < Infinity ? formatPnl(worstTrade) : '—'}</div></div>${holdStats.measured ? `
+        <div class="stat-card"><div class="stat-label">Avg Hold Time</div><div class="stat-value">${formatHoldDuration(holdStats.avgAll)}</div></div>` : ''}`;
     }
 
     function renderTradesList() {
@@ -23536,6 +24172,22 @@ async function deleteCustomMistakeTag(id) {
   renderMistakePicker();
 }
 
+// Fills (or clears, when value is empty) the Time of Exit inputs from a saved exit_time.
+function setTradeExitTimeInputs(value) {
+  const timeInput = document.getElementById('tradeExitTime');
+  const ampmSelect = document.getElementById('tradeExitAmPm');
+  const minutes = parseClockMinutes(value);
+
+  if (timeInput) {
+    timeInput.value = minutes === null ? '' : `${Math.floor(minutes / 60) % 12 || 12}:${String(minutes % 60).padStart(2, '0')}`;
+  }
+
+  if (ampmSelect) {
+    ampmSelect.value = minutes !== null && minutes >= 720 ? 'PM' : 'AM';
+    ampmSelect._syncPrettySelect?.();
+  }
+}
+
 function resetTradeExtras() {
   const grade = document.getElementById('tradeSetupGrade');
   const input = document.getElementById('mistakeInput');
@@ -23544,6 +24196,7 @@ function resetTradeExtras() {
   selectedMistakes = [];
   mistakePickerOpen = false;
   mistakeCustomInputOpen = false;
+  setTradeExitTimeInputs(null);
   renderMistakePicker();
   hideTradeRuleWarning();
 }
