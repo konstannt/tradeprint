@@ -18222,9 +18222,23 @@ function getPnlTone(value) {
   return value > 0 ? 'green' : value < 0 ? 'red' : 'flat';
 }
 
-function getPrintPnlDisplay(postOrSnapshot) {
+// Hidden Prints store only the sign of the P&L (pnl_sign: 1, -1 or 0), never
+// the amount. Prints with P&L shown, and hidden Prints from before the fix, have pnl.
+function getPrintSnapshotPnl(postOrSnapshot) {
   const source = postOrSnapshot?.trade_snapshot ? postOrSnapshot.trade_snapshot : postOrSnapshot;
   const pnl = parseFloat(source?.pnl) || 0;
+
+  if (source?.pnl_hidden && !pnl) {
+    const sign = Number(source.pnl_sign);
+    return Number.isFinite(sign) ? Math.sign(sign) : 0;
+  }
+
+  return pnl;
+}
+
+function getPrintPnlDisplay(postOrSnapshot) {
+  const source = postOrSnapshot?.trade_snapshot ? postOrSnapshot.trade_snapshot : postOrSnapshot;
+  const pnl = getPrintSnapshotPnl(source);
 
   if (!source?.pnl_hidden) return formatPnl(pnl);
   if (pnl < 0) return '-$*****';
@@ -18401,8 +18415,8 @@ function renderPrintCard(post) {
   const canDeletePost = canDeletePrintPost(post);
   const isFollowing = isFollowingPrintUser(post.user_id);
   const result = snap.result || 'breakeven';
-  const resultClass = result === 'loss' ? 'loss' : result === 'win' ? 'win' : 'breakeven';
-  const pnl = parseFloat(snap.pnl) || 0;
+    const resultClass = result === 'loss' ? 'loss' : result === 'win' ? 'win' : 'breakeven';
+  const pnl = getPrintSnapshotPnl(snap);
   const pnlTone = getPnlTone(pnl);
   const created = new Date(post.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   const confluences = Array.isArray(snap.confluences_used) ? snap.confluences_used : [];
@@ -18805,7 +18819,8 @@ async function publishPrintTrade(tradeId = selectedPrintTradeId) {
   strategy_name: trade.strategies?.name || 'Unknown Strategy',
   asset: trade.asset || '',
   result: trade.result || '',
-  pnl: parseFloat(trade.pnl) || 0,
+    // With Hide P&L on, only the sign is saved (for +$***** / -$*****), never the amount.
+  ...(selectedPrintHidePnl ? { pnl_sign: Math.sign(parseFloat(trade.pnl) || 0) } : { pnl: parseFloat(trade.pnl) || 0 }),
   pnl_hidden: selectedPrintHidePnl,
   actual_rr: trade.actual_rr || null,
   trade_time: trade.trade_time || null,
@@ -18899,8 +18914,8 @@ function openPrintProfile(profileUserId) {
 }
 
 function renderPrintMiniPost(post) {
-  const snap = post.trade_snapshot || {};
-  const pnl = parseFloat(snap.pnl) || 0;
+    const snap = post.trade_snapshot || {};
+  const pnl = getPrintSnapshotPnl(snap);
   const tone = getPnlTone(pnl);
   const created = new Date(post.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   const canDeletePost = canDeletePrintPost(post);
@@ -19051,7 +19066,7 @@ function renderPrintRepliesContent() {
           <div class="print-trade-main">${escapeHtml(snap.strategy_name || 'Unknown Strategy')}${snap.asset ? ` · ${escapeHtml(snap.asset)}` : ''}</div>
           <div class="print-meta">${snap.trade_time ? escapeHtml(formatDisplayTime(snap.trade_time)) : 'No time'}${snap.actual_rr ? ` · ${escapeHtml(snap.actual_rr)}R` : ''}</div>
         </div>
-        <div class="print-pnl-chip ${getPnlTone(parseFloat(snap.pnl) || 0)}">${getPrintPnlDisplay(snap)}</div>
+                <div class="print-pnl-chip ${getPnlTone(getPrintSnapshotPnl(snap))}">${getPrintPnlDisplay(snap)}</div>
       </div>
       ${snap.caption ? `<div class="print-caption">${formatPrintText(snap.caption)}</div>` : ''}
     </div>
