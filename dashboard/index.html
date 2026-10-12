@@ -24685,7 +24685,8 @@ function renderMentorRelationships() {
             <span class="mentor-status-pill ${status.pill}">${status.label}</span>
             &nbsp;· ${escapeHtml(status.meta)}
           </div>
-          ${r.status === 'active' ? `<div class="mentor-permissions-grid" style="margin-top:14px;">${permToggles}</div>` : ''}
+                    ${r.status === 'active' ? `<div class="mentor-permissions-grid" style="margin-top:14px;">${permToggles}</div>
+          <div class="mentor-card-meta" style="margin-top:10px;">View Trades and View Journals also share the screenshots and images in them, exactly as uploaded. If an image shows your P&amp;L or account name, your mentor will see it even with See PnL or See Account Names off. Your Notes tab is never shared.</div>` : ''}
         </div>
         <div class="mentor-card-actions">${actions}</div>
       </div>
@@ -25125,6 +25126,16 @@ async function dismissReviewRequest(requestId) {
 }
 
 // ── Mentor: view trader ───────────────────────────────────────
+// Mentors never read trades or journals from the tables. These server
+// functions check the mentorship and the trader's permissions on every
+// call and only return allowed fields: mentor_list_trades,
+// mentor_list_journals, mentor_get_journal.
+// Journals arrive as blocks of plain text and images, never HTML. Text is
+// shown with textContent and images are created as <img> elements, so
+// nothing the trader wrote can run here.
+const MENTOR_VIEW_PAGE_SIZE = { trades: 20, journals: 10 };
+const MENTOR_IMAGE_BUCKETS = ['trade-charts', 'note-images', 'print-charts'];
+let mentorTraderView = { relationshipId: null, traderId: null, perms: {}, tradeOffset: 0, journalOffset: 0 };
 
 async function openMentorTraderView(traderId, relationshipId) {
   currentMentorTraderId = traderId;
@@ -25140,12 +25151,15 @@ async function openMentorTraderView(traderId, relationshipId) {
     await showPage('mentor-dashboard', findNavItemForPage('mentor-dashboard'));
     return;
   }
-  const perms = rel?.permissions || {};
+
+  // Only decides which sections to show. The server enforces the same rules.
+  const perms = rel.permissions || {};
+  mentorTraderView = { relationshipId, traderId, perms, tradeOffset: 0, journalOffset: 0 };
 
   const profileRes = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${traderId}&select=username&limit=1`, {
     headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
   });
-  const profileData = await profileRes.json();
+  const profileData = await profileRes.json().catch(() => null);
   const username = profileData?.[0]?.username || 'Trader';
 
   document.getElementById('mentorViewTraderTitle').textContent = username;
@@ -25153,75 +25167,378 @@ async function openMentorTraderView(traderId, relationshipId) {
 
   const tradesSection = document.getElementById('mentorViewTradesSection');
   const journalsSection = document.getElementById('mentorViewJournalsSection');
-  const tradesList = document.getElementById('mentorViewTradesList');
-  const journalsList = document.getElementById('mentorViewJournalsList');
+
+  // Nothing from a previous visit stays on the page.
+  clearMentorTraderViewContent();
 
   if (tradesSection) tradesSection.style.display = perms.canViewTrades ? 'block' : 'none';
   if (journalsSection) journalsSection.style.display = perms.canViewJournals ? 'block' : 'none';
 
-  if (perms.canViewTrades && tradesList) {
-    const tradesRes = await fetch(`${SUPABASE_URL}/rest/v1/trades?user_id=eq.${traderId}&select=*,strategies(name),broker_accounts(name)&order=date.desc&limit=20`, {
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
-    });
-    const trades = await tradesRes.json();
+  await Promise.all([
+    perms.canViewTrades ? loadMentorTrades(false) : Promise.resolve(),
+    perms.canViewJournals ? loadMentorJournals(false) : Promise.resolve()
+  ]);
 
-    if (!Array.isArray(trades) || !trades.length) {
-      tradesList.innerHTML = '<div class="mentor-empty">No trades yet.</div>';
-    } else {
-      tradesList.innerHTML = trades.map(t => {
-        const pnl = parseFloat(t.pnl) || 0;
-        const pnlDisplay = perms.canViewPnL ? formatPnl(pnl) : '—';
-        const pnlColor = perms.canViewPnL ? (pnl > 0 ? 'var(--success)' : pnl < 0 ? 'var(--danger)' : 'var(--text)') : 'var(--text2)';
-        const accountName = perms.canViewAccountNames ? (t.broker_accounts?.name || '') : '';
-        const strategy = t.strategies?.name || 'Unknown';
-
-        return `
-          <div class="mentor-review-item" style="margin-bottom:10px;">
-            <div class="mentor-review-item-head">
-              <div>
-                <div class="mentor-review-item-title">${escapeHtml(strategy)}${t.asset ? ` · ${escapeHtml(t.asset)}` : ''}${accountName ? ` · ${escapeHtml(accountName)}` : ''}</div>
-                <div class="mentor-review-item-meta">${t.date} · ${t.result} · ${t.confluences_used?.length || 0} confluences${t.actual_rr ? ` · ${t.actual_rr}R` : ''}</div>
-              </div>
-              <div style="display:flex;align-items:center;gap:12px;">
-                <span style="font-size:15px;font-weight:800;color:${pnlColor};">${pnlDisplay}</span>
-                ${perms.canComment ? `<button class="btn-primary" style="font-size:12px;padding:7px 12px;" onclick="openMentorFeedbackModal('${relationshipId}', '${traderId}', '${t.id}', null, null)">Feedback</button>` : ''}
-              </div>
-            </div>
-            ${t.notes ? `<div style="font-size:12px;color:var(--text2);margin-top:6px;font-style:italic;">"${escapeHtml(t.notes)}"</div>` : ''}
-          </div>
-        `;
-      }).join('');
-    }
-  }
-
-  if (perms.canViewJournals && journalsList) {
-    const notesRes = await fetch(`${SUPABASE_URL}/rest/v1/day_notes?user_id=eq.${traderId}&select=id,date,content&order=date.desc&limit=10`, {
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
-    });
-    const notes = await notesRes.json();
-
-    if (!Array.isArray(notes) || !notes.length) {
-      journalsList.innerHTML = '<div class="mentor-empty">No journal entries yet.</div>';
-    } else {
-      journalsList.innerHTML = notes.map(n => {
-        const preview = n.content ? n.content.replace(/<[^>]*>/g, '').slice(0, 200) : 'No content.';
-
-        return `
-          <div class="mentor-review-item" style="margin-bottom:10px;">
-            <div class="mentor-review-item-head">
-              <div>
-                <div class="mentor-review-item-title">Journal — ${escapeHtml(n.date)}</div>
-                <div class="mentor-review-item-meta">${escapeHtml(preview)}${preview.length >= 200 ? '...' : ''}</div>
-              </div>
-              ${perms.canComment ? `<button class="btn-primary" style="font-size:12px;padding:7px 12px;" onclick="openMentorFeedbackModal('${relationshipId}', '${traderId}', null, '${n.date}', null)">Feedback</button>` : ''}
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-  }
+  // Access may have ended while loading.
+  if (mentorTraderView.relationshipId !== relationshipId) return;
 
   showPage('mentor-trader-view', null);
+}
+
+function clearMentorTraderViewContent() {
+  ['mentorViewTradesList', 'mentorViewJournalsList'].forEach(id => {
+    const list = document.getElementById(id);
+    if (list) list.textContent = '';
+  });
+}
+
+// The trader removed access (or the mentorship ended) since the list loaded.
+async function handleMentorAccessLost() {
+  mentorTraderView = { relationshipId: null, traderId: null, perms: {}, tradeOffset: 0, journalOffset: 0 };
+  currentMentorTraderId = null;
+  clearMentorTraderViewContent();
+  await showPage('mentor-dashboard', findNavItemForPage('mentor-dashboard'));
+  alert('You no longer have access to this trader.');
+}
+
+function mentorViewErrorHtml(text, retryCall) {
+  return `
+    <div class="mentor-empty">
+      ${escapeHtml(text)}
+      <div style="margin-top:10px;"><button class="btn-secondary" type="button" style="font-size:12px;padding:7px 12px;" onclick="${retryCall}">Try again</button></div>
+    </div>
+  `;
+}
+
+// An image reference from the server -> a URL, or '' if it isn't one of the
+// three allowed kinds. Storage files use their normal public link.
+function mentorImageUrl(ref) {
+  if (!ref || typeof ref !== 'object') return '';
+
+  if (ref.source === 'storage') {
+    if (!MENTOR_IMAGE_BUCKETS.includes(ref.bucket) || typeof ref.path !== 'string' || !ref.path) return '';
+    if (/(^|\/)\.\.?(\/|$)/.test(ref.path)) return '';
+    return `${SUPABASE_URL}/storage/v1/object/public/${ref.bucket}/${encodeStoragePath(ref.path)}`;
+  }
+
+  if (ref.source === 'external') {
+    return typeof ref.url === 'string' && /^https:\/\//i.test(ref.url) ? ref.url : '';
+  }
+
+  if (ref.source === 'data') {
+    return typeof ref.data === 'string' && /^data:image\/(png|jpe?g|gif|webp);base64,/i.test(ref.data) ? ref.data : '';
+  }
+
+  return '';
+}
+
+// One image. Click opens the existing lightbox at full size.
+// layout 'thumb': grid thumbnail like the trade modal; 'inline': journal image.
+function createMentorImage(ref, fullRef, layout) {
+  const src = mentorImageUrl(ref);
+  if (!src) return null;
+
+  const wrap = document.createElement('div');
+  const img = document.createElement('img');
+  const error = document.createElement('div');
+
+  img.alt = '';
+  img.loading = 'lazy';
+  img.decoding = 'async';
+  img.referrerPolicy = 'no-referrer';
+  img.dataset.fullSrc = mentorImageUrl(fullRef) || src;
+  img.addEventListener('click', () => openLightbox(img));
+  img.addEventListener('error', () => {
+    img.style.display = 'none';
+    error.style.display = 'grid';
+  });
+
+  error.textContent = 'Image unavailable';
+
+  if (layout === 'inline') {
+    wrap.style.cssText = 'margin:10px 0;max-width:520px;';
+    img.style.cssText = 'display:block;max-width:100%;height:auto;border:1px solid var(--border);border-radius:8px;cursor:zoom-in;';
+    error.style.cssText = 'display:none;min-height:60px;place-items:center;font-size:12px;color:var(--text2);border:1px solid var(--border);border-radius:8px;';
+  } else {
+    wrap.className = 'trade-chart-thumb';
+    error.className = 'trade-chart-status trade-chart-error';
+  }
+
+  img.src = src;
+  wrap.appendChild(img);
+  wrap.appendChild(error);
+  return wrap;
+}
+
+function renderMentorTradeCard(t) {
+  const view = mentorTraderView;
+  const hasPnl = Object.prototype.hasOwnProperty.call(t, 'pnl') && t.pnl !== null;
+  const pnl = parseFloat(t.pnl) || 0;
+  const pnlDisplay = hasPnl ? formatPnl(pnl) : '—';
+  const pnlColor = hasPnl ? (pnl > 0 ? 'var(--success)' : pnl < 0 ? 'var(--danger)' : 'var(--text)') : 'var(--text2)';
+  const accountName = t.account_name || '';
+  const strategy = t.strategy_name || 'Unknown';
+  const confluenceCount = Array.isArray(t.confluences_used) ? t.confluences_used.length : 0;
+
+  return `
+    <div class="mentor-review-item" style="margin-bottom:10px;">
+      <div class="mentor-review-item-head">
+        <div>
+          <div class="mentor-review-item-title">${escapeHtml(strategy)}${t.asset ? ` · ${escapeHtml(t.asset)}` : ''}${accountName ? ` · ${escapeHtml(accountName)}` : ''}</div>
+          <div class="mentor-review-item-meta">${escapeHtml(t.date)} · ${escapeHtml(t.result)} · ${confluenceCount} confluences${t.actual_rr ? ` · ${escapeHtml(t.actual_rr)}R` : ''}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="font-size:15px;font-weight:800;color:${pnlColor};">${pnlDisplay}</span>
+          ${view.perms.canComment ? `<button class="btn-primary" style="font-size:12px;padding:7px 12px;" onclick="openMentorFeedbackModal('${escapeHtml(view.relationshipId)}', '${escapeHtml(view.traderId)}', '${escapeHtml(t.id)}', null, null)">Feedback</button>` : ''}
+        </div>
+      </div>
+      ${t.notes ? `<div style="font-size:12px;color:var(--text2);margin-top:6px;font-style:italic;white-space:pre-wrap;word-break:break-word;">"${escapeHtml(t.notes)}"</div>` : ''}
+    </div>
+  `;
+}
+
+// The trade card plus its chart screenshots.
+function buildMentorTradeCard(t) {
+  const holder = document.createElement('div');
+  holder.innerHTML = renderMentorTradeCard(t).trim();
+  const card = holder.firstElementChild;
+
+  const charts = Array.isArray(t.charts) ? t.charts : [];
+  if (charts.length) {
+    const grid = document.createElement('div');
+    grid.className = 'trade-chart-preview-list';
+    charts.forEach(ref => {
+      const image = createMentorImage(ref, null, 'thumb');
+      if (image) grid.appendChild(image);
+    });
+    if (grid.childElementCount) card.appendChild(grid);
+  }
+
+  return card;
+}
+
+async function loadMentorTrades(append) {
+  const view = mentorTraderView;
+  const list = document.getElementById('mentorViewTradesList');
+  const relationshipId = view.relationshipId;
+  if (!list || !relationshipId) return;
+
+  document.getElementById('mentorViewTradesMore')?.remove();
+
+  if (!append) {
+    view.tradeOffset = 0;
+    list.innerHTML = '<div class="mentor-empty">Loading trades...</div>';
+  }
+
+  let result = null;
+  try {
+    result = await callMentorRpc('mentor_list_trades', {
+      p_relationship_id: relationshipId,
+      p_limit: MENTOR_VIEW_PAGE_SIZE.trades,
+      p_offset: view.tradeOffset
+    });
+  } catch (err) {
+    console.warn('Mentor trades failed:', err);
+  }
+
+  // A different trader was opened meanwhile.
+  if (mentorTraderView.relationshipId !== relationshipId) return;
+
+  if (result?.ok !== true) {
+    if (result?.error === 'not_found') return handleMentorAccessLost();
+    const message = result?.error === 'trades_hidden'
+      ? "This trader isn't sharing trades with you."
+      : "Couldn't load trades.";
+    if (append) {
+      list.insertAdjacentHTML('beforeend', mentorViewErrorHtml(message, 'this.closest(\'.mentor-empty\').remove(); loadMentorTrades(true)'));
+    } else {
+      list.innerHTML = result?.error === 'trades_hidden' ? `<div class="mentor-empty">${escapeHtml(message)}</div>` : mentorViewErrorHtml(message, 'loadMentorTrades(false)');
+    }
+    return;
+  }
+
+  const trades = Array.isArray(result.trades) ? result.trades : [];
+
+  if (!append && !trades.length) {
+    list.innerHTML = '<div class="mentor-empty">No trades yet.</div>';
+    return;
+  }
+
+  if (!append) list.textContent = '';
+  trades.forEach(t => list.appendChild(buildMentorTradeCard(t)));
+
+  view.tradeOffset += trades.length;
+
+  if (result.has_more) {
+    list.insertAdjacentHTML('beforeend', `<button class="btn-secondary" id="mentorViewTradesMore" type="button" style="font-size:13px;width:100%;" onclick="this.disabled = true; this.textContent = 'Loading...'; loadMentorTrades(true)">Load more trades</button>`);
+  }
+}
+
+function renderMentorJournalItem(j) {
+  const view = mentorTraderView;
+  const date = escapeHtml(j.date);
+  const preview = j.preview || (j.images ? '' : 'No text.');
+  const more = (j.chars || 0) > (j.preview || '').length;
+  const images = j.images ? `${preview ? ' · ' : ''}${j.images} image${j.images === 1 ? '' : 's'}` : '';
+
+  return `
+    <div class="mentor-review-item" style="margin-bottom:10px;" data-journal-date="${date}">
+      <div class="mentor-review-item-head">
+        <div style="min-width:0;flex:1;">
+          <div class="mentor-review-item-title">Journal — ${date}</div>
+          <div class="mentor-review-item-meta mentor-journal-preview">${escapeHtml(preview)}${more ? '...' : ''}${escapeHtml(images)}</div>
+          <div class="mentor-journal-full" hidden></div>
+        </div>
+        <div style="display:flex;gap:8px;flex-shrink:0;">
+          <button class="btn-secondary" type="button" style="font-size:12px;padding:7px 12px;" onclick="toggleMentorJournal('${date}', this)">Read</button>
+          ${view.perms.canComment ? `<button class="btn-primary" style="font-size:12px;padding:7px 12px;" onclick="openMentorFeedbackModal('${escapeHtml(view.relationshipId)}', '${escapeHtml(view.traderId)}', null, '${date}', null)">Feedback</button>` : ''}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+async function loadMentorJournals(append) {
+  const view = mentorTraderView;
+  const list = document.getElementById('mentorViewJournalsList');
+  const relationshipId = view.relationshipId;
+  if (!list || !relationshipId) return;
+
+  document.getElementById('mentorViewJournalsMore')?.remove();
+
+  if (!append) {
+    view.journalOffset = 0;
+    list.innerHTML = '<div class="mentor-empty">Loading journal...</div>';
+  }
+
+  let result = null;
+  try {
+    result = await callMentorRpc('mentor_list_journals', {
+      p_relationship_id: relationshipId,
+      p_limit: MENTOR_VIEW_PAGE_SIZE.journals,
+      p_offset: view.journalOffset
+    });
+  } catch (err) {
+    console.warn('Mentor journals failed:', err);
+  }
+
+  if (mentorTraderView.relationshipId !== relationshipId) return;
+
+  if (result?.ok !== true) {
+    if (result?.error === 'not_found') return handleMentorAccessLost();
+    const message = result?.error === 'journals_hidden'
+      ? "This trader isn't sharing their journal with you."
+      : "Couldn't load the journal.";
+    if (append) {
+      list.insertAdjacentHTML('beforeend', mentorViewErrorHtml(message, 'this.closest(\'.mentor-empty\').remove(); loadMentorJournals(true)'));
+    } else {
+      list.innerHTML = result?.error === 'journals_hidden' ? `<div class="mentor-empty">${escapeHtml(message)}</div>` : mentorViewErrorHtml(message, 'loadMentorJournals(false)');
+    }
+    return;
+  }
+
+  const journals = Array.isArray(result.journals) ? result.journals : [];
+
+  if (!append && !journals.length) {
+    list.innerHTML = '<div class="mentor-empty">No journal entries yet.</div>';
+    return;
+  }
+
+  const html = journals.map(renderMentorJournalItem).join('');
+  if (append) list.insertAdjacentHTML('beforeend', html);
+  else list.innerHTML = html;
+
+  view.journalOffset += journals.length;
+
+  if (result.has_more) {
+    list.insertAdjacentHTML('beforeend', `<button class="btn-secondary" id="mentorViewJournalsMore" type="button" style="font-size:13px;width:100%;" onclick="this.disabled = true; this.textContent = 'Loading...'; loadMentorJournals(true)">Load more journal entries</button>`);
+  }
+}
+
+// Opens or closes one journal day. It is fetched again each time it opens.
+async function toggleMentorJournal(date, btn) {
+  const item = btn?.closest('.mentor-review-item');
+  const full = item?.querySelector('.mentor-journal-full');
+  const preview = item?.querySelector('.mentor-journal-preview');
+  const relationshipId = mentorTraderView.relationshipId;
+  if (!item || !full || !relationshipId) return;
+
+  if (!full.hidden) {
+    full.hidden = true;
+    full.textContent = '';
+    if (preview) preview.hidden = false;
+    btn.textContent = 'Read';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Loading...';
+
+  let result = null;
+  try {
+    result = await callMentorRpc('mentor_get_journal', { p_relationship_id: relationshipId, p_date: date });
+  } catch (err) {
+    console.warn('Mentor journal failed:', err);
+  }
+
+  btn.disabled = false;
+  if (mentorTraderView.relationshipId !== relationshipId) return;
+
+  if (result?.ok !== true) {
+    btn.textContent = 'Read';
+    if (result?.error === 'not_found') return handleMentorAccessLost();
+    if (result?.error === 'journals_hidden') {
+      alert("This trader isn't sharing their journal with you anymore.");
+      return loadMentorJournals(false);
+    }
+    alert(result?.error === 'no_journal' ? 'This journal entry was removed.' : "Couldn't load this journal entry. Try again.");
+    return;
+  }
+
+  full.textContent = '';
+
+  const body = document.createElement('div');
+  body.style.cssText = 'margin-top:10px;';
+  const blocks = Array.isArray(result.blocks) ? result.blocks : [];
+
+  blocks.forEach(block => {
+    if (block?.type === 'text' && typeof block.text === 'string' && block.text) {
+      const text = document.createElement('div');
+      text.style.cssText = 'white-space:pre-wrap;word-break:break-word;font-size:13px;line-height:1.6;color:var(--text);margin:6px 0;';
+      text.textContent = block.text;
+      body.appendChild(text);
+    } else if (block?.type === 'image') {
+      const image = createMentorImage(block, block.full, 'inline');
+      if (image) body.appendChild(image);
+    }
+  });
+
+  if (!body.childElementCount) {
+    const empty = document.createElement('div');
+    empty.style.cssText = 'font-size:13px;color:var(--text2);';
+    empty.textContent = 'No text.';
+    body.appendChild(empty);
+  }
+  full.appendChild(body);
+
+  if (result.truncated) {
+    const note = document.createElement('div');
+    note.style.cssText = 'font-size:12px;color:var(--text2);margin-top:8px;';
+    note.textContent = 'Very long entry, shortened';
+    full.appendChild(note);
+  }
+
+  if (!result.trades_hidden && Array.isArray(result.trades) && result.trades.length) {
+    const label = document.createElement('div');
+    label.style.cssText = 'font-size:12px;font-weight:700;color:var(--text2);margin:14px 0 8px;';
+    label.textContent = `Trades that day (${result.trades.length})`;
+    full.appendChild(label);
+    result.trades.forEach(t => full.appendChild(buildMentorTradeCard(t)));
+  }
+
+  full.hidden = false;
+  if (preview) preview.hidden = true;
+  btn.textContent = 'Close';
 }
 
 // ── Mentor Feedback Modal ─────────────────────────────────────
