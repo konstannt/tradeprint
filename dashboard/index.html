@@ -5680,6 +5680,8 @@ select::-ms-expand {
 .mentor-feedback-compose-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px; }
 .review-request-btn { display: inline-flex; align-items: center; gap: 7px; min-height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg2); color: var(--text); cursor: pointer; font-size: 12px; font-weight: 800; transition: border-color 0.2s, color 0.2s; }
 .review-request-btn:hover { border-color: var(--accent); color: var(--accent); }
+.trade-review-btn { display: none; }
+body.tp-trade-reviews .trade-review-btn { display: inline-block; }
 @media (max-width: 768px) {
   .mentor-card { flex-direction: column; }
   .mentor-permissions-grid { grid-template-columns: 1fr; }
@@ -8283,9 +8285,14 @@ body.light .tp-activation-card {
       <div id="mentorRelationshipsList"><div class="mentor-empty">No mentors yet.</div></div>
     </div>
 
-    <div class="mentorship-section" id="mentorFeedbackSection" style="display:none;">
+        <div class="mentorship-section" id="mentorFeedbackSection" style="display:none;">
       <div class="mentorship-section-title">Recent Feedback</div>
       <div class="feedback-list" id="traderFeedbackList"></div>
+    </div>
+
+    <div class="mentorship-section" id="reviewRequestsSection" style="display:none;">
+      <div class="mentorship-section-title">Review Requests</div>
+      <div id="traderReviewRequestsList"></div>
     </div>
 
   </div>
@@ -8324,9 +8331,13 @@ body.light .tp-activation-card {
       <div class="mentorship-section-title">Recent Trades</div>
       <div id="mentorViewTradesList"></div>
     </div>
-    <div class="mentorship-section" id="mentorViewJournalsSection" style="display:none;">
+        <div class="mentorship-section" id="mentorViewJournalsSection" style="display:none;">
       <div class="mentorship-section-title">Recent Journal Notes</div>
       <div id="mentorViewJournalsList"></div>
+    </div>
+    <div class="mentorship-section" id="mentorViewFeedbackSection" style="display:none;">
+      <div class="mentorship-section-title">Your Feedback</div>
+      <div id="mentorViewFeedbackList"></div>
     </div>
   </div>
 </div>
@@ -9846,7 +9857,11 @@ loadProfile()
     loadTrades().then(() => { pageLoaded.trades = true; }).catch(console.warn);
   loadTradingRules().catch(console.warn);
     loadUserMistakeTags().catch(console.warn);
-  refreshMentorViewAccess().catch(console.warn); // Mentor View is free for active mentors, Pro or not
+    refreshMentorViewAccess().catch(console.warn); // Mentor View is free for active mentors, Pro or not
+  // Pro traders: which mentors can review trades and journals (Request Review buttons)
+  ensureSubscriptionLoaded()
+    .then((isPro) => (isPro ? loadMentorRelationships() : null))
+    .catch(console.warn);
   // Notes are lazy-loaded only when opened so large note state cannot slow app boot/navigation.
 
   printsWarmPromise = ensureSubscriptionLoaded()
@@ -12315,9 +12330,13 @@ async function showPage(name, el) {
       // Reloaded on every visit (not just the first), so a trader who removes
       // your access drops off the list and the sidebar link updates.
       await loadMentorDashboard();
-    } else if (name === 'tradeprint') {
+        } else if (name === 'tradeprint') {
       await loadTradeprint();
       pageLoaded.tradeprint = true;
+    } else if (name === 'mentorship') {
+      // Reloaded on every visit (not just the first), so new feedback and
+      // review request updates show up.
+      await loadMentorshipPage();
     } else if (!pageLoaded[name]) {
       if (name === 'dashboard') await loadDashboard();
       if (name === 'strategies') await loadStrategies();
@@ -13076,7 +13095,7 @@ async function uploadNoteImage(file, folder = 'notes', options = {}) {
 
 // Inject review request button into day modal header if trader has active mentors.
 // Mentorship is Tradeprint Pro, so free users never get this button.
-const activeMentors = hasPro ? mentorRelationships.filter(r => r.status === 'active') : [];
+const activeMentors = hasPro ? mentorRelationships.filter(r => canMentorReview(r, 'journal')) : [];
 const existingReviewBtn = document.getElementById('dayModalReviewBtn');
 if (existingReviewBtn) existingReviewBtn.remove();
 if (activeMentors.length) {
@@ -13372,7 +13391,8 @@ async function closeDayModal() {
           </div>
           <div class="trade-feed-pnl ${pnlClass}">${formatPnl(pnl)}</div>
           <div class="trade-feed-actions">
-            ${renderTradeRecapButton(t.id)}
+                        ${renderTradeRecapButton(t.id)}
+            ${renderTradeReviewButton(t.id)}
             <button class="trade-feed-edit" onclick="${editFn}('${t.id}')"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
             <button class="trade-feed-delete" onclick="${deleteFn}('${t.id}')"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>
           </div>
@@ -15769,7 +15789,8 @@ const strategy = t.strategies?.name || '';
       <div class="trades-table-cell trade-rules-cell">${rulesHtml}</div>
       <div class="trades-table-cell muted">${notesHtml}</div>
             <div class="trades-table-cell trade-row-actions" style="display:flex;gap:4px;align-items:center;">
-        ${renderTradeRecapButton(t.id)}
+                ${renderTradeRecapButton(t.id)}
+        ${renderTradeReviewButton(t.id)}
         <button class="trade-edit-btn" onclick="openEditTradeFromList('${t.id}')">
           <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         </button>
@@ -24580,6 +24601,7 @@ async function loadMentorRelationships() {
   });
   const data = await res.json();
   mentorRelationships = Array.isArray(data) ? data : [];
+  updateTradeReviewAvailability();
 }
 
 async function loadMyMentorships() {
@@ -24727,8 +24749,9 @@ async function updateMentorPermission(relationshipId, permKey, value, inputEl) {
     console.warn('Mentor permission update failed:', err);
   }
 
-  if (result?.ok && result.permissions) {
+    if (result?.ok && result.permissions) {
     rel.permissions = result.permissions;
+    updateTradeReviewAvailability();
   } else {
     if (inputEl) inputEl.checked = !!rel.permissions?.[permKey];
     showMentorshipResult(mentorRpcErrorMessage(result, "Couldn't update that permission. Try again."), 'error');
@@ -24929,28 +24952,204 @@ function renderMentorAccessSection({ message = '', tone = '', loadFailed = false
   return true;
 }
 
+// ── Reviews and feedback: shared helpers ──────────────────────
+// Review requests and feedback are changed only through server functions
+// (Migration 5). They check the mentorship, Pro (to request), and the
+// trader's current permissions on every call.
+
+// Date-only values (YYYY-MM-DD) shown without a timezone shift.
+function formatMentorDay(value) {
+  if (!value) return '';
+  const d = new Date(`${String(value).slice(0, 10)}T12:00:00`);
+  return Number.isNaN(d.getTime()) ? String(value) : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+// One of your own trades, for example "ORB · NQ · Oct 1, 2026".
+function describeOwnTrade(tradeId) {
+  const t = findCachedTradeById(tradeId);
+  if (!t) return 'Trade';
+  return [t.strategies?.name, t.asset, formatMentorDay(t.date)].filter(Boolean).join(' · ') || 'Trade';
+}
+
+// A trade or journal day as a mentor sees it (no P&L, no account names).
+function describeMentorReviewTarget(item) {
+  if (item?.kind === 'trade') {
+    const t = item.trade;
+    return t ? ([t.strategy_name, t.asset, formatMentorDay(t.date)].filter(Boolean).join(' · ') || 'Trade') : 'Trade';
+  }
+  if (item?.kind === 'journal') return item.journal_date ? `Journal · ${formatMentorDay(item.journal_date)}` : 'Journal';
+  return 'General';
+}
+
+// A mentor can review a trade (or a journal day) only with Leave Feedback plus
+// View Trades (or View Journals). The server checks the same rules.
+function canMentorReview(rel, kind) {
+  const perms = rel?.permissions || {};
+  return !!rel && rel.status === 'active' && !!rel.mentor_user_id && perms.canComment === true &&
+    (kind === 'trade' ? perms.canViewTrades === true : perms.canViewJournals === true);
+}
+
+// Shows the Request Review buttons on trades when a mentor can review trades.
+function updateTradeReviewAvailability() {
+  document.body.classList.toggle('tp-trade-reviews', !!hasPro && mentorRelationships.some(r => canMentorReview(r, 'trade')));
+}
+
+function renderTradeReviewButton(tradeId) {
+  return `<button class="trade-recap-btn trade-review-btn" type="button" title="Request mentor review" aria-label="Request mentor review" onclick="openReviewRequestModal('trade', '${escapeHtml(tradeId)}')">
+    <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+  </button>`;
+}
+
+function mentorReviewErrorMessage(result, fallback) {
+  switch (result?.error) {
+    case 'not_authenticated': return 'Your session expired. Refresh the page and log in again.';
+    case 'pro_required': return 'Review requests need Tradeprint Pro.';
+    case 'not_found': return "That mentor's access has ended. Refresh the page.";
+    case 'comment_disabled': return "This mentor can't leave feedback. Turn on Leave Feedback for them in Mentorship.";
+    case 'trades_hidden': return "This mentor can't see your trades. Turn on View Trades for them in Mentorship.";
+    case 'journals_hidden': return "This mentor can't see your journal. Turn on View Journals for them in Mentorship.";
+    case 'no_journal': return "Write something in this day's journal first, then request a review.";
+    case 'trade_not_found': return 'That trade no longer exists.';
+    case 'already_requested': return "You already asked this mentor to review this. It's still pending.";
+    case 'note_too_long': return 'Keep the note under 1,000 characters.';
+    case 'rate_limited': return "You've sent a lot of review requests today. Try again tomorrow.";
+    case 'too_many_pending': return 'This mentor already has 50 pending requests from you.';
+    case 'not_pending': return 'That request is already closed.';
+    default: return fallback;
+  }
+}
+
+function mentorFeedbackErrorMessage(result, fallback) {
+  switch (result?.error) {
+    case 'not_authenticated': return 'Your session expired. Refresh the page and log in again.';
+    case 'not_found': return 'You no longer have access to this trader.';
+    case 'comment_disabled': return 'This trader turned off feedback from you.';
+    case 'trades_hidden': return "This trader isn't sharing trades with you anymore.";
+    case 'journals_hidden': return "This trader isn't sharing their journal with you anymore.";
+    case 'no_journal': return 'This journal entry was removed.';
+    case 'trade_not_found': return 'This trade was removed.';
+    case 'invalid_comment': return 'Write between 1 and 4,000 characters.';
+    case 'request_closed':
+    case 'not_pending': return 'This review request was already closed.';
+    case 'request_not_found':
+    case 'request_mismatch': return "This review request isn't available anymore.";
+    case 'rate_limited': return "You've left a lot of feedback today. Try again tomorrow.";
+    default: return fallback;
+  }
+}
+
+// ── Trader: feedback received ─────────────────────────────────
+
+function mentorEmailForRelationship(relationshipId) {
+  return mentorRelationships.find(r => r.id === relationshipId)?.mentor_email || 'Your mentor';
+}
+
 async function renderTraderFeedback() {
   const feedback = await loadTraderFeedback();
   const section = document.getElementById('mentorFeedbackSection');
   const list = document.getElementById('traderFeedbackList');
+  if (!section || !list) return;
 
-  if (!feedback.length || !section || !list) {
-    if (section) section.style.display = 'none';
+  if (!feedback.length) {
+    section.style.display = 'none';
+    list.innerHTML = '';
     return;
   }
 
   section.style.display = 'block';
   list.innerHTML = feedback.map(f => {
-    const context = f.trade_id ? 'Trade feedback' : f.journal_date ? `Journal — ${f.journal_date}` : 'General feedback';
-    const date = new Date(f.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const context = f.trade_id ? describeOwnTrade(f.trade_id) : f.journal_date ? `Journal · ${formatMentorDay(f.journal_date)}` : 'General feedback';
 
     return `
       <div class="feedback-item">
-        <div class="feedback-item-meta">${escapeHtml(context)} · ${escapeHtml(date)}</div>
-        <div class="feedback-item-body">${escapeHtml(f.comment)}</div>
+        <div class="feedback-item-meta">${escapeHtml(context)}</div>
+        <div class="feedback-item-body" style="white-space:pre-wrap;word-break:break-word;">${escapeHtml(f.comment)}</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:8px;">From ${escapeHtml(mentorEmailForRelationship(f.relationship_id))} · ${escapeHtml(formatMentorDate(f.created_at))}${f.request_id ? ' · Answered your review request' : ''}</div>
       </div>
     `;
   }).join('');
+}
+
+// ── Trader: review requests ───────────────────────────────────
+
+const REVIEW_REQUEST_STATUS = {
+  pending: { pill: 'pending', label: 'Pending' },
+  reviewed: { pill: 'active', label: 'Reviewed' },
+  dismissed: { pill: 'revoked', label: 'Dismissed' },
+  cancelled: { pill: 'revoked', label: 'Cancelled' }
+};
+
+async function loadTraderReviewRequests() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/review_requests?trader_id=eq.${user.id}&select=id,relationship_id,trade_id,journal_date,status,note_from_trader,created_at&order=created_at.desc&limit=30`, {
+    cache: 'no-store',
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
+  });
+  const data = await res.json().catch(() => null);
+  return res.ok && Array.isArray(data) ? data : [];
+}
+
+async function renderTraderReviewRequests() {
+  const section = document.getElementById('reviewRequestsSection');
+  const list = document.getElementById('traderReviewRequestsList');
+  if (!section || !list) return;
+
+  const requests = await loadTraderReviewRequests();
+
+  if (!requests.length) {
+    section.style.display = 'none';
+    list.innerHTML = '';
+    return;
+  }
+
+  section.style.display = 'block';
+  list.innerHTML = requests.map(q => {
+    const rel = mentorRelationships.find(r => r.id === q.relationship_id);
+    const ended = q.status === 'pending' && rel?.status !== 'active';
+    const status = ended ? { pill: 'revoked', label: 'Closed' } : (REVIEW_REQUEST_STATUS[q.status] || { pill: 'pending', label: q.status });
+    const target = q.trade_id ? describeOwnTrade(q.trade_id) : `Journal · ${formatMentorDay(q.journal_date)}`;
+    const detail = ended ? 'Mentor access ended'
+      : q.status === 'reviewed' ? 'See Recent Feedback'
+      : q.status === 'dismissed' ? 'Your mentor dismissed it'
+      : '';
+
+    return `
+      <div class="mentor-card">
+        <div class="mentor-card-info">
+          <div class="mentor-card-email">${escapeHtml(target)}</div>
+          <div class="mentor-card-meta">
+            <span class="mentor-status-pill ${status.pill}">${escapeHtml(status.label)}</span>
+            &nbsp;· ${escapeHtml(rel?.mentor_email || 'Mentor')} · ${escapeHtml(formatMentorDate(q.created_at))}${detail ? ` · ${escapeHtml(detail)}` : ''}
+          </div>
+          ${q.note_from_trader ? `<div class="mentor-card-meta" style="margin-top:6px;white-space:pre-wrap;word-break:break-word;">"${escapeHtml(q.note_from_trader)}"</div>` : ''}
+        </div>
+        ${q.status === 'pending' ? `<div class="mentor-card-actions"><button class="btn-secondary" type="button" style="font-size:13px;" onclick="cancelReviewRequest('${escapeHtml(q.id)}', this)">Cancel request</button></div>` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+// Cancelling your own pending request works with or without Tradeprint Pro.
+async function cancelReviewRequest(requestId, btn) {
+  if (mentorActionsInFlight.has(requestId)) return;
+  if (!confirm('Cancel this review request?')) return;
+
+  mentorActionsInFlight.add(requestId);
+  if (btn) btn.disabled = true;
+
+  let result = null;
+  try {
+    result = await callMentorRpc('mentor_cancel_review_request', { p_request_id: requestId });
+  } catch (err) {
+    console.warn('Cancel review request failed:', err);
+  } finally {
+    mentorActionsInFlight.delete(requestId);
+  }
+
+  if (result?.ok !== true && result?.error !== 'not_pending') {
+    alert(mentorReviewErrorMessage(result, "Couldn't cancel the request. Try again."));
+  }
+
+  await renderTraderReviewRequests();
 }
 
 // ── Mentorship page init ──────────────────────────────────────
@@ -24962,12 +25161,17 @@ async function loadMentorshipPage() {
 
   await loadMentorRelationships();
   renderMentorRelationships();
-  await renderTraderFeedback();
+  await Promise.all([
+    renderTraderFeedback(),
+    renderTraderReviewRequests()
+  ]);
 
   await refreshMentorViewAccess();
 }
 
 // ── Review Request ────────────────────────────────────────────
+
+let reviewRequestSending = false;
 
 function openReviewRequestModal(type, id) {
   reviewRequestContext = { type, id };
@@ -24975,17 +25179,29 @@ function openReviewRequestModal(type, id) {
   const select = document.getElementById('reviewRequestMentorSelect');
   const msg = document.getElementById('reviewRequestMsg');
   const note = document.getElementById('reviewRequestNote');
+  const title = document.querySelector('#reviewRequestModal .modal-title');
+  if (!select || !msg) return;
 
   msg.textContent = '';
   msg.className = 'modal-msg';
-  if (note) note.value = '';
+  if (note) {
+    note.value = '';
+    note.maxLength = 1000;
+  }
+  if (title) title.textContent = type === 'trade' ? `Request Review · ${describeOwnTrade(id)}` : `Request Review · ${formatMentorDay(id)}`;
 
-  const activeMentors = mentorRelationships.filter(r => r.status === 'active');
+  const active = mentorRelationships.filter(r => r.status === 'active');
+  const eligible = active.filter(r => canMentorReview(r, type));
 
-  if (!activeMentors.length) {
-    select.innerHTML = '<option value="">No active mentors — invite one first</option>';
+  if (!eligible.length) {
+    select.innerHTML = '<option value="">No mentor can review this yet</option>';
+    msg.textContent = !active.length
+      ? 'Invite a mentor in Mentorship first.'
+      : type === 'trade'
+      ? 'A mentor needs View Trades and Leave Feedback turned on. You can change this in Mentorship.'
+      : 'A mentor needs View Journals and Leave Feedback turned on. You can change this in Mentorship.';
   } else {
-    select.innerHTML = activeMentors.map(r => `<option value="${r.id}">${escapeHtml(r.mentor_email)}</option>`).join('');
+    select.innerHTML = eligible.map(r => `<option value="${escapeHtml(r.id)}">${escapeHtml(r.mentor_email)}</option>`).join('');
   }
 
   document.getElementById('reviewRequestModal').classList.add('active');
@@ -24999,59 +25215,73 @@ async function submitReviewRequest() {
   const msg = document.getElementById('reviewRequestMsg');
   const select = document.getElementById('reviewRequestMentorSelect');
   const noteEl = document.getElementById('reviewRequestNote');
-  if (!msg || !select) return;
+  if (!msg || !select || reviewRequestSending) return;
 
-  // Review requests are Tradeprint Pro.
+  // Review requests are Tradeprint Pro. The server checks this too.
   if (!hasPro) {
     msg.textContent = 'Review requests need Tradeprint Pro.';
     msg.className = 'modal-msg error';
     return;
   }
 
-  msg.textContent = '';
+  const { type, id } = reviewRequestContext;
+  const rel = mentorRelationships.find(r => r.id === select.value && canMentorReview(r, type));
+
+  if (!rel || !id) {
+    msg.textContent = 'Select a mentor first.';
+    msg.className = 'modal-msg error';
+    return;
+  }
+
+  const note = noteEl?.value.trim() || '';
+  if (note.length > 1000) {
+    msg.textContent = 'Keep the note under 1,000 characters.';
+    msg.className = 'modal-msg error';
+    return;
+  }
+
+  reviewRequestSending = true;
+  msg.textContent = 'Sending...';
   msg.className = 'modal-msg';
 
-  const rel = mentorRelationships.find(r => r.id === select.value && r.status === 'active');
+  let result = null;
+  try {
+    result = await callMentorRpc('mentor_request_review', {
+      p_relationship_id: rel.id,
+      p_trade_id: type === 'trade' ? id : null,
+      p_journal_date: type === 'journal' ? id : null,
+      p_note: note || null
+    });
+  } catch (err) {
+    console.warn('Review request failed:', err);
+  } finally {
+    reviewRequestSending = false;
+  }
 
-  if (!rel) {
-    msg.textContent = 'Select an active mentor first.';
+  if (result?.ok !== true) {
+    msg.textContent = mentorReviewErrorMessage(result, 'Could not send the review request. Try again.');
     msg.className = 'modal-msg error';
+    if (result?.error === 'not_found') loadMentorRelationships().catch(console.warn);
     return;
   }
 
-  const payload = {
-    relationship_id: rel.id,
-    trader_id: user.id,
-    status: 'pending',
-    note_from_trader: noteEl?.value.trim() || null
-  };
-
-  if (reviewRequestContext.type === 'trade' && reviewRequestContext.id) payload.trade_id = reviewRequestContext.id;
-  if (reviewRequestContext.type === 'journal' && reviewRequestContext.id) payload.journal_date = reviewRequestContext.id;
-
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/review_requests`, {
-    method: 'POST',
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=minimal'
-    },
-    body: JSON.stringify(payload)
-  });
-
-  if (!res.ok) {
-    msg.textContent = 'Could not send the review request. Try again.';
-    msg.className = 'modal-msg error';
-    return;
-  }
-
-  msg.textContent = 'Review request sent!';
+  msg.textContent = 'Review request sent.';
   msg.className = 'modal-msg success';
+  renderTraderReviewRequests().catch(console.warn);
   setTimeout(closeReviewRequestModal, 900);
 }
 
 // ── Mentor Dashboard ──────────────────────────────────────────
+
+let mentorReviewQueue = [];
+
+const REVIEW_BLOCKED_TEXT = {
+  comment_disabled: 'They turned off feedback from you',
+  trades_hidden: "They're not sharing trades with you",
+  journals_hidden: "They're not sharing their journal with you",
+  no_journal: 'The journal entry was removed',
+  trade_not_found: 'The trade was removed'
+};
 
 async function loadMentorDashboard() {
   // Also updates the Mentor View sidebar link, so it disappears once a trader
@@ -25064,6 +25294,7 @@ async function loadMentorDashboard() {
   if (!tradersEl || !queueEl) return;
 
   if (!myMentorships.length) {
+    mentorReviewQueue = [];
     tradersEl.innerHTML = '<div class="mentor-empty">No traders have accepted your mentor invite yet.</div>';
     queueEl.innerHTML = '<div class="mentor-empty">No pending reviews.</div>';
     return;
@@ -25090,35 +25321,46 @@ async function loadMentorDashboard() {
     `;
   }).join('');
 
-  const relIds = myMentorships.map(r => r.id);
-  const reviewRes = await fetch(`${SUPABASE_URL}/rest/v1/review_requests?relationship_id=in.(${relIds.join(',')})&status=eq.pending&order=created_at.desc&limit=20`, {
-    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
-  });
-  const requests = await reviewRes.json();
-  const pendingRequests = Array.isArray(requests) ? requests : [];
+  // Pending requests from traders you actively mentor, read through the
+  // server so ended mentorships and other traders never show up.
+  let result = null;
+  try {
+    result = await callMentorRpc('mentor_list_review_queue', { p_limit: 50 });
+  } catch (err) {
+    console.warn('Review queue failed:', err);
+  }
 
-  if (!pendingRequests.length) {
+  if (result?.ok !== true) {
+    mentorReviewQueue = [];
+    queueEl.innerHTML = mentorViewErrorHtml("Couldn't load the review queue.", 'loadMentorDashboard()');
+    return;
+  }
+
+  mentorReviewQueue = Array.isArray(result.requests) ? result.requests : [];
+
+  if (!mentorReviewQueue.length) {
     queueEl.innerHTML = '<div class="mentor-empty">No pending reviews.</div>';
     return;
   }
 
-  queueEl.innerHTML = pendingRequests.map(req => {
-    const rel = myMentorships.find(r => r.id === req.relationship_id);
-    const profile = rel ? (profileMap[rel.trader_user_id] || {}) : {};
-    const username = profile.username || 'Trader';
-    const context = req.trade_id ? 'Trade review' : req.journal_date ? `Journal — ${req.journal_date}` : 'General review';
-    const date = new Date(req.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  queueEl.innerHTML = mentorReviewQueue.map(item => {
+    const username = profileMap[item.trader_id]?.username || 'Trader';
+    const kindLabel = item.kind === 'trade' ? 'Trade review' : 'Journal review';
+    const blocked = item.blocked_reason ? (REVIEW_BLOCKED_TEXT[item.blocked_reason] || "You can't review this right now") : '';
+    const id = escapeHtml(item.id);
 
     return `
       <div class="mentor-review-item">
         <div class="mentor-review-item-head">
-          <div>
-            <div class="mentor-review-item-title">${escapeHtml(context)} from ${escapeHtml(username)}</div>
-            <div class="mentor-review-item-meta">${escapeHtml(date)}${req.note_from_trader ? ` · "${escapeHtml(req.note_from_trader)}"` : ''}</div>
+          <div style="min-width:0;flex:1;">
+            <div class="mentor-review-item-title">${escapeHtml(kindLabel)} from ${escapeHtml(username)}</div>
+            <div class="mentor-review-item-meta">${escapeHtml(describeMentorReviewTarget(item))} · Requested ${escapeHtml(formatMentorDate(item.created_at))}${blocked ? ` · ${escapeHtml(blocked)}` : ''}</div>
+            ${item.note ? `<div class="mentor-review-item-meta" style="margin-top:6px;white-space:pre-wrap;word-break:break-word;">"${escapeHtml(item.note)}"</div>` : ''}
           </div>
-          <div style="display:flex;gap:8px;flex-shrink:0;">
-            <button class="btn-primary" style="font-size:12px;padding:7px 12px;" onclick="openMentorFeedbackFromRequest('${req.id}', '${req.relationship_id}', '${req.trader_id}', '${req.trade_id || ''}', '${req.journal_date || ''}')">Give Feedback</button>
-            <button class="btn-secondary" style="font-size:12px;padding:7px 12px;" onclick="dismissReviewRequest('${req.id}')">Dismiss</button>
+          <div style="display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end;">
+            ${blocked ? '' : `<button class="btn-primary" type="button" style="font-size:12px;padding:7px 12px;" onclick="openMentorFeedbackFromRequest('${id}')">Give Feedback</button>`}
+            <button class="btn-secondary" type="button" style="font-size:12px;padding:7px 12px;" onclick="openMentorTraderView('${escapeHtml(item.trader_id)}', '${escapeHtml(item.relationship_id)}')">Open</button>
+            <button class="btn-secondary" type="button" style="font-size:12px;padding:7px 12px;" onclick="dismissReviewRequest('${id}', this)">Dismiss</button>
           </div>
         </div>
       </div>
@@ -25126,17 +25368,26 @@ async function loadMentorDashboard() {
   }).join('');
 }
 
-async function dismissReviewRequest(requestId) {
-  await fetch(`${SUPABASE_URL}/rest/v1/review_requests?id=eq.${requestId}`, {
-    method: 'PATCH',
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=minimal'
-    },
-    body: JSON.stringify({ status: 'dismissed', updated_at: new Date().toISOString() })
-  });
+async function dismissReviewRequest(requestId, btn) {
+  if (mentorActionsInFlight.has(requestId)) return;
+  if (!confirm('Dismiss this review request? The trader will see it was dismissed.')) return;
+
+  mentorActionsInFlight.add(requestId);
+  if (btn) btn.disabled = true;
+
+  let result = null;
+  try {
+    result = await callMentorRpc('mentor_dismiss_review_request', { p_request_id: requestId });
+  } catch (err) {
+    console.warn('Dismiss review request failed:', err);
+  } finally {
+    mentorActionsInFlight.delete(requestId);
+  }
+
+  if (result?.ok !== true && result?.error !== 'not_pending') {
+    alert(mentorFeedbackErrorMessage(result, "Couldn't dismiss the request. Try again."));
+  }
+
   await loadMentorDashboard();
 }
 
@@ -25189,9 +25440,10 @@ async function openMentorTraderView(traderId, relationshipId) {
   if (tradesSection) tradesSection.style.display = perms.canViewTrades ? 'block' : 'none';
   if (journalsSection) journalsSection.style.display = perms.canViewJournals ? 'block' : 'none';
 
-  await Promise.all([
+    await Promise.all([
     perms.canViewTrades ? loadMentorTrades(false) : Promise.resolve(),
-    perms.canViewJournals ? loadMentorJournals(false) : Promise.resolve()
+    perms.canViewJournals ? loadMentorJournals(false) : Promise.resolve(),
+    loadMentorFeedbackGiven(false)
   ]);
 
   // Access may have ended while loading.
@@ -25201,7 +25453,7 @@ async function openMentorTraderView(traderId, relationshipId) {
 }
 
 function clearMentorTraderViewContent() {
-  ['mentorViewTradesList', 'mentorViewJournalsList'].forEach(id => {
+    ['mentorViewTradesList', 'mentorViewJournalsList', 'mentorViewFeedbackList'].forEach(id => {
     const list = document.getElementById(id);
     if (list) list.textContent = '';
   });
@@ -25557,23 +25809,48 @@ async function toggleMentorJournal(date, btn) {
 }
 
 // ── Mentor Feedback Modal ─────────────────────────────────────
+// Feedback is saved by mentor_submit_feedback. On the server it checks the
+// mentorship, Leave Feedback, and View Trades or View Journals, and takes
+// the trader and mentor from the relationship. Feedback on a trade or day
+// the trader asked about also marks their request Reviewed.
+let mentorFeedbackSubmitting = false;
 
-function openMentorFeedbackModal(relationshipId, traderId, tradeId, journalDate, requestId) {
+function openMentorFeedbackModal(relationshipId, traderId, tradeId, journalDate, requestId, label) {
   activeMentorFeedbackContext = { relationshipId, traderId, tradeId: tradeId || null, journalDate: journalDate || null, requestId: requestId || null };
 
   const titleEl = document.getElementById('mentorFeedbackModalTitle');
   const textEl = document.getElementById('mentorFeedbackText');
   const msgEl = document.getElementById('mentorFeedbackMsg');
 
-  if (titleEl) titleEl.textContent = tradeId ? 'Leave Trade Feedback' : journalDate ? `Leave Journal Feedback — ${journalDate}` : 'Leave Feedback';
-  if (textEl) textEl.value = '';
+  if (titleEl) {
+    titleEl.textContent = label ? `Leave Feedback · ${label}`
+      : tradeId ? 'Leave Trade Feedback'
+      : journalDate ? `Leave Journal Feedback · ${formatMentorDay(journalDate)}`
+      : 'Leave Feedback';
+  }
+  if (textEl) {
+    textEl.value = '';
+    textEl.maxLength = 4000;
+  }
   if (msgEl) { msgEl.textContent = ''; msgEl.className = 'modal-msg'; }
 
   document.getElementById('mentorFeedbackModal').classList.add('active');
+  textEl?.focus();
 }
 
-function openMentorFeedbackFromRequest(requestId, relationshipId, traderId, tradeId, journalDate) {
-  openMentorFeedbackModal(relationshipId, traderId, tradeId || null, journalDate || null, requestId);
+// From the Review Queue: the request decides which trade or day it's about.
+function openMentorFeedbackFromRequest(requestId) {
+  const item = mentorReviewQueue.find(q => q.id === requestId);
+  if (!item) return;
+
+  openMentorFeedbackModal(
+    item.relationship_id,
+    item.trader_id,
+    item.kind === 'trade' ? (item.trade?.id || null) : null,
+    item.kind === 'journal' ? item.journal_date : null,
+    item.id,
+    describeMentorReviewTarget(item)
+  );
 }
 
 function closeMentorFeedbackModal() {
@@ -25581,9 +25858,12 @@ function closeMentorFeedbackModal() {
 }
 
 async function submitMentorFeedback() {
-  const text = document.getElementById('mentorFeedbackText')?.value.trim();
+  const textEl = document.getElementById('mentorFeedbackText');
   const msg = document.getElementById('mentorFeedbackMsg');
-  const ctx = activeMentorFeedbackContext;
+  const ctx = { ...activeMentorFeedbackContext };
+  const text = textEl?.value.trim() || '';
+
+  if (!msg || mentorFeedbackSubmitting || !ctx.relationshipId) return;
 
   if (!text) {
     msg.textContent = 'Write your feedback first.';
@@ -25591,52 +25871,128 @@ async function submitMentorFeedback() {
     return;
   }
 
-  const payload = {
-    mentor_id: user.id,
-    trader_id: ctx.traderId,
-    relationship_id: ctx.relationshipId,
-    comment: text
-  };
-
-  if (ctx.tradeId) payload.trade_id = ctx.tradeId;
-  if (ctx.journalDate) payload.journal_date = ctx.journalDate;
-
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/mentor_feedback`, {
-    method: 'POST',
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=minimal'
-    },
-    body: JSON.stringify(payload)
-  });
-
-  if (!res.ok) {
-    msg.textContent = 'Could not submit feedback.';
+  if (text.length > 4000) {
+    msg.textContent = 'Keep feedback under 4,000 characters.';
     msg.className = 'modal-msg error';
     return;
   }
 
-  if (ctx.requestId) {
-    await fetch(`${SUPABASE_URL}/rest/v1/review_requests?id=eq.${ctx.requestId}`, {
-      method: 'PATCH',
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=minimal'
-      },
-      body: JSON.stringify({ status: 'reviewed', updated_at: new Date().toISOString() })
+  mentorFeedbackSubmitting = true;
+  msg.textContent = 'Sending...';
+  msg.className = 'modal-msg';
+
+  let result = null;
+  try {
+    result = await callMentorRpc('mentor_submit_feedback', {
+      p_relationship_id: ctx.relationshipId,
+      p_comment: text,
+      p_trade_id: ctx.tradeId,
+      p_journal_date: ctx.journalDate,
+      p_request_id: ctx.requestId
     });
+  } catch (err) {
+    console.warn('Submit feedback failed:', err);
+  } finally {
+    mentorFeedbackSubmitting = false;
   }
 
-  msg.textContent = 'Feedback submitted!';
+  if (result?.ok !== true) {
+    if (result?.error === 'not_found') {
+      closeMentorFeedbackModal();
+      return handleMentorAccessLost();
+    }
+    msg.textContent = mentorFeedbackErrorMessage(result, 'Could not submit feedback. Try again.');
+    msg.className = 'modal-msg error';
+    return;
+  }
+
+  msg.textContent = 'Feedback sent.';
   msg.className = 'modal-msg success';
+
   setTimeout(() => {
     closeMentorFeedbackModal();
-    if (ctx.requestId) loadMentorDashboard();
+    if (document.getElementById('page-mentor-dashboard')?.classList.contains('active')) loadMentorDashboard().catch(console.warn);
+    if (mentorTraderView.relationshipId === ctx.relationshipId) loadMentorFeedbackGiven(false).catch(console.warn);
   }, 900);
+}
+
+// ── Mentor View: the feedback you left this trader ────────────
+const MENTOR_FEEDBACK_PAGE_SIZE = 10;
+let mentorFeedbackOffset = 0;
+
+function buildMentorFeedbackItem(f) {
+  const item = document.createElement('div');
+  const meta = document.createElement('div');
+  const body = document.createElement('div');
+
+  item.className = 'feedback-item';
+  item.style.marginBottom = '10px';
+  meta.className = 'feedback-item-meta';
+  meta.textContent = [describeMentorReviewTarget(f), `Sent ${formatMentorDate(f.created_at)}`, f.answered_request ? 'Answered a request' : '']
+    .filter(Boolean).join(' · ');
+  body.className = 'feedback-item-body';
+  body.style.cssText = 'white-space:pre-wrap;word-break:break-word;';
+  body.textContent = f.comment || '';
+
+  item.append(meta, body);
+  return item;
+}
+
+async function loadMentorFeedbackGiven(append) {
+  const view = mentorTraderView;
+  const section = document.getElementById('mentorViewFeedbackSection');
+  const list = document.getElementById('mentorViewFeedbackList');
+  const relationshipId = view.relationshipId;
+  if (!section || !list || !relationshipId) return;
+
+  document.getElementById('mentorViewFeedbackMore')?.remove();
+
+  if (!append) {
+    mentorFeedbackOffset = 0;
+    list.innerHTML = '<div class="mentor-empty">Loading feedback...</div>';
+  }
+
+  let result = null;
+  try {
+    result = await callMentorRpc('mentor_list_feedback_given', {
+      p_relationship_id: relationshipId,
+      p_limit: MENTOR_FEEDBACK_PAGE_SIZE,
+      p_offset: mentorFeedbackOffset
+    });
+  } catch (err) {
+    console.warn('Mentor feedback list failed:', err);
+  }
+
+  // A different trader was opened meanwhile.
+  if (mentorTraderView.relationshipId !== relationshipId) return;
+
+  if (result?.ok !== true) {
+    if (result?.error === 'not_found') return handleMentorAccessLost();
+    section.style.display = 'block';
+    if (append) {
+      list.insertAdjacentHTML('beforeend', mentorViewErrorHtml("Couldn't load your feedback.", 'this.closest(\'.mentor-empty\').remove(); loadMentorFeedbackGiven(true)'));
+    } else {
+      list.innerHTML = mentorViewErrorHtml("Couldn't load your feedback.", 'loadMentorFeedbackGiven(false)');
+    }
+    return;
+  }
+
+  const items = Array.isArray(result.feedback) ? result.feedback : [];
+
+  if (!append && !items.length) {
+    section.style.display = view.perms.canComment ? 'block' : 'none';
+    list.innerHTML = "<div class=\"mentor-empty\">You haven't left feedback for this trader yet.</div>";
+    return;
+  }
+
+  section.style.display = 'block';
+  if (!append) list.textContent = '';
+  items.forEach(f => list.appendChild(buildMentorFeedbackItem(f)));
+  mentorFeedbackOffset += items.length;
+
+  if (result.has_more) {
+    list.insertAdjacentHTML('beforeend', `<button class="btn-secondary" id="mentorViewFeedbackMore" type="button" style="font-size:13px;width:100%;" onclick="this.disabled = true; this.textContent = 'Loading...'; loadMentorFeedbackGiven(true)">Load more feedback</button>`);
+  }
 }
 
 // ── Mentor invites: arriving from the accept page ─────────────
