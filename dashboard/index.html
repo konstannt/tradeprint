@@ -5655,6 +5655,7 @@ select::-ms-expand {
 .mentor-status-pill.pending { background: rgba(245,158,11,0.14); color: #f59e0b; border: 1px solid rgba(245,158,11,0.28); }
 .mentor-status-pill.active { background: rgba(34,197,94,0.14); color: var(--success); border: 1px solid rgba(34,197,94,0.28); }
 .mentor-status-pill.revoked { background: rgba(239,68,68,0.14); color: var(--danger); border: 1px solid rgba(239,68,68,0.28); }
+.mentor-card-actions button:disabled, #mentorInviteBtn:disabled { opacity: 0.55; cursor: not-allowed; }
 .mentor-permissions-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; margin-top: 12px; }
 .mentor-perm-toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; }
 .mentor-perm-label { font-size: 13px; color: var(--text); }
@@ -8066,7 +8067,7 @@ body.light .tp-activation-card {
     <!-- Mentor access: account privacy control for Free traders, shown only under the Mentorship paywall -->
     <div class="mentor-access-section" id="mentorAccessSection" hidden>
       <div class="mentor-access-title">Mentor access</div>
-      <div class="mentor-access-copy">These mentors can currently see your account. You can remove their access at any time, with or without Tradeprint Pro.</div>
+            <div class="mentor-access-copy">Mentors who can see your account, and invites you sent. You can remove access or cancel an invite at any time, with or without Tradeprint Pro.</div>
       <div id="mentorAccessList"></div>
       <div class="msg" id="mentorAccessMsg" aria-live="polite"></div>
     </div>
@@ -8271,7 +8272,7 @@ body.light .tp-activation-card {
       <div class="mentorship-section-title">Invite a Mentor</div>
       <div class="mentorship-invite-row">
         <input type="email" id="mentorEmailInput" placeholder="Mentor's email address"/>
-        <button class="btn-primary" onclick="sendMentorInvite()">Send Invite</button>
+                <button class="btn-primary" id="mentorInviteBtn" onclick="sendMentorInvite()">Send Invite</button>
       </div>
       <div style="font-size:12px;color:var(--text2);">They'll get a link to accept and create or log in to a Tradeprint account.</div>
       <div class="msg" id="mentorInviteMsg"></div>
@@ -24433,77 +24434,129 @@ let currentMentorTraderId = null;
 
 // ── Invite ───────────────────────────────────────────────────
 
+// The mentor-invite Edge Function creates the invite and emails the link.
+// It checks Pro, limits and duplicates on the server. The link itself is
+// never shown in the dashboard.
+let mentorInviteSending = false;
+const mentorActionsInFlight = new Set();
+
+async function callMentorInviteFunction(payload) {
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/mentor-invite`, {
+    method: 'POST',
+    cache: 'no-store',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload)
+  });
+
+  const data = await res.json().catch(() => null);
+  return { ok: res.ok && data?.ok === true, status: res.status, data: data && typeof data === 'object' ? data : null };
+}
+
+// Mentorship server functions (Migration 2). They answer { ok: true, ... }
+// or { ok: false, error }.
+async function callMentorRpc(fnName, args) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fnName}`, {
+    method: 'POST',
+    cache: 'no-store',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(args)
+  });
+
+  const data = await res.json().catch(() => null);
+  if (res.ok && data && typeof data === 'object') return data;
+  return { ok: false, error: res.status === 401 ? 'not_authenticated' : 'request_failed' };
+}
+
+function mentorRpcErrorMessage(result, fallback) {
+  switch (result?.error) {
+    case 'pro_required': return 'Changing what a mentor can see needs Tradeprint Pro.';
+    case 'not_authenticated': return 'Your session expired. Refresh the page and log in again.';
+    case 'not_found': return "That mentor wasn't found. Refresh the page.";
+    case 'not_pending': return 'That invite is no longer pending. Refresh the page.';
+    case 'not_active':
+    case 'not_editable': return "That mentor's access has already ended. Refresh the page.";
+    default: return fallback;
+  }
+}
+
+function setMentorInviteMsg(text, tone) {
+  const msg = document.getElementById('mentorInviteMsg');
+  if (!msg) return false;
+  msg.textContent = text;
+  msg.className = `msg${tone ? ` ${tone}` : ''}`;
+  return true;
+}
+
+// Shows a result where the trader is looking: the Free "Mentor access" panel,
+// the Pro Mentorship page, or an alert as a last resort for errors.
+function showMentorshipResult(message, tone) {
+  if (renderMentorAccessSection({ message, tone })) return;
+  if (hasPro && setMentorInviteMsg(message, tone)) return;
+  if (tone === 'error') alert(message);
+}
+
 async function sendMentorInvite() {
   const emailInput = document.getElementById('mentorEmailInput');
-  const msg = document.getElementById('mentorInviteMsg');
-  if (!emailInput || !msg) return;
+  const btn = document.getElementById('mentorInviteBtn');
+  if (!emailInput || mentorInviteSending) return;
 
-  // Inviting a mentor is Tradeprint Pro.
+  // Inviting a mentor is Tradeprint Pro. The server checks this too.
   if (!hasPro) {
-    msg.textContent = 'Inviting a mentor needs Tradeprint Pro.';
-    msg.className = 'msg error';
+    setMentorInviteMsg('Inviting a mentor needs Tradeprint Pro.', 'error');
     return;
   }
 
   const email = emailInput.value.trim().toLowerCase();
-
-  msg.textContent = '';
-  msg.className = 'msg';
+  setMentorInviteMsg('', '');
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    msg.textContent = 'Enter a valid email address.';
-    msg.className = 'msg error';
+    setMentorInviteMsg('Enter a valid email address.', 'error');
     return;
   }
 
   if (email === String(user.email || '').toLowerCase()) {
-    msg.textContent = 'You cannot invite yourself.';
-    msg.className = 'msg error';
+    setMentorInviteMsg("You can't invite yourself.", 'error');
     return;
   }
 
-  const existing = mentorRelationships.find(r => String(r.mentor_email || '').toLowerCase() === email && r.status !== 'revoked');
+  const existing = mentorRelationships.find(r => String(r.mentor_email || '').toLowerCase() === email && (r.status === 'pending' || r.status === 'active'));
   if (existing) {
-    msg.textContent = existing.status === 'pending' ? 'An invite was already sent to this email.' : 'This person is already your mentor.';
-    msg.className = 'msg error';
+    setMentorInviteMsg(existing.status === 'pending' ? 'You already invited this email. Use Resend on their invite below.' : 'This person is already your mentor.', 'error');
     return;
   }
 
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/mentor_relationships`, {
-    method: 'POST',
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=representation'
-    },
-    body: JSON.stringify({
-      trader_user_id: user.id,
-      mentor_email: email,
-      status: 'pending',
-      permissions: {
-        canViewTrades: true,
-        canViewJournals: true,
-        canComment: true,
-        canViewPnL: false,
-        canViewAccountNames: false
-      }
-    })
-  });
+  mentorInviteSending = true;
+  if (btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
 
-  if (!res.ok) {
-    msg.textContent = 'Could not send invite. Try again.';
-    msg.className = 'msg error';
-    return;
+  let result = null;
+  try {
+    result = await callMentorInviteFunction({ action: 'create', email });
+  } catch (err) {
+    console.warn('Mentor invite failed:', err);
+  } finally {
+    mentorInviteSending = false;
+    if (btn) { btn.disabled = false; btn.textContent = 'Send Invite'; }
   }
 
-  emailInput.value = '';
-  msg.textContent = 'Invite sent! Share this invite link with your mentor (they need to log in to Tradeprint to accept).';
-  msg.className = 'msg success';
-  await loadMentorRelationships();
+  if (result?.ok) {
+    emailInput.value = '';
+    setMentorInviteMsg(`Invite sent to ${result.data.mentor_email || email}. The link expires in 7 days.`, 'success');
+  } else {
+    setMentorInviteMsg(result?.data?.message || "Couldn't send the invite. Check your connection and try again.", 'error');
+  }
+
+  // Also lists an invite that was saved but whose email failed, with Resend.
+  await loadMentorRelationships().catch(console.warn);
   renderMentorRelationships();
 }
-
 // ── Load ─────────────────────────────────────────────────────
 
 async function loadMentorRelationships() {
@@ -24548,119 +24601,147 @@ async function loadTraderFeedback() {
 
 // ── Render: Trader side ──────────────────────────────────────
 
+const MENTOR_PERMISSION_LABELS = {
+  canViewTrades: 'View Trades',
+  canViewJournals: 'View Journals',
+  canComment: 'Leave Feedback',
+  canViewPnL: 'See PnL',
+  canViewAccountNames: 'See Account Names'
+};
+
+// Declined invites stay listed for 2 weeks so the trader sees the answer.
+const MENTOR_DECLINED_VISIBLE_MS = 14 * 24 * 60 * 60 * 1000;
+
+function isMentorInviteExpired(r) {
+  return r.status === 'pending' && (!r.invite_expires_at || new Date(r.invite_expires_at).getTime() <= Date.now());
+}
+
+function formatMentorDate(value) {
+  return value ? new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+}
+
+function describeMentorStatus(r) {
+  if (r.status === 'active') {
+    return { pill: 'active', label: 'Active', meta: `Mentor since ${formatMentorDate(r.accepted_at || r.created_at)}` };
+  }
+  if (r.status === 'declined') {
+    return { pill: 'revoked', label: 'Declined', meta: `Declined ${formatMentorDate(r.ended_at || r.updated_at)}` };
+  }
+  if (isMentorInviteExpired(r)) {
+    return { pill: 'revoked', label: 'Expired', meta: `Expired ${formatMentorDate(r.invite_expires_at)}. Resend to send a new link.` };
+  }
+  if (!r.invite_last_sent_at) {
+    return { pill: 'pending', label: 'Pending', meta: "The invite email didn't send. Use Resend." };
+  }
+  return { pill: 'pending', label: 'Pending', meta: `Emailed ${formatMentorDate(r.invite_last_sent_at)}, expires ${formatMentorDate(r.invite_expires_at)}` };
+}
+
 function renderMentorRelationships() {
   const container = document.getElementById('mentorRelationshipsList');
   if (!container) return;
 
-  const active = mentorRelationships.filter(r => r.status !== 'revoked');
+  const declinedCutoff = Date.now() - MENTOR_DECLINED_VISIBLE_MS;
+  const visible = mentorRelationships.filter(r =>
+    r.status === 'pending' ||
+    r.status === 'active' ||
+    (r.status === 'declined' && new Date(r.ended_at || r.updated_at || r.created_at).getTime() >= declinedCutoff)
+  );
 
-  if (!active.length) {
+  if (!visible.length) {
     container.innerHTML = '<div class="mentor-empty">No mentors yet. Send an invite above.</div>';
     return;
   }
 
-  container.innerHTML = active.map(r => {
+  container.innerHTML = visible.map(r => {
+    const id = escapeHtml(r.id);
     const perms = r.permissions || {};
-    const permLabels = {
-      canViewTrades: 'View Trades',
-      canViewJournals: 'View Journals',
-      canComment: 'Leave Feedback',
-      canViewPnL: 'See PnL',
-      canViewAccountNames: 'See Account Names'
-    };
+    const status = describeMentorStatus(r);
 
-    const permToggles = Object.entries(permLabels).map(([key, label]) => `
+    const permToggles = Object.entries(MENTOR_PERMISSION_LABELS).map(([key, label]) => `
       <div class="mentor-perm-toggle">
         <span class="mentor-perm-label">${label}</span>
         <label class="prints-mini-switch">
-          <input type="checkbox" ${perms[key] ? 'checked' : ''} onchange="updateMentorPermission('${r.id}', '${key}', this.checked)" ${r.status !== 'active' ? 'disabled' : ''}/>
+          <input type="checkbox" ${perms[key] ? 'checked' : ''} onchange="updateMentorPermission('${id}', '${key}', this.checked, this)"/>
           <span></span>
         </label>
       </div>
     `).join('');
 
-    const inviteUrl = `${window.location.origin}/accept-mentor?token=${r.invite_token}`;
+    let actions = '';
+    if (r.status === 'active') {
+      actions = `<button class="btn-secondary" type="button" style="font-size:13px;" onclick="revokeMentor('${id}')">Revoke Access</button>`;
+    } else if (r.status === 'pending') {
+      actions = `
+        <button class="btn-secondary" type="button" style="font-size:13px;" onclick="resendMentorInvite('${id}', this)">Resend</button>
+        <button class="btn-secondary" type="button" style="font-size:13px;" onclick="cancelMentorInvite('${id}', this)">Cancel Invite</button>
+      `;
+    }
 
     return `
       <div class="mentor-card">
         <div class="mentor-card-info">
           <div class="mentor-card-email">${escapeHtml(r.mentor_email)}</div>
           <div class="mentor-card-meta">
-            <span class="mentor-status-pill ${r.status}">${r.status}</span>
-            &nbsp;· Invited ${new Date(r.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+            <span class="mentor-status-pill ${status.pill}">${status.label}</span>
+            &nbsp;· ${escapeHtml(status.meta)}
           </div>
-          ${r.status === 'pending' ? `
-            <div style="margin-top:10px;">
-              <div style="font-size:11px;color:var(--text2);margin-bottom:4px;">Share this link with your mentor:</div>
-              <div style="font-size:12px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:7px 10px;word-break:break-all;user-select:all;">${escapeHtml(inviteUrl)}</div>
-            </div>
-          ` : ''}
-          ${r.status === 'active' ? `
-            <div class="mentor-permissions-grid" style="margin-top:14px;">${permToggles}</div>
-          ` : ''}
+          ${r.status === 'active' ? `<div class="mentor-permissions-grid" style="margin-top:14px;">${permToggles}</div>` : ''}
         </div>
-        <div class="mentor-card-actions">
-          ${r.status === 'active' ? `<button class="btn-secondary" style="font-size:13px;" onclick="revokeMentor('${r.id}')">Revoke Access</button>` : ''}
-          ${r.status === 'revoked' ? '<span style="font-size:12px;color:var(--text2);">Access revoked</span>' : ''}
-        </div>
+        <div class="mentor-card-actions">${actions}</div>
       </div>
     `;
   }).join('');
 }
 
-async function updateMentorPermission(relationshipId, permKey, value) {
+// Changing permissions is Tradeprint Pro. The server checks Pro and
+// ownership; if it refuses, the switch goes back to the saved value.
+async function updateMentorPermission(relationshipId, permKey, value, inputEl) {
   const rel = mentorRelationships.find(r => r.id === relationshipId);
-  if (!rel) return;
+  if (!rel || !(permKey in MENTOR_PERMISSION_LABELS)) return;
 
-  const newPerms = { ...rel.permissions, [permKey]: value };
+  if (inputEl) inputEl.disabled = true;
 
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/mentor_relationships?id=eq.${relationshipId}`, {
-    method: 'PATCH',
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=minimal'
-    },
-    body: JSON.stringify({ permissions: newPerms, updated_at: new Date().toISOString() })
-  });
-
-  if (res.ok) {
-    rel.permissions = newPerms;
+  let result = null;
+  try {
+    result = await callMentorRpc('mentor_set_permissions', {
+      p_relationship_id: relationshipId,
+      p_permissions: { [permKey]: !!value }
+    });
+  } catch (err) {
+    console.warn('Mentor permission update failed:', err);
   }
+
+  if (result?.ok && result.permissions) {
+    rel.permissions = result.permissions;
+  } else {
+    if (inputEl) inputEl.checked = !!rel.permissions?.[permKey];
+    showMentorshipResult(mentorRpcErrorMessage(result, "Couldn't update that permission. Try again."), 'error');
+  }
+
+  if (inputEl) inputEl.disabled = false;
 }
 
 // Removing a mentor is an account privacy control, so it works with or without
 // Tradeprint Pro. Pro traders use it from the Mentorship page; Free traders use
 // it from Mentor access under the Mentorship paywall.
 async function revokeMentor(relationshipId) {
+  if (mentorActionsInFlight.has(relationshipId)) return false;
   if (!confirm('Revoke this mentor\'s access? They will no longer be able to view your trades or journals.')) return false;
 
-  let revoked = false;
+  mentorActionsInFlight.add(relationshipId);
+  let result = null;
 
   try {
-    // Ask for the updated row back. With return=minimal, an update that the
-    // database silently blocked would still look like a success.
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/mentor_relationships?id=eq.${relationshipId}&trader_user_id=eq.${user.id}`, {
-      method: 'PATCH',
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=representation'
-      },
-      body: JSON.stringify({ status: 'revoked', updated_at: new Date().toISOString() })
-    });
-
-    const data = res.ok ? await res.json().catch(() => null) : null;
-    revoked = Array.isArray(data) && data.some(r => r.id === relationshipId && r.status === 'revoked');
+    result = await callMentorRpc('mentor_revoke_access', { p_relationship_id: relationshipId });
   } catch (err) {
     console.warn('Revoke mentor failed:', err);
+  } finally {
+    mentorActionsInFlight.delete(relationshipId);
   }
 
-  if (!revoked) {
-    const shown = renderMentorAccessSection({ message: "Couldn't remove access. Try again.", tone: 'error' });
-    if (!shown) alert("Couldn't remove this mentor's access. Try again.");
+  // Only the server's "ok" counts as removed.
+  if (result?.ok !== true) {
+    showMentorshipResult(mentorRpcErrorMessage(result, "Couldn't remove access. Try again."), 'error');
     return false;
   }
 
@@ -24668,15 +24749,76 @@ async function revokeMentor(relationshipId) {
   await loadMentorRelationships().catch(console.warn);
 
   if (hasPro) renderMentorRelationships();
-  renderMentorAccessSection({ message: 'Access removed.', tone: 'success' });
+  showMentorshipResult('Access removed.', 'success');
   return true;
+}
+
+// New email with a new link (the old link stops working). Tradeprint Pro.
+async function resendMentorInvite(relationshipId, btn) {
+  if (mentorActionsInFlight.has(relationshipId)) return;
+
+  if (!hasPro) {
+    showMentorshipResult('Resending an invite needs Tradeprint Pro. You can still cancel it.', 'error');
+    return;
+  }
+
+  mentorActionsInFlight.add(relationshipId);
+  if (btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
+
+  let result = null;
+  try {
+    result = await callMentorInviteFunction({ action: 'resend', relationship_id: relationshipId });
+  } catch (err) {
+    console.warn('Mentor invite resend failed:', err);
+  } finally {
+    mentorActionsInFlight.delete(relationshipId);
+  }
+
+  const rel = mentorRelationships.find(r => r.id === relationshipId);
+  await loadMentorRelationships().catch(console.warn);
+  renderMentorRelationships();
+
+  if (result?.ok) {
+    setMentorInviteMsg(`New invite link sent to ${rel?.mentor_email || 'your mentor'}. Older links no longer work.`, 'success');
+  } else {
+    setMentorInviteMsg(result?.data?.message || "Couldn't resend the invite. Check your connection and try again.", 'error');
+  }
+}
+
+// Cancelling an invite works with or without Tradeprint Pro.
+async function cancelMentorInvite(relationshipId, btn) {
+  if (mentorActionsInFlight.has(relationshipId)) return false;
+  if (!confirm('Cancel this invite? The link in their email will stop working.')) return false;
+
+  mentorActionsInFlight.add(relationshipId);
+  if (btn) btn.disabled = true;
+
+  let result = null;
+  try {
+    result = await callMentorRpc('mentor_cancel_invite', { p_relationship_id: relationshipId });
+  } catch (err) {
+    console.warn('Cancel mentor invite failed:', err);
+  } finally {
+    mentorActionsInFlight.delete(relationshipId);
+  }
+
+  const cancelled = result?.ok === true;
+  await loadMentorRelationships().catch(console.warn);
+
+  if (hasPro) renderMentorRelationships();
+  showMentorshipResult(
+    cancelled ? 'Invite cancelled.' : mentorRpcErrorMessage(result, "Couldn't cancel the invite. Try again."),
+    cancelled ? 'success' : 'error'
+  );
+  return cancelled;
 }
 
 // ─── MENTOR ACCESS (account privacy control) ─────────────────
 // Shown under the Mentorship paywall for traders without Tradeprint Pro.
-// It only lists mentors who currently have active access and lets the trader
-// remove it with revokeMentor(). Nothing else from Mentorship: no invites,
-// no permission changes, no review requests, no feedback or history.
+// It lists mentors who currently have active access (Remove access) and
+// invites sent while the trader had Pro (Cancel invite). Nothing else from
+// Mentorship: no new invites, no permission changes, no review requests,
+// no feedback or history.
 async function loadMentorAccessSection() {
   // Show what is already known right away, then refresh from the server.
   renderMentorAccessSection();
@@ -24717,31 +24859,52 @@ function renderMentorAccessSection({ message = '', tone = '', loadFailed = false
     return false;
   }
 
-  const active = loadFailed ? [] : mentorRelationships.filter(r => r.status === 'active');
+  const shown = loadFailed ? [] : mentorRelationships.filter(r => r.status === 'active' || r.status === 'pending');
 
   // Nothing to manage and nothing to report.
-  if (!active.length && !message) {
+  if (!shown.length && !message) {
     section.hidden = true;
     list.innerHTML = '';
     msg.textContent = '';
     return false;
   }
 
-  list.innerHTML = active.length
-    ? active.map(r => `
-      <div class="mentor-card">
-        <div class="mentor-card-info">
-          <div class="mentor-card-email">${escapeHtml(r.mentor_email)}</div>
-          <div class="mentor-card-meta">
-            <span class="mentor-status-pill active">Active</span>
-            &nbsp;· ${escapeHtml(describeMentorAccess(r.permissions))}
+  list.innerHTML = shown.length
+    ? shown.map(r => {
+      const id = escapeHtml(r.id);
+
+      if (r.status === 'pending') {
+        return `
+          <div class="mentor-card">
+            <div class="mentor-card-info">
+              <div class="mentor-card-email">${escapeHtml(r.mentor_email)}</div>
+              <div class="mentor-card-meta">
+                <span class="mentor-status-pill pending">Pending invite</span>
+                &nbsp;· Can't be accepted without Tradeprint Pro
+              </div>
+            </div>
+            <div class="mentor-card-actions">
+              <button class="btn-secondary" type="button" style="font-size:13px;" onclick="cancelMentorInvite('${id}', this)">Cancel invite</button>
+            </div>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="mentor-card">
+          <div class="mentor-card-info">
+            <div class="mentor-card-email">${escapeHtml(r.mentor_email)}</div>
+            <div class="mentor-card-meta">
+              <span class="mentor-status-pill active">Active</span>
+              &nbsp;· ${escapeHtml(describeMentorAccess(r.permissions))}
+            </div>
+          </div>
+          <div class="mentor-card-actions">
+            <button class="btn-secondary" type="button" style="font-size:13px;" onclick="revokeMentor('${id}')">Remove access</button>
           </div>
         </div>
-        <div class="mentor-card-actions">
-          <button class="btn-secondary" type="button" style="font-size:13px;" onclick="revokeMentor('${escapeHtml(r.id)}')">Remove access</button>
-        </div>
-      </div>
-    `).join('')
+      `;
+    }).join('')
     : (loadFailed ? '' : '<div class="mentor-empty">No mentors have access to your account.</div>');
 
   msg.textContent = message;
@@ -24906,7 +25069,7 @@ async function loadMentorDashboard() {
     return `
       <div class="mentor-trader-card" onclick="openMentorTraderView('${r.trader_user_id}', '${r.id}')">
         <div class="mentor-trader-name">${escapeHtml(username)}</div>
-        <div class="mentor-trader-meta">Active since ${new Date(r.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</div>
+                <div class="mentor-trader-meta">Active since ${new Date(r.accepted_at || r.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</div>
       </div>
     `;
   }).join('');
@@ -25144,51 +25307,61 @@ async function submitMentorFeedback() {
   }, 900);
 }
 
-// ── Accept invite (called when mentor opens /accept-mentor?token=...) ─
+// ── Mentor invites: arriving from the accept page ─────────────
+// Invites are accepted on their own page, /accept-mentor. After accepting
+// it opens /dashboard?mentor=accepted, which lands here in Mentor View.
+// If an unanswered invite link is saved in this browser but the mentor
+// logged in some other way (for example the signup confirmation email
+// opened the dashboard), they're sent back to the accept page once.
+const MENTOR_INVITE_STORAGE_KEY = 'tp_mentor_invite';
+const MENTOR_INVITE_MAX_AGE_MS = 8 * 24 * 60 * 60 * 1000;
 
-async function checkAndAcceptMentorInvite() {
-  const params = new URLSearchParams(window.location.search);
-  const inviteToken = params.get('mentor_token') || params.get('token');
+async function handleMentorInviteReturn() {
+  if (!token || !user?.id) return;
 
-  if (!inviteToken || !user?.id) return;
-
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/mentor_relationships?invite_token=eq.${inviteToken}&status=eq.pending&select=id,mentor_email&limit=1`, {
-    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
-  });
-
-  const data = await res.json();
-  const rel = Array.isArray(data) && data[0] ? data[0] : null;
-
-  if (!rel) return;
-
-  if (rel.mentor_email.toLowerCase() !== user.email?.toLowerCase()) {
-    console.warn('[Mentorship] Invite email does not match logged-in user.');
+  let url;
+  try {
+    url = new URL(window.location.href);
+  } catch (err) {
     return;
   }
 
-  await fetch(`${SUPABASE_URL}/rest/v1/mentor_relationships?id=eq.${rel.id}`, {
-    method: 'PATCH',
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=minimal'
-    },
-    body: JSON.stringify({
-      mentor_user_id: user.id,
-      status: 'active',
-      updated_at: new Date().toISOString()
-    })
-  });
-
-  window.history.replaceState({}, document.title, window.location.pathname);
+  if (url.searchParams.get('mentor') === 'accepted') {
+    url.searchParams.delete('mentor');
+    window.history.replaceState(window.history.state, document.title, url.pathname + url.search + url.hash);
 
     // Mentor View is free for active mentors, so its sidebar link shows up right away.
-  await refreshMentorViewAccess().catch(console.warn);
-  showPage('mentor-dashboard', document.getElementById('mentor-dashboard-nav'));
+    await refreshMentorViewAccess().catch(console.warn);
+    await showPage('mentor-dashboard', findNavItemForPage('mentor-dashboard'));
+    return;
+  }
+
+  let saved = null;
+  try {
+    saved = JSON.parse(localStorage.getItem(MENTOR_INVITE_STORAGE_KEY) || 'null');
+  } catch (err) {
+    return;
+  }
+
+  if (!saved || typeof saved.token !== 'string' || saved.bounced) return;
+
+  if (!(Date.now() - Number(saved.savedAt) < MENTOR_INVITE_MAX_AGE_MS)) {
+    try { localStorage.removeItem(MENTOR_INVITE_STORAGE_KEY); } catch (err) {}
+    return;
+  }
+
+  try {
+    localStorage.setItem(MENTOR_INVITE_STORAGE_KEY, JSON.stringify({ ...saved, bounced: true }));
+  } catch (err) {
+    return;
+  }
+
+  window.location.assign('/accept-mentor');
 }
 
-checkAndAcceptMentorInvite();
+setTimeout(() => {
+  handleMentorInviteReturn().catch(err => console.warn('[Mentorship] Invite return failed:', err));
+}, 350);
 
 // ─── SETUP GRADE, MISTAKE TAGS & TRADING RULES ────────────────
 
