@@ -41,6 +41,7 @@
     .panel.active { display: block; }
     .back-link { font-size: 13px; color: #555; cursor: pointer; margin-bottom: 24px; display: inline-flex; align-items: center; gap: 6px; transition: color 0.2s; background: none; border: none; padding: 0; }
     .back-link:hover { color: #aaa; }
+    .invite-note { font-size: 13px; line-height: 1.5; color: #c7c8ff; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.3); border-radius: 8px; padding: 10px 14px; margin-bottom: 24px; text-align: center; }
   </style>
 </head>
 <body>
@@ -48,6 +49,7 @@
   <a href="/" class="logo">trade<span>print</span></a>
 
   <div class="card">
+    <div class="invite-note" id="inviteNote" hidden>Log in or create a free account to accept your mentor invite.</div>
     <div class="tabs" id="mainTabs">
       <div class="tab active" onclick="switchTab('login')">Log In</div>
       <div class="tab" onclick="switchTab('signup')">Sign Up</div>
@@ -120,6 +122,23 @@
   <script>
     const SUPABASE_URL = 'https://fpdedufotkmvjsvxdcmk.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_1Q8yInISuuD3HDWI7mVesQ_A-DSkCM7';
+
+    // Mentor invites: /accept-mentor sends logged-out mentors here with
+    // ?next=accept-mentor. That exact page is the only allowed destination.
+    const APP_PARAMS = new URLSearchParams(window.location.search);
+    const MENTOR_INVITE_FLOW = APP_PARAMS.get('next') === 'accept-mentor';
+    const AFTER_LOGIN_URL = MENTOR_INVITE_FLOW ? '/accept-mentor' : '/dashboard';
+
+    // The invite link /accept-mentor saved in this browser, if any.
+    function getMentorInviteToken() {
+      try {
+        const data = JSON.parse(localStorage.getItem('tp_mentor_invite') || 'null');
+        const value = String(data?.token || '');
+        return /^[A-Za-z0-9_-]{32,128}$/.test(value) ? value : null;
+      } catch (err) {
+        return null;
+      }
+    }
 
     function getAuthHashParams() {
   const hash = window.location.hash.replace(/^#/, '');
@@ -214,6 +233,11 @@ function handlePasswordRecoveryRedirect() {
 
 if (!isPasswordRecovery) {
   // your normal login/signup page startup code continues here
+  if (MENTOR_INVITE_FLOW) {
+    const inviteNote = document.getElementById('inviteNote');
+    if (inviteNote) inviteNote.hidden = false;
+    if (APP_PARAMS.get('tab') === 'signup') switchTab('signup');
+  }
 }
 
     function switchTab(tab) {
@@ -262,7 +286,7 @@ if (!isPasswordRecovery) {
         localStorage.setItem('tp_refresh_token', data.refresh_token);
         localStorage.setItem('tp_session', JSON.stringify(data));
         localStorage.setItem('tp_user', JSON.stringify(data.user));
-        window.location.href = '/dashboard';
+        window.location.href = AFTER_LOGIN_URL;
       } else {
         message.textContent = data.error_description || 'Invalid email or password.';
         message.className = 'message error';
@@ -283,14 +307,21 @@ if (!isPasswordRecovery) {
       if (!/[a-z]/.test(password)) { message.textContent = 'Password must contain at least 1 lowercase letter.'; message.className = 'message error'; return; }
       if (!/[0-9]/.test(password)) { message.textContent = 'Password must contain at least 1 number.'; message.className = 'message error'; return; }
       btn.disabled = true; btn.textContent = 'Creating account...';
-      const res = await fetch(`${SUPABASE_URL}/auth/v1/signup`, {
+      // During a mentor invite, the confirmation link brings them back to the invite.
+      const inviteToken = MENTOR_INVITE_FLOW ? getMentorInviteToken() : null;
+      const signupUrl = inviteToken
+        ? `${SUPABASE_URL}/auth/v1/signup?redirect_to=${encodeURIComponent(`${window.location.origin}/accept-mentor?token=${inviteToken}`)}`
+        : `${SUPABASE_URL}/auth/v1/signup`;
+      const res = await fetch(signupUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
         body: JSON.stringify({ email, password })
       });
       const data = await res.json();
       if (data.id || data.user) {
-        message.textContent = "If this email isn't registered yet, you'll receive a confirmation link shortly!";
+        message.textContent = inviteToken
+          ? "If this email isn't registered yet, you'll receive a confirmation link shortly. It brings you back to accept the invite."
+          : "If this email isn't registered yet, you'll receive a confirmation link shortly!";
         message.className = 'message success';
         btn.textContent = 'Done!';
       } else {
