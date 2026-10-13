@@ -3728,7 +3728,12 @@ body.tp-trade-reviews .trade-review-btn { display: inline-flex; }
 }
 
 .note-body-editor h1 { font-size: 23px; font-weight: 600; letter-spacing: -0.015em; margin: 18px 0 8px; line-height: 1.3; }
-.note-body-editor img { max-width: 100% !important; }
+#page-notes .note-body-editor img {
+  width: auto !important;
+  max-width: min(750px, 100%) !important;
+}
+
+#page-notes .note-body-editor img[data-src] { width: min(750px, 100%) !important; }
 
 .note-trade-card {
   margin: 14px 0;
