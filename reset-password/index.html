@@ -2,67 +2,730 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg"/>
-  <meta name="theme-color" content="#0a0a0a"/>
-  <title>Tradeprint — Reset Password</title>
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png"/>
+  <meta name="theme-color" content="#10121a"/>
+  <meta name="color-scheme" content="dark"/>
+  <title>Tradeprint | Reset Password</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap"/>
   <style>
+    /* =====================================================================
+       TRADEPRINT UI 2.0 · AUTH
+       Same tokens as the dashboard: graphite surfaces, indigo #6366f1,
+       IBM Plex Sans, 140ms ease-out motion.
+       ===================================================================== */
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background-color: #0a0a0a; color: #ffffff; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; }
-    .logo { font-size: 28px; font-weight: 800; letter-spacing: -1px; margin-bottom: 40px; text-decoration: none; color: #fff; }
-    .logo span { color: #6366f1; }
-    .card { background: #111; border: 1px solid #222; border-radius: 12px; padding: 40px; width: 100%; max-width: 400px; }
-    .card-title { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
-    .card-sub { font-size: 14px; color: #555; margin-bottom: 32px; }
-    .form-group { margin-bottom: 20px; }
-    label { display: block; font-size: 13px; color: #888; margin-bottom: 8px; }
-    .pw-wrap { position: relative; }
-    .pw-wrap input { padding-right: 44px; }
-    input { width: 100%; padding: 12px 16px; font-size: 15px; border-radius: 8px; border: 1px solid #333; background: #0a0a0a; color: #fff; outline: none; transition: border-color 0.2s; }
-    input:focus { border-color: #6366f1; }
-    .pw-eye { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #555; padding: 4px; display: flex; align-items: center; justify-content: center; transition: color 0.2s; }
-    .pw-eye:hover { color: #aaa; }
-    .pw-eye svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-    .btn { width: 100%; background-color: #6366f1; color: white; border: none; padding: 14px; font-size: 16px; border-radius: 8px; cursor: pointer; font-weight: 600; transition: background 0.2s; margin-top: 8px; }
-    .btn:hover { background-color: #4f46e5; }
-    .btn:disabled { background-color: #444; cursor: not-allowed; }
-    .message { font-size: 13px; margin-top: 16px; text-align: center; min-height: 20px; }
-    .message.success { color: #6366f1; }
-    .message.error { color: #ef4444; }
+
+    :root {
+      color-scheme: dark;
+      --nav: #0c0e14;
+      --canvas: #10121a;
+      --inset: #12141c;
+      --surface: #171a24;
+      --raised: #1d2130;
+      --overlay: #1a1d29;
+      --line: #262a38;
+      --line-soft: #1f2330;
+      --line-strong: #353b4f;
+      --text: #e9ebf2;
+      --text2: #979db1;
+      --text-3: #6d7388;
+      --text-hint: #8188a0;
+      --accent: #6366f1;
+      --accent-hover: #5458e8;
+      --accent-text: #a3a6fb;
+      --accent-soft: rgba(99, 102, 241, 0.14);
+      --accent-softer: rgba(99, 102, 241, 0.08);
+      --accent-line: rgba(99, 102, 241, 0.5);
+      --danger: #ef4444;
+      --danger-text: #f87171;
+      --neg-soft: rgba(239, 68, 68, 0.1);
+      --neg-line: rgba(239, 68, 68, 0.36);
+      --success: #22c55e;
+      --success-text: #4ade80;
+      --pos-soft: rgba(34, 197, 94, 0.1);
+      --pos-line: rgba(34, 197, 94, 0.34);
+      --warn: #f59e0b;
+      --warn-text: #fbbf24;
+      --warn-soft: rgba(245, 158, 11, 0.1);
+      --warn-line: rgba(245, 158, 11, 0.38);
+      --hover: rgba(255, 255, 255, 0.04);
+      --focus-ring: 0 0 0 2px var(--canvas), 0 0 0 4px rgba(99, 102, 241, 0.7);
+      --shadow-card: 0 24px 64px rgba(2, 3, 7, 0.5), 0 2px 8px rgba(2, 3, 7, 0.3);
+      --btn-sheen: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+      --r-sm: 6px;
+      --r-md: 8px;
+      --r-lg: 12px;
+      --r-xl: 16px;
+      --font-sans: "IBM Plex Sans", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+      --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+      --dur: 140ms;
+    }
+
+    html { -webkit-text-size-adjust: 100%; background: var(--canvas); }
+
+    body {
+      min-height: 100vh;
+      min-height: 100dvh;
+      background: var(--canvas);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+    }
+
+    button, input { font-family: inherit; }
+    ::selection { background: rgba(99, 102, 241, 0.35); }
+    :focus { outline: none; }
+    :focus-visible { outline: none; box-shadow: var(--focus-ring); }
+    input:focus-visible { box-shadow: none; }
+    svg { flex-shrink: 0; }
+    [hidden] { display: none !important; }
+
+    /* ---------- Page ---------- */
+    .auth-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+      background-size: 56px 56px;
+      background-position: center top;
+      -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 38%, #000 0%, transparent 78%);
+      mask-image: radial-gradient(ellipse 70% 60% at 50% 38%, #000 0%, transparent 78%);
+    }
+
+    .auth {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: max(32px, env(safe-area-inset-top)) 16px max(32px, env(safe-area-inset-bottom));
+    }
+
+    .auth-inner {
+      width: 100%;
+      max-width: 420px;
+      margin: auto 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Logo mark + wordmark, centered together as one unit */
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 28px;
+      padding: 2px 6px;
+      border-radius: var(--r-sm);
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .brand-mark { display: block; flex: none; width: auto; height: 26px; }
+    .brand-word span { color: var(--accent); }
+
+    /* ---------- Card ---------- */
+    .card {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--r-xl);
+      box-shadow: var(--shadow-card), inset 0 1px 0 rgba(255, 255, 255, 0.025);
+      padding: 28px 28px 26px;
+      animation: tpRise 260ms var(--ease) both;
+    }
+
+    .card-head { margin-bottom: 20px; }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin: -4px 0 16px -6px;
+      padding: 4px 8px 4px 6px;
+      border: none;
+      border-radius: var(--r-sm);
+      background: transparent;
+      color: var(--text2);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: color var(--dur) var(--ease), background var(--dur) var(--ease);
+    }
+
+    .back-link:hover { color: var(--text); background: var(--hover); }
+    .back-link svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    .head-icon {
+      width: 40px;
+      height: 40px;
+      margin-bottom: 16px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      background: var(--accent-soft);
+      border: 1px solid rgba(99, 102, 241, 0.28);
+      color: var(--accent-text);
+    }
+
+    .head-icon svg { width: 19px; height: 19px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+    .card-title {
+      font-size: 22px;
+      line-height: 1.25;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+
+    .card-sub {
+      margin-top: 6px;
+      font-size: 13.5px;
+      line-height: 1.5;
+      color: var(--text2);
+    }
+
+    /* Segmented control (matches the dashboard's .prints-tabs) */
+    .seg {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3px;
+      padding: 3px;
+      margin-bottom: 22px;
+      background: var(--inset);
+      border: 1px solid var(--line-soft);
+      border-radius: var(--r-md);
+    }
+
+    .seg::before {
+      content: '';
+      position: absolute;
+      top: 3px;
+      bottom: 3px;
+      left: 3px;
+      width: calc(50% - 4.5px);
+      border-radius: var(--r-sm);
+      background: var(--raised);
+      box-shadow: 0 0 0 1px var(--line-strong), 0 1px 2px rgba(2, 3, 7, 0.4);
+      transition: transform 200ms var(--ease);
+    }
+
+    .seg[data-active="signup"]::before { transform: translateX(calc(100% + 3px)); }
+
+    .seg-btn {
+      position: relative;
+      z-index: 1;
+      min-height: 34px;
+      padding: 0 12px;
+      border: none;
+      border-radius: var(--r-sm);
+      background: transparent;
+      color: var(--text2);
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: color var(--dur) var(--ease);
+    }
+
+    .seg-btn:hover { color: var(--text); }
+    .seg-btn[aria-selected="true"] { color: var(--text); }
+
+    /* Panels */
+    .panel { display: none; }
+    .panel.active { display: block; animation: tpRise 200ms var(--ease) both; }
+
+    @keyframes tpRise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    @keyframes tpSpin { to { transform: rotate(360deg); } }
+
+    /* ---------- Fields ---------- */
+    .field { margin-bottom: 16px; }
+
+    .field-top {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 7px;
+    }
+
+    .field label {
+      display: block;
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--text2);
+    }
+
+    .field-top label { margin-bottom: 0; }
+    .field > label { margin-bottom: 7px; }
+
+    .control { position: relative; }
+
+    .control > .lead {
+      position: absolute;
+      left: 13px;
+      top: 50%;
+      width: 16px;
+      height: 16px;
+      transform: translateY(-50%);
+      stroke: var(--text-3);
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      pointer-events: none;
+      transition: stroke var(--dur) var(--ease);
+    }
+
+    .control input {
+      width: 100%;
+      min-height: 42px;
+      padding: 10px 12px 10px 39px;
+      font-size: 14px;
+      line-height: 1.35;
+      color: var(--text);
+      background: var(--inset);
+      border: 1px solid var(--line);
+      border-radius: var(--r-md);
+      outline: none;
+      transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease), background var(--dur) var(--ease);
+    }
+
+    .control input.has-eye { padding-right: 46px; }
+    .control input::placeholder { color: var(--text-3); opacity: 1; }
+    .control input:hover { border-color: var(--line-strong); }
+    .control input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+    .control:focus-within > .lead { stroke: var(--text2); }
+
+    .control input[aria-invalid="true"] { border-color: var(--neg-line); }
+    .control input[aria-invalid="true"]:focus { border-color: var(--danger); box-shadow: 0 0 0 3px var(--neg-soft); }
+
+    .control input:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    /* Autofill: keep the dark field instead of the browser's yellow */
+    .control input:-webkit-autofill,
+    .control input:-webkit-autofill:hover,
+    .control input:-webkit-autofill:focus {
+      -webkit-text-fill-color: var(--text);
+      caret-color: var(--text);
+      -webkit-box-shadow: 0 0 0 1000px var(--inset) inset;
+      transition: background-color 9999s ease-out 0s;
+    }
+
+    .control input:-webkit-autofill:focus { -webkit-box-shadow: 0 0 0 1000px var(--inset) inset, 0 0 0 3px var(--accent-soft); }
+
+    .pw-eye {
+      position: absolute;
+      right: 5px;
+      top: 50%;
+      width: 34px;
+      height: 32px;
+      transform: translateY(-50%);
+      display: grid;
+      place-items: center;
+      border: none;
+      border-radius: var(--r-sm);
+      background: transparent;
+      color: var(--text-3);
+      cursor: pointer;
+      transition: color var(--dur) var(--ease), background var(--dur) var(--ease);
+    }
+
+    .pw-eye:hover { color: var(--text); background: var(--hover); }
+    .pw-eye[aria-pressed="true"] { color: var(--accent-text); }
+    .pw-eye svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+
+    .link-btn {
+      padding: 0;
+      border: none;
+      border-radius: 4px;
+      background: none;
+      color: var(--accent-text);
+      font-size: 12.5px;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      transition: color var(--dur) var(--ease);
+    }
+
+    .link-btn:hover { color: #c3c5fd; text-decoration: underline; text-underline-offset: 3px; }
+
+    .field-hint {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 7px;
+      font-size: 12px;
+      line-height: 1.45;
+      color: var(--text-hint);
+    }
+
+    .caps-hint { color: var(--warn-text); }
+    .caps-hint svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    .match-hint svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+    .match-hint.ok { color: var(--success-text); }
+
+    /* Password requirements: the same four rules sign-up checks */
+    .reqs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 12px;
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: var(--r-md);
+      background: var(--inset);
+      border: 1px solid var(--line-soft);
+      list-style: none;
+    }
+
+    .req {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12px;
+      line-height: 1.35;
+      color: var(--text-hint);
+      transition: color var(--dur) var(--ease);
+    }
+
+    .req i {
+      width: 14px;
+      height: 14px;
+      flex: none;
+      border-radius: 50%;
+      border: 1.5px solid var(--line-strong);
+      display: grid;
+      place-items: center;
+      transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease);
+    }
+
+    .req i svg { width: 9px; height: 9px; stroke: #0c0e14; fill: none; stroke-width: 3.4; stroke-linecap: round; stroke-linejoin: round; opacity: 0; transition: opacity var(--dur) var(--ease); }
+    .req.met { color: var(--text2); }
+    .req.met i { background: var(--success); border-color: var(--success); }
+    .req.met i svg { opacity: 1; }
+
+    /* ---------- Buttons ---------- */
+    .btn {
+      position: relative;
+      width: 100%;
+      min-height: 42px;
+      margin-top: 6px;
+      padding: 0 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      border: 1px solid var(--accent);
+      border-radius: var(--r-md);
+      background: var(--accent);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1;
+      cursor: pointer;
+      user-select: none;
+      box-shadow: var(--btn-sheen), 0 1px 2px rgba(10, 12, 40, 0.35);
+      transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease), color var(--dur) var(--ease), box-shadow var(--dur) var(--ease), transform 80ms var(--ease);
+    }
+
+    .btn:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+    .btn:active { transform: translateY(1px); }
+
+    .btn:disabled {
+      background: var(--raised);
+      border-color: var(--line);
+      color: var(--text2);
+      box-shadow: none;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn .spinner {
+      display: none;
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      border: 2px solid currentColor;
+      border-right-color: transparent;
+      opacity: 0.85;
+      animation: tpSpin 0.7s linear infinite;
+    }
+
+    .btn.loading .spinner { display: block; }
+    .btn.loading { cursor: progress; }
+
+    .btn .done-ico { display: none; width: 15px; height: 15px; stroke: var(--success-text); fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+    .btn.done .done-ico { display: block; }
+
+    /* ---------- Messages ---------- */
+    .message {
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text2);
+    }
+
+    .message:empty { display: none; }
+
+    .message.error, .message.success, .message.info {
+      display: flex;
+      gap: 9px;
+      margin-top: 14px;
+      padding: 10px 12px;
+      border-radius: var(--r-md);
+      border: 1px solid transparent;
+      animation: tpRise 180ms var(--ease) both;
+    }
+
+    .message.error::before, .message.success::before, .message.info::before {
+      content: '';
+      width: 15px;
+      height: 15px;
+      flex: none;
+      margin-top: 2px;
+      background: currentColor;
+      -webkit-mask: var(--ico) center / contain no-repeat;
+      mask: var(--ico) center / contain no-repeat;
+    }
+
+    .message.error {
+      color: var(--danger-text);
+      background: var(--neg-soft);
+      border-color: var(--neg-line);
+      --ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M12 7.5v5'/%3E%3Cpath d='M12 16.25h.01'/%3E%3C/svg%3E");
+    }
+
+    .message.success {
+      color: var(--success-text);
+      background: var(--pos-soft);
+      border-color: var(--pos-line);
+      --ico: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='m8.5 12.5 2.5 2.5 4.5-5'/%3E%3C/svg%3E");
+    }
+
+    .notice {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      padding: 11px 13px;
+      border-radius: var(--r-md);
+      border: 1px solid transparent;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .notice svg { width: 16px; height: 16px; margin-top: 1px; stroke: currentColor; fill: none; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+
+    .invite-note { color: #c7c8ff; background: var(--accent-softer); border-color: rgba(99, 102, 241, 0.32); }
+    .invite-note svg { color: var(--accent-text); }
+    .link-notice { color: var(--warn-text); background: var(--warn-soft); border-color: var(--warn-line); }
+
+    /* ---------- Card footer line ---------- */
+    .switch-line {
+      margin-top: 20px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line-soft);
+      text-align: center;
+      font-size: 13px;
+      color: var(--text2);
+    }
+
+    .switch-line .link-btn { font-size: 13px; font-weight: 600; }
+
+    .page-foot {
+      margin-top: 22px;
+      font-size: 12.5px;
+      color: var(--text-hint);
+      text-align: center;
+    }
+
+    .page-foot a { color: var(--text2); text-decoration: none; border-radius: 4px; transition: color var(--dur) var(--ease); }
+    .page-foot a:hover { color: var(--text); }
+
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+    /* ---------- Responsive ---------- */
+    @media (max-width: 768px) {
+      .control input { font-size: 16px; min-height: 46px; }
+      .btn { min-height: 46px; font-size: 15px; }
+      .seg-btn { min-height: 38px; }
+      .pw-eye { width: 40px; height: 38px; }
+    }
+
+    @media (max-width: 480px) {
+      .auth { padding-top: max(20px, env(safe-area-inset-top)); padding-bottom: max(20px, env(safe-area-inset-bottom)); }
+      .brand { margin-bottom: 20px; font-size: 22px; gap: 9px; }
+      .brand-mark { height: 24px; }
+      .card { padding: 22px 18px 20px; border-radius: var(--r-lg); }
+      .card-title { font-size: 20px; }
+    }
+
+    @media (max-width: 359px) {
+      .reqs { grid-template-columns: 1fr; }
+    }
+
+    @media (max-height: 640px) and (min-width: 481px) {
+      .auth { padding-top: 20px; padding-bottom: 20px; }
+      .brand { margin-bottom: 18px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 1ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 1ms !important;
+      }
+    }
+
+    /* Dead-link state */
+    .btn-link { margin-top: 16px; text-decoration: none; }
+    .btn-link svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+    .message + .btn-link { margin-top: 14px; }
+    .head-icon.warn { background: var(--warn-soft); border-color: var(--warn-line); color: var(--warn-text); }
+
+    #resetFields[hidden] ~ .message { margin-top: 0; }
   </style>
 </head>
 <body>
-  <a href="/" class="logo">trade<span>print</span></a>
-  <div class="card">
-    <div class="card-title">Reset Password</div>
-    <div class="card-sub">Enter your new password below.</div>
-    <div class="form-group">
-      <label>New Password</label>
-      <div class="pw-wrap">
-        <input type="password" id="newPassword" placeholder="••••••••" />
-        <button class="pw-eye" onclick="togglePw('newPassword', this)" tabindex="-1">
-          <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-        </button>
-      </div>
+  <div class="auth-bg" aria-hidden="true"></div>
+
+  <main class="auth">
+    <div class="auth-inner">
+      <a href="/" class="brand" aria-label="Tradeprint home">
+        <img class="brand-mark" src="/assets/tradeprint-mark.png" width="24" height="26" alt="" decoding="async" onerror="this.hidden=true" />
+        <span class="brand-word">trade<span>print</span></span>
+      </a>
+
+      <section class="card" aria-labelledby="resetTitle">
+        <header class="card-head">
+          <div class="head-icon" id="headIcon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          </div>
+          <h1 class="card-title" id="resetTitle">Set a new password</h1>
+          <p class="card-sub" id="resetSub">Enter your new password below.</p>
+        </header>
+
+        <form id="resetForm" novalidate>
+          <div id="resetFields">
+          <div class="field">
+            <label for="newPassword">New Password</label>
+            <div class="control">
+              <svg class="lead" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+              <input type="password" id="newPassword" name="new-password" class="has-eye" placeholder="Create a new password" autocomplete="new-password" aria-describedby="resetReqs" enterkeyhint="next" />
+              <button type="button" class="pw-eye" data-target="newPassword" aria-label="Show password" aria-pressed="false">
+                <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+            <ul class="reqs" id="resetReqs" aria-label="Password requirements">
+              <li class="req" data-rule="length"><i><svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></i>At least 8 characters</li>
+              <li class="req" data-rule="upper"><i><svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></i>1 uppercase letter</li>
+              <li class="req" data-rule="lower"><i><svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></i>1 lowercase letter</li>
+              <li class="req" data-rule="number"><i><svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></i>1 number</li>
+            </ul>
+            <div class="field-hint caps-hint" data-caps-for="newPassword" hidden>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+              Caps Lock is on
+            </div>
+          </div>
+          <div class="field">
+            <label for="confirmPassword">Confirm New Password</label>
+            <div class="control">
+              <svg class="lead" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+              <input type="password" id="confirmPassword" name="confirm-password" class="has-eye" placeholder="Repeat the new password" autocomplete="new-password" enterkeyhint="done" />
+              <button type="button" class="pw-eye" data-target="confirmPassword" aria-label="Show password" aria-pressed="false">
+                <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+            <div class="field-hint match-hint" data-match="newPassword:confirmPassword" aria-live="polite" hidden></div>
+          </div>
+          </div>
+          <button type="submit" class="btn" id="resetBtn"><span class="spinner" aria-hidden="true"></span><svg class="done-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg><span class="btn-label">Update Password</span></button>
+          <div class="message" id="resetMessage" role="status" aria-live="polite"></div>
+          <a class="btn btn-link" id="backToLogin" href="/app" hidden>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+            Back to log in
+          </a>
+        </form>
+      </section>
+
+      <p class="page-foot">Remembered it? <a href="/app">Back to log in</a></p>
     </div>
-    <div class="form-group">
-      <label>Confirm New Password</label>
-      <div class="pw-wrap">
-        <input type="password" id="confirmPassword" placeholder="••••••••" />
-        <button class="pw-eye" onclick="togglePw('confirmPassword', this)" tabindex="-1">
-          <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-        </button>
-      </div>
-    </div>
-    <button class="btn" id="resetBtn" onclick="resetPassword()">Update Password</button>
-    <div class="message" id="resetMessage"></div>
-  </div>
+  </main>
 
   <script>
     const SUPABASE_URL = 'https://fpdedufotkmvjsvxdcmk.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_1Q8yInISuuD3HDWI7mVesQ_A-DSkCM7';
 
-    // Extract access token from URL hash — Supabase puts it there after redirect
+    /* ---------------------------------------------------------------
+       Interface helpers (presentation only, no auth logic here)
+       --------------------------------------------------------------- */
+    const $ = (id) => document.getElementById(id);
+    const FINE_POINTER = window.matchMedia && window.matchMedia('(pointer: fine)').matches;
+    const NETWORK_ERROR = 'Something went wrong. Check your connection and try again.';
+    const EYE_OPEN = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+    const EYE_SHUT = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>';
+    const CHECK_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>';
+
+    function setMessage(el, text, type) {
+      el.textContent = text;
+      el.className = 'message' + (type ? ' ' + type : '');
+    }
+
+    function setButton(btn, label, state) {
+      btn.querySelector('.btn-label').textContent = label;
+      btn.classList.toggle('loading', state === 'loading');
+      btn.classList.toggle('done', state === 'done');
+      btn.setAttribute('aria-busy', state === 'loading' ? 'true' : 'false');
+    }
+
+    function markInvalid(ids) {
+      ids.forEach((id) => $(id).setAttribute('aria-invalid', 'true'));
+      if (ids.length) $(ids[0]).focus();
+    }
+
+    function clearInvalid() {
+      document.querySelectorAll('[aria-invalid="true"]').forEach((input) => input.removeAttribute('aria-invalid'));
+    }
+
+    // The same rules resetPassword() enforces, shown live while typing.
+    function updateReqs(password) {
+      const rules = {
+        length: password.length >= 8,
+        upper: /[A-Z]/.test(password),
+        lower: /[a-z]/.test(password),
+        number: /[0-9]/.test(password)
+      };
+      document.querySelectorAll('#resetReqs .req').forEach((li) => li.classList.toggle('met', !!rules[li.dataset.rule]));
+    }
+
+    function updateMatch(hint) {
+      const first = $('newPassword').value;
+      const second = $('confirmPassword').value;
+      if (!second) { hint.hidden = true; hint.classList.remove('ok'); hint.innerHTML = ''; return; }
+      const ok = first === second;
+      hint.hidden = false;
+      hint.classList.toggle('ok', ok);
+      hint.innerHTML = ok ? `${CHECK_SVG}Passwords match` : "Passwords don't match yet";
+    }
+
+    // Extract access token from URL hash. Supabase puts it there after redirect.
     function getTokenFromHash() {
       const hash = window.location.hash.substring(1);
       const params = new URLSearchParams(hash);
@@ -79,15 +742,26 @@
       document.getElementById('resetMessage').textContent = 'Invalid or expired reset link. Please request a new one.';
       document.getElementById('resetMessage').className = 'message error';
       document.getElementById('resetBtn').disabled = true;
+      // Presentation for a dead link: lock and hide the fields, offer the way back.
+      $('newPassword').disabled = true;
+      $('confirmPassword').disabled = true;
+      $('resetFields').hidden = true;
+      $('resetBtn').hidden = true;
+      $('headIcon').classList.add('warn');
+      $('headIcon').querySelector('svg').innerHTML = '<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/>';
+      $('resetTitle').textContent = "This reset link can't be used";
+      $('resetSub').textContent = 'Request a new reset link from the log in page.';
+      $('backToLogin').hidden = false;
+      document.querySelector('.page-foot').hidden = true;
     }
 
     function togglePw(inputId, btn) {
       const input = document.getElementById(inputId);
       const isHidden = input.type === 'password';
       input.type = isHidden ? 'text' : 'password';
-      btn.querySelector('svg').innerHTML = isHidden
-        ? `<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>`
-        : `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`;
+      btn.querySelector('svg').innerHTML = isHidden ? EYE_SHUT : EYE_OPEN;
+      btn.setAttribute('aria-pressed', String(isHidden));
+      btn.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
     }
 
     async function resetPassword() {
@@ -95,39 +769,76 @@
       const confirmPassword = document.getElementById('confirmPassword').value;
       const btn = document.getElementById('resetBtn');
       const message = document.getElementById('resetMessage');
+      const fail = (text, fields) => { setMessage(message, text, 'error'); markInvalid(fields); };
 
-      if (!newPassword || !confirmPassword) { message.textContent = 'Please fill in all fields.'; message.className = 'message error'; return; }
-      if (newPassword !== confirmPassword) { message.textContent = 'Passwords do not match.'; message.className = 'message error'; return; }
-      if (newPassword.length < 8) { message.textContent = 'Password must be at least 8 characters.'; message.className = 'message error'; return; }
-      if (!/[A-Z]/.test(newPassword)) { message.textContent = 'Must contain at least 1 uppercase letter.'; message.className = 'message error'; return; }
-      if (!/[a-z]/.test(newPassword)) { message.textContent = 'Must contain at least 1 lowercase letter.'; message.className = 'message error'; return; }
-      if (!/[0-9]/.test(newPassword)) { message.textContent = 'Must contain at least 1 number.'; message.className = 'message error'; return; }
+      clearInvalid();
+      if (!newPassword || !confirmPassword) { fail('Please fill in all fields.', [!newPassword && 'newPassword', !confirmPassword && 'confirmPassword'].filter(Boolean)); return; }
+      if (newPassword !== confirmPassword) { fail('Passwords do not match.', ['confirmPassword']); return; }
+      if (newPassword.length < 8) { fail('Password must be at least 8 characters.', ['newPassword']); return; }
+      if (!/[A-Z]/.test(newPassword)) { fail('Must contain at least 1 uppercase letter.', ['newPassword']); return; }
+      if (!/[a-z]/.test(newPassword)) { fail('Must contain at least 1 lowercase letter.', ['newPassword']); return; }
+      if (!/[0-9]/.test(newPassword)) { fail('Must contain at least 1 number.', ['newPassword']); return; }
 
-      btn.disabled = true; btn.textContent = 'Updating...';
+      btn.disabled = true; setButton(btn, 'Updating...', 'loading');
+      setMessage(message, '', '');
 
-      const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${access_token}`
-        },
-        body: JSON.stringify({ password: newPassword })
-      });
+      let res, data;
+      try {
+        res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${access_token}`
+          },
+          body: JSON.stringify({ password: newPassword })
+        });
+      } catch (err) {
+        setMessage(message, NETWORK_ERROR, 'error');
+        btn.disabled = false; setButton(btn, 'Update Password');
+        return;
+      }
 
-      const data = await res.json();
+      try { data = await res.json(); } catch (err) { data = {}; }
 
       if (res.ok) {
-        message.textContent = 'Password updated! Redirecting to login...';
-        message.className = 'message success';
-        btn.textContent = 'Done!';
+        setMessage(message, 'Password updated! Redirecting to login...', 'success');
+        setButton(btn, 'Done!', 'done');
         setTimeout(() => { window.location.href = '/app'; }, 2000);
       } else {
-        message.textContent = data.msg || data.error_description || 'Something went wrong. Try requesting a new reset link.';
-        message.className = 'message error';
-        btn.disabled = false; btn.textContent = 'Update Password';
+        setMessage(message, data.msg || data.error_description || 'Something went wrong. Try requesting a new reset link.', 'error');
+        btn.disabled = false; setButton(btn, 'Update Password');
       }
     }
+
+    /* ---------------------------------------------------------------
+       Wiring
+       --------------------------------------------------------------- */
+    $('resetForm').addEventListener('submit', (e) => { e.preventDefault(); if (!$('resetBtn').disabled) resetPassword(); });
+    document.querySelectorAll('.pw-eye').forEach((btn) => btn.addEventListener('click', () => togglePw(btn.dataset.target, btn)));
+    document.querySelectorAll('.control input').forEach((input) => input.addEventListener('input', () => input.removeAttribute('aria-invalid')));
+
+    // Enter on the first field moves to the confirm field when it is still empty
+    $('newPassword').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.isComposing && $('newPassword').value && !$('confirmPassword').value) {
+        e.preventDefault();
+        $('confirmPassword').focus();
+      }
+    });
+
+    document.querySelectorAll('[data-caps-for]').forEach((hint) => {
+      const input = $(hint.dataset.capsFor);
+      const check = (e) => { if (e.getModifierState) hint.hidden = !e.getModifierState('CapsLock'); };
+      input.addEventListener('keydown', check);
+      input.addEventListener('keyup', check);
+      input.addEventListener('blur', () => { hint.hidden = true; });
+    });
+
+    $('newPassword').addEventListener('input', () => updateReqs($('newPassword').value));
+    const matchHint = document.querySelector('[data-match]');
+    ['newPassword', 'confirmPassword'].forEach((id) => $(id).addEventListener('input', () => updateMatch(matchHint)));
+
+    if (FINE_POINTER && !$('newPassword').disabled) $('newPassword').focus({ preventScroll: true });
   </script>
 </body>
 </html>
