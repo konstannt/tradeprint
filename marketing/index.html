@@ -19,8 +19,10 @@
       assets/vendor/modern-screenshot-4.7.0.js     PNG export (falls back to jsDelivr)
       assets/logo.png                              official TP logo, used as supplied
 
-    Adding a new ad: copy the Mentorship entry in TEMPLATES (section 4 of the script),
-    change its defaults, and write its product() function. Shared UI pieces live in UI.
+    Templates: Mentorship lives in TEMPLATES (section 4). Every other ad is a TPL_ object
+    in section 4c, built from the shared Tradeprint UI library (TP, section 3b).
+    To add an ad: copy a TPL_ object, change its id, layouts, defaults and product(),
+    then add it to NEW_TEMPLATES. All numbers shown in ads are example data.
   -->
 
   <style>
@@ -983,6 +985,494 @@
     .flow-step { display: grid; gap: calc(var(--u) * 10); }
     .flow-head { display: flex; align-items: center; gap: calc(var(--u) * 10); font-size: calc(var(--u) * 15); font-weight: 700; letter-spacing: -0.01em; }
     .comp-flow .u-card, .comp-flow .u-feedback { box-shadow: 0 calc(var(--u) * 12) calc(var(--u) * 30) rgba(0, 0, 0, 0.5); }
+    /* ============================================================
+       7b. TRADEPRINT UI LIBRARY (used by every template except Mentorship)
+       Values come from dashboard.html: same colors, radii, font sizes and
+       weights, multiplied by --u. Class names mirror the dashboard's
+       (t-cal-cell = .cal-cell, t-feed-item = .trade-feed-item, ...).
+       ============================================================ */
+    .tpui {
+      --ui-green: #22c55e;
+      --ui-red: #ef4444;
+      --ui-amber: #f59e0b;
+      --ui-accent: #6366f1;
+    }
+
+    .tpui .g { color: var(--ui-green); }
+    .tpui .r { color: var(--ui-red); }
+    .tpui .a { color: var(--ui-accent); }
+    .tpui .m { color: var(--ui-text2); }
+    .tpui .w { color: #ffffff; }
+
+    .t-ico { width: calc(var(--u) * 18); height: calc(var(--u) * 18); stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; display: block; }
+
+    /* Panels and stat cards (.dashboard-panel, .stat-card, .tradeprint-panel) */
+    .t-panel { background: var(--ui-bg2); border: calc(var(--u) * 1) solid var(--ui-border); border-radius: calc(var(--u) * 12); padding: calc(var(--u) * 22); min-width: 0; }
+    .t-panel-title { font-size: calc(var(--u) * 13); font-weight: 700; color: var(--ui-text2); text-transform: uppercase; letter-spacing: calc(var(--u) * 0.5); margin-bottom: calc(var(--u) * 16); line-height: 1.2; }
+    .t-panel-title.strong { color: #ffffff; font-weight: 900; margin-bottom: calc(var(--u) * 5); }
+    .t-panel-sub { color: var(--ui-text2); font-size: calc(var(--u) * 13); line-height: 1.5; }
+    .t-panel-head { display: flex; align-items: center; justify-content: space-between; gap: calc(var(--u) * 12); margin-bottom: calc(var(--u) * 16); }
+    .t-panel-head .t-panel-title { margin-bottom: 0; }
+
+    .t-stat { background: var(--ui-bg2); border: calc(var(--u) * 1) solid var(--ui-border); border-radius: calc(var(--u) * 10); padding: calc(var(--u) * 20); min-width: 0; }
+    .t-stat-label { font-size: calc(var(--u) * 11); color: var(--ui-text2); margin-bottom: calc(var(--u) * 8); text-transform: uppercase; letter-spacing: calc(var(--u) * 0.5); white-space: nowrap; }
+    .t-stat-value { font-size: calc(var(--u) * 28); font-weight: 700; line-height: 1.2; white-space: nowrap; }
+    .t-stats { display: grid; gap: calc(var(--u) * 16); }
+
+    .t-float { box-shadow: 0 calc(var(--u) * 18) calc(var(--u) * 44) rgba(0, 0, 0, 0.62); }
+    .t-float-strong { box-shadow: 0 calc(var(--u) * 18) calc(var(--u) * 44) rgba(0, 0, 0, 0.8); border-color: #262626; }
+
+    .t-select { position: relative; display: flex; align-items: center; min-height: calc(var(--u) * 38); padding: 0 calc(var(--u) * 34) 0 calc(var(--u) * 12); border-radius: calc(var(--u) * 8); border: calc(var(--u) * 1) solid var(--ui-border); background: var(--ui-bg); font-size: calc(var(--u) * 14); white-space: nowrap; overflow: hidden; }
+    .t-select::after { content: ''; position: absolute; right: calc(var(--u) * 13); top: 50%; width: calc(var(--u) * 7); height: calc(var(--u) * 7); border-right: calc(var(--u) * 1.5) solid var(--ui-text2); border-bottom: calc(var(--u) * 1.5) solid var(--ui-text2); transform: translateY(-65%) rotate(45deg); }
+    .t-input { display: flex; align-items: center; min-height: calc(var(--u) * 38); padding: 0 calc(var(--u) * 14); border-radius: calc(var(--u) * 8); border: calc(var(--u) * 1) solid var(--ui-border); background: var(--ui-bg); font-size: calc(var(--u) * 14); white-space: nowrap; overflow: hidden; }
+    .t-input.ph { color: var(--ui-text2); }
+    .t-btn { display: inline-flex; align-items: center; justify-content: center; gap: calc(var(--u) * 8); min-height: calc(var(--u) * 38); padding: 0 calc(var(--u) * 20); border-radius: calc(var(--u) * 8); font-size: calc(var(--u) * 14); font-weight: 600; white-space: nowrap; background: var(--ui-accent); color: #ffffff; border: calc(var(--u) * 1) solid var(--ui-accent); }
+    .t-btn.ghost { background: none; border-color: var(--ui-border); font-weight: 400; }
+    .t-btn.sm { min-height: calc(var(--u) * 31); padding: 0 calc(var(--u) * 11); font-size: calc(var(--u) * 12); font-weight: 900; }
+    .t-btn .t-ico { width: calc(var(--u) * 16); height: calc(var(--u) * 16); stroke-width: 2.5; }
+
+    .t-meter { height: calc(var(--u) * 10); background: var(--ui-bg); border: calc(var(--u) * 1) solid var(--ui-border); border-radius: calc(var(--u) * 8); overflow: hidden; }
+    .t-meter > i { display: block; height: 100%; border-radius: calc(var(--u) * 8); background: var(--ui-accent); }
+    .t-meter > i.g { background: var(--ui-green); }
+
+    /* Page header (.page-header) */
+    .t-page-head { display: flex; align-items: center; justify-content: space-between; gap: calc(var(--u) * 16); margin-bottom: calc(var(--u) * 20); }
+    .t-page-head h4 { font-size: calc(var(--u) * 24); font-weight: 700; line-height: 1.15; margin-bottom: calc(var(--u) * 4); }
+    .t-page-head p { font-size: calc(var(--u) * 14); color: var(--ui-text2); }
+
+    /* Dashboard (.dashboard-*) */
+    .t-focus { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: calc(var(--u) * 12); }
+    .t-focus-item { background: var(--ui-bg); border: calc(var(--u) * 1) solid var(--ui-border); border-radius: calc(var(--u) * 8); padding: calc(var(--u) * 16); min-width: 0; }
+    .t-focus-label { font-size: calc(var(--u) * 11); color: var(--ui-text2); text-transform: uppercase; letter-spacing: calc(var(--u) * 0.5); margin-bottom: calc(var(--u) * 8); }
+    .t-focus-value { font-size: calc(var(--u) * 22); font-weight: 800; white-space: nowrap; }
+    .t-focus-sub { font-size: calc(var(--u) * 12); color: var(--ui-text2); margin-top: calc(var(--u) * 5); white-space: nowrap; }
+    .t-chart-sum { display: flex; align-items: baseline; justify-content: space-between; gap: calc(var(--u) * 12); margin-bottom: calc(var(--u) * 10); }
+    .t-chart-date { font-size: calc(var(--u) * 13); font-weight: 700; }
+    .t-chart-pnl { font-size: calc(var(--u) * 18); font-weight: 900; }
+    .t-bars { position: relative; display: flex; align-items: stretch; gap: calc(var(--u) * 7); height: var(--bars-h, calc(var(--u) * 170)); padding: calc(var(--u) * 16) 0; border-top: calc(var(--u) * 1) solid var(--ui-border); border-bottom: calc(var(--u) * 1) solid var(--ui-border); }
+    .t-bars::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: calc(var(--u) * 1); background: var(--ui-border); }
+    .t-bar-wrap { flex: 1; position: relative; }
+    .t-bar { position: absolute; left: 50%; transform: translateX(-50%); width: 100%; max-width: calc(var(--u) * 18); min-height: calc(var(--u) * 3); }
+    .t-bar.g { bottom: 50%; border-radius: calc(var(--u) * 4) calc(var(--u) * 4) 0 0; background: var(--ui-green); }
+    .t-bar.r { top: 50%; border-radius: 0 0 calc(var(--u) * 4) calc(var(--u) * 4); background: var(--ui-red); }
+    .t-bar.f { top: calc(50% - calc(var(--u) * 1.5)); height: calc(var(--u) * 3); border-radius: calc(var(--u) * 4); background: var(--ui-text2); opacity: 0.85; }
+    .t-bar-ticks { display: flex; justify-content: space-between; font-size: calc(var(--u) * 10); color: var(--ui-text2); margin-top: calc(var(--u) * 10); }
+    .t-list { display: flex; flex-direction: column; }
+    .t-list-item { display: flex; justify-content: space-between; gap: calc(var(--u) * 12); padding: calc(var(--u) * 12) 0; border-bottom: calc(var(--u) * 1) solid var(--ui-border); }
+    .t-list-item:first-child { padding-top: 0; }
+    .t-list-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .t-list-main { min-width: 0; }
+    .t-list-title { font-size: calc(var(--u) * 14); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .t-list-sub { font-size: calc(var(--u) * 12); color: var(--ui-text2); margin-top: calc(var(--u) * 4); white-space: nowrap; }
+    .t-list-value { font-size: calc(var(--u) * 14); font-weight: 800; white-space: nowrap; }
+    .t-rule-meter { margin: calc(var(--u) * 12) 0 calc(var(--u) * 10); }
+
+    /* Sidebar navigation (.sidebar, .nav-item) */
+    .t-sidebar { background: var(--ui-bg2); border: calc(var(--u) * 1) solid var(--ui-border); border-radius: calc(var(--u) * 12); overflow: hidden; display: flex; flex-direction: column; }
+    .t-side-logo { display: flex; align-items: center; justify-content: space-between; padding: calc(var(--u) * 20) calc(var(--u) * 18) calc(var(--u) * 18); font-size: calc(var(--u) * 20); font-weight: 800; letter-spacing: calc(var(--u) * -0.5); }
+    .t-side-logo .p { color: var(--ui-accent); }
+    .t-nav-item { display: flex; align-items: center; gap: calc(var(--u) * 12); padding: calc(var(--u) * 11) calc(var(--u) * 20); font-size: calc(var(--u) * 14); font-weight: 500; color: var(--ui-text2); border-left: calc(var(--u) * 2) solid transparent; white-space: nowrap; }
+    .t-nav-item.active { color: #ffffff; border-left-color: var(--ui-accent); background: var(--ui-border); }
+    .t-nav-row { display: flex; align-items: center; gap: calc(var(--u) * 12); margin: 0 calc(var(--u) * 10) calc(var(--u) * 8); padding: calc(var(--u) * 11) calc(var(--u) * 10); border: calc(var(--u) * 1) solid var(--ui-border); border-radius: calc(var(--u) * 8); font-size: calc(var(--u) * 14); font-weight: 500; white-space: nowrap; }
+    .t-nav-divider { height: calc(var(--u) * 1); background: var(--ui-border); margin: calc(var(--u) * 8) 0 calc(var(--u) * 10); }
+
+    /* Mobile app bar (.mobile-header) */
+    .t-appbar { display: flex; align-items: center; gap: calc(var(--u) * 20); height: calc(var(--u) * 56); padding: 0 calc(var(--u) * 20); border-bottom: calc(var(--u) * 1) solid var(--ui-border); background: var(--ui-bg2); }
+    .t-appbar .t-ico { width: calc(var(--u) * 22); height: calc(var(--u) * 22); color: var(--ui-text2); }
+    .t-appbar b { font-size: calc(var(--u) * 18); font-weight: 800; }
+    .t-appbar b .p { color: var(--ui-accent); }
+    .t-screen { background: var(--ui-bg); border: calc(var(--u) * 1) solid var(--ui-border); border-radius: calc(var(--u) * 22); overflow: hidden; }
+
+    /* Calendar (.cal-*) */
+    .t-cal-top { display: flex; align-items: center; justify-content: space-between; gap: calc(var(--u) * 16); margin-bottom: calc(var(--u) * 18); }
+    .t-cal-nav { display: flex; align-items: center; gap: calc(var(--u) * 14); }
+    .t-cal-btn { width: calc(var(--u) * 36); height: calc(var(--u) * 36); border-radius: calc(var(--u) * 8); border: calc(var(--u) * 1) solid var(--ui-border); background: var(--ui-bg2); display: flex; align-items: center; justify-content: center; color: var(--ui-text2); flex: none; }
+    .t-cal-btn .t-ico { width: calc(var(--u) * 16); height: calc(var(--u) * 16); }
+    .t-cal-month { font-size: calc(var(--u) * 20); font-weight: 700; white-space: nowrap; }
+    .t-cal-stats { display: flex; gap: calc(var(--u) * 20); }
+    .t-cal-stat { text-align: right; }
+    .t-cal-stat-label { font-size: calc(var(--u) * 12); color: var(--ui-text2); text-transform: uppercase; letter-spacing: calc(var(--u) * 0.5); margin-bottom: calc(var(--u) * 4); white-space: nowrap; }
+    .t-cal-stat-value { font-size: calc(var(--u) * 24); font-weight: 700; white-space: nowrap; }
+    .t-cal { background: var(--ui-bg2); border: calc(var(--u) * 1) solid var(--ui-border); border-radius: calc(var(--u) * 12); overflow: hidden; }
+    .t-cal-heads, .t-cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)) var(--wk, calc(var(--u) * 84)); }
+    .t-cal-heads { border-bottom: calc(var(--u) * 1) solid var(--ui-border); }
+    .t-cal-heads div { padding: calc(var(--u) * 10) calc(var(--u) * 4); text-align: center; font-size: calc(var(--u) * 11); font-weight: 600; color: var(--ui-text2); text-transform: uppercase; letter-spacing: calc(var(--u) * 0.5); }
+    .t-cal-heads .wk { background: rgba(99, 102, 241, 0.06); }
+    .t-cal-grid { grid-auto-rows: var(--row, calc(var(--u) * 92)); }
+    .t-cal-cell { position: relative; border-right: calc(var(--u) * 1) solid var(--ui-border); border-bottom: calc(var(--u) * 1) solid var(--ui-border); display: flex; flex-direction: column; align-items: center; justify-content: center; padding: calc(var(--u) * 18) calc(var(--u) * 4) calc(var(--u) * 8); overflow: hidden; min-width: 0; }
+    .t-cal-cell.other { background: rgba(255, 255, 255, 0.01); }
+    .t-cal-cell.other .t-cal-num { opacity: 0.5; }
+    .t-cal-cell.today { background: rgba(99, 102, 241, 0.08); }
+    .t-cal-cell.today .t-cal-num { color: var(--ui-accent); font-weight: 700; }
+    .t-cal-cell.sel { box-shadow: inset 0 0 0 calc(var(--u) * 2) var(--ui-accent); }
+    .t-cal-num { position: absolute; top: calc(var(--u) * 8); left: calc(var(--u) * 8); font-size: calc(var(--u) * 11); font-weight: 600; color: var(--ui-text2); }
+    .t-cal-pnl { font-size: calc(var(--u) * 15); font-weight: 700; margin-bottom: calc(var(--u) * 2); white-space: nowrap; }
+    .t-cal-meta { font-size: calc(var(--u) * 12); color: var(--ui-text2); white-space: nowrap; line-height: 1.25; text-align: center; }
+    .t-cal-dot { position: absolute; top: calc(var(--u) * 6); right: calc(var(--u) * 6); width: calc(var(--u) * 5); height: calc(var(--u) * 5); border-radius: 50%; background: var(--ui-accent); }
+    .t-cal-news { position: absolute; bottom: calc(var(--u) * 6); left: calc(var(--u) * 6); display: inline-flex; align-items: center; gap: calc(var(--u) * 3); height: calc(var(--u) * 16); padding: 0 calc(var(--u) * 5) 0 calc(var(--u) * 4); border-radius: calc(var(--u) * 6); border: calc(var(--u) * 1) solid rgba(255, 255, 255, 0.14); background: rgba(255, 255, 255, 0.05); color: #9a9a9a; font-size: calc(var(--u) * 10); font-weight: 800; line-height: 1; }
+    .t-cal-news .t-ico { width: calc(var(--u) * 10); height: calc(var(--u) * 10); stroke-width: 2.2; }
+    .t-cal-week { border-bottom: calc(var(--u) * 1) solid var(--ui-border); background: rgba(99, 102, 241, 0.04); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(var(--u) * 3); padding: calc(var(--u) * 6) calc(var(--u) * 4); min-width: 0; }
+    .t-cal-week-pnl { font-size: calc(var(--u) * 14); font-weight: 700; white-space: nowrap; }
+    .t-cal-week .t-cal-meta { font-size: calc(var(--u) * 11); line-height: 1.6; }
+    .t-cal.no-week .t-cal-heads, .t-cal.no-week .t-cal-grid { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+    .t-cal.weekdays .t-cal-heads, .t-cal.weekdays .t-cal-grid { grid-template-columns: repeat(5, minmax(0, 1fr)) var(--wk, calc(var(--u) * 84)); }
+
+    /* Day / week modal (.day-modal-*) and trade feed (.trade-feed-item) */
+    .t-modal { background: var(--ui-bg2); border-radius: calc(var(--u) * 16); border: calc(var(--u) * 1) solid #222222; overflow: hidden; }
+    .t-modal-head { display: flex; align-items: flex-start; justify-content: space-between; gap: calc(var(--u) * 12); padding: calc(var(--u) * 22) calc(var(--u) * 26) calc(var(--u) * 18); border-bottom: calc(var(--u) * 1) solid var(--ui-border); }
+    .t-modal-date { font-size: calc(var(--u) * 28); font-weight: 800; letter-spacing: calc(var(--u) * -0.5); line-height: 1.15; white-space: nowrap; }
+    .t-modal-icons { display: flex; align-items: center; gap: calc(var(--u) * 14); color: var(--ui-text2); padding-top: calc(var(--u) * 6); }
+    .t-modal-icons .t-ico { width: calc(var(--u) * 20); height: calc(var(--u) * 20); }
+    .t-modal-icons .x { font-size: calc(var(--u) * 26); line-height: calc(var(--u) * 20); }
+    .t-modal-stats { display: flex; flex-wrap: wrap; gap: calc(var(--u) * 14) calc(var(--u) * 24); padding: calc(var(--u) * 16) calc(var(--u) * 26); border-bottom: calc(var(--u) * 1) solid var(--ui-border); }
+    .t-modal-stat-label { font-size: calc(var(--u) * 11); color: var(--ui-text2); text-transform: uppercase; letter-spacing: calc(var(--u) * 0.6); margin-bottom: calc(var(--u) * 4); }
+    .t-modal-stat-val { font-size: calc(var(--u) * 26); font-weight: 700; white-space: nowrap; line-height: 1.15; }
+    .t-modal-body { padding: 0 calc(var(--u) * 26) calc(var(--u) * 24); }
+    .t-section-title { font-size: calc(var(--u) * 11); font-weight: 700; color: var(--ui-text2); text-transform: uppercase; letter-spacing: calc(var(--u) * 1); margin: calc(var(--u) * 22) 0 calc(var(--u) * 12); }
+    .t-feed { display: flex; flex-direction: column; gap: calc(var(--u) * 10); }
+    .t-feed-item { display: flex; align-items: center; justify-content: space-between; gap: calc(var(--u) * 12); padding: calc(var(--u) * 14) calc(var(--u) * 16); background: var(--ui-bg); border: calc(var(--u) * 1) solid var(--ui-border); border-radius: calc(var(--u) * 10); }
+    .t-feed-left { flex: 1; min-width: 0; }
+    .t-feed-strat { font-size: calc(var(--u) * 14); font-weight: 600; margin-bottom: calc(var(--u) * 3); }
+    .t-feed-detail { font-size: calc(var(--u) * 12); color: var(--ui-text2); }
+    .t-feed-note { font-size: calc(var(--u) * 12); color: var(--ui-text2); font-style: italic; margin-top: calc(var(--u) * 3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .t-feed-pnl { font-size: calc(var(--u) * 16); font-weight: 700; white-space: nowrap; }
+    .t-feed-actions { display: flex; gap: calc(var(--u) * 9); color: var(--ui-text2); }
+    .t-feed-actions .t-ico { width: calc(var(--u) * 14); height: calc(var(--u) * 14); }
+    .t-note-tools { display: flex; align-items: center; gap: calc(var(--u) * 4); padding-bottom: calc(var(--u) * 10); margin-bottom: calc(var(--u) * 10); border-bottom: calc(var(--u) * 1) solid var(--ui-border); color: var(--ui-text2); font-size: calc(var(--u) * 13); white-space: nowrap; }
+    .t-note-tools span { padding: calc(var(--u) * 5) calc(var(--u) * 10); }
+    .t-note-tools i { width: calc(var(--u) * 1); height: calc(var(--u) * 18); background: var(--ui-border); margin: 0 calc(var(--u) * 4); }
+    .t-note-tools .ins { background: var(--ui-accent); color: #ffffff; border-radius: calc(var(--u) * 6); font-weight: 700; padding: calc(var(--u) * 5) calc(var(--u) * 10); }
+    .t-note { font-size: calc(var(--u) * 15); line-height: 1.8; }
+    .t-note p + p { margin-top: 0; }
+    .t-note hr { border: none; border-top: calc(var(--u) * 1) solid var(--ui-border); margin: calc(var(--u) * 12) 0; }
+    .t-rule-banner { margin: calc(var(--u) * 16) calc(var(--u) * 26) 0; padding: calc(var(--u) * 12) calc(var(--u) * 14); border: calc(var(--u) * 1) solid rgba(245, 158, 11, 0.35); border-radius: calc(var(--u) * 10); background: rgba(245, 158, 11, 0.07); }
+    .t-rule-banner-title { display: flex; justify-content: space-between; gap: calc(var(--u) * 12); font-size: calc(var(--u) * 11); font-weight: 800; color: var(--ui-amber); text-transform: uppercase; letter-spacing: calc(var(--u) * 0.8); margin-bottom: calc(var(--u) * 6); white-space: nowrap; }
+    .t-rule-banner-title span:last-child { font-size: calc(var(--u) * 10); letter-spacing: calc(var(--u) * 0.5); opacity: 0.75; }
+    .t-rule-banner-item { font-size: calc(var(--u) * 13); line-height: 1.55; }
+    .t-log-btn { display: flex; align-items: center; gap: calc(var(--u) * 8); padding: calc(var(--u) * 12) calc(var(--u) * 16); border: calc(var(--u) * 1) dashed var(--ui-border); border-radius: calc(var(--u) * 10); color: var(--ui-text2); font-size: calc(var(--u) * 14); margin-top: calc(var(--u) * 10); }
+    .t-log-btn .t-ico { width: calc(var(--u) * 16); height: calc(var(--u) * 16); }
+
+    /* Notes page (.notes-*) */
+    .t-notes { display: flex; background: var(--ui-bg2); border: calc(var(--u) * 1) solid var(--ui-border); border-radius: calc(var(--u) * 12); overflow: hidden; }
+    .t-notes-side { width: calc(var(--u) * 200); flex: none; border-right: calc(var(--u) * 1) solid var(--ui-border); }
+    .t-notes-side-head { height: calc(var(--u) * 56); display: flex; align-items: center; justify-content: space-between; padding: 0 calc(var(--u) * 14); border-bottom: calc(var(--u) * 1) solid var(--ui-border); font-size: calc(var(--u) * 13); font-weight: 700; color: var(--ui-text2); text-transform: uppercase; letter-spacing: calc(var(--u) * 0.5); }
+    .t-notes-plus { width: calc(var(--u) * 28); height: calc(var(--u) * 28); border-radius: calc(var(--u) * 6); background: var(--ui-accent); color: #ffffff; display: flex; align-items: center; justify-content: center; }
+    .t-notes-plus .t-ico { width: calc(var(--u) * 16); height: calc(var(--u) * 16); }
+    .t-note-item { padding: calc(var(--u) * 10) calc(var(--u) * 14); border-left: calc(var(--u) * 2) solid transparent; }
+    .t-note-item.active { border-left-color: var(--ui-accent); background: rgba(99, 102, 241, 0.08); }
+    .t-note-item b { display: block; font-size: calc(var(--u) * 14); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: calc(var(--u) * 3); }
+    .t-note-item span { font-size: calc(var(--u) * 11); color: var(--ui-text2); }
+    .t-notes-main { flex: 1; min-width: 0; }
+    .t-notes-bar { height: calc(var(--u) * 56); display: flex; align-items: center; gap: calc(var(--u) * 6); padding: 0 calc(var(--u) * 18); border-bottom: calc(var(--u) * 1) solid var(--ui-border); color: var(--ui-text2); font-size: calc(var(--u) * 13); white-space: nowrap; overflow: hidden; }
+    .t-notes-bar span { padding: calc(var(--u) * 4) calc(var(--u) * 8); }
+    .t-notes-bar i { width: calc(var(--u) * 1); height: calc(var(--u) * 18); background: var(--ui-border); }
+    .t-notes-bar .ins { background: var(--ui-accent); color: #ffffff; border-radius: calc(var(--u) * 6); font-weight: 700; padding: calc(var(--u) * 5) calc(var(--u) * 10); }
+    .t-notes-title { font-size: calc(var(--u) * 30); font-weight: 800; letter-spacing: calc(var(--u) * -0.5); padding: calc(var(--u) * 22) calc(var(--u) * 28) calc(var(--u) * 4); white-space: nowrap; }
+    .t-notes-body { padding: calc(var(--u) * 4) calc(var(--u) * 28) calc(var(--u) * 24); font-size: calc(var(--u) * 15); line-height: 1.75; }
+    .t-notes-body h5 { font-size: calc(var(--u) * 21); font-weight: 700; margin: calc(var(--u) * 12) 0 calc(var(--u) * 4); line-height: 1.3; }
+    .t-ntc { margin: calc(var(--u) * 12) 0; padding: calc(var(--u) * 12) calc(var(--u) * 14); border: calc(var(--u) * 1) solid var(--ui-border); border-left: calc(var(--u) * 3) solid var(--ui-accent); border-radius: calc(var(--u) * 8); background: var(--ui-bg); line-height: 1.5; }
+    .t-ntc-title { display: flex; justify-content: space-between; gap: calc(var(--u) * 12); font-size: calc(var(--u) * 13); font-weight: 700; white-space: nowrap; }
+    .t-ntc-title b { font-weight: 800; }
+    .t-ntc-detail { font-size: calc(var(--u) * 12); color: var(--ui-text2); margin-top: calc(var(--u) * 4); white-space: nowrap; }
+
+    /* Trades page (.trades-*) */
+    .t-filters { display: flex; flex-wrap: wrap; gap: calc(var(--u) * 10); margin-bottom: calc(var(--u) * 16); }
+    .t-filters .t-select { flex: 0 0 auto; min-width: calc(var(--u) * 150); background: var(--ui-bg2); }
+    .t-filters .t-input { background: var(--ui-bg2); min-width: calc(var(--u) * 200); color: var(--ui-text2); }
+    .t-table { background: var(--ui-bg2); border: calc(var(--u) * 1) solid var(--ui-border); border-radius: calc(var(--u) * 12); overflow: hidden; }
+    .t-tr { display: grid; grid-template-columns: var(--cols); gap: calc(var(--u) * 12); align-items: center; padding: calc(var(--u) * 14) calc(var(--u) * 20); border-bottom: calc(var(--u) * 1) solid var(--ui-border); }
+    .t-tr:last-child { border-bottom: none; }
+    .t-tr.head { padding: calc(var(--u) * 12) calc(var(--u) * 20); font-size: calc(var(--u) * 16); }
+    .t-tc { font-size: calc(var(--u) * 14); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .t-tc.muted { color: var(--ui-text2); font-size: calc(var(--u) * 13); }
+    .t-tc.pnl { font-weight: 700; }
+    .t-badge { display: inline-flex; align-items: center; justify-content: center; width: calc(var(--u) * 42); height: calc(var(--u) * 22); border-radius: calc(var(--u) * 20); font-size: calc(var(--u) * 12); font-weight: 600; }
+    .t-badge.win { background: rgba(34, 197, 94, 0.15); color: var(--ui-green); }
+    .t-badge.loss { background: rgba(239, 68, 68, 0.15); color: var(--ui-red); }
+    .t-badge.breakeven { background: rgba(255, 255, 255, 0.08); color: var(--ui-text2); }
+    .t-rules-yes { color: var(--ui-green); font-weight: 900; font-size: calc(var(--u) * 12); }
+    .t-rules-no { color: var(--ui-red); font-weight: 900; font-size: calc(var(--u) * 11); }
+    .t-mcards { background: var(--ui-bg2); border: calc(var(--u) * 1) solid var(--ui-border); border-radius: calc(var(--u) * 12); overflow: hidden; }
+    .t-mcard { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: calc(var(--u) * 8) calc(var(--u) * 12); padding: calc(var(--u) * 14) calc(var(--u) * 16); border-bottom: calc(var(--u) * 1) solid var(--ui-border); }
+    .t-mcard:last-child { border-bottom: none; }
+    .t-mcard-main { display: grid; gap: calc(var(--u) * 7); min-width: 0; }
+    .t-mcard-top { display: flex; justify-content: space-between; gap: calc(var(--u) * 12); align-items: baseline; }
+    .t-mcard-strat { font-size: calc(var(--u) * 15); font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .t-mcard-pnl { font-size: calc(var(--u) * 14); font-weight: 900; white-space: nowrap; }
+    .t-mcard-sub { font-size: calc(var(--u) * 12); color: var(--ui-text2); }
+    .t-mcard-chips { display: flex; gap: calc(var(--u) * 6); }
+    .t-chip { border: calc(var(--u) * 1) solid var(--ui-border); border-radius: calc(var(--u) * 20); padding: calc(var(--u) * 3) calc(var(--u) * 8); background: var(--ui-bg); color: var(--ui-text2); font-size: calc(var(--u) * 11); font-weight: 800; white-space: nowrap; }
+    .t-chip.win { color: var(--ui-green); }
+    .t-chip.loss { color: var(--ui-red); }
+    .t-mcard-actions { display: flex; gap: calc(var(--u) * 10); color: var(--ui-text2); padding-top: calc(var(--u) * 2); }
+    .t-mcard-actions .t-ico { width: calc(var(--u) * 14); height: calc(var(--u) * 14); }
+
+    /* Log Trade modal (.modal-box, .form-field, .direction-btn) */
+    .t-form { background: var(--ui-bg2); border: calc(var(--u) * 1) solid var(--ui-border); border-radius: calc(var(--u) * 12); padding: calc(var(--u) * 24); }
+    .t-form-head { display: flex; align-items: center; justify-content: space-between; gap: calc(var(--u) * 12); margin-bottom: calc(var(--u) * 20); }
+    .t-form-title { font-size: calc(var(--u) * 18); font-weight: 700; }
+    .t-form-head-actions { display: flex; align-items: center; gap: calc(var(--u) * 12); color: var(--ui-text2); }
+    .t-form-head-actions .t-btn { color: var(--ui-text2); }
+    .t-form-head-actions .x { font-size: calc(var(--u) * 22); line-height: 1; }
+    .t-field { margin-bottom: calc(var(--u) * 16); min-width: 0; }
+    .t-field-label { display: block; font-size: calc(var(--u) * 12); color: var(--ui-text2); margin-bottom: calc(var(--u) * 8); text-transform: uppercase; letter-spacing: calc(var(--u) * 0.4); white-space: nowrap; }
+    .t-grid2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: calc(var(--u) * 14); }
+    .t-dir { display: flex; align-items: center; justify-content: center; height: calc(var(--u) * 38); border-radius: calc(var(--u) * 8); border: calc(var(--u) * 1) solid var(--ui-border); background: var(--ui-bg); font-size: calc(var(--u) * 14); font-weight: 800; }
+    .t-dir.long.on { color: var(--ui-green); border-color: rgba(34, 197, 94, 0.45); background: rgba(34, 197, 94, 0.12); }
+    .t-dir.short.on { color: var(--ui-red); border-color: rgba(239, 68, 68, 0.45); background: rgba(239, 68, 68, 0.12); }
+    .t-check { display: flex; align-items: center; gap: calc(var(--u) * 10); padding: calc(var(--u) * 7) 0; border-bottom: calc(var(--u) * 1) solid var(--ui-border); font-size: calc(var(--u) * 13); text-transform: uppercase; letter-spacing: calc(var(--u) * 0.4); white-space: nowrap; }
+    .t-check:last-child { border-bottom: none; }
+    .t-box { width: calc(var(--u) * 16); height: calc(var(--u) * 16); border-radius: calc(var(--u) * 3); border: calc(var(--u) * 1.5) solid #767676; background: #ffffff; flex: none; position: relative; }
+    .t-box.on { background: var(--ui-accent); border-color: var(--ui-accent); }
+    .t-box.on::after { content: ''; position: absolute; left: calc(var(--u) * 4.5); top: calc(var(--u) * 1.5); width: calc(var(--u) * 4); height: calc(var(--u) * 8); border-right: calc(var(--u) * 2) solid #ffffff; border-bottom: calc(var(--u) * 2) solid #ffffff; transform: rotate(45deg); }
+
+    /* Tradeprint page (.tradeprint-*) */
+    .t-tp-hero { position: relative; overflow: hidden; background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.18), transparent 34%), var(--ui-bg2); border: calc(var(--u) * 1) solid var(--ui-border); border-radius: calc(var(--u) * 12); padding: calc(var(--u) * 26); }
+    .t-kicker { font-size: calc(var(--u) * 11); color: var(--ui-accent); text-transform: uppercase; letter-spacing: calc(var(--u) * 0.6); font-weight: 900; margin-bottom: calc(var(--u) * 10); white-space: nowrap; }
+    .t-tp-hero h4 { font-size: calc(var(--u) * 28); line-height: 1.12; font-weight: 900; margin-bottom: calc(var(--u) * 10); }
+    .t-tp-hero p { color: var(--ui-text2); font-size: calc(var(--u) * 14); line-height: 1.6; }
+    .t-score-card { background: var(--ui-bg2); border: calc(var(--u) * 1) solid var(--ui-border); border-radius: calc(var(--u) * 12); padding: calc(var(--u) * 24); }
+    .t-score-label { font-size: calc(var(--u) * 11); color: var(--ui-text2); text-transform: uppercase; letter-spacing: calc(var(--u) * 0.5); font-weight: 800; margin-bottom: calc(var(--u) * 10); white-space: nowrap; }
+    .t-score { font-size: calc(var(--u) * 42); font-weight: 900; color: var(--ui-accent); line-height: 1; }
+    .t-score-sub { color: var(--ui-text2); font-size: calc(var(--u) * 12); line-height: 1.5; margin-top: calc(var(--u) * 12); }
+    .t-rank-list { display: grid; gap: calc(var(--u) * 10); }
+    .t-rank { display: grid; grid-template-columns: calc(var(--u) * 42) minmax(0, 1fr) auto; gap: calc(var(--u) * 14); align-items: center; background: var(--ui-bg); border: calc(var(--u) * 1) solid var(--ui-border); border-radius: calc(var(--u) * 8); padding: calc(var(--u) * 14); }
+    .t-rank-num { width: calc(var(--u) * 32); height: calc(var(--u) * 32); border-radius: calc(var(--u) * 8); background: rgba(99, 102, 241, 0.14); color: var(--ui-accent); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: calc(var(--u) * 13); }
+    .t-rank-title { font-size: calc(var(--u) * 15); font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .t-rank-meta { font-size: calc(var(--u) * 12); color: var(--ui-text2); margin-top: calc(var(--u) * 4); white-space: nowrap; }
+    .t-rank-value { text-align: right; font-size: calc(var(--u) * 14); font-weight: 900; white-space: nowrap; }
+    .t-split { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: calc(var(--u) * 24); }
+    .t-split::before { content: ''; position: absolute; top: calc(var(--u) * 8); bottom: calc(var(--u) * 8); left: 50%; width: calc(var(--u) * 1); background: var(--ui-border); }
+    .t-mini-label { font-size: calc(var(--u) * 10); color: var(--ui-text2); text-transform: uppercase; letter-spacing: calc(var(--u) * 0.5); font-weight: 900; margin-bottom: calc(var(--u) * 6); white-space: nowrap; }
+    .t-simple-main { font-size: calc(var(--u) * 26); font-weight: 900; white-space: nowrap; line-height: 1.2; }
+    .t-simple-meta { font-size: calc(var(--u) * 12); color: var(--ui-text2); margin-top: calc(var(--u) * 4); white-space: nowrap; }
+    .t-review-pill { display: inline-flex; align-items: center; min-height: calc(var(--u) * 24); padding: 0 calc(var(--u) * 9); border-radius: calc(var(--u) * 8); background: rgba(99, 102, 241, 0.14); color: var(--ui-accent); font-size: calc(var(--u) * 11); font-weight: 900; margin-bottom: calc(var(--u) * 12); }
+    .t-review-copy { font-size: calc(var(--u) * 14); line-height: 1.6; }
+    .t-hold-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: calc(var(--u) * 10); }
+    .t-hold { background: var(--ui-bg); border: calc(var(--u) * 1) solid var(--ui-border); border-radius: calc(var(--u) * 8); padding: calc(var(--u) * 14); min-width: 0; }
+    .t-hold-value { font-size: calc(var(--u) * 22); font-weight: 900; white-space: nowrap; line-height: 1.2; }
+    .t-edge { background: var(--ui-bg); border: calc(var(--u) * 1) solid var(--ui-border); border-radius: calc(var(--u) * 8); padding: calc(var(--u) * 14); }
+    .t-edge-title { font-size: calc(var(--u) * 15); font-weight: 900; margin-bottom: calc(var(--u) * 4); }
+    .t-edge-row { border-top: calc(var(--u) * 1) solid var(--ui-border); padding-top: calc(var(--u) * 10); margin-top: calc(var(--u) * 10); }
+    .t-edge-main { font-size: calc(var(--u) * 13); font-weight: 500; line-height: 1.45; }
+    .t-edge-meta { font-size: calc(var(--u) * 12); color: var(--ui-text2); margin-top: calc(var(--u) * 4); white-space: nowrap; }
+    .t-breakdown { background: var(--ui-bg); border: calc(var(--u) * 1) solid var(--ui-border); border-radius: calc(var(--u) * 8); padding: calc(var(--u) * 14); }
+    .t-breakdown-top { display: flex; justify-content: space-between; gap: calc(var(--u) * 12); align-items: baseline; }
+    .t-breakdown-name { font-size: calc(var(--u) * 15); font-weight: 900; }
+    .t-breakdown-pnl { font-size: calc(var(--u) * 14); font-weight: 900; white-space: nowrap; }
+
+    /* Calculator (.calc-*) */
+    .t-calc-card { background: var(--ui-bg2); border: calc(var(--u) * 1) solid var(--ui-border); border-radius: calc(var(--u) * 12); padding: calc(var(--u) * 24); }
+    .t-calc-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: calc(var(--u) * 14); }
+    .t-calc-field { display: flex; flex-direction: column; gap: calc(var(--u) * 8); min-width: 0; }
+    .t-calc-field > span { font-size: calc(var(--u) * 12); color: var(--ui-text2); text-transform: uppercase; letter-spacing: calc(var(--u) * 0.4); white-space: nowrap; }
+    .t-calc-input { display: flex; align-items: center; min-height: calc(var(--u) * 44); padding: 0 calc(var(--u) * 14); border-radius: calc(var(--u) * 8); border: calc(var(--u) * 1) solid var(--ui-border); background: var(--ui-bg); font-size: calc(var(--u) * 15); white-space: nowrap; position: relative; }
+    .t-calc-input.sel::after { content: ''; position: absolute; right: calc(var(--u) * 14); top: 50%; width: calc(var(--u) * 7); height: calc(var(--u) * 7); border-right: calc(var(--u) * 1.5) solid var(--ui-text2); border-bottom: calc(var(--u) * 1.5) solid var(--ui-text2); transform: translateY(-65%) rotate(45deg); }
+    .t-calc-input.focus { border-color: var(--ui-accent); }
+    .t-calc-clear { display: inline-flex; align-items: center; min-height: calc(var(--u) * 38); padding: 0 calc(var(--u) * 20); margin-top: calc(var(--u) * 16); border-radius: calc(var(--u) * 8); border: calc(var(--u) * 1) solid var(--ui-border); color: var(--ui-text2); font-size: calc(var(--u) * 14); }
+    .t-results { display: grid; gap: calc(var(--u) * 14); }
+    .t-result { background: var(--ui-bg); border: calc(var(--u) * 1) solid var(--ui-border); border-radius: calc(var(--u) * 10); padding: calc(var(--u) * 18) calc(var(--u) * 14); text-align: center; min-width: 0; }
+    .t-result-label { font-size: calc(var(--u) * 11); color: var(--ui-text2); text-transform: uppercase; letter-spacing: calc(var(--u) * 0.5); margin-bottom: calc(var(--u) * 10); white-space: nowrap; }
+    .t-result-value { font-size: calc(var(--u) * 26); font-weight: 800; white-space: nowrap; line-height: 1.15; }
+
+    /* Prints (.print-*, .prints-*) */
+    .t-print { background: linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent), var(--ui-bg2); border: calc(var(--u) * 1) solid rgba(255, 255, 255, 0.075); border-radius: calc(var(--u) * 12); padding: calc(var(--u) * 18); }
+    .t-print-head { display: flex; align-items: center; justify-content: space-between; gap: calc(var(--u) * 12); margin-bottom: calc(var(--u) * 16); }
+    .t-print-user { display: flex; align-items: center; gap: calc(var(--u) * 11); min-width: 0; }
+    .t-avatar { width: calc(var(--u) * 32); height: calc(var(--u) * 32); border-radius: 50%; background: var(--ui-accent); color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: calc(var(--u) * 13); font-weight: 700; flex: none; }
+    .t-avatar.lg { width: calc(var(--u) * 38); height: calc(var(--u) * 38); font-size: calc(var(--u) * 15); }
+    .t-print-name { font-size: calc(var(--u) * 14); font-weight: 900; display: flex; align-items: center; gap: calc(var(--u) * 6); white-space: nowrap; }
+    .t-print-bio { font-size: calc(var(--u) * 12); color: var(--ui-text2); line-height: 1.5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .t-print-actions { display: flex; align-items: center; gap: calc(var(--u) * 12); flex: none; }
+    .t-print-date { font-size: calc(var(--u) * 12); color: var(--ui-text2); white-space: nowrap; }
+    .t-pbtn { display: inline-flex; align-items: center; min-height: calc(var(--u) * 31); padding: 0 calc(var(--u) * 11); border-radius: calc(var(--u) * 8); border: calc(var(--u) * 1) solid var(--ui-border); background: var(--ui-bg); font-size: calc(var(--u) * 12); font-weight: 900; white-space: nowrap; }
+    .t-pbtn.on { border-color: var(--ui-accent); color: var(--ui-accent); background: rgba(99, 102, 241, 0.1); }
+    .t-print-top { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: calc(var(--u) * 12); margin-bottom: calc(var(--u) * 13); }
+    .t-print-main { font-size: calc(var(--u) * 20); font-weight: 900; margin-bottom: calc(var(--u) * 6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .t-print-meta { font-size: calc(var(--u) * 12); color: var(--ui-text2); line-height: 1.5; white-space: nowrap; }
+    .t-pnl-chip { min-width: calc(var(--u) * 112); min-height: calc(var(--u) * 46); display: inline-flex; align-items: center; justify-content: center; padding: 0 calc(var(--u) * 14); border-radius: calc(var(--u) * 8); border: calc(var(--u) * 1) solid var(--ui-border); background: var(--ui-bg); font-size: calc(var(--u) * 18); font-weight: 900; white-space: nowrap; }
+    .t-pnl-chip.green { color: var(--ui-green); border-color: rgba(34, 197, 94, 0.26); background: rgba(34, 197, 94, 0.07); }
+    .t-pnl-chip.red { color: var(--ui-red); border-color: rgba(239, 68, 68, 0.26); background: rgba(239, 68, 68, 0.07); }
+    .t-print-caption { margin: calc(var(--u) * 12) 0 calc(var(--u) * 2); font-size: calc(var(--u) * 14); line-height: 1.55; }
+    .t-print-foot { display: flex; align-items: center; justify-content: space-between; gap: calc(var(--u) * 12); margin-top: calc(var(--u) * 18); }
+    .t-print-details { border-top: calc(var(--u) * 1) solid var(--ui-border); margin-top: calc(var(--u) * 14); padding-top: calc(var(--u) * 14); }
+    .t-pills { display: flex; flex-wrap: wrap; gap: calc(var(--u) * 6); margin-top: calc(var(--u) * 8); }
+    .t-pill-c { border: calc(var(--u) * 1) solid var(--ui-border); background: var(--ui-bg); color: var(--ui-text2); border-radius: calc(var(--u) * 20); padding: calc(var(--u) * 4) calc(var(--u) * 9); font-size: calc(var(--u) * 12); white-space: nowrap; }
+    .t-you { display: inline-flex; align-items: center; min-height: calc(var(--u) * 20); padding: 0 calc(var(--u) * 7); border-radius: calc(var(--u) * 8); border: calc(var(--u) * 1) solid rgba(34, 197, 94, 0.4); background: rgba(34, 197, 94, 0.14); color: var(--ui-green); font-size: calc(var(--u) * 10); font-weight: 900; text-transform: uppercase; letter-spacing: calc(var(--u) * 0.4); }
+    .t-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(var(--u) * 6); padding: calc(var(--u) * 5); background: rgba(255, 255, 255, 0.025); border: calc(var(--u) * 1) solid var(--ui-border); border-radius: calc(var(--u) * 8); }
+    .t-tab { min-height: calc(var(--u) * 36); display: flex; align-items: center; justify-content: center; border-radius: calc(var(--u) * 6); font-size: calc(var(--u) * 13); font-weight: 900; color: var(--ui-text2); white-space: nowrap; padding: 0 calc(var(--u) * 14); }
+    .t-tab.on { background: var(--ui-accent); color: #ffffff; }
+    .t-side-title { font-size: calc(var(--u) * 11); font-weight: 900; color: var(--ui-text2); text-transform: uppercase; letter-spacing: calc(var(--u) * 0.5); margin-bottom: calc(var(--u) * 14); white-space: nowrap; }
+    .t-segs { display: flex; flex-wrap: wrap; gap: calc(var(--u) * 6); }
+    .t-seg { display: inline-flex; align-items: center; min-height: calc(var(--u) * 32); padding: 0 calc(var(--u) * 10); border-radius: calc(var(--u) * 8); border: calc(var(--u) * 1) solid var(--ui-border); background: var(--ui-bg); color: var(--ui-text2); font-size: calc(var(--u) * 12); font-weight: 900; white-space: nowrap; }
+    .t-seg.on { border-color: var(--ui-accent); background: rgba(99, 102, 241, 0.14); color: var(--ui-accent); }
+    .t-lb { display: grid; gap: calc(var(--u) * 10); }
+    .t-lb-row { display: grid; grid-template-columns: calc(var(--u) * 34) minmax(0, 1fr) auto; align-items: center; gap: calc(var(--u) * 12); padding: calc(var(--u) * 14); border: calc(var(--u) * 1) solid var(--ui-border); border-radius: calc(var(--u) * 8); background: var(--ui-bg2); }
+    .t-lb-rank { width: calc(var(--u) * 28); height: calc(var(--u) * 28); display: grid; place-items: center; border-radius: calc(var(--u) * 8); background: var(--ui-bg); color: var(--ui-text2); font-size: calc(var(--u) * 12); font-weight: 900; }
+    .t-lb-user { display: flex; align-items: center; gap: calc(var(--u) * 10); min-width: 0; }
+    .t-lb-value { font-size: calc(var(--u) * 15); font-weight: 900; white-space: nowrap; }
+    .t-network { display: flex; justify-content: space-between; gap: calc(var(--u) * 12); margin-top: calc(var(--u) * 16); padding-top: calc(var(--u) * 14); border-top: calc(var(--u) * 1) solid var(--ui-border); }
+    .t-network strong { display: block; font-size: calc(var(--u) * 20); font-weight: 900; }
+    .t-network small { display: block; font-size: calc(var(--u) * 10); color: var(--ui-text2); text-transform: uppercase; letter-spacing: calc(var(--u) * 0.4); margin-top: calc(var(--u) * 3); }
+
+    /* Prop Firm Command Center (.prop-*) */
+    .t-prop-hero { position: relative; overflow: hidden; background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.16), transparent 36%), var(--ui-bg2); border: calc(var(--u) * 1) solid var(--ui-border); border-radius: calc(var(--u) * 12); padding: calc(var(--u) * 24); }
+    .t-prop-firm { font-size: calc(var(--u) * 11); font-weight: 900; letter-spacing: calc(var(--u) * 0.8); text-transform: uppercase; color: var(--ui-accent); white-space: nowrap; }
+    .t-prop-title { font-size: calc(var(--u) * 28); font-weight: 900; line-height: 1.1; margin: calc(var(--u) * 6) 0 calc(var(--u) * 10); white-space: nowrap; }
+    .t-prop-meta { display: flex; align-items: center; gap: calc(var(--u) * 8); margin-bottom: calc(var(--u) * 18); white-space: nowrap; }
+    .t-prop-nick { font-size: calc(var(--u) * 12); color: var(--ui-text2); }
+    .t-ppill { display: inline-flex; align-items: center; min-height: calc(var(--u) * 22); padding: 0 calc(var(--u) * 8); border-radius: calc(var(--u) * 6); font-size: calc(var(--u) * 11); font-weight: 900; border: calc(var(--u) * 1) solid var(--ui-border); background: var(--ui-bg); color: var(--ui-text2); white-space: nowrap; }
+    .t-ppill.stage { color: #ffffff; }
+    .t-ppill.green { color: var(--ui-green); border-color: rgba(34, 197, 94, 0.35); background: rgba(34, 197, 94, 0.1); }
+    .t-ppill.yellow { color: var(--ui-amber); border-color: rgba(245, 158, 11, 0.35); background: rgba(245, 158, 11, 0.1); }
+    .t-ppill.blue { color: var(--ui-accent); border-color: rgba(99, 102, 241, 0.4); background: rgba(99, 102, 241, 0.1); }
+    .t-prop-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: calc(var(--u) * 10); }
+    .t-prop-stats > div { background: var(--ui-bg); border: calc(var(--u) * 1) solid var(--ui-border); border-radius: calc(var(--u) * 8); padding: calc(var(--u) * 12) calc(var(--u) * 12); min-width: 0; }
+    .t-prop-stats span { display: block; font-size: calc(var(--u) * 10); color: var(--ui-text2); text-transform: uppercase; letter-spacing: calc(var(--u) * 0.5); margin-bottom: calc(var(--u) * 6); white-space: nowrap; }
+    .t-prop-stats b { display: block; font-size: calc(var(--u) * 19); font-weight: 900; white-space: nowrap; }
+    .t-goal { margin-top: calc(var(--u) * 18); }
+    .t-goal-row { display: flex; justify-content: space-between; font-size: calc(var(--u) * 12); color: var(--ui-text2); font-weight: 700; margin-bottom: calc(var(--u) * 8); }
+    .t-goal-sub { font-size: calc(var(--u) * 13); font-weight: 800; margin-top: calc(var(--u) * 8); }
+    .t-progress { height: calc(var(--u) * 10); background: var(--ui-bg); border: calc(var(--u) * 1) solid var(--ui-border); border-radius: calc(var(--u) * 8); overflow: hidden; }
+    .t-progress > i { display: block; height: 100%; border-radius: calc(var(--u) * 8); background: var(--ui-accent); }
+    .t-progress > i.green { background: var(--ui-green); }
+    .t-big { font-size: calc(var(--u) * 30); font-weight: 900; line-height: 1; margin-bottom: calc(var(--u) * 12); white-space: nowrap; }
+    .t-big span { display: block; font-size: calc(var(--u) * 12); color: var(--ui-text2); font-weight: 600; margin-top: calc(var(--u) * 6); }
+    .t-kv { display: flex; justify-content: space-between; align-items: baseline; gap: calc(var(--u) * 12); padding: calc(var(--u) * 8) 0; border-bottom: calc(var(--u) * 1) solid var(--ui-border); font-size: calc(var(--u) * 13); color: var(--ui-text2); white-space: nowrap; }
+    .t-kv:last-child { border-bottom: none; }
+    .t-kv b { color: #ffffff; font-weight: 800; }
+    .t-kv b.g { color: var(--ui-green); }
+    .t-kv b.r { color: var(--ui-red); }
+    .t-rule-row { display: flex; align-items: center; justify-content: space-between; gap: calc(var(--u) * 12); padding: calc(var(--u) * 10) 0; border-bottom: calc(var(--u) * 1) solid var(--ui-border); }
+    .t-rule-row:last-child { border-bottom: none; }
+    .t-rule-name { font-size: calc(var(--u) * 13); font-weight: 800; white-space: nowrap; }
+    .t-rule-text { font-size: calc(var(--u) * 12); color: var(--ui-text2); margin-top: calc(var(--u) * 3); white-space: nowrap; }
+    .t-pdot { width: calc(var(--u) * 11); height: calc(var(--u) * 11); border-radius: 50%; flex: none; background: var(--ui-green); }
+    .t-pdot.not_met { background: var(--ui-amber); }
+    .t-pdot.pending { background: transparent; border: calc(var(--u) * 2) solid var(--ui-text2); }
+    .t-checks { margin-top: calc(var(--u) * 12); border-top: calc(var(--u) * 1) solid var(--ui-border); padding-top: calc(var(--u) * 10); display: grid; gap: calc(var(--u) * 6); }
+    .t-pcheck { display: flex; gap: calc(var(--u) * 8); align-items: center; font-size: calc(var(--u) * 12); line-height: 1.45; white-space: nowrap; }
+    .t-pcheck i { width: calc(var(--u) * 18); height: calc(var(--u) * 18); border-radius: calc(var(--u) * 6); border: calc(var(--u) * 1) solid rgba(34, 197, 94, 0.4); color: var(--ui-green); display: inline-flex; align-items: center; justify-content: center; font-style: normal; font-size: calc(var(--u) * 11); font-weight: 900; flex: none; }
+    .t-pcheck.pending { color: var(--ui-text2); }
+    .t-pcheck.pending i { border-color: var(--ui-border); color: var(--ui-text2); }
+    .t-journey { display: flex; background: var(--ui-bg2); border: calc(var(--u) * 1) solid var(--ui-border); border-radius: calc(var(--u) * 12); padding: calc(var(--u) * 14) calc(var(--u) * 12); }
+    .t-jstep { flex: 1; position: relative; text-align: center; padding: 0 calc(var(--u) * 4); min-width: 0; }
+    .t-jstep::before { content: ''; position: absolute; top: calc(var(--u) * 7); left: 50%; right: -50%; height: calc(var(--u) * 2); background: var(--ui-border); }
+    .t-jstep:last-child::before { display: none; }
+    .t-jdot { width: calc(var(--u) * 14); height: calc(var(--u) * 14); border-radius: 50%; border: calc(var(--u) * 2) solid var(--ui-border); background: var(--ui-bg2); margin: 0 auto calc(var(--u) * 8); position: relative; z-index: 1; }
+    .t-jstep.done .t-jdot { background: var(--ui-green); border-color: var(--ui-green); }
+    .t-jstep.active .t-jdot { background: var(--ui-accent); border-color: var(--ui-accent); box-shadow: 0 0 0 calc(var(--u) * 4) rgba(99, 102, 241, 0.2); }
+    .t-jlabel { font-size: calc(var(--u) * 12); font-weight: 800; white-space: nowrap; }
+    .t-jstep.todo .t-jlabel { color: var(--ui-text2); }
+    .t-jsub { font-size: calc(var(--u) * 11); color: var(--ui-text2); margin-top: calc(var(--u) * 3); white-space: nowrap; }
+    .t-ptable { width: 100%; border-collapse: collapse; font-size: calc(var(--u) * 13); }
+    .t-ptable th { text-align: left; font-size: calc(var(--u) * 11); color: var(--ui-text2); text-transform: uppercase; letter-spacing: calc(var(--u) * 0.4); padding: calc(var(--u) * 8) calc(var(--u) * 10); border-bottom: calc(var(--u) * 1) solid var(--ui-border); white-space: nowrap; font-weight: 700; }
+    .t-ptable td { padding: calc(var(--u) * 10); border-bottom: calc(var(--u) * 1) solid var(--ui-border); vertical-align: top; white-space: nowrap; line-height: 1.25; }
+    .t-ptable tr:last-child td { border-bottom: none; }
+    .t-alert { display: flex; align-items: center; justify-content: space-between; gap: calc(var(--u) * 14); border: calc(var(--u) * 1) solid rgba(34, 197, 94, 0.35); background: rgba(34, 197, 94, 0.07); border-radius: calc(var(--u) * 10); padding: calc(var(--u) * 14) calc(var(--u) * 16); font-size: calc(var(--u) * 13); line-height: 1.5; }
+    .t-next-label { font-size: calc(var(--u) * 11); color: var(--ui-text2); text-transform: uppercase; letter-spacing: calc(var(--u) * 0.5); font-weight: 800; margin-bottom: calc(var(--u) * 12); }
+    .t-next-text { font-size: calc(var(--u) * 15); line-height: 1.55; font-weight: 600; margin-bottom: calc(var(--u) * 14); }
+
+    /* Economic News (.econ-*) */
+    .t-econ { background: var(--ui-bg2); border-radius: calc(var(--u) * 16); border: calc(var(--u) * 1) solid #222222; overflow: hidden; }
+    .t-econ-head { display: flex; justify-content: space-between; gap: calc(var(--u) * 12); padding: calc(var(--u) * 24) calc(var(--u) * 26) calc(var(--u) * 20); border-bottom: calc(var(--u) * 1) solid var(--ui-border); }
+    .t-econ-kicker { font-size: calc(var(--u) * 11); font-weight: 800; color: var(--ui-red); text-transform: uppercase; letter-spacing: calc(var(--u) * 0.8); margin-bottom: calc(var(--u) * 6); }
+    .t-econ-date { font-size: calc(var(--u) * 24); font-weight: 800; letter-spacing: calc(var(--u) * -0.5); line-height: 1.15; white-space: nowrap; }
+    .t-econ-sub { margin-top: calc(var(--u) * 6); font-size: calc(var(--u) * 13); color: var(--ui-text2); }
+    .t-econ-x { font-size: calc(var(--u) * 26); line-height: 1; color: var(--ui-text2); }
+    .t-econ-body { display: flex; flex-direction: column; gap: calc(var(--u) * 10); padding: calc(var(--u) * 20) calc(var(--u) * 26) calc(var(--u) * 24); }
+    .t-econ-day { margin: calc(var(--u) * 8) 0 calc(var(--u) * 2); font-size: calc(var(--u) * 11); font-weight: 700; color: var(--ui-text2); text-transform: uppercase; letter-spacing: calc(var(--u) * 1); }
+    .t-econ-day:first-child { margin-top: 0; }
+    .t-ecard { border: calc(var(--u) * 1) solid var(--ui-border); border-radius: calc(var(--u) * 12); background: var(--ui-bg); overflow: hidden; }
+    .t-ecard-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; column-gap: calc(var(--u) * 14); padding: calc(var(--u) * 13) calc(var(--u) * 16); }
+    .t-ecard-time { min-width: calc(var(--u) * 80); font-size: calc(var(--u) * 13); font-weight: 700; white-space: nowrap; }
+    .t-ecard-name { font-size: calc(var(--u) * 15); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .t-chev { width: calc(var(--u) * 8); height: calc(var(--u) * 8); border-right: calc(var(--u) * 1.5) solid var(--ui-text2); border-bottom: calc(var(--u) * 1.5) solid var(--ui-text2); transform: rotate(-45deg); margin-right: calc(var(--u) * 2); }
+    .t-ecard.open .t-chev { transform: rotate(45deg); }
+    .t-ecard.open .t-ecard-head { grid-template-columns: minmax(0, 1fr) auto auto; grid-template-areas: "time status chev" "name name name"; column-gap: calc(var(--u) * 10); row-gap: calc(var(--u) * 8); padding: calc(var(--u) * 16) calc(var(--u) * 18) 0; }
+    .t-ecard.open .t-ecard-time { grid-area: time; }
+    .t-ecard.open .t-estatus { grid-area: status; }
+    .t-ecard.open .t-chev { grid-area: chev; }
+    .t-ecard.open .t-ecard-name { grid-area: name; font-size: calc(var(--u) * 16); font-weight: 800; }
+    .t-ecard-body { padding: 0 calc(var(--u) * 18) calc(var(--u) * 16); }
+    .t-estatus { display: inline-flex; align-items: center; min-height: calc(var(--u) * 22); padding: 0 calc(var(--u) * 8); border-radius: calc(var(--u) * 6); border: calc(var(--u) * 1) solid var(--ui-border); font-size: calc(var(--u) * 11); font-weight: 800; color: var(--ui-text2); white-space: nowrap; justify-self: end; }
+    .t-estatus.released { color: #ffffff; border-color: rgba(255, 255, 255, 0.18); }
+    .t-ecard-meta { margin-top: calc(var(--u) * 4); font-size: calc(var(--u) * 12); color: var(--ui-text2); white-space: nowrap; }
+    .t-ecard-meta b { color: var(--ui-red); font-weight: 800; }
+    .t-metrics { margin-top: calc(var(--u) * 14); border: calc(var(--u) * 1) solid var(--ui-border); border-radius: calc(var(--u) * 8); overflow: hidden; }
+    .t-mrow { display: grid; grid-template-columns: minmax(0, 1fr) calc(var(--u) * 96) calc(var(--u) * 96); gap: calc(var(--u) * 8); padding: calc(var(--u) * 9) calc(var(--u) * 12); border-top: calc(var(--u) * 1) solid var(--ui-border); font-size: calc(var(--u) * 13); align-items: start; }
+    .t-mrow:first-child { border-top: none; }
+    .t-mrow.head { background: rgba(255, 255, 255, 0.02); font-size: calc(var(--u) * 10); font-weight: 800; color: var(--ui-text2); text-transform: uppercase; letter-spacing: calc(var(--u) * 0.6); }
+    .t-mname { font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+    .t-mval { text-align: right; font-weight: 800; white-space: nowrap; }
+    .t-mval.empty { color: var(--ui-text2); font-weight: 600; }
+    .t-mval small { display: block; margin-top: calc(var(--u) * 2); font-size: calc(var(--u) * 10); font-weight: 600; color: var(--ui-text2); }
+    .t-ecard-foot { display: flex; flex-direction: column; gap: calc(var(--u) * 4); margin-top: calc(var(--u) * 12); font-size: calc(var(--u) * 12); color: var(--ui-text2); }
+    .t-ecard-foot b { color: #ffffff; font-weight: 600; }
+    .t-elink { display: inline-flex; align-items: center; gap: calc(var(--u) * 6); margin-top: calc(var(--u) * 6); font-size: calc(var(--u) * 12); font-weight: 700; color: var(--ui-accent); }
+    .t-econ-note { font-size: calc(var(--u) * 11); line-height: 1.5; color: var(--ui-text2); }
+    .t-news-btn { color: #ffffff; display: inline-flex; align-items: center; gap: calc(var(--u) * 6); min-height: calc(var(--u) * 32); padding: 0 calc(var(--u) * 11); border-radius: calc(var(--u) * 8); border: calc(var(--u) * 1) solid rgba(239, 68, 68, 0.35); background: rgba(239, 68, 68, 0.08); font-size: calc(var(--u) * 12); font-weight: 800; white-space: nowrap; }
+    .t-news-btn .t-ico { width: calc(var(--u) * 14); height: calc(var(--u) * 14); color: var(--ui-red); stroke-width: 2.2; }
+    .t-strip { display: flex; align-items: center; gap: calc(var(--u) * 10); min-height: calc(var(--u) * 34); padding: calc(var(--u) * 7) calc(var(--u) * 10); border-radius: calc(var(--u) * 8); color: #8f8f8f; font-size: calc(var(--u) * 13); white-space: nowrap; }
+    .t-strip .t-ico { width: calc(var(--u) * 14); height: calc(var(--u) * 14); color: var(--ui-red); stroke-width: 2.2; opacity: 0.85; }
+    .t-strip b { color: #d6d6d6; font-weight: 700; }
+    .t-strip-events { padding-left: calc(var(--u) * 10); border-left: calc(var(--u) * 1) solid var(--ui-border); overflow: hidden; }
+    .t-strip-events em { font-style: normal; color: #d6d6d6; font-weight: 600; margin-right: calc(var(--u) * 5); }
+    .t-strip .sep { margin: 0 calc(var(--u) * 6); opacity: 0.55; }
+    .t-rank.stack { grid-template-columns: calc(var(--u) * 34) minmax(0, 1fr); }
+    .t-rank.stack .t-rank-value { grid-column: 2; text-align: left; }
+    .t-form-foot { display: flex; justify-content: flex-end; gap: calc(var(--u) * 12); padding-top: calc(var(--u) * 4); }
+    .t-field.last { margin-bottom: calc(var(--u) * 18); }
+    .t-bleed { width: calc(var(--u) * 1180); }
+    .t-bleed .t-filters { flex-wrap: nowrap; }
+
+    /* Compositions for the new templates. Widths are in dashboard px (--u). */
+    .comp-g-bento { width: calc(var(--u) * 480); display: grid; gap: calc(var(--u) * 12); }
+    .g-bento-row { display: grid; grid-template-columns: 1.3fr 0.7fr; gap: calc(var(--u) * 12); }
+    .comp-g-dash { width: calc(var(--u) * 480); }
+    .comp-g-mobile { width: calc(var(--u) * 400); }
+    .comp-j-day { width: calc(var(--u) * 500); }
+    .comp-j-notes { width: calc(var(--u) * 540); }
+    .comp-j-disc { width: calc(var(--u) * 480); }
+    .comp-j-disc > .t-panel { width: calc(var(--u) * 280); position: relative; z-index: 1; }
+    .j-disc-day { width: calc(var(--u) * 450); margin: calc(var(--u) * -22) 0 0 auto; position: relative; z-index: 2; }
+    .comp-c-month { width: calc(var(--u) * 580); }
+    .comp-c-close { width: calc(var(--u) * 580); }
+    .comp-c-day { width: calc(var(--u) * 560); }
+    .c-day-modal { width: calc(var(--u) * 486); margin: calc(var(--u) * -26) 0 0 auto; position: relative; z-index: 2; }
+    .comp-a-fp { width: calc(var(--u) * 500); }
+    .a-fp-top { display: grid; grid-template-columns: minmax(0, 1fr) calc(var(--u) * 170); gap: calc(var(--u) * 14); margin-bottom: calc(var(--u) * 14); }
+    .comp-a-ins { width: calc(var(--u) * 480); display: grid; gap: calc(var(--u) * 14); }
+    .comp-a-conf { width: calc(var(--u) * 560); }
+    .a-conf-cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: calc(var(--u) * 14); }
+    .comp-p-acct { width: calc(var(--u) * 600); display: grid; gap: calc(var(--u) * 14); }
+    .comp-p-port { width: calc(var(--u) * 600); }
+    .comp-p-port td:first-child, .comp-p-port td:nth-child(2) { white-space: normal; max-width: calc(var(--u) * 118); }
+    .comp-p-pay { width: calc(var(--u) * 440); }
+    .comp-pr-feed { width: calc(var(--u) * 480); display: grid; gap: calc(var(--u) * 12); }
+    .comp-pr-feed .t-tabs { width: calc(var(--u) * 380); }
+    .comp-pr-one { width: calc(var(--u) * 580); display: grid; grid-template-columns: minmax(0, 1fr) calc(var(--u) * 250); gap: calc(var(--u) * 14); align-items: start; }
+    .pr-side { display: grid; gap: calc(var(--u) * 14); min-width: 0; }
+    .pr-side > * { min-width: 0; }
+    .comp-pr-lb { width: calc(var(--u) * 460); }
+    .comp-e-week { width: calc(var(--u) * 480); }
+    .comp-e-rel { width: calc(var(--u) * 560); }
+    .comp-e-cal { width: calc(var(--u) * 520); }
+    .e-cal-day { width: calc(var(--u) * 470); margin: calc(var(--u) * 10) 0 0 auto; position: relative; z-index: 2; }
+    .comp-k-layer { width: calc(var(--u) * 580); }
+    .k-res { width: calc(var(--u) * 560); margin: calc(var(--u) * -62) 0 0 auto; position: relative; z-index: 2; }
+    .comp-k-res { width: calc(var(--u) * 400); }
+    .comp-t-log { width: calc(var(--u) * 440); }
+    .comp-t-log .t-form { width: calc(var(--u) * 420); }
+    .t-log-result { width: calc(var(--u) * 360); margin: calc(var(--u) * -26) 0 0 auto; position: relative; z-index: 2; }
+    .comp-t-mobile { width: calc(var(--u) * 400); }
+    .comp-t-table { width: calc(var(--u) * 560); margin-right: auto; }
+
+    /* Layout and shell additions for the new templates */
+    .ad.no-support .ad-support { display: none; }
+    .ad-datanote { margin-top: 18px; font-size: 22px; line-height: 1.35; font-weight: 500; color: #5f5f5f; }
+    .ad-fine + .ad-datanote { margin-top: 8px; }
+    .ad--feed .ad-datanote { font-size: 20px; margin-top: 14px; }
   </style>
 </head>
 <body>
@@ -1220,6 +1710,414 @@
     };
 
     /* ============================================================
+       3b. TRADEPRINT UI LIBRARY (all templates except Mentorship)
+       Markup mirrors dashboard.html. Number formats match the app:
+       formatPnl (+$1234.00, no commas) for trades and dashboard,
+       formatPnlShort (+$696) for calendar cells, propMoney ($55,211)
+       for the Prop Firm Command Center.
+       ============================================================ */
+    const FMT = {
+      num(value, fallback = 0) {
+        const n = parseFloat(String(value ?? '').replace(/[^0-9.\-]/g, ''));
+        return Number.isFinite(n) ? n : fallback;
+      },
+      pnl(n) { n = Number(n) || 0; return n >= 0 ? `+$${n.toFixed(2)}` : `-$${Math.abs(n).toFixed(2)}`; },
+      pnlShort(n) { n = Number(n) || 0; return n >= 0 ? `+$${Math.round(n)}` : `-$${Math.round(Math.abs(n))}`; },
+      money(n, dec = 0) { return `$${Math.abs(Number(n) || 0).toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec })}`; },
+      signed(n, dec = 2) { n = Number(n) || 0; return `${n < 0 ? '-' : '+'}${FMT.money(n, dec)}`; },
+      tone(n) { n = Number(n) || 0; return n > 0 ? 'g' : n < 0 ? 'r' : 'm'; },
+      result(n) { n = Number(n) || 0; return n > 0 ? 'win' : n < 0 ? 'loss' : 'breakeven'; },
+      rr(v) { const s = String(v ?? '').trim(); if (!s) return ''; return /r$/i.test(s) ? s.replace(/r$/i, 'R') : `${s}R`; }
+    };
+
+    // Text helpers for the data fields: one item per line, columns split by "|".
+    function rows(text) {
+      return String(text || '').split('\n').map(l => l.trim()).filter(Boolean).map(l => l.split('|').map(c => c.trim()));
+    }
+    function list(text) {
+      return String(text || '').split(/[\n,]+/).map(v => v.trim()).filter(Boolean);
+    }
+    function pct(value) { return clamp(FMT.num(value), 0, 100); }
+
+    // Small, stable variation for derived numbers (confluence counts and so on)
+    function seeded(i, mod, base = 0) { return base + ((i * 7 + 3) % mod); }
+
+    const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+    function monthInfo(value) {
+      const m = /^(\d{4})-(\d{1,2})$/.exec(String(value || '').trim());
+      const now = new Date();
+      const y = m ? +m[1] : now.getFullYear();
+      const mo = m ? clamp(+m[2], 1, 12) - 1 : now.getMonth();
+      return { y, m: mo, label: `${MONTHS[mo]} ${y}`, days: new Date(y, mo + 1, 0).getDate(), first: new Date(y, mo, 1).getDay() };
+    }
+
+    function longDate(y, m, d) { return `${MONTHS[m]} ${d}, ${y}`; }
+    function shortDate(y, m, d) { return `${MONTHS[m].slice(0, 3)} ${d}, ${y}`; }
+
+    // Weekdays of a month, most recent last. Used to build default data.
+    function tradingDays(y, m) {
+      const out = [];
+      const n = new Date(y, m + 1, 0).getDate();
+      for (let d = 1; d <= n; d++) { const wd = new Date(y, m, d).getDay(); if (wd > 0 && wd < 6) out.push(d); }
+      return out;
+    }
+
+    function prevMonthKey() {
+      const now = new Date();
+      const d = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    }
+
+    // The dashboard's own icons (sidebar and buttons)
+    const ICON = {
+      dashboard: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>',
+      tradeprint: '<path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4"/><path d="M14 13.12c0 2.38 0 6.38-1 8.88"/><path d="M17.29 21.02c.12-.6.43-2.3.5-3.02"/><path d="M2 12a10 10 0 0 1 18-6"/><path d="M2 16h.01"/><path d="M21.8 16c.2-2 .1-5.3 0-6"/><path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2"/><path d="M8.65 22c.21-.66.45-1.32.57-2"/><path d="M9 6.8a6 6 0 0 1 9 5.2c0 .47 0 1.17-.02 2"/>',
+      strategies: '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
+      calendar: '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+      trades: '<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>',
+      notes: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>',
+      calculator: '<rect x="4" y="2" width="16" height="20" rx="2"/><rect x="7" y="5" width="10" height="4" rx="1"/><path d="M8 13h.01"/><path d="M12 13h.01"/><path d="M16 13h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/>',
+      mentorship: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+      prop: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/>',
+      prints: '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>',
+      menu: '<line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>',
+      plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+      left: '<polyline points="15 18 9 12 15 6"/>',
+      right: '<polyline points="9 18 15 12 9 6"/>',
+      share: '<path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/>',
+      edit: '<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>',
+      trash: '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>',
+      news: '<path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-4 0v-9a2 2 0 0 1 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/>'
+    };
+    const ico = (name, cls = '') => `<svg class="t-ico ${cls}" viewBox="0 0 24 24" aria-hidden="true">${ICON[name] || ''}</svg>`;
+
+    const TP = {
+      wordmark() { return 'trade<span class="p">print</span>'; },
+
+      statCard(label, value, tone = '') {
+        return `<div class="t-stat"><div class="t-stat-label">${esc(label)}</div><div class="t-stat-value ${tone}">${value}</div></div>`;
+      },
+
+      panel(inner, { title = '', strong = false, sub = '', cls = '', head = '' } = {}) {
+        const titleHtml = title ? `<div class="t-panel-title${strong ? ' strong' : ''}">${esc(title)}</div>` : '';
+        const top = head ? `<div class="t-panel-head">${titleHtml}${head}</div>` : titleHtml;
+        return `<div class="t-panel ${cls}">${top}${sub ? `<div class="t-panel-sub" style="margin-bottom:calc(var(--u)*16)">${esc(sub)}</div>` : ''}${inner}</div>`;
+      },
+
+      // Dashboard: PNL Trend bars. values = daily P&L, oldest first
+      bars(values, ticks = []) {
+        const max = Math.max(1, ...values.map(v => Math.abs(v)));
+        const barHtml = values.map(v => {
+          const h = Math.max(2, Math.abs(v) / max * 48);
+          const cls = v > 0 ? 'g' : v < 0 ? 'r' : 'f';
+          return `<div class="t-bar-wrap"><div class="t-bar ${cls}" style="${v === 0 ? '' : `height:${h.toFixed(2)}%`}"></div></div>`;
+        }).join('');
+        return `<div class="t-bars">${barHtml}</div>${ticks.length ? `<div class="t-bar-ticks">${ticks.map(t => `<span>${esc(t)}</span>`).join('')}</div>` : ''}`;
+      },
+
+      pnlTrend({ label, values, ticks, select = 'Last month' }) {
+        const total = values.reduce((a, b) => a + b, 0);
+        return TP.panel(`
+          <div class="t-chart-sum"><div class="t-chart-date">${esc(label)}</div><div class="t-chart-pnl ${FMT.tone(total)}">${FMT.pnl(total)}</div></div>
+          ${TP.bars(values, ticks)}`, { title: 'PNL Trend', head: `<div class="t-select" style="min-height:calc(var(--u)*34);font-size:calc(var(--u)*13)">${esc(select)}</div>` });
+      },
+
+      listItem(title, sub, value, tone) {
+        return `<div class="t-list-item"><div class="t-list-main"><div class="t-list-title">${title}</div><div class="t-list-sub">${esc(sub)}</div></div><div class="t-list-value ${tone}">${value}</div></div>`;
+      },
+
+      ruleDiscipline(rate, trades, { strong = false } = {}) {
+        const followed = Math.round(rate / 100 * trades);
+        if (strong) {
+          return TP.panel(`
+            <div class="t-simple-main g" style="font-size:calc(var(--u)*28)">${Math.round(rate)}%</div>
+            <div class="t-simple-meta">${followed} of ${trades} trades followed rules.</div>
+            <div class="t-meter" style="margin-top:calc(var(--u)*16)"><i style="width:${rate}%"></i></div>`, { title: 'Rule Discipline', strong: true });
+        }
+        return TP.panel(`
+          <div class="t-focus-value">${Math.round(rate)}%</div>
+          <div class="t-meter t-rule-meter"><i style="width:${rate}%"></i></div>
+          <div class="t-focus-sub">${followed} of ${trades} trades followed rules</div>`, { title: 'Rule Discipline' });
+      },
+
+      // Sidebar navigation, exactly as the app lists it
+      sidebar({ active = 'dashboard', bottom = true } = {}) {
+        const main = [['dashboard', 'Dashboard'], ['tradeprint', 'Tradeprint'], ['strategies', 'Strategies'], ['calendar', 'Calendar'], ['trades', 'Trades'], ['notes', 'Notes'], ['calculator', 'Calculator'], ['mentorship', 'Mentorship']];
+        return `<div class="t-sidebar">
+          <div class="t-side-logo"><span>${TP.wordmark()}</span>${ico('menu')}</div>
+          ${main.map(([k, l]) => `<div class="t-nav-item${k === active ? ' active' : ''}">${ico(k)}<span>${l}</span></div>`).join('')}
+          ${bottom ? `<div class="t-nav-divider"></div>
+          <div class="t-nav-row">${ico('prop')}<span>Prop Firm Center</span></div>
+          <div class="t-nav-row">${ico('prints')}<span>Prints</span></div>` : ''}
+        </div>`;
+      },
+
+      appbar() { return `<div class="t-appbar">${ico('menu')}<b>${TP.wordmark()}</b></div>`; },
+
+      // Calendar. days: { [day]: { pnl, trades, wins, note, news } }
+      calendar(mi, days, { from = 0, weeks = 6, weekCol = true, weekdaysOnly = false, sel = 0, today = 0, wk = 0, row = 0 } = {}) {
+        const cells = [];
+        const start = new Date(mi.y, mi.m, 1 - mi.first);
+        const totalWeeks = Math.ceil((mi.first + mi.days) / 7);
+        const weekRows = [];
+        for (let w = 0; w < totalWeeks; w++) {
+          const rowCells = [];
+          let wPnl = 0, wTrades = 0, wWins = 0;
+          for (let i = 0; i < 7; i++) {
+            const date = new Date(start.getFullYear(), start.getMonth(), start.getDate() + w * 7 + i);
+            const inMonth = date.getMonth() === mi.m;
+            const d = date.getDate();
+            const data = inMonth ? days[d] : null;
+            if (data && data.trades) { wPnl += data.pnl; wTrades += data.trades; wWins += data.wins; }
+            if (weekdaysOnly && (i === 0 || i === 6)) continue;
+            const cls = ['t-cal-cell', inMonth ? '' : 'other', inMonth && d === today ? 'today' : '', inMonth && d === sel ? 'sel' : ''].filter(Boolean).join(' ');
+            let inner = `<span class="t-cal-num">${d}</span>`;
+            if (data && data.trades) {
+              const wr = Math.round(data.wins / data.trades * 100);
+              inner += `<div class="t-cal-pnl ${FMT.tone(data.pnl)}">${FMT.pnlShort(data.pnl)}</div><div class="t-cal-meta">${data.trades} trade${data.trades === 1 ? '' : 's'}</div><div class="t-cal-meta">${wr}% WR</div>`;
+            }
+            if (data && data.note) inner += '<span class="t-cal-dot"></span>';
+            if (data && data.news) inner += `<span class="t-cal-news">${ico('news')}<span>${data.news}</span></span>`;
+            rowCells.push(`<div class="${cls}">${inner}</div>`);
+          }
+          if (weekCol) {
+            rowCells.push(wTrades
+              ? `<div class="t-cal-week"><div class="t-cal-week-pnl ${FMT.tone(wPnl)}">${FMT.pnlShort(wPnl)}</div><div class="t-cal-meta">${wTrades} trades<br>${Math.round(wWins / wTrades * 100)}% WR</div></div>`
+              : '<div class="t-cal-week"></div>');
+          }
+          weekRows.push(rowCells.join(''));
+        }
+        const heads = (weekdaysOnly ? ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'] : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'])
+          .map(h => `<div>${h}</div>`).join('') + (weekCol ? '<div class="wk">Week</div>' : '');
+        const style = [wk ? `--wk:calc(var(--u)*${wk})` : '', row ? `--row:calc(var(--u)*${row})` : ''].filter(Boolean).join(';');
+        return `<div class="t-cal${weekCol ? '' : ' no-week'}${weekdaysOnly ? ' weekdays' : ''}" style="${style}">
+          <div class="t-cal-heads">${heads}</div>
+          <div class="t-cal-grid">${weekRows.slice(from, from + weeks).join('')}</div>
+        </div>`;
+      },
+
+      calHeader(mi, stats, { nav = true } = {}) {
+        return `<div class="t-cal-top">
+          <div class="t-cal-nav">${nav ? `<span class="t-cal-btn">${ico('left')}</span>` : ''}<span class="t-cal-month">${esc(mi.label)}</span>${nav ? `<span class="t-cal-btn">${ico('right')}</span>` : ''}</div>
+          <div class="t-cal-stats">
+            <div class="t-cal-stat"><div class="t-cal-stat-label">Monthly PNL</div><div class="t-cal-stat-value ${FMT.tone(stats.pnl)}">${FMT.pnl(stats.pnl)}</div></div>
+            <div class="t-cal-stat"><div class="t-cal-stat-label">Trades</div><div class="t-cal-stat-value">${stats.trades}</div></div>
+            <div class="t-cal-stat"><div class="t-cal-stat-label">Win Rate</div><div class="t-cal-stat-value">${stats.wr}%</div></div>
+          </div>
+        </div>`;
+      },
+
+      // Day modal trade row (.trade-feed-item). t = { strategy, asset, pnl, rr, time, note, broke, conf }
+      feedItem(t, { actions = true, note = true } = {}) {
+        const result = FMT.result(t.pnl);
+        const resColor = result === 'win' ? 'g' : result === 'loss' ? 'r' : 'm';
+        const label = result.charAt(0).toUpperCase() + result.slice(1);
+        const detail = [`${t.conf ? `${t.conf} confluences` : 'No confluences'}`, t.rr ? FMT.rr(t.rr) : '', t.time || ''].filter(Boolean).join(' · ');
+        return `<div class="t-feed-item">
+          <div class="t-feed-left">
+            <div class="t-feed-strat">${esc(t.strategy)}${t.asset ? ` · ${esc(t.asset)}` : ''} — <span class="${resColor}">${label}</span></div>
+            <div class="t-feed-detail">${esc(detail)}${t.broke ? ' · <span class="r">Rules broken</span>' : ''}</div>
+            ${note && t.note ? `<div class="t-feed-note">"${esc(t.note)}"</div>` : ''}
+          </div>
+          <div class="t-feed-pnl ${FMT.tone(t.pnl)}">${FMT.pnl(t.pnl)}</div>
+          ${actions ? `<div class="t-feed-actions">${ico('share')}${ico('edit')}${ico('trash')}</div>` : ''}
+        </div>`;
+      },
+
+      dayStats(trades) {
+        const pnl = trades.reduce((a, t) => a + t.pnl, 0);
+        const wins = trades.filter(t => t.pnl > 0).length;
+        const losses = trades.filter(t => t.pnl < 0).length;
+        const wr = trades.length ? Math.round(wins / trades.length * 100) : 0;
+        const stat = (l, v, c = '') => `<div><div class="t-modal-stat-label">${l}</div><div class="t-modal-stat-val ${c}">${v}</div></div>`;
+        return `<div class="t-modal-stats">${stat('Trades', trades.length)}${stat('PNL', FMT.pnl(pnl), FMT.tone(pnl))}${stat('Win Rate', `${wr}%`)}${stat('Wins', wins, 'g')}${stat('Losses', losses, 'r')}</div>`;
+      },
+
+      modalHead(title) {
+        return `<div class="t-modal-head"><div class="t-modal-date">${esc(title)}</div><div class="t-modal-icons">${ico('share')}<span class="x">×</span></div></div>`;
+      },
+
+      noteHtml(text) {
+        return String(text || '').split('\n').map(l => l.trim()).filter(Boolean).map(l => {
+          if (l === '---') return '<hr>';
+          const m = /^([^:]{2,24}):\s(.+)$/.exec(l);
+          return m ? `<p><b>${esc(m[1])}:</b> ${esc(m[2])}</p>` : `<p>${esc(l)}</p>`;
+        }).join('');
+      },
+
+      // Notes page "Insert Trade" card (.note-trade-card)
+      noteTradeCard(t, date) {
+        const result = FMT.result(t.pnl);
+        const detail = [date, t.conf ? `${t.conf} confluences` : 'No confluences', t.rr ? FMT.rr(t.rr) : '', t.time || ''].filter(Boolean).join(' · ');
+        return `<div class="t-ntc"><div class="t-ntc-title"><span>${esc(t.strategy)}${t.asset ? ` · ${esc(t.asset)}` : ''} — ${result === 'breakeven' ? 'be' : result}</span><b class="${FMT.tone(t.pnl)}">${FMT.pnl(t.pnl)}</b></div><div class="t-ntc-detail">${esc(detail)}</div></div>`;
+      },
+
+      // Trades page table (.trades-table). cols: subset of the app's columns, in the app's order
+      tradesTable(trades, cols) {
+        const defs = {
+          date: ['Date', 'calc(var(--u)*92)', t => `<div class="t-tc muted">${esc(t.date)}</div>`],
+          strategy: ['Strategy', 'calc(var(--u)*135)', t => `<div class="t-tc">${esc(t.strategy)}</div>`],
+          account: ['Account', 'calc(var(--u)*105)', t => `<div class="t-tc muted">${esc(t.account || 'Main')}</div>`],
+          result: ['Result', 'calc(var(--u)*64)', t => { const r = FMT.result(t.pnl); return `<div class="t-tc"><span class="t-badge ${r}">${r === 'breakeven' ? 'be' : r}</span></div>`; }],
+          pnl: ['PNL', 'calc(var(--u)*92)', t => `<div class="t-tc pnl ${FMT.tone(t.pnl)}">${FMT.pnl(t.pnl)}</div>`],
+          rr: ['R:R', 'calc(var(--u)*58)', t => `<div class="t-tc muted">${esc(FMT.rr(t.rr))}</div>`],
+          type: ['Type', 'calc(var(--u)*94)', () => '<div class="t-tc muted">Futures</div>'],
+          direction: ['Direction', 'calc(var(--u)*78)', t => `<div class="t-tc muted">${esc(t.dir || 'Long')}</div>`],
+          time: ['Time', 'calc(var(--u)*88)', t => `<div class="t-tc muted">${esc(t.time)}</div>`],
+          asset: ['Asset', 'calc(var(--u)*72)', t => `<div class="t-tc muted">${esc(t.asset)}</div>`],
+          confluences: ['Confluences', 'calc(var(--u)*120)', t => `<div class="t-tc muted">${t.conf ? `${t.conf} confluences` : '—'}</div>`],
+          rules: ['Rules', 'calc(var(--u)*48)', t => `<div class="t-tc" style="text-align:center">${t.broke ? '<span class="t-rules-no">✗</span>' : '<span class="t-rules-yes">✓</span>'}</div>`]
+        };
+        const use = cols.map(c => defs[c]).filter(Boolean);
+        const tpl = use.map(d => d[1]).join(' ');
+        return `<div class="t-table" style="--cols:${tpl}">
+          <div class="t-tr head">${use.map(d => `<div class="t-tc" style="font-size:inherit">${d[0]}</div>`).join('')}</div>
+          ${trades.map(t => `<div class="t-tr">${use.map(d => d[2](t)).join('')}</div>`).join('')}
+        </div>`;
+      },
+
+      mobileTradeCard(t) {
+        const r = FMT.result(t.pnl);
+        return `<div class="t-mcard">
+          <div class="t-mcard-main">
+            <div class="t-mcard-top"><div class="t-mcard-strat">${esc(t.strategy)}</div><div class="t-mcard-pnl ${FMT.tone(t.pnl)}">${FMT.pnl(t.pnl)}</div></div>
+            <div class="t-mcard-sub">${esc([t.date, t.asset].filter(Boolean).join(' · '))}</div>
+            <div class="t-mcard-chips"><span class="t-chip ${r}">${r === 'breakeven' ? 'be' : r}</span><span class="t-chip">Futures</span><span class="t-chip">${esc(t.dir || 'Long')}</span></div>
+          </div>
+          <div class="t-mcard-actions">${ico('share')}${ico('edit')}${ico('trash')}</div>
+        </div>`;
+      },
+
+      filters() {
+        return `<div class="t-filters">
+          <div class="t-select">All Strategies</div><div class="t-select">All Results</div><div class="t-select">All Trade Types</div>
+          <div class="t-select">All Directions</div><div class="t-select">Newest First</div><div class="t-input">Search trades...</div>
+          <div class="t-btn ghost">Clear</div>
+        </div>`;
+      },
+
+      // Tradeprint page
+      rankItem(i, name, meta, pnl) {
+        return `<div class="t-rank"><div class="t-rank-num">${i}</div><div style="min-width:0"><div class="t-rank-title">${esc(name)}</div><div class="t-rank-meta">${esc(meta)}</div></div><div class="t-rank-value ${FMT.tone(pnl)}">${FMT.pnl(pnl)}</div></div>`;
+      },
+
+      split(title, best, worst) {
+        const side = (label, d) => `<div style="min-width:0"><div class="t-mini-label">${label}</div><div class="t-simple-main ${FMT.tone(d.pnl)}">${esc(d.name)}</div><div class="t-simple-meta">${esc(d.meta)}</div></div>`;
+        return TP.panel(`<div class="t-split">${side('Best', best)}${side('Worst', worst)}</div>`, { title, strong: true });
+      },
+
+      // Calculator (.calc-card)
+      calcCard(title, fields, { clear = true, cls = '' } = {}) {
+        return `<div class="t-calc-card ${cls}">
+          <div class="t-panel-title">${esc(title)}</div>
+          <div class="t-calc-grid">${fields.map(f => `<div class="t-calc-field"><span>${esc(f[0])}</span><div class="t-calc-input${f[2] ? ' sel' : ''}${f[3] ? ' focus' : ''}">${esc(f[1])}</div></div>`).join('')}</div>
+          ${clear ? '<span class="t-calc-clear">Clear</span>' : ''}
+        </div>`;
+      },
+
+      calcResults(res, { cols = 2, cls = '' } = {}) {
+        const card = (l, v, c) => `<div class="t-result"><div class="t-result-label">${l}</div><div class="t-result-value ${c}">${v}</div></div>`;
+        return `<div class="t-calc-card ${cls}">
+          <div class="t-panel-title">Results</div>
+          <div class="t-results" style="grid-template-columns:repeat(${cols}, minmax(0, 1fr))">
+            ${card('Dollar Risk', `-$${res.risk.toFixed(2)}`, 'r')}${card('Dollar Profit', `+$${res.profit.toFixed(2)}`, 'g')}${card('R:R Ratio', `${res.rr.toFixed(2)}R`, 'a')}
+          </div>
+        </div>`;
+      },
+
+      // Prints
+      printCard(p, { expanded = false, follow = 'Follow', cls = '' } = {}) {
+        const pnl = FMT.num(p.pnl);
+        const tone = pnl > 0 ? 'green' : pnl < 0 ? 'red' : '';
+        const pnlText = p.hidden ? (pnl < 0 ? '-$*****' : pnl > 0 ? '+$*****' : '$*****') : FMT.pnl(pnl);
+        const meta = `${p.time || 'No time'} · ${p.rr ? FMT.rr(p.rr) : 'No R:R'}`;
+        return `<div class="t-print ${cls}">
+          <div class="t-print-head">
+            <div class="t-print-user"><div class="t-avatar">${esc((p.user || 'T')[0].toUpperCase())}</div><div style="min-width:0"><div class="t-print-name">${esc(p.user)}${p.you ? '<span class="t-you">You</span>' : ''}</div><div class="t-print-bio">${esc(p.bio || 'No bio yet.')}</div></div></div>
+            <div class="t-print-actions"><span class="t-print-date">${esc(p.date)}</span>${follow ? `<span class="t-pbtn${follow === 'Following' ? ' on' : ''}">${esc(follow)}</span>` : ''}</div>
+          </div>
+          <div class="t-print-top">
+            <div style="min-width:0"><div class="t-print-main">${esc(p.strategy)}${p.asset ? ` · ${esc(p.asset)}` : ''}</div><div class="t-print-meta">${esc(meta)}</div></div>
+            <div class="t-pnl-chip ${tone}">${pnlText}</div>
+          </div>
+          ${p.caption ? `<div class="t-print-caption">${esc(p.caption)}</div>` : ''}
+          <div class="t-print-foot"><span class="t-pbtn">${expanded ? 'Hide confluences' : 'View confluences'}</span><span class="t-pbtn">Reply${p.replies ? ` (${p.replies})` : ''}</span></div>
+          ${expanded ? `<div class="t-print-details"><div class="t-print-meta">Confluences</div><div class="t-pills">${(p.conf || []).map(c => `<span class="t-pill-c">${esc(c)}</span>`).join('') || '<span class="t-pill-c">No confluences shared</span>'}</div></div>` : ''}
+        </div>`;
+      },
+
+      printTabs(active = 'Everyone') {
+        return `<div class="t-tabs">${['Everyone', 'Following', 'Leaderboard'].map(t => `<div class="t-tab${t === active ? ' on' : ''}">${t}</div>`).join('')}</div>`;
+      },
+
+      // Economic News card (.econ-card)
+      econCard(ev, { open = false } = {}) {
+        if (!open) {
+          return `<div class="t-ecard"><div class="t-ecard-head"><span class="t-ecard-time">${esc(ev.time)} ET</span><span class="t-ecard-name">${esc(ev.name)}</span><span class="t-chev"></span></div></div>`;
+        }
+        const released = /released/i.test(ev.status);
+        const rowsHtml = (ev.metrics || []).map(m => {
+          const actual = released && m.actual && m.actual !== '—'
+            ? `<span class="t-mval">${esc(m.actual)}</span>`
+            : `<span class="t-mval empty">—<small>${released ? 'See official release' : 'Upcoming'}</small></span>`;
+          const prev = m.previous ? `<span class="t-mval">${esc(m.previous)}</span>` : '<span class="t-mval empty">—</span>';
+          return `<div class="t-mrow"><span class="t-mname">${esc(m.name)}</span>${actual}${prev}</div>`;
+        }).join('');
+        return `<div class="t-ecard open">
+          <div class="t-ecard-head"><span class="t-ecard-time">${esc(ev.time)} ET</span><span class="t-estatus${released ? ' released' : ''}">${esc(ev.status)}</span><span class="t-chev"></span><span class="t-ecard-name">${esc(ev.name)}</span></div>
+          <div class="t-ecard-body">
+            <div class="t-ecard-meta">USD · <b>High Impact</b> · ${esc(ev.agency)}</div>
+            ${rowsHtml ? `<div class="t-metrics"><div class="t-mrow head"><span>Metric</span><span class="t-mval">Actual</span><span class="t-mval">Previous</span></div>${rowsHtml}</div>` : ''}
+            <div class="t-ecard-foot">
+              ${ev.period ? `<div>Reference period: <b>${esc(ev.period)}</b></div>` : ''}
+              ${released && ev.releasedAt ? `<div>Released: <b>${esc(ev.releasedAt)}</b></div>` : ''}
+              <span class="t-elink">View Official Release ↗</span>
+            </div>
+          </div>
+        </div>`;
+      },
+
+      econHead(title, sub) {
+        return `<div class="t-econ-head"><div><div class="t-econ-kicker">Economic News</div><div class="t-econ-date">${esc(title)}</div><div class="t-econ-sub">${esc(sub)}</div></div><span class="t-econ-x">×</span></div>`;
+      },
+
+      // Prop Firm Command Center
+      propHero(p) {
+        const isEval = p.stage === 'Evaluation';
+        const stats = isEval
+          ? [['Tracked Balance', FMT.money(p.size + p.profit, 2), ''], ['Evaluation Profit', FMT.signed(p.profit), FMT.tone(p.profit)], ['Trading Days', p.days, ''], ['Trades', p.trades, '']]
+          : [['Tracked Balance', FMT.money(p.size + p.profit, 2), ''], ['Stage P&L', FMT.signed(p.profit), FMT.tone(p.profit)], ['Cycle Profit', FMT.signed(p.cycle), FMT.tone(p.cycle)], ['Trades', p.trades, '']];
+        let goal;
+        if (isEval) {
+          const prog = clamp(p.profit / Math.max(1, p.target) * 100, 0, 100);
+          const done = prog >= 100;
+          goal = `<div class="t-goal"><div class="t-goal-row"><span>Goal ${FMT.money(p.target)}</span><span>${prog.toFixed(1)}%</span></div>
+            <div class="t-progress"><i class="${done ? 'green' : ''}" style="width:${prog.toFixed(1)}%"></i></div>
+            <div class="t-goal-sub">${done ? 'Target reached' : `${FMT.money(p.target - p.profit)} to target`}</div></div>`;
+        } else {
+          goal = `<div class="t-goal"><div class="t-goal-row"><span>Next Payout #${p.payoutNo}</span><span>${p.reqDone} / ${p.reqTotal} tracked requirements</span></div>
+            <div class="t-progress"><i class="${p.reqDone >= p.reqTotal ? 'green' : ''}" style="width:${(p.reqDone / Math.max(1, p.reqTotal) * 100).toFixed(1)}%"></i></div>
+            <div class="t-goal-sub">${p.reqDone >= p.reqTotal ? `Appears eligible · up to ${FMT.money(p.payoutMax)}` : `Cycle profit ${FMT.signed(p.cycle)}`}</div></div>`;
+        }
+        return `<div class="t-prop-hero">
+          <div class="t-prop-firm">${esc(p.firm)}</div>
+          <div class="t-prop-title">${esc(p.program)}</div>
+          <div class="t-prop-meta"><span class="t-ppill stage">${esc(p.stage)}</span><span class="t-ppill ${p.statusTone || 'green'}">${esc(p.status)}</span><span class="t-prop-nick">Linked: ${esc(p.linked)}</span></div>
+          <div class="t-prop-stats">${stats.map(s => `<div><span>${s[0]}</span><b class="${s[2]}">${s[1]}</b></div>`).join('')}</div>
+          ${goal}
+        </div>`;
+      },
+
+      journey(steps) {
+        return `<div class="t-journey">${steps.map(s => `<div class="t-jstep ${s.state}"><div class="t-jdot"></div><div class="t-jlabel">${esc(s.label)}</div>${s.sub ? `<div class="t-jsub">${esc(s.sub)}</div>` : ''}</div>`).join('')}</div>`;
+      },
+
+      kv(rowsArr) { return rowsArr.map(r => `<div class="t-kv"><span>${esc(r[0])}</span><b class="${r[2] || ''}">${esc(r[1])}</b></div>`).join(''); }
+    };
+
+    /* ============================================================
        4. TEMPLATES
        Each template: id, name, status, layouts, defaults, optional
        headline presets and data fields, and product(state) which
@@ -1232,7 +2130,8 @@
       { key: 'support', label: 'Supporting text', type: 'textarea', rows: 3, max: 150 },
       { key: 'cta', label: 'Button text', type: 'text', max: 26 },
       { key: 'url', label: 'Website', type: 'text', max: 32 },
-      { key: 'fine', label: 'Fine print', type: 'text', max: 70 }
+      { key: 'fine', label: 'Fine print', type: 'text', max: 70 },
+      { key: 'dataNote', label: 'Example data note', type: 'text', max: 70, hint: 'Small line under the button so numbers read as examples, not results.' }
     ];
 
     const SHOW_FIELDS = [
@@ -1244,7 +2143,8 @@
       { key: 'showCta', label: 'Button' },
       { key: 'showUrl', label: 'Website' },
       { key: 'showFine', label: 'Fine print' },
-      { key: 'showLabels', label: '"Your view" labels', layouts: ['showcase'] },
+      { key: 'showDataNote', label: 'Example data note' },
+      { key: 'showLabels', label: '"Your view" labels', templates: ['mentorship'], layouts: ['showcase'] },
       { key: 'showGrid', label: 'Background grid' }
     ];
 
@@ -1262,6 +2162,8 @@
       showCta: true,
       showUrl: true,
       showFine: false,
+      showDataNote: false,
+      dataNote: '',
       showLabels: true,
       showGrid: true,
       productSource: 'builtin',
@@ -1269,6 +2171,970 @@
       imageFocus: 25,
       imageZoom: 100
     };
+
+    /* ============================================================
+       4b. EXAMPLE DATA (illustrative only, built once per load)
+       ============================================================ */
+    const TICK_SPECS = {
+      MNQ: { tickSize: 0.25, tickValue: 0.5 },
+      NQ: { tickSize: 0.25, tickValue: 5 },
+      MES: { tickSize: 0.25, tickValue: 1.25 },
+      ES: { tickSize: 0.25, tickValue: 12.5 },
+      MGC: { tickSize: 0.1, tickValue: 1 },
+      GC: { tickSize: 0.1, tickValue: 10 }
+    };
+    const TICKERS = Object.keys(TICK_SPECS).map(k => ({ id: k, name: k }));
+
+    const SAMPLE = (() => {
+      const today = new Date();
+      const monthKey = prevMonthKey();
+      const mi = monthInfo(monthKey);
+      const days = tradingDays(mi.y, mi.m);
+      const pattern = [[412, 2, 2], [696, 2, 2], [-180, 1, 0], [525, 3, 2], [310, 2, 1], [0, 0, 0], [845, 2, 2], [-260, 2, 0], [390, 2, 1], [240, 1, 1], [615, 2, 2], [-150, 2, 1], [470, 2, 2], [780, 3, 3], [0, 0, 0], [205, 2, 1], [-320, 2, 0], [560, 2, 2], [330, 2, 1], [690, 2, 2], [145, 1, 1], [-210, 2, 0], [505, 2, 2]];
+      const calLines = days.map((d, i) => {
+        const p = pattern[i % pattern.length];
+        return p[1] ? `${p[0]}, ${p[1]}, ${p[2]}` : '-';
+      });
+
+      // Most recent weekday before today, for the journal day
+      const back = new Date(today);
+      do { back.setDate(back.getDate() - 1); } while (back.getDay() === 0 || back.getDay() === 6);
+
+      // ISO week number, for "Week 41 review"
+      const t = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
+      t.setUTCDate(t.getUTCDate() + 4 - (t.getUTCDay() || 7));
+      const week = Math.ceil(((t - new Date(Date.UTC(t.getUTCFullYear(), 0, 1))) / 86400000 + 1) / 7);
+
+      // Last month of daily P&L for the PNL Trend chart, and its tick labels
+      const bars = [196, 400, -470, 696, 900, 0, 225, -400, -400, 836, 270, 750, 412, 0, 525, 310, 845, -260, 390, 240, 615, 470];
+      const ticks = [];
+      for (let i = 0; i <= 6; i++) { const d = new Date(today); d.setDate(d.getDate() - 30 + i * 5); ticks.push(`${d.getMonth() + 1}/${d.getDate()}`); }
+
+      // Recent weekdays as "Oct 12" labels, newest first
+      const recent = [];
+      const r = new Date(today);
+      while (recent.length < 8) { if (r.getDay() > 0 && r.getDay() < 6) recent.push(new Date(r)); r.setDate(r.getDate() - 1); }
+      const md = d => `${MONTHS[d.getMonth()].slice(0, 3)} ${d.getDate()}`;
+      const mdy = d => `${md(d)}, ${d.getFullYear()}`;
+
+      // Next Monday to Friday, for upcoming economic events
+      const mon = new Date(today);
+      mon.setDate(mon.getDate() + ((8 - mon.getDay()) % 7 || 7));
+      const wd = n => { const d = new Date(mon); d.setDate(d.getDate() + n); return d; };
+      const fri = wd(4);
+
+      // Most recent first Friday (jobs report day)
+      let ff = new Date(today.getFullYear(), today.getMonth(), 1);
+      while (ff.getDay() !== 5) ff.setDate(ff.getDate() + 1);
+      if (ff > today) { ff = new Date(today.getFullYear(), today.getMonth() - 1, 1); while (ff.getDay() !== 5) ff.setDate(ff.getDate() + 1); }
+      const prevMonth = new Date(ff.getFullYear(), ff.getMonth() - 1, 1);
+
+      return {
+        monthKey, mi, calLines: calLines.join('\n'), bars: bars.join(', '), ticks,
+        journalDate: longDate(back.getFullYear(), back.getMonth(), back.getDate()),
+        week, recent: recent.map(md), recentFull: recent.map(mdy),
+        econWeekTitle: `${mdy(mon)} to ${mdy(fri)}`,
+        econDays: [0, 1, 2, 3, 4].map(n => { const d = wd(n); return `${WEEKDAYS[d.getDay()]}, ${md(d)}`; }),
+        nfpTitle: `${WEEKDAYS[ff.getDay()]}, ${longDate(ff.getFullYear(), ff.getMonth(), ff.getDate())}`,
+        nfpReleased: `${mdy(ff)} at 8:30 AM ET`,
+        nfpPeriod: `${MONTHS[prevMonth.getMonth()]} ${prevMonth.getFullYear()}`
+      };
+    })();
+
+    // Parsers shared by the templates. Formats are documented in each field hint.
+    function parseFeedTrades(text) {
+      return rows(text).map((c, i) => ({
+        strategy: c[0] || 'Strategy', asset: c[1] || '', pnl: FMT.num(c[2]), rr: c[3] || '', time: c[4] || '',
+        note: c[5] || '', broke: /^(x|yes|no rules|broke)/i.test(c[6] || ''), conf: seeded(i, 3, 2)
+      }));
+    }
+
+    function parseLogTrades(text) {
+      return rows(text).map((c, i) => ({
+        date: c[0] || '', strategy: c[1] || '', asset: c[2] || '', pnl: FMT.num(c[3]), rr: c[4] || '', time: c[5] || '',
+        dir: c[6] || 'Long', account: c[7] || 'Main', broke: /^(x|yes|broke)/i.test(c[8] || ''), conf: seeded(i, 3, 2)
+      }));
+    }
+
+    // Calendar days. Each line is one weekday of the month, in order: PNL, trades, wins
+    // ("-" = no trades that day). A line can also start with the date: day, PNL, trades, wins.
+    function parseCalDays(mi, text, notes, news) {
+      const days = {};
+      const weekdays = tradingDays(mi.y, mi.m);
+      let next = 0;
+      String(text || '').split('\n').map(l => l.trim()).filter(Boolean).forEach(line => {
+        if (/^([-–—]+|off)$/i.test(line)) { next++; return; }
+        const c = line.split(/[,|]/).map(v => v.trim()).filter(v => v !== '');
+        let d, vals;
+        if (c.length >= 4) { d = Math.round(FMT.num(c[0])); vals = c.slice(1); next = weekdays.indexOf(d) + 1 || next; }
+        else { d = weekdays[next++]; vals = c; }
+        const trades = Math.max(0, Math.round(FMT.num(vals[1], 1)));
+        if (!d || d > mi.days || !trades) return;
+        days[d] = { pnl: FMT.num(vals[0]), trades, wins: clamp(Math.round(FMT.num(vals[2], 0)), 0, trades) };
+      });
+      list(notes).forEach(v => { const d = Math.round(FMT.num(v)); if (d) (days[d] ||= { trades: 0, pnl: 0, wins: 0 }).note = true; });
+      list(news).forEach(v => { const d = Math.round(FMT.num(v)); if (d) { const o = (days[d] ||= { trades: 0, pnl: 0, wins: 0 }); o.news = (o.news || 0) + 1; } });
+      return days;
+    }
+
+    function monthStats(days) {
+      let pnl = 0, trades = 0, wins = 0;
+      Object.values(days).forEach(d => { if (d.trades) { pnl += d.pnl; trades += d.trades; wins += d.wins; } });
+      return { pnl, trades, wr: trades ? Math.round(wins / trades * 100) : 0 };
+    }
+
+    function calcResult(ticker, contracts, a, b, c, mode = 'price') {
+      const spec = TICK_SPECS[ticker] || TICK_SPECS.MNQ;
+      const n = Math.max(0, FMT.num(contracts));
+      let slTicks, tpTicks;
+      if (mode === 'points') { slTicks = Math.abs(FMT.num(a)) / spec.tickSize; tpTicks = Math.abs(FMT.num(b)) / spec.tickSize; }
+      else { slTicks = Math.abs(FMT.num(a) - FMT.num(b)) / spec.tickSize; tpTicks = Math.abs(FMT.num(c) - FMT.num(a)) / spec.tickSize; }
+      const risk = slTicks * spec.tickValue * n;
+      const profit = tpTicks * spec.tickValue * n;
+      return { risk, profit, rr: risk > 0 ? profit / risk : 0 };
+    }
+
+    const EXAMPLE_NOTE = 'Example data for illustration.';
+    const NO_SUPPORT_HINT = ' Supporting text is hidden here so the product gets more room.';
+
+    /* ============================================================
+       4c. TEMPLATES
+       ============================================================ */
+    const TPL_GENERAL = {
+      id: 'general',
+      name: 'Tradeprint (general)',
+      status: 'ready',
+      blurb: 'Brand ad for traders who have never heard of Tradeprint',
+      layouts: [
+        { id: 'overview', name: 'Overview', hint: 'A calendar week, your key stats and your top strategy, as one grid.' },
+        { id: 'dashboard', name: 'Dashboard', hint: 'Dashboard stats with the PNL Trend chart.' },
+        { id: 'mobile', name: 'Mobile', hint: 'The dashboard as it looks on a phone.' + NO_SUPPORT_HINT, noSupport: true }
+      ],
+      defaults: {
+        layout: 'overview',
+        badge: 'Trading journal',
+        headline: 'Your trading,\n[all in one place.]',
+        support: 'Log every trade, review each day on a calendar, and see exactly what makes you money.',
+        cta: 'Start journaling',
+        showDataNote: true,
+        dataNote: EXAMPLE_NOTE,
+        gTrades: '63', gWinRate: '71', gPnl: '16736', gRR: '1.33', gRule: '87',
+        gBars: SAMPLE.bars, gRange: 'Last month',
+        gTop: 'ORB | 30 | 67 | 90 | 7324',
+        gMonth: SAMPLE.monthKey, gDays: SAMPLE.calLines
+      },
+      headlinePresets: [
+        'Your trading,\n[all in one place.]',
+        'Journal every trade.\n[See your edge.]',
+        'Stop guessing.\n[Start tracking.]',
+        'Know your numbers.\n[Trade your edge.]',
+        'The trading journal\n[that shows the why.]'
+      ],
+      dataFields: [
+        { key: 'gPnl', label: 'Total PNL ($)', type: 'text', max: 12 },
+        { key: 'gWinRate', label: 'Win rate (%)', type: 'text', max: 5 },
+        { key: 'gTrades', label: 'Total trades', type: 'text', max: 6, layouts: ['mobile'] },
+        { key: 'gRR', label: 'Avg R:R', type: 'text', max: 6, layouts: ['mobile'] },
+        { key: 'gTop', label: 'Top strategy', type: 'text', max: 60, layouts: ['overview'], hint: 'Name | trades | win rate % | rules followed % | PNL' },
+        { key: 'gBars', label: 'Daily PNL for the chart', type: 'textarea', rows: 3, max: 400, layouts: ['dashboard'], hint: 'Oldest to newest, comma separated. 0 = no trades that day.' },
+        { key: 'gRange', label: 'Chart range label', type: 'text', max: 20, layouts: ['dashboard'] },
+        { key: 'gDays', label: 'Calendar days', type: 'textarea', rows: 4, max: 900, layouts: ['overview'], hint: 'One line per weekday of the month, in order: PNL, trades, wins. Use - for a day without trades. Changing the month keeps trades on weekdays. The grid shows the second week.' },
+        { key: 'gMonth', label: 'Calendar month', type: 'text', max: 7, layouts: ['overview'], hint: 'YYYY-MM' }
+      ],
+      product(s) {
+        const winRate = pct(s.gWinRate);
+        const pnl = FMT.num(s.gPnl);
+        const trades = Math.round(FMT.num(s.gTrades));
+
+        if (s.layout === 'dashboard') {
+          const values = list(s.gBars).map(v => FMT.num(v));
+          return `
+            <div class="tpui comp comp-g-dash fit-comp" data-umax="2.4">
+              <div class="t-stats" style="grid-template-columns:repeat(2, minmax(0,1fr));margin-bottom:calc(var(--u)*14)">
+                ${TP.statCard('Total PNL', FMT.pnl(pnl), FMT.tone(pnl))}
+                ${TP.statCard('Win Rate', `${winRate}%`)}
+              </div>
+              <div style="--bars-h:calc(var(--u)*130)">${TP.pnlTrend({ label: s.gRange, values, ticks: SAMPLE.ticks, select: s.gRange })}</div>
+            </div>`;
+        }
+
+        if (s.layout === 'mobile') {
+          return `
+            <div class="tpui comp comp-g-mobile fit-comp" data-umax="2.2">
+              <div class="t-screen">
+                ${TP.appbar()}
+                <div style="padding:calc(var(--u)*20)">
+                  <div class="t-page-head" style="align-items:flex-start">
+                    <div><h4>Dashboard</h4><p style="max-width:calc(var(--u)*230);line-height:1.35">Your trading snapshot, updated from every logged trade.</p></div>
+                    <span class="t-btn">${ico('plus')}Log Trade</span>
+                  </div>
+                  <div class="t-stats" style="grid-template-columns:repeat(2, minmax(0,1fr))">
+                    ${TP.statCard('Total Trades', trades)}
+                    ${TP.statCard('Win Rate', `${winRate}%`)}
+                    ${TP.statCard('Total PNL', FMT.pnl(pnl), FMT.tone(pnl))}
+                    ${TP.statCard('Avg R:R', esc(s.gRR))}
+                  </div>
+                </div>
+              </div>
+            </div>`;
+        }
+
+        // Overview grid
+        const mi = monthInfo(s.gMonth);
+        const days = parseCalDays(mi, s.gDays, '', '');
+        const top = (rows(s.gTop)[0] || []);
+        return `
+          <div class="tpui comp comp-g-bento fit-comp" data-umax="2.4">
+            ${TP.calendar(mi, days, { from: 1, weeks: 1, weekdaysOnly: true, wk: 92, row: 92 })}
+            <div class="g-bento-row">
+              ${TP.statCard('Total PNL', FMT.pnl(pnl), FMT.tone(pnl))}
+              ${TP.statCard('Win Rate', `${winRate}%`)}
+            </div>
+            ${TP.rankItem(1, top[0] || 'ORB', `${Math.round(FMT.num(top[1]))} trades · ${Math.round(FMT.num(top[2]))}% WR · ${Math.round(FMT.num(top[3]))}% rules followed`, FMT.num(top[4]))}
+          </div>`;
+      }
+    };
+
+    const TPL_JOURNAL = {
+      id: 'journal',
+      name: 'Trading Journal',
+      status: 'ready',
+      blurb: 'Day reviews, notes and rule discipline',
+      layouts: [
+        { id: 'day', name: 'Day review', hint: 'A trading day as it opens from the calendar: stats, trades and your notes.' + NO_SUPPORT_HINT, noSupport: true },
+        { id: 'notes', name: 'Notes', hint: 'A weekly review in Notes with a trade card inserted.' + NO_SUPPORT_HINT, noSupport: true },
+        { id: 'discipline', name: 'Discipline', hint: 'Rule discipline with a flagged trade and its rule violation.' }
+      ],
+      defaults: {
+        layout: 'day',
+        badge: 'Trading journal',
+        headline: 'Review every\n[trading day.]',
+        support: 'Log your trades, write notes for each day, and see when you followed your rules.',
+        cta: 'Start your journal',
+        showDataNote: true,
+        dataNote: EXAMPLE_NOTE,
+        jDate: SAMPLE.journalDate,
+        jTrades: 'VWAP Reclaim | MNQ | 450 | 3 | 10:11 AM | Waited for the reclaim, held to target.\nORB | NQ | -180 | -1 | 9:42 AM | Chased the first push. | x',
+        jNote: 'Plan: ORB long only above the opening range.\nMindset: calm. Stopped after two trades, per my rule.',
+        jNoteTitle: `Week ${SAMPLE.week} review`,
+        jNoteBody: '# What worked\nORB in the first 30 minutes. 6 of 8 winners came before 10:15.\n@trade\n# What to fix\nNo VWAP reclaims against the trend.',
+        jRule: '87', jRuleTrades: '63', jViolation: 'Traded after 11:30 AM'
+      },
+      headlinePresets: [
+        'Review every\n[trading day.]',
+        'Write it down.\n[Trade better.]',
+        'Your trades.\n[Your story.]',
+        'Learn from\n[every session.]',
+        'Discipline you\n[can measure.]'
+      ],
+      dataFields: [
+        { key: 'jDate', label: 'Day', type: 'text', max: 24, layouts: ['day', 'discipline'] },
+        { key: 'jTrades', label: 'Trades that day', type: 'textarea', rows: 3, max: 500, hint: 'One per line: Strategy | Asset | PNL | R | Time | Note | x (x = rules broken)' },
+        { key: 'jNote', label: 'Day notes', type: 'textarea', rows: 3, max: 300, layouts: ['day'], hint: '"Label: text" makes the label bold.' },
+        { key: 'jNoteTitle', label: 'Note title', type: 'text', max: 30, layouts: ['notes'] },
+        { key: 'jNoteBody', label: 'Note body', type: 'textarea', rows: 5, max: 500, layouts: ['notes'], hint: '# Heading, @trade inserts the first trade as a trade card.' },
+        { key: 'jRule', label: 'Rule discipline (%)', type: 'text', max: 5, layouts: ['discipline'] },
+        { key: 'jRuleTrades', label: 'Total trades', type: 'text', max: 6, layouts: ['discipline'] },
+        { key: 'jViolation', label: 'Rule violation', type: 'text', max: 48, layouts: ['discipline'] }
+      ],
+      product(s) {
+        const trades = parseFeedTrades(s.jTrades);
+
+        if (s.layout === 'notes') {
+          const body = String(s.jNoteBody || '').split('\n').map(l => l.trim()).filter(Boolean).map(l => {
+            if (l.startsWith('# ')) return `<h5>${esc(l.slice(2))}</h5>`;
+            if (l === '@trade') return trades[0] ? TP.noteTradeCard(trades[0], s.jDate.replace(/^(\w{3})\w*/, '$1')) : '';
+            return `<p>${esc(l)}</p>`;
+          }).join('');
+          return `
+            <div class="tpui comp comp-j-notes fit-comp" data-umax="2.4">
+              <div class="t-notes">
+                <div class="t-notes-side">
+                  <div class="t-notes-side-head"><span>Notes</span><span class="t-notes-plus">${ico('plus')}</span></div>
+                  <div style="padding:calc(var(--u)*8) 0">
+                    <div class="t-note-item active"><b>${esc(s.jNoteTitle)}</b><span>${esc(SAMPLE.recentFull[0])}</span></div>
+                    <div class="t-note-item"><b>ORB checklist</b><span>${esc(SAMPLE.recentFull[5])}</span></div>
+                    <div class="t-note-item"><b>Monthly recap</b><span>${esc(SAMPLE.recentFull[7])}</span></div>
+                  </div>
+                </div>
+                <div class="t-notes-main">
+                  <div class="t-notes-bar"><span><b>B</b></span><span><em>I</em></span><span><u>U</u></span><i></i><span>H1</span><span>— Divider</span><span class="ins">Insert Trade</span></div>
+                  <div class="t-notes-title">${esc(s.jNoteTitle)}</div>
+                  <div class="t-notes-body">${body}</div>
+                </div>
+              </div>
+            </div>`;
+        }
+
+        if (s.layout === 'discipline') {
+          const flagged = trades.find(t => t.broke) || trades[0];
+          return `
+            <div class="tpui comp comp-j-disc fit-comp" data-umax="2.4">
+              ${TP.ruleDiscipline(pct(s.jRule), Math.round(FMT.num(s.jRuleTrades)), { strong: true })}
+              <div class="t-modal t-float j-disc-day">
+                ${TP.modalHead(s.jDate)}
+                <div class="t-rule-banner"><div class="t-rule-banner-title"><span>⚠ 1 rule violation</span><span>View breakdown ›</span></div><div class="t-rule-banner-item">${esc(s.jViolation)}</div></div>
+                <div class="t-modal-body" style="padding-top:calc(var(--u)*18)">
+                  <div class="t-feed">${TP.feedItem(flagged, { note: false })}</div>
+                </div>
+              </div>
+            </div>`;
+        }
+
+        return `
+          <div class="tpui comp comp-j-day fit-comp" data-umax="2.4">
+            <div class="t-modal">
+              ${TP.modalHead(s.jDate)}
+              ${TP.dayStats(trades)}
+              <div class="t-modal-body">
+                <div class="t-section-title">Trades</div>
+                <div class="t-feed">${trades.map(t => TP.feedItem(t, { note: false })).join('')}</div>
+                <div class="t-section-title">Notes</div>
+                <div class="t-note">${TP.noteHtml(s.jNote)}</div>
+              </div>
+            </div>
+          </div>`;
+      }
+    };
+
+    const TPL_CALENDAR = {
+      id: 'calendar',
+      name: 'Trading Calendar',
+      status: 'ready',
+      blurb: 'Daily P&L on a monthly calendar',
+      layouts: [
+        { id: 'month', name: 'Month', hint: 'The full month with monthly stats and weekly totals.' + NO_SUPPORT_HINT, noSupport: true },
+        { id: 'closeup', name: 'Close-up', hint: 'Two weeks, larger, with the monthly stats.' },
+        { id: 'day', name: 'Day detail', hint: 'A week of the calendar with one day opened.' + NO_SUPPORT_HINT, noSupport: true }
+      ],
+      defaults: {
+        layout: 'month',
+        badge: 'Trading calendar',
+        headline: 'Your month,\n[at a glance.]',
+        support: 'See P&L, trade count and win rate on every day, with weekly totals on the side.',
+        cta: 'See your calendar',
+        showDataNote: true,
+        dataNote: EXAMPLE_NOTE,
+        cMonth: SAMPLE.monthKey,
+        cDays: SAMPLE.calLines,
+        cNotes: '',
+        cWeek: '2',
+        cSel: '',
+        cSelTrades: 'ORB | NQ | 540 | 3 | 9:41 AM\nVWAP Reclaim | MNQ | 305 | 2 | 10:20 AM'
+      },
+      headlinePresets: [
+        'Your month,\n[at a glance.]',
+        'Every day.\n[Every dollar.]',
+        'See your\n[green days.]',
+        'Your P&L,\n[day by day.]',
+        'Know your\n[best weeks.]'
+      ],
+      dataFields: [
+        { key: 'cMonth', label: 'Month', type: 'text', max: 7, hint: 'YYYY-MM' },
+        { key: 'cDays', label: 'Trading days', type: 'textarea', rows: 5, max: 900, hint: 'One line per weekday of the month, in order: PNL, trades, wins. Use - for a day without trades. Changing the month keeps trades on weekdays. Monthly and weekly totals are calculated.' },
+        { key: 'cNotes', label: 'Days with notes', type: 'text', max: 60, hint: 'Comma separated, for example 8, 9. Shows the purple note dot.' },
+        { key: 'cWeek', label: 'Week to show', type: 'text', max: 2, layouts: ['closeup', 'day'], hint: '1 = first row of the month.' },
+        { key: 'cSel', label: 'Opened day', type: 'text', max: 2, layouts: ['day'], hint: 'Leave empty to open the best day of that week.' },
+        { key: 'cSelTrades', label: 'Trades on the opened day', type: 'textarea', rows: 3, max: 400, layouts: ['day'], hint: 'Strategy | Asset | PNL | R | Time. The day cell updates to match.' }
+      ],
+      product(s, ctx) {
+        const mi = monthInfo(s.cMonth);
+        const days = parseCalDays(mi, s.cDays, s.cNotes, '');
+        const totalWeeks = Math.ceil((mi.first + mi.days) / 7);
+        const weekIdx = clamp(Math.round(FMT.num(s.cWeek, 2)) - 1, 0, totalWeeks - 1);
+
+        if (s.layout === 'day') {
+          // Days shown in the chosen week, and the day to open
+          const weekDays = [];
+          for (let i = 0; i < 7; i++) { const d = weekIdx * 7 + i - mi.first + 1; if (d >= 1 && d <= mi.days) weekDays.push(d); }
+          let sel = Math.round(FMT.num(s.cSel));
+          if (!weekDays.includes(sel)) sel = weekDays.filter(d => days[d] && days[d].trades).sort((a, b) => days[b].pnl - days[a].pnl)[0] || weekDays[1] || weekDays[0];
+          const trades = parseFeedTrades(s.cSelTrades);
+          if (trades.length) days[sel] = { ...(days[sel] || {}), pnl: trades.reduce((a, t) => a + t.pnl, 0), trades: trades.length, wins: trades.filter(t => t.pnl > 0).length };
+          return `
+            <div class="tpui comp comp-c-day fit-comp" data-umax="2.4">
+              ${TP.calendar(mi, days, { from: weekIdx, weeks: 1, sel, wk: 82, row: 96 })}
+              <div class="t-modal t-float-strong c-day-modal">
+                ${TP.modalHead(longDate(mi.y, mi.m, sel))}
+                ${TP.dayStats(trades)}
+                <div class="t-modal-body" style="padding-top:calc(var(--u)*18)">
+                  <div class="t-feed">${trades.map(t => TP.feedItem(t, { note: false })).join('')}</div>
+                </div>
+              </div>
+            </div>`;
+        }
+
+        const stats = monthStats(days);
+        if (s.layout === 'closeup') {
+          return `
+            <div class="tpui comp comp-c-close fit-comp" data-umax="2.4">
+              ${TP.calHeader(mi, stats)}
+              ${TP.calendar(mi, days, { from: weekIdx, weeks: 2, wk: 84, row: 98 })}
+            </div>`;
+        }
+
+        const feed = ctx.format === 'feed';
+        return `
+          <div class="tpui comp comp-c-month fit-comp" data-umax="2.4">
+            ${TP.calHeader(mi, stats)}
+            ${TP.calendar(mi, days, { wk: 80, row: feed ? 72 : 80 })}
+          </div>`;
+      }
+    };
+
+    const TPL_ANALYTICS = {
+      id: 'analytics',
+      name: 'Performance Analytics',
+      status: 'ready',
+      blurb: 'Your Tradeprint: strategy ranking and performance insights',
+      layouts: [
+        { id: 'fingerprint', name: 'Fingerprint', hint: 'Your Tradeprint, Clarity Score and Strategy Ranking.' },
+        { id: 'insights', name: 'Insights', hint: 'Best trading day, best time window and rule discipline.' + NO_SUPPORT_HINT, noSupport: true },
+        { id: 'confluence', name: 'Confluences', hint: 'Confluence Intelligence for two strategies.' + NO_SUPPORT_HINT, noSupport: true }
+      ],
+      defaults: {
+        layout: 'fingerprint',
+        badge: 'Performance analytics',
+        headline: 'Find out what\n[actually works.]',
+        support: 'Strategy rankings, your best days and time windows, and rule discipline, built from every trade you log.',
+        cta: 'See your Tradeprint',
+        showDataNote: true,
+        dataNote: EXAMPLE_NOTE,
+        aClarity: '93',
+        aStrategies: 'ORB | 30 | 67 | 90 | 7324\nVWAP Reclaim | 23 | 70 | 78 | 6100\nLiquidity Sweep | 10 | 90 | 100 | 3312',
+        aBestDay: 'Thursday | 12 | 100 | 4536',
+        aWorstDay: 'Wednesday | 13 | 62 | 2556',
+        aBestTime: '9 AM - 11 AM | 62 | 71 | 16076',
+        aWorstTime: '11 AM - 1 PM | 1 | 100 | 660',
+        aRule: '87', aRuleTrades: '63',
+        aConf: 'ORB | Best combo | HTF bias + Retest hold + VWAP aligned | 3 | 100 | 1675\nORB | Worst combo | Opening range break + Volume expansion | 2 | 0 | -400\nORB | Costly when missing | VWAP aligned | 9 | 44 | 689\nVWAP Reclaim | Best combo | Prior day level + Trend day | 2 | 100 | 810\nVWAP Reclaim | Worst combo | Prior day level + Trend day + VWAP reclaim | 1 | 0 | -150\nVWAP Reclaim | Best confluence | Prior day level | 21 | 71 | 5440'
+      },
+      headlinePresets: [
+        'Find out what\n[actually works.]',
+        'Know your\n[real edge.]',
+        'Your best setup,\n[backed by data.]',
+        'Trade what\n[the numbers say.]',
+        'Your trading\n[fingerprint.]'
+      ],
+      dataFields: [
+        { key: 'aStrategies', label: 'Strategies', type: 'textarea', rows: 3, max: 300, layouts: ['fingerprint', 'confluence'], hint: 'Name | trades | win rate % | rules followed % | PNL. The first one is your top strategy.' },
+        { key: 'aClarity', label: 'Clarity Score (%)', type: 'text', max: 5, layouts: ['fingerprint'] },
+        { key: 'aBestDay', label: 'Best trading day', type: 'text', max: 48, layouts: ['insights'], hint: 'Day | trades | win rate % | PNL' },
+        { key: 'aWorstDay', label: 'Worst trading day', type: 'text', max: 48, layouts: ['insights'] },
+        { key: 'aBestTime', label: 'Best time window', type: 'text', max: 48, layouts: ['insights'], hint: 'Window | trades | win rate % | PNL' },
+        { key: 'aWorstTime', label: 'Worst time window', type: 'text', max: 48, layouts: ['insights'] },
+        { key: 'aRule', label: 'Rule discipline (%)', type: 'text', max: 5, layouts: ['insights'] },
+        { key: 'aRuleTrades', label: 'Total trades', type: 'text', max: 6, layouts: ['insights'] },
+        { key: 'aConf', label: 'Confluence rows', type: 'textarea', rows: 6, max: 900, layouts: ['confluence'], hint: 'Strategy | label | text | trades | win rate % | PNL. "Worst" and "Costly" rows show in red. The first two strategies are shown.' }
+      ],
+      product(s) {
+        const strategies = rows(s.aStrategies).map(c => ({ name: c[0] || 'Strategy', trades: Math.round(FMT.num(c[1])), wr: Math.round(FMT.num(c[2])), rules: Math.round(FMT.num(c[3])), pnl: FMT.num(c[4]) }));
+        const top = strategies[0] || { name: 'ORB', trades: 0, wr: 0, pnl: 0 };
+
+        if (s.layout === 'insights') {
+          const side = v => { const c = rows(v)[0] || []; return { name: c[0] || '', pnl: FMT.num(c[3]), meta: `${Math.round(FMT.num(c[1]))} trades · ${Math.round(FMT.num(c[2]))}% WR · ${FMT.pnl(FMT.num(c[3]))}` }; };
+          return `
+            <div class="tpui comp comp-a-ins fit-comp" data-umax="2.4">
+              ${TP.split('Best Trading Day', side(s.aBestDay), side(s.aWorstDay))}
+              ${TP.split('Best Time Window', side(s.aBestTime), side(s.aWorstTime))}
+              ${TP.ruleDiscipline(pct(s.aRule), Math.round(FMT.num(s.aRuleTrades)), { strong: true })}
+            </div>`;
+        }
+
+        if (s.layout === 'confluence') {
+          const groups = [];
+          rows(s.aConf).forEach(c => {
+            let g = groups.find(x => x.name === c[0]);
+            if (!g) { g = { name: c[0] || 'Strategy', rows: [] }; groups.push(g); }
+            g.rows.push(c);
+          });
+          const col = g => {
+            const st = strategies.find(x => x.name === g.name);
+            const rowsHtml = g.rows.map(c => {
+              const bad = /worst|costly/i.test(c[1] || '');
+              const n = Math.round(FMT.num(c[3]));
+              return `<div class="t-edge-row"><div class="t-mini-label">${esc(c[1] || '')}</div><div class="t-edge-main ${bad ? 'r' : 'g'}">${esc(c[2] || '')}</div><div class="t-edge-meta">${n} trade${n === 1 ? '' : 's'} · ${Math.round(FMT.num(c[4]))}% WR · ${FMT.pnl(FMT.num(c[5]))}</div></div>`;
+            }).join('');
+            return `<div class="t-edge"><div class="t-edge-title">${esc(g.name)}</div><div class="t-simple-meta" style="margin-top:0">${st ? st.trades : 0} logged trades</div>${rowsHtml}</div>`;
+          };
+          return `
+            <div class="tpui comp comp-a-conf fit-comp" data-umax="2.4">
+              <div class="t-panel">
+                <div class="t-panel-title strong">Confluence Intelligence</div>
+                <div class="t-panel-sub" style="margin-bottom:calc(var(--u)*16)">Best combos, weak spots, and costly missing conditions by strategy.</div>
+                <div class="a-conf-cols">${groups.slice(0, 2).map(col).join('')}</div>
+              </div>
+            </div>`;
+        }
+
+        return `
+          <div class="tpui comp comp-a-fp fit-comp" data-umax="2.4">
+            <div class="a-fp-top">
+              <div class="t-tp-hero"><div class="t-kicker">Your Tradeprint</div><h4>Your Tradeprint favors ${esc(top.name)}.</h4></div>
+              <div class="t-score-card"><div class="t-score-label">Clarity Score</div><div class="t-score">${pct(s.aClarity)}%</div><div class="t-score-sub">Strong trade detail.</div></div>
+            </div>
+            <div class="t-panel">
+              <div class="t-panel-title strong">Strategy Ranking</div>
+              <div class="t-rank-list" style="margin-top:calc(var(--u)*12)">${strategies.slice(0, 2).map((st, i) => TP.rankItem(i + 1, st.name, `${st.trades} trades · ${st.wr}% WR · ${st.rules}% rules followed`, st.pnl)).join('')}</div>
+            </div>
+          </div>`;
+      }
+    };
+
+    const TPL_PROP = {
+      id: 'prop',
+      name: 'Prop Firm Command Center',
+      status: 'ready',
+      blurb: 'Evaluations, drawdown, profit targets and payouts',
+      layouts: [
+        { id: 'account', name: 'Account', hint: 'One evaluation: balance, profit target progress and its stages.' },
+        { id: 'portfolio', name: 'Portfolio', hint: 'Every prop account in one table.' },
+        { id: 'payout', name: 'Payout', hint: 'Payout tracker for a funded account.' + NO_SUPPORT_HINT, noSupport: true }
+      ],
+      defaults: {
+        layout: 'account',
+        badge: 'Prop firm tracking',
+        headline: 'Track every\n[prop account.]',
+        support: 'Track evaluations, drawdown, profit targets and payouts across all your prop firm accounts.',
+        cta: 'Track your accounts',
+        showDataNote: true,
+        dataNote: 'Example accounts. Always verify rules with your prop firm.',
+        pFirm: 'Apex Trader Funding', pProgram: '50K EOD Evaluation', pSize: '50000', pProfit: '2172', pTarget: '3000',
+        pDays: '9', pTrades: '14', pLinked: 'Apex 50K',
+        pAccounts: 'Apex Trader Funding | 50K EOD Evaluation | Evaluation | 2172 | On Track\nLucid Trading | 50K LucidFlex Funded | Funded | 2855 | Payout Appears Eligible\nTopstep | 50K Trading Combine | Evaluation | 1480 | On Track',
+        pPayMax: '1427', pPayCycle: '2855', pPayMin: '500', pPayCap: '2000', pPaySplit: '90'
+      },
+      headlinePresets: [
+        'Track every\n[prop account.]',
+        'Every prop account.\n[One command center.]',
+        'Pass the eval.\n[Track the payout.]',
+        'Know your\n[drawdown.]',
+        'Your prop firms,\n[finally organized.]',
+        'From evaluation\n[to payout.]'
+      ],
+      dataFields: [
+        { key: 'pFirm', label: 'Firm', type: 'text', max: 28, layouts: ['account'], hint: 'Firm names belong to their owners. Showing support is fine; don\'t imply a partnership.' },
+        { key: 'pProgram', label: 'Program', type: 'text', max: 28, layouts: ['account'] },
+        { key: 'pSize', label: 'Account size ($)', type: 'text', max: 8, layouts: ['account'] },
+        { key: 'pProfit', label: 'Evaluation profit ($)', type: 'text', max: 8, layouts: ['account'] },
+        { key: 'pTarget', label: 'Profit target ($)', type: 'text', max: 8, layouts: ['account'] },
+        { key: 'pDays', label: 'Trading days', type: 'text', max: 4, layouts: ['account'] },
+        { key: 'pTrades', label: 'Trades', type: 'text', max: 4, layouts: ['account'] },
+        { key: 'pLinked', label: 'Linked account name', type: 'text', max: 20, layouts: ['account'] },
+        { key: 'pAccounts', label: 'Accounts', type: 'textarea', rows: 4, max: 600, layouts: ['portfolio'], hint: 'Firm | Account | Stage | P&L | Status. Firm names belong to their owners.' },
+        { key: 'pPayCycle', label: 'Cycle profit ($)', type: 'text', max: 8, layouts: ['payout'] },
+        { key: 'pPayMax', label: 'Eligible payout ($)', type: 'text', max: 8, layouts: ['payout'] },
+        { key: 'pPayMin', label: 'Minimum payout ($)', type: 'text', max: 8, layouts: ['payout'] },
+        { key: 'pPayCap', label: 'Payout cap ($)', type: 'text', max: 8, layouts: ['payout'] },
+        { key: 'pPaySplit', label: 'Profit split (%)', type: 'text', max: 4, layouts: ['payout'] }
+      ],
+      product(s) {
+        if (s.layout === 'portfolio') {
+          const accts = rows(s.pAccounts).map(c => ({ firm: c[0] || '', account: c[1] || '', stage: c[2] || '', pnl: FMT.num(c[3]), status: c[4] || 'On Track' }));
+          const evals = accts.filter(a => /eval/i.test(a.stage)).length;
+          const funded = accts.filter(a => /fund/i.test(a.stage)).length;
+          const tone = st => /breach|fail/i.test(st) ? 'red' : /near|pending|building|check|relink/i.test(st) ? 'yellow' : 'green';
+          return `
+            <div class="tpui comp comp-p-port fit-comp" data-umax="2.4">
+              <div class="t-stats" style="grid-template-columns:repeat(3, minmax(0,1fr));margin-bottom:calc(var(--u)*14)">
+                ${TP.statCard('Active Accounts', accts.length)}${TP.statCard('Evaluations', evals)}${TP.statCard('Funded / Qualified', funded)}
+              </div>
+              <div class="t-panel">
+                <div class="t-panel-title">Accounts</div>
+                <table class="t-ptable"><thead><tr><th>Firm</th><th>Account</th><th>Stage</th><th>P&amp;L</th><th>Status</th></tr></thead>
+                <tbody>${accts.map(a => `<tr><td>${esc(a.firm)}</td><td>${esc(a.account)}</td><td>${esc(a.stage)}</td><td class="${FMT.tone(a.pnl)}">${FMT.signed(a.pnl, 0)}</td><td><span class="t-ppill ${tone(a.status)}">${esc(a.status)}</span></td></tr>`).join('')}</tbody></table>
+              </div>
+            </div>`;
+        }
+
+        if (s.layout === 'payout') {
+          const max = FMT.num(s.pPayMax), cycle = FMT.num(s.pPayCycle), split = FMT.num(s.pPaySplit, 90);
+          return `
+            <div class="tpui comp comp-p-pay fit-comp" data-umax="2.4">
+              <div class="t-panel p-pay-card">
+                <div class="t-panel-title">Payout Tracker · Next Payout #1</div>
+                <div class="t-big g">${FMT.money(max)}<span>appears eligible now</span></div>
+                ${TP.kv([['Cycle profit', FMT.signed(cycle), 'g'], ['Minimum payout', FMT.money(FMT.num(s.pPayMin))], ['Payout cap', FMT.money(FMT.num(s.pPayCap))], [`Proceeds at ${Math.round(split)}% split`, FMT.money(max * split / 100)]])}
+                <div class="t-checks">
+                  <div class="t-pcheck"><i>✓</i>Winning Days ($150+) · 8 / 5 qualifying days</div>
+                  <div class="t-pcheck"><i>✓</i>Positive Cycle Profit · ${FMT.signed(cycle)} this cycle</div>
+                  <div class="t-pcheck"><i>✓</i>Payouts Used · 0 / 5 payouts</div>
+                </div>
+                <div class="g" style="font-size:calc(var(--u)*13);font-weight:800;margin:calc(var(--u)*14) 0 calc(var(--u)*12)">Payout Appears Eligible · verify with the firm before requesting</div>
+                <span class="t-btn">Request / Log Payout</span>
+              </div>
+            </div>`;
+        }
+
+        const size = FMT.num(s.pSize, 50000), profit = FMT.num(s.pProfit), target = FMT.num(s.pTarget, 3000);
+        const done = profit >= target;
+        return `
+          <div class="tpui comp comp-p-acct fit-comp" data-umax="2.4">
+            ${TP.propHero({ firm: s.pFirm, program: s.pProgram, stage: 'Evaluation', status: done ? 'Goals Met' : 'On Track', linked: s.pLinked, size, profit, target, days: Math.round(FMT.num(s.pDays)), trades: Math.round(FMT.num(s.pTrades)) })}
+            ${TP.journey([{ label: 'Purchased', sub: SAMPLE.recent[7], state: 'done' }, { label: 'Evaluation', sub: 'Evaluation', state: 'active' }, { label: 'Passed', sub: done ? 'Tracked goals met' : '', state: done ? 'active' : 'todo' }, { label: 'Funded', state: 'todo' }])}
+          </div>`;
+      }
+    };
+
+    const TPL_PRINTS = {
+      id: 'prints',
+      name: 'Prints',
+      status: 'ready',
+      blurb: 'Share logged trades with other traders',
+      layouts: [
+        { id: 'feed', name: 'Feed', hint: 'The Prints feed with two published trades.' + NO_SUPPORT_HINT, noSupport: true },
+        { id: 'print', name: 'Single print', hint: 'One print with its confluences, and your Prints profile.' },
+        { id: 'leaderboard', name: 'Leaderboard', hint: 'The Prints leaderboard.' + NO_SUPPORT_HINT, noSupport: true }
+      ],
+      defaults: {
+        layout: 'feed',
+        badge: 'Prints',
+        headline: 'Share the trade.\n[Skip the noise.]',
+        support: 'Publish trades from your journal, hide your P&L if you want, and follow traders building their edge.',
+        cta: 'Publish your first Print',
+        showDataNote: true,
+        dataNote: 'Example traders and trades for illustration.',
+        pr1: 'ny_open | First hour only. | ORB | NQ | 640 | 9:41 AM | 2.5 | 2',
+        pr1Caption: 'Waited for the retest of the range high. Held the runner to 2.5R.',
+        pr1Conf: 'Opening range break, VWAP aligned, Volume expansion',
+        pr1Hide: false,
+        pr2: 'es_scalps | ES scalper, process over P&L. | VWAP Reclaim | ES | 312.50 | 10:05 AM | 1.8 | 0',
+        pr2Caption: '',
+        pr2Hide: true,
+        prMe: 'you_trade | NQ futures. ORB and VWAP. | 214 | 96 | 37',
+        prBoard: 'ny_open | 8420.50 | 64 | 38\nyou_trade | 6115.00 | 61 | 52 | you\nAnonymous Trader | 4980.00 | 58 | 41\nes_scalps | hidden | 0 | 77'
+      },
+      headlinePresets: [
+        'Share the trade.\n[Skip the noise.]',
+        'Real trades.\n[Real traders.]',
+        'Signal over\n[noise.]',
+        'Share your\n[logged trades.]',
+        'Climb the\n[leaderboard.]'
+      ],
+      dataFields: [
+        { key: 'pr1', label: 'Print 1', type: 'text', max: 120, layouts: ['feed', 'print'], hint: 'Username | bio | strategy | asset | PNL | time | R | replies' },
+        { key: 'pr1Caption', label: 'Print 1 caption', type: 'textarea', rows: 2, max: 140, layouts: ['feed', 'print'] },
+        { key: 'pr1Conf', label: 'Print 1 confluences', type: 'text', max: 120, layouts: ['print'], hint: 'Comma separated' },
+        { key: 'pr1Hide', label: 'Hide Print 1 PNL', type: 'toggle', layouts: ['feed', 'print'] },
+        { key: 'pr2', label: 'Print 2', type: 'text', max: 120, layouts: ['feed'] },
+        { key: 'pr2Caption', label: 'Print 2 caption', type: 'textarea', rows: 2, max: 140, layouts: ['feed'] },
+        { key: 'pr2Hide', label: 'Hide Print 2 PNL', type: 'toggle', layouts: ['feed'] },
+        { key: 'prMe', label: 'Your Prints profile', type: 'text', max: 90, layouts: ['print'], hint: 'Username | bio | followers | following | prints' },
+        { key: 'prBoard', label: 'Leaderboard rows', type: 'textarea', rows: 5, max: 400, layouts: ['leaderboard'], hint: 'Name | total PNL (or hidden) | win rate % | trades | you' }
+      ],
+      product(s) {
+        const post = (line, caption, hide, extra = {}) => {
+          const c = rows(line)[0] || [];
+          return { user: c[0] || 'trader', bio: c[1] || '', strategy: c[2] || 'Strategy', asset: c[3] || '', pnl: FMT.num(c[4]), time: c[5] || '', rr: c[6] || '', replies: Math.round(FMT.num(c[7])), caption, hidden: !!hide, date: SAMPLE.recent[0], ...extra };
+        };
+
+        if (s.layout === 'leaderboard') {
+          const lb = rows(s.prBoard).slice(0, 6).map((c, i) => {
+            const hidden = /hidden/i.test(c[1] || '');
+            const pnl = FMT.num(c[1]);
+            const name = c[0] || 'Trader';
+            const sub = hidden ? `${Math.round(FMT.num(c[3]))} trades` : `${Math.round(FMT.num(c[2]))}% WR · ${Math.round(FMT.num(c[3]))} trades`;
+            return `<div class="t-lb-row"><div class="t-lb-rank">${i + 1}</div><div class="t-lb-user"><div class="t-avatar">${esc(name[0].toUpperCase())}</div><div style="min-width:0"><div class="t-print-name">${esc(name)}${/you/i.test(c[4] || '') ? '<span class="t-you">You</span>' : ''}</div><div class="t-print-meta">${esc(sub)}</div></div></div><div class="t-lb-value ${hidden ? 'm' : FMT.tone(pnl)}">${hidden ? 'Hidden' : FMT.pnl(pnl)}</div></div>`;
+          }).join('');
+          return `
+            <div class="tpui comp comp-pr-lb fit-comp" data-umax="2.4">
+              <div class="t-print">
+                <div class="t-side-title">Leaderboard</div>
+                <div class="t-segs" style="margin-bottom:calc(var(--u)*10)"><span class="t-seg on">Total PnL</span><span class="t-seg">Win Rate %</span></div>
+                <div class="t-segs" style="margin-bottom:calc(var(--u)*14)">${['1D', '1W', '1M', '3M', '1Y', 'All Time'].map(t => `<span class="t-seg${t === '1M' ? ' on' : ''}">${t}</span>`).join('')}</div>
+                <div class="t-lb">${lb}</div>
+              </div>
+            </div>`;
+        }
+
+        if (s.layout === 'print') {
+          const p = post(s.pr1, s.pr1Caption, s.pr1Hide, { conf: list(s.pr1Conf) });
+          const me = rows(s.prMe)[0] || [];
+          return `
+            <div class="tpui comp comp-pr-one fit-comp" data-umax="2.4">
+              ${TP.printCard(p, { expanded: true, follow: 'Following' })}
+              <div class="pr-side">
+                <div class="t-print">
+                  <div class="t-side-title">Prints Profile</div>
+                  <div class="t-print-user"><div class="t-avatar lg">${esc((me[0] || 'Y')[0].toUpperCase())}</div><div style="min-width:0"><div class="t-print-name" style="font-size:calc(var(--u)*15)">${esc(me[0] || '')}</div><div class="t-print-bio">${esc(me[1] || '')}</div></div></div>
+                  <div class="t-network"><span><strong>${Math.round(FMT.num(me[2]))}</strong><small>Followers</small></span><span><strong>${Math.round(FMT.num(me[3]))}</strong><small>Following</small></span><span><strong>${Math.round(FMT.num(me[4]))}</strong><small>Prints</small></span></div>
+                </div>
+                <div class="t-print">
+                  <div class="t-side-title">Signal Over Noise</div>
+                  <div class="t-print-bio" style="white-space:normal">Prints are only for logged trades. Share the setup, the result, and the context.</div>
+                </div>
+              </div>
+            </div>`;
+        }
+
+        const p1 = post(s.pr1, s.pr1Caption, s.pr1Hide);
+        const p2 = post(s.pr2, s.pr2Caption, s.pr2Hide, { date: SAMPLE.recent[0] });
+        return `
+          <div class="tpui comp comp-pr-feed fit-comp" data-umax="2.4">
+            ${TP.printTabs('Everyone')}
+            ${TP.printCard(p1, { follow: 'Following' })}
+            ${TP.printCard(p2, { follow: 'Follow' })}
+          </div>`;
+      }
+    };
+
+    const TPL_ECON = {
+      id: 'econ',
+      name: 'Economic Calendar / News',
+      status: 'ready',
+      blurb: 'High-impact U.S. economic releases in Tradeprint',
+      layouts: [
+        { id: 'week', name: 'Week ahead', hint: 'Economic News for a week, as it opens from the calendar.' + NO_SUPPORT_HINT, noSupport: true },
+        { id: 'release', name: 'Release', hint: 'One released event with actual and previous values.' + NO_SUPPORT_HINT, noSupport: true },
+        { id: 'calendar', name: 'On your calendar', hint: 'News markers on the trading calendar and the day view.' }
+      ],
+      defaults: {
+        layout: 'week',
+        badge: 'Economic news',
+        headline: 'Know when\n[the news hits.]',
+        support: 'See major U.S. releases right on your trading calendar, with release times, actual results and previous values.',
+        cta: 'See what\'s coming',
+        showDataNote: true,
+        dataNote: 'Example events and values for illustration. Not live data.',
+        eWeekTitle: SAMPLE.econWeekTitle,
+        eWeek: `${SAMPLE.econDays[2]} | 8:30 AM | Consumer Price Index\n${SAMPLE.econDays[3]} | 8:30 AM | Producer Price Index\n${SAMPLE.econDays[3]} | 8:30 AM | Jobless Claims\n${SAMPLE.econDays[4]} | 8:30 AM | Retail Sales`,
+        eTitle: SAMPLE.nfpTitle,
+        eName: 'Employment Situation',
+        eTime: '8:30 AM',
+        eAgency: 'Bureau of Labor Statistics',
+        ePeriod: SAMPLE.nfpPeriod,
+        eReleased: SAMPLE.nfpReleased,
+        eMetrics: 'Nonfarm Payrolls | 142K | 98K\nUnemployment Rate | 4.2% | 4.3%\nAverage Hourly Earnings (MoM) | 0.3% | 0.4%',
+        eCalMonth: SAMPLE.monthKey,
+        eCalDays: SAMPLE.calLines,
+        eCalNews: '',
+        eStripDay: ''
+      },
+      headlinePresets: [
+        'Know when\n[the news hits.]',
+        'Plan around\n[the news.]',
+        'CPI. NFP. FOMC.\n[Covered.]',
+        'Never get caught\n[by the news.]',
+        'Know what\'s coming\n[before the open.]',
+        'Trade the plan,\n[not the surprise.]'
+      ],
+      dataFields: [
+        { key: 'eWeekTitle', label: 'Week title', type: 'text', max: 40, layouts: ['week'] },
+        { key: 'eWeek', label: 'Events', type: 'textarea', rows: 4, max: 500, layouts: ['week'], hint: 'Day heading | time ET | event' },
+        { key: 'eTitle', label: 'Day title', type: 'text', max: 40, layouts: ['release'] },
+        { key: 'eName', label: 'Event', type: 'text', max: 40, layouts: ['release'] },
+        { key: 'eTime', label: 'Time (ET)', type: 'text', max: 10, layouts: ['release'] },
+        { key: 'eAgency', label: 'Agency', type: 'text', max: 40, layouts: ['release'] },
+        { key: 'ePeriod', label: 'Reference period', type: 'text', max: 30, layouts: ['release'] },
+        { key: 'eReleased', label: 'Released', type: 'text', max: 40, layouts: ['release'] },
+        { key: 'eMetrics', label: 'Metrics', type: 'textarea', rows: 3, max: 300, layouts: ['release'], hint: 'Metric | actual | previous' },
+        { key: 'eCalMonth', label: 'Month', type: 'text', max: 7, layouts: ['calendar'], hint: 'YYYY-MM' },
+        { key: 'eCalDays', label: 'Trading days', type: 'textarea', rows: 4, max: 900, layouts: ['calendar'], hint: 'One line per weekday of the month, in order: PNL, trades, wins. Use - for a day without trades. Changing the month keeps trades on weekdays.' },
+        { key: 'eCalNews', label: 'Days with news', type: 'text', max: 60, layouts: ['calendar'], hint: 'Comma separated. Repeat a day for more events. Empty = examples.' }
+      ],
+      product(s) {
+        if (s.layout === 'release') {
+          const metrics = rows(s.eMetrics).map(c => ({ name: c[0] || '', actual: c[1] || '', previous: c[2] || '' }));
+          return `
+            <div class="tpui comp comp-e-rel fit-comp" data-umax="2.4">
+              <div class="t-econ">
+                ${TP.econHead(s.eTitle, '1 high-impact U.S. release')}
+                <div class="t-econ-body">${TP.econCard({ time: s.eTime, name: s.eName, status: 'Released', agency: s.eAgency, period: s.ePeriod, releasedAt: s.eReleased, metrics }, { open: true })}</div>
+              </div>
+            </div>`;
+        }
+
+        if (s.layout === 'calendar') {
+          const mi = monthInfo(s.eCalMonth);
+          const weekIdx = 1;
+          const weekDays = [];
+          for (let i = 1; i < 6; i++) { const d = weekIdx * 7 + i - mi.first + 1; if (d >= 1 && d <= mi.days) weekDays.push(d); }
+          const news = String(s.eCalNews || '').trim() || [weekDays[2], weekDays[3], weekDays[4]].filter(Boolean).join(', ');
+          const days = parseCalDays(mi, s.eCalDays, '', news);
+          const open = weekDays.filter(d => days[d] && days[d].news).sort((a, b) => days[b].news - days[a].news)[0] || weekDays[2];
+          const count = (days[open] && days[open].news) || 1;
+          const events = [['8:30 AM', 'Consumer Price Index', 'CPI'], ['8:30 AM', 'Jobless Claims', 'Claims'], ['10:00 AM', 'Retail Sales', 'Retail Sales']].slice(0, count);
+          const btn = count === 1 ? `${events[0][2]} · ${events[0][0]}` : `News ${count}`;
+          return `
+            <div class="tpui comp comp-e-cal fit-comp" data-umax="2.4">
+              ${TP.calendar(mi, days, { from: weekIdx, weeks: 1, weekdaysOnly: true, sel: open, wk: 88, row: 96 })}
+              <div class="t-modal t-float-strong e-cal-day">
+                <div class="t-modal-head"><div class="t-modal-date">${esc(longDate(mi.y, mi.m, open))}</div><div class="t-modal-icons" style="padding-top:0"><span class="t-news-btn">${ico('news')}<span>${esc(btn)}</span></span>${ico('share')}<span class="x">×</span></div></div>
+                <div class="t-strip" style="margin:calc(var(--u)*12) calc(var(--u)*18) calc(var(--u)*16)">${ico('news')}<span><b>News</b><span class="sep">·</span>${count} event${count === 1 ? '' : 's'}</span>${count <= 3 ? `<span class="t-strip-events">${events.map(e => `<em>${e[0]}</em>${esc(e[1])}`).join('<span class="sep">·</span>')}</span>` : ''}<span style="margin-left:auto;opacity:.5">›</span></div>
+              </div>
+            </div>`;
+        }
+
+        // Week ahead
+        const items = rows(s.eWeek).map(c => ({ day: c[0] || '', time: c[1] || '', name: c[2] || '' }));
+        let html = '';
+        let lastDay = null;
+        items.forEach(ev => {
+          if (ev.day !== lastDay) { html += `<div class="t-econ-day">${esc(ev.day)}</div>`; lastDay = ev.day; }
+          html += TP.econCard({ time: ev.time, name: ev.name });
+        });
+        return `
+          <div class="tpui comp comp-e-week fit-comp" data-umax="2.4">
+            <div class="t-econ">
+              ${TP.econHead(s.eWeekTitle, `${items.length} high-impact U.S. release${items.length === 1 ? '' : 's'}`)}
+              <div class="t-econ-body">${html}</div>
+            </div>
+          </div>`;
+      }
+    };
+
+    const TPL_CALCULATOR = {
+      id: 'calculator',
+      name: 'Calculator',
+      status: 'ready',
+      blurb: 'Futures P&L and points calculators',
+      layouts: [
+        { id: 'pnl', name: 'P&L', hint: 'Futures P&L Calculator with its results. Results are calculated from the inputs, like the app.' + NO_SUPPORT_HINT, noSupport: true },
+        { id: 'points', name: 'Points', hint: 'Futures Points Calculator with its results.' + NO_SUPPORT_HINT, noSupport: true },
+        { id: 'results', name: 'Results', hint: 'Dollar risk, dollar profit and R:R, large.' }
+      ],
+      defaults: {
+        layout: 'pnl',
+        badge: 'Futures calculator',
+        headline: 'Know your risk\n[before you enter.]',
+        support: 'Enter your entry, stop and target to see dollar risk, dollar profit and R:R for MNQ, NQ, MES, ES, MGC and GC.',
+        cta: 'Try the calculator',
+        showDataNote: false,
+        dataNote: EXAMPLE_NOTE,
+        kTicker: 'NQ', kContracts: '2', kEntry: '25236', kStop: '25211', kTarget: '25296',
+        kpTicker: 'MNQ', kpContracts: '5', kpStop: '20', kpTarget: '50'
+      },
+      headlinePresets: [
+        'Know your risk\n[before you enter.]',
+        'Size every trade\n[in seconds.]',
+        'Risk. Reward.\n[R:R. Instantly.]',
+        'Do the math\n[before the trade.]',
+        'Plan the trade.\n[Then take it.]'
+      ],
+      dataFields: [
+        { key: 'kTicker', label: 'Ticker', type: 'select', options: TICKERS, layouts: ['pnl', 'results'] },
+        { key: 'kContracts', label: 'Contracts', type: 'text', max: 4, layouts: ['pnl', 'results'] },
+        { key: 'kEntry', label: 'Entry price', type: 'text', max: 10, layouts: ['pnl', 'results'] },
+        { key: 'kStop', label: 'Stop loss price', type: 'text', max: 10, layouts: ['pnl', 'results'] },
+        { key: 'kTarget', label: 'Target price', type: 'text', max: 10, layouts: ['pnl', 'results'] },
+        { key: 'kpTicker', label: 'Ticker', type: 'select', options: TICKERS, layouts: ['points'] },
+        { key: 'kpContracts', label: 'Contracts', type: 'text', max: 4, layouts: ['points'] },
+        { key: 'kpStop', label: 'Stop loss points', type: 'text', max: 8, layouts: ['points'] },
+        { key: 'kpTarget', label: 'Target points', type: 'text', max: 8, layouts: ['points'] }
+      ],
+      product(s) {
+        if (s.layout === 'points') {
+          const res = calcResult(s.kpTicker, s.kpContracts, s.kpStop, s.kpTarget, 0, 'points');
+          return `
+            <div class="tpui comp comp-k-layer fit-comp" data-umax="2.4">
+              ${TP.calcCard('Futures Points Calculator', [['Ticker', s.kpTicker, true], ['Contracts', s.kpContracts], ['Stop Loss Points', s.kpStop], ['Target Points', s.kpTarget, false, true]], { cls: 'k-card' })}
+              ${TP.calcResults(res, { cols: 3, cls: 'k-res t-float-strong' })}
+            </div>`;
+        }
+
+        const res = calcResult(s.kTicker, s.kContracts, s.kEntry, s.kStop, s.kTarget);
+        if (s.layout === 'results') {
+          return `
+            <div class="tpui comp comp-k-res fit-comp" data-umax="2.6">
+              ${TP.calcResults(res, { cols: 2 })}
+            </div>`;
+        }
+
+        return `
+          <div class="tpui comp comp-k-layer fit-comp" data-umax="2.4">
+            ${TP.calcCard('Futures P&L Calculator', [['Ticker', s.kTicker, true], ['Contracts', s.kContracts], ['Entry Price', s.kEntry], ['Stop Loss Price', s.kStop], ['Target Price', s.kTarget, false, true]], { cls: 'k-card' })}
+            ${TP.calcResults(res, { cols: 3, cls: 'k-res t-float-strong' })}
+          </div>`;
+      }
+    };
+
+    const TPL_TRADES = {
+      id: 'trades',
+      name: 'Trades Tab',
+      status: 'ready',
+      blurb: 'Trade logging, filters and the full trade log',
+      layouts: [
+        { id: 'table', name: 'Trade log', hint: 'Filters and the trades table, cropped at the right edge like a wide screen.' + NO_SUPPORT_HINT, noSupport: true },
+        { id: 'log', name: 'Log a trade', hint: 'The Log Trade form with strategy confluences, and the trade it saves.' + NO_SUPPORT_HINT, noSupport: true },
+        { id: 'mobile', name: 'Mobile', hint: 'Stats and trade cards as they look on a phone.' + NO_SUPPORT_HINT, noSupport: true }
+      ],
+      defaults: {
+        layout: 'table',
+        badge: 'Trade log',
+        headline: 'Every trade,\n[in one place.]',
+        support: 'Log trades in seconds, then filter by strategy, result, type and direction to review what works.',
+        cta: 'Log your first trade',
+        showDataNote: true,
+        dataNote: EXAMPLE_NOTE,
+        tTrades: [
+          `${SAMPLE.recentFull[0]} | ORB | NQ | 750 | 3 | 9:37 AM | Long`,
+          `${SAMPLE.recentFull[1]} | VWAP Reclaim | MNQ | 450 | 3 | 10:11 AM | Long`,
+          `${SAMPLE.recentFull[1]} | ORB | NQ | -180 | -1 | 9:42 AM | Long`,
+          `${SAMPLE.recentFull[2]} | VWAP Reclaim | ES | 440 | 2 | 10:24 AM | Short`,
+          `${SAMPLE.recentFull[3]} | Liquidity Sweep | MNQ | 396 | 2.2 | 9:40 AM | Long`,
+          `${SAMPLE.recentFull[4]} | ORB | NQ | -200 | -1 | 9:57 AM | Long`
+        ].join('\n'),
+        tPnl: '16736', tWinRate: '71', tTotal: '63', tBest: '750',
+        lStrategy: 'ORB', lConf: 'Opening range break*, VWAP aligned*, HTF bias', lAsset: 'NQ', lDir: 'Long', lPnl: '750'
+      },
+      headlinePresets: [
+        'Every trade,\n[in one place.]',
+        'Log it.\n[Review it.]',
+        'Filter. Sort.\n[Find your edge.]',
+        'Your trade log,\n[finally organized.]',
+        'Log a trade\n[in seconds.]'
+      ],
+      dataFields: [
+        { key: 'tTrades', label: 'Trades', type: 'textarea', rows: 5, max: 900, layouts: ['table', 'mobile'], hint: 'Date | Strategy | Asset | PNL | R | Time | Direction' },
+        { key: 'tPnl', label: 'Total PNL ($)', type: 'text', max: 12, layouts: ['mobile'] },
+        { key: 'tWinRate', label: 'Win rate (%)', type: 'text', max: 5, layouts: ['mobile'] },
+        { key: 'lStrategy', label: 'Strategy', type: 'text', max: 24, layouts: ['log'] },
+        { key: 'lConf', label: 'Confluences', type: 'text', max: 160, layouts: ['log'], hint: 'Comma separated. End with * to check it.' },
+        { key: 'lAsset', label: 'Asset', type: 'text', max: 8, layouts: ['log'] },
+        { key: 'lDir', label: 'Direction', type: 'select', options: [{ id: 'Long', name: 'Long' }, { id: 'Short', name: 'Short' }], layouts: ['log'] },
+        { key: 'lPnl', label: 'PNL ($)', type: 'text', max: 10, layouts: ['log'] },
+      ],
+      product(s) {
+        const trades = parseLogTrades(s.tTrades);
+
+        if (s.layout === 'log') {
+          const conf = list(s.lConf).map(c => ({ label: c.replace(/\*$/, '').trim(), on: /\*$/.test(c) }));
+          const pnl = FMT.num(s.lPnl);
+          const field = (label, inner, cls = '') => `<div class="t-field ${cls}"><span class="t-field-label">${label}</span>${inner}</div>`;
+          return `
+            <div class="tpui comp comp-t-log fit-comp" data-umax="2.4">
+              <div class="t-form">
+                <div class="t-form-head"><div class="t-form-title">Log Trade</div><div class="t-form-head-actions"><span class="t-btn ghost" style="min-height:calc(var(--u)*34);padding:0 calc(var(--u)*12);font-size:calc(var(--u)*13)">Advanced ▸</span><span class="x">×</span></div></div>
+                ${field('Strategy*', `<div class="t-select">${esc(s.lStrategy)}</div>`)}
+                ${field('Confluences Present', `<div>${conf.map(c => `<div class="t-check"><span class="t-box${c.on ? ' on' : ''}"></span>${esc(c.label)}</div>`).join('')}</div>`)}
+                ${field('Direction*', `<div class="t-grid2" style="gap:calc(var(--u)*10)"><div class="t-dir long${s.lDir === 'Long' ? ' on' : ''}">Long</div><div class="t-dir short${s.lDir === 'Short' ? ' on' : ''}">Short</div></div>`, 'last')}
+              </div>
+              <div class="t-mcards t-float-strong t-log-result">${TP.mobileTradeCard({ strategy: s.lStrategy, date: SAMPLE.recentFull[0], asset: s.lAsset, pnl, dir: s.lDir })}</div>
+            </div>`;
+        }
+
+        if (s.layout === 'mobile') {
+          const pnl = FMT.num(s.tPnl);
+          return `
+            <div class="tpui comp comp-t-mobile fit-comp" data-umax="2.4">
+              <div class="t-stats" style="grid-template-columns:repeat(2, minmax(0,1fr));margin-bottom:calc(var(--u)*14)">
+                ${TP.statCard('Total PNL', FMT.pnl(pnl), FMT.tone(pnl))}${TP.statCard('Win Rate', `${pct(s.tWinRate)}%`)}
+              </div>
+              <div class="t-mcards">${trades.slice(0, 3).map(t => TP.mobileTradeCard({ ...t, date: t.date })).join('')}</div>
+            </div>`;
+        }
+
+        return `
+          <div class="tpui comp comp-t-table fit-comp" data-umax="2.4">
+            <div class="t-bleed">
+              ${TP.filters()}
+              ${TP.tradesTable(trades, ['date', 'strategy', 'account', 'result', 'pnl', 'rr', 'type', 'direction', 'time', 'asset', 'confluences', 'rules'])}
+            </div>
+          </div>`;
+      }
+    };
+
+    const NEW_TEMPLATES = [TPL_GENERAL, TPL_JOURNAL, TPL_CALENDAR, TPL_ANALYTICS, TPL_PROP, TPL_PRINTS, TPL_ECON, TPL_CALCULATOR, TPL_TRADES];
 
     const TEMPLATES = [
       {
@@ -1351,12 +3217,8 @@
         }
       },
 
-      // Planned ads. Give each one layouts, defaults and product() to switch it on.
-      { id: 'general', name: 'Tradeprint (general)', status: 'planned', blurb: 'Brand ad' },
-      { id: 'journal', name: 'Trading Journal', status: 'planned', blurb: 'Feature promo' },
-      { id: 'calendar', name: 'Trading Calendar', status: 'planned', blurb: 'Feature promo' },
-      { id: 'analytics', name: 'Performance Analytics', status: 'planned', blurb: 'Feature promo' },
-      { id: 'prop', name: 'Prop Firm Command Center', status: 'planned', blurb: 'Feature promo' }
+      // Every other ad. To add one, write a TPL_ object like those above and list it in NEW_TEMPLATES.
+      ...NEW_TEMPLATES
     ];
 
     function getTemplate(id) {
@@ -1437,7 +3299,7 @@
             <img src="${img}" alt="" />
           </div>`;
       }
-      return tpl.product(s);
+      return tpl.product(s, { format: currentFormat().id });
     }
 
     function renderAd() {
@@ -1447,6 +3309,8 @@
 
       const classes = ['ad', `ad--${fmt.id}`, `tpl-${tpl.id}`, `layout-${s.layout}`];
       if (fmt.id === 'story' && state.safeArea === 'reels') classes.push('ad--reels');
+      const layoutDef = tpl.layouts.find(l => l.id === s.layout);
+      if (layoutDef && layoutDef.noSupport && s.productSource !== 'upload') classes.push('no-support');
       adEl.className = classes.join(' ');
 
       const useLogo = s.showLogo && logoSrc;
@@ -1461,7 +3325,8 @@
       const foot = [];
       if (s.showCta && s.cta.trim()) foot.push(`<span class="ad-button">${esc(s.cta)}${ARROW_SVG}</span>`);
       if (s.showUrl && s.url.trim()) foot.push(`<span class="ad-url">${esc(s.url)}</span>`);
-      const fine = s.showFine && s.fine.trim() ? `<div class="ad-fine">${esc(s.fine)}</div>` : '';
+      const fine = (s.showFine && s.fine.trim() ? `<div class="ad-fine">${esc(s.fine)}</div>` : '')
+        + (s.showDataNote && String(s.dataNote || '').trim() ? `<div class="ad-datanote">${esc(s.dataNote)}</div>` : '');
 
       adEl.innerHTML = `
         ${s.showGrid ? '<div class="ad-grid"></div><div class="ad-grid-fade"></div>' : ''}
@@ -1521,7 +3386,14 @@
       const fitH = (availH - (h1 - bh)) / bh;
       const uMax = parseFloat(comp.dataset.umax) || 2.4;
       const u = Math.max(0.5, Math.min(fitW, fitH, uMax));
-      comp.style.setProperty('--u', (Math.floor(u * 1000) / 1000) + 'px');
+      const apply = v => comp.style.setProperty('--u', (Math.floor(v * 1000) / 1000) + 'px');
+      let fit = u;
+      apply(fit);
+      // Text that wraps differently at the final size can add a line. Shrink until it fits.
+      for (let i = 0; i < 12 && fit > 0.5 && (comp.offsetHeight > availH || comp.offsetWidth > availW); i++) {
+        fit *= 0.98;
+        apply(fit);
+      }
     }
 
     function fitAd() {
@@ -1612,6 +3484,20 @@
         </label>`;
     }
 
+    // Data fields can also be a select or an on/off toggle
+    function dataField(f, value) {
+      if (f.type === 'toggle') return toggleRow(f.key, f.label, !!value);
+      if (f.type === 'select') {
+        return `
+          <div class="field">
+            <label for="f-${f.key}">${esc(f.label)}</label>
+            <select id="f-${f.key}" data-key="${f.key}" data-scope="tpl">${f.options.map(o => `<option value="${esc(o.id)}" ${o.id === value ? 'selected' : ''}>${esc(o.name)}</option>`).join('')}</select>
+            ${f.hint ? `<div class="field-hint">${esc(f.hint)}</div>` : ''}
+          </div>`;
+      }
+      return textField(f, value);
+    }
+
     const openGroups = { ad: true, copy: true, show: false, product: false, data: false };
 
     function group(id, title, body) {
@@ -1658,7 +3544,7 @@
       }).join('');
 
       const showGroup = `<div class="toggle-list">${SHOW_FIELDS
-        .filter(f => !f.layouts || f.layouts.includes(s.layout))
+        .filter(f => (!f.layouts || f.layouts.includes(s.layout)) && (!f.templates || f.templates.includes(tpl.id)))
         .map(f => toggleRow(f.key, f.label, s[f.key])).join('')}</div>
         <div class="field">
           <span class="field-label">Logo image</span>
@@ -1703,7 +3589,9 @@
           <div class="range-row"><input type="range" id="f-imageZoom" min="100" max="250" step="5" data-key="imageZoom" data-scope="tpl" value="${+s.imageZoom}" /><output>${+s.imageZoom}%</output></div>
         </div>` : ''}`;
 
-      const dataGroup = (tpl.dataFields || []).map(f => textField(f, s[f.key])).join('');
+      const dataGroup = (tpl.dataFields || [])
+        .filter(f => !f.layouts || f.layouts.includes(s.layout))
+        .map(f => dataField(f, s[f.key])).join('');
 
       controlsEl.innerHTML = [
         group('ad', 'Ad', adGroup),
@@ -2225,7 +4113,7 @@
     });
 
     // Debug hook for checks in the browser console: window.__studio
-    window.__studio = { state, render: renderAd, exportPng: renderPng };
+    window.__studio = { state, render: renderAd, exportPng: renderPng, templates: TEMPLATES };
   })();
   </script>
 </body>
