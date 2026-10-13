@@ -28,6 +28,12 @@
     adds the brand row, copy, CTA and fine print, and recomposes the ad for
     Story 9:16, Feed 4:5, Square 1:1 and Landscape 16:9.
     All numbers shown inside app screens are example data.
+
+    Brand Assets (the "Brand Assets" button in the top bar, or /marketing#brand):
+    profile pictures, transparent logos, lockups and banners (X, LinkedIn, link
+    preview, YouTube). They are drawn on a canvas from a vector trace of the
+    official TP mark (repo root assets/tradeprint-logo.png), embedded below in
+    section 17, so this view needs no extra files.
   -->
 
   <style>
@@ -1726,6 +1732,209 @@
     .ln-bento .ln-cell { display: flex; flex-direction: column; }
     .ln-bento .ln-cell > :last-child { flex: 1; }
     .ln-bento .ln-cell > :last-child > :only-child { height: 100%; }
+
+    /* ============================================================
+       BRAND ASSETS STUDIO (second view inside /marketing)
+       Same shell as the ad studio: preview on the left, controls on
+       the right. Assets are drawn on a <canvas>, so the preview and
+       the PNG are the same pixels.
+       ============================================================ */
+    .st-view-btn { margin-left: 2px; }
+    .st-view-btn svg { width: 15px; height: 15px; }
+    .st-view-btn.is-back { color: var(--text); border-color: var(--line); background: var(--raised); }
+
+    .br-main {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) var(--controls-w);
+      height: calc(100vh - var(--topbar-h));
+      height: calc(100dvh - var(--topbar-h));
+    }
+
+    .br-preview { min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+
+    .br-bar {
+      flex: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--line-soft);
+      background: var(--canvas);
+    }
+
+    .br-types { grid-auto-columns: auto !important; }
+    .br-types button { display: inline-flex; align-items: center; gap: 7px; padding: 0 12px; }
+    .br-types svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+    .br-types button[aria-pressed="true"] svg { color: var(--accent-text); }
+
+    .br-bar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .br-size { font-size: 12px; color: var(--text3); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .br-backdrop button { min-width: 0; padding: 0 9px; }
+    .br-backdrop i { display: block; width: 14px; height: 14px; border-radius: 4px; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18); }
+    .br-backdrop .bd-checker { background: repeating-conic-gradient(#3a3f52 0% 25%, #23273a 0% 50%) 50% / 7px 7px; }
+    .br-backdrop .bd-dark { background: #0c0e14; }
+    .br-backdrop .bd-light { background: #f4f5f8; }
+
+    .br-viewport {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px;
+      overflow: hidden;
+      background-color: var(--canvas);
+      background-image: radial-gradient(var(--line-soft) 1px, transparent 1px);
+      background-size: 16px 16px;
+    }
+
+    .br-stage {
+      position: relative;
+      flex: none;
+      border-radius: 4px;
+      box-shadow: 0 0 0 1px var(--line), 0 24px 60px rgba(2, 3, 7, 0.55);
+    }
+
+    .br-stage.bd-checker { background: repeating-conic-gradient(#2b3043 0% 25%, #1e2232 0% 50%) 50% / 20px 20px; }
+    .br-stage.bd-dark { background: #0c0e14; }
+    .br-stage.bd-light { background: #f4f5f8; box-shadow: 0 0 0 1px #d5d9e3, 0 24px 60px rgba(2, 3, 7, 0.55); }
+    .br-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+    .br-stage .br-guides { pointer-events: none; }
+
+    .br-context {
+      flex: none;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      padding: 12px 20px 14px;
+      border-top: 1px solid var(--line-soft);
+      background: var(--canvas);
+    }
+
+    .br-context-label { font-size: 12px; font-weight: 600; color: var(--text2); margin-right: 2px; }
+    .br-ctx { display: flex; align-items: center; gap: 12px; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line-soft); }
+    .br-ctx.on-dark { background: #0c0e14; }
+    .br-ctx.on-light { background: #f4f5f8; border-color: #dfe2ea; }
+    .br-ctx.on-indigo { background: #6366f1; border-color: #6366f1; }
+    .br-ctx canvas { display: block; flex: none; }
+    .br-ctx small { font-size: 10.5px; color: var(--text3); font-variant-numeric: tabular-nums; }
+    .br-ctx.on-light small { color: #6b7180; }
+    .br-ctx.on-indigo small { color: rgba(255, 255, 255, 0.75); }
+
+    /* Presets */
+    .preset-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+    .preset-grid.wide { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+    .preset-tile {
+      display: grid;
+      gap: 7px;
+      padding: 7px 7px 8px;
+      border-radius: 10px;
+      border: 1px solid var(--line-soft);
+      background: var(--inset);
+      color: var(--text2);
+      text-align: left;
+      font-size: 11.5px;
+      font-weight: 600;
+      line-height: 1.3;
+      transition: border-color 140ms, background 140ms, color 140ms;
+      min-width: 0;
+    }
+
+    .preset-tile:hover { border-color: var(--line-strong); color: var(--text); }
+    .preset-tile[aria-pressed="true"] { border-color: var(--accent-line); background: var(--accent-softer); color: var(--text); }
+    .preset-thumb { position: relative; display: block; width: 100%; border-radius: 6px; overflow: hidden; background: repeating-conic-gradient(#262a3b 0% 25%, #1b1f2d 0% 50%) 50% / 10px 10px; }
+    .preset-thumb canvas { display: block; width: 100%; height: 100%; }
+    .preset-name { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* Color control */
+    .color-ctl { display: grid; gap: 8px; }
+    .swatches { display: flex; flex-wrap: wrap; gap: 6px; }
+
+    .swatch {
+      position: relative;
+      width: 26px;
+      height: 26px;
+      padding: 0;
+      border-radius: 7px;
+      border: none;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+      transition: transform 80ms;
+    }
+
+    .swatch:hover { transform: translateY(-1px); }
+    .swatch[aria-pressed="true"] { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16), 0 0 0 2px var(--surface), 0 0 0 4px var(--accent); }
+
+    .color-input-row { display: grid; grid-template-columns: 38px minmax(0, 1fr); gap: 8px; align-items: center; }
+
+    .color-input-row input[type="color"] {
+      width: 38px;
+      height: 38px;
+      padding: 3px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: var(--inset);
+      cursor: pointer;
+    }
+
+    .color-input-row input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+    .color-input-row input[type="color"]::-webkit-color-swatch { border: none; border-radius: 5px; }
+    .color-input-row input[type="color"]::-moz-color-swatch { border: none; border-radius: 5px; }
+    .field .color-input-row input[type="text"] { font-family: var(--font-num); letter-spacing: 0.04em; text-transform: uppercase; }
+
+    .br-export-info { font-size: 12px; line-height: 1.5; color: var(--text2); }
+    .br-export-info b { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
+    .br-actions { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+    .br-actions .btn { min-height: 40px; }
+    .br-actions .btn-wide { grid-column: 1 / -1; }
+    .br-status { font-size: 12px; color: var(--text3); min-height: 18px; }
+    .br-status.ok { color: var(--success); }
+    .br-status.err { color: var(--danger); }
+
+    .size-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .size-chips button {
+      min-height: 30px;
+      padding: 0 10px;
+      border-radius: 7px;
+      border: 1px solid var(--line-soft);
+      background: var(--inset);
+      color: var(--text2);
+      font-size: 12px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+    .size-chips button:hover { color: var(--text); border-color: var(--line-strong); }
+    .size-chips button[aria-pressed="true"] { color: var(--text); border-color: var(--accent-line); background: var(--accent-soft); }
+    .size-chips button small { font-weight: 500; color: var(--text3); margin-left: 4px; }
+
+    .br-font-warn { font-size: 12px; color: var(--warn); }
+
+    @media (max-width: 900px) {
+      .br-main { display: block; height: auto; }
+      .br-bar { padding: 10px 16px; }
+      .br-bar-right { margin-left: auto; }
+      .br-viewport { padding: 20px 16px; min-height: 0; }
+      .br-context { padding: 10px 16px 12px; }
+      .preset-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 560px) {
+      .br-size { display: none; }
+      .st-view-btn { padding: 0 10px; }
+      .st-view-btn span { display: none; }
+      .br-types button span { display: none; }
+      .br-types button { padding: 0 11px; }
+      .preset-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    /* Narrow phones: the top bar has a third button now, so Screenshot shows as an icon */
+    @media (max-width: 440px) {
+      #shotBtn { padding: 0 10px; }
+      #shotBtn > span { display: none; }
+    }
   </style>
 </head>
 <body>
@@ -1734,14 +1943,22 @@
   <header class="st-top">
     <a class="st-logo" href="/dashboard" title="Back to Tradeprint">trade<span>print</span></a>
     <span class="st-tag">Marketing Studio 2.0</span>
+    <button class="btn btn-quiet st-view-btn" id="viewBtn" type="button" title="Logos, profile pictures, lockups and banners">
+      <svg viewBox="0 0 24 24" id="viewBtnIcon"><rect x="3" y="3" width="7" height="7" rx="2"/><circle cx="17.5" cy="6.5" r="3.5"/><rect x="3" y="14" width="18" height="7" rx="2"/></svg>
+      <span id="viewBtnLabel">Brand Assets</span>
+    </button>
     <div class="st-top-actions">
-      <button class="btn" id="shotBtn" type="button" title="Show only the ad (for screenshots)">
+      <button class="btn" id="shotBtn" type="button" title="Show only the ad (for screenshots)" aria-label="Screenshot mode">
         <svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
         <span>Screenshot <span class="btn-label-long">mode</span></span>
       </button>
       <button class="btn btn-primary" id="exportBtn" type="button">
         <svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
         <span>Export <span class="btn-label-long">PNG</span></span>
+      </button>
+      <button class="btn btn-primary" id="brandTopDl" type="button" hidden>
+        <svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+        <span>Download <span class="btn-label-long">PNG</span></span>
       </button>
     </div>
   </header>
@@ -1767,6 +1984,28 @@
 
     <!-- CONTROLS -->
     <aside class="st-controls" id="controls" aria-label="Ad settings"></aside>
+  </main>
+
+  <!-- BRAND ASSETS (second view: logos, profile pictures, lockups, banners) -->
+  <main class="br-main" id="brandView" hidden>
+    <section class="br-preview" aria-label="Brand asset preview">
+      <div class="br-bar">
+        <div class="seg br-types" id="brandTypes" role="group" aria-label="Asset type"></div>
+        <div class="br-bar-right">
+          <span class="br-size" id="brandSize"></span>
+          <div class="seg br-backdrop" id="brandBackdrop" role="group" aria-label="Preview background"></div>
+          <button class="btn btn-quiet" id="brandGuidesBtn" type="button" aria-pressed="true" title="Show crop and safe-area guides (preview only)">Guides</button>
+        </div>
+      </div>
+      <div class="br-viewport" id="brandViewport">
+        <div class="br-stage bd-checker" id="brandStage">
+          <canvas id="brandCanvas" aria-label="Asset preview"></canvas>
+          <canvas class="br-guides" id="brandGuides" aria-hidden="true"></canvas>
+        </div>
+      </div>
+      <div class="br-context" id="brandContext"></div>
+    </section>
+    <aside class="st-controls" id="brandControls" aria-label="Brand asset settings"></aside>
   </main>
 
   <!-- SCREENSHOT MODE -->
@@ -4938,6 +5177,1231 @@
       setTemplate, setFormat, tplState,
       set(key, value) { tplState()[key] = value; saveState(); renderControls(); renderAd(); },
       reset(id = state.templateId) { resetTemplate(id); saveState(); renderControls(); renderAd(); }
+    };
+
+    /* ============================================================
+       17. BRAND ASSETS STUDIO
+       A second view inside /marketing for profile pictures, logo
+       exports, lockups and banners. Everything is drawn on a canvas
+       from a vector trace of the official TP mark (assets/tradeprint-
+       logo.png at the repo root), so exports stay sharp at any size,
+       colors are exact and transparent areas are truly transparent.
+       ============================================================ */
+    const BRAND_KEY = 'tp_brand_studio_v1';
+
+    // Official TP mark, traced from the supplied 1254px logo (background removed).
+    // Coordinates are in a 649 x 705 box.
+    const MARK = { w: 649, h: 705, d: 'M327.15 704.49C345.97 701.21 361.05 686.13 365.4 666.24C366.15 662.83 366.15 662.83 366.19 479.5C366.22 378.67 366.34 295.7 366.47 295.13C366.82 293.56 368 292.68 374 289.49C377.02 287.89 381.98 285.19 385 283.5C388.02 281.81 392.6 279.33 395.17 277.99C397.73 276.66 401.03 274.85 402.5 273.99C403.97 273.12 407.94 270.91 411.33 269.08C419.48 264.7 426.15 261 429.83 258.83C435.4 255.55 442.14 251.77 447.5 248.93C450.43 247.37 454.48 245.12 456.5 243.93C458.52 242.73 461.37 241.11 462.83 240.32C483.18 229.3 486.89 226 492.84 213.57C504.3 189.65 492.59 159.6 467.6 148.77C456.6 144 446.08 145.15 432.83 152.57C424.69 157.13 420.23 159.59 414.06 162.91C411.07 164.52 406.42 167.08 403.73 168.61C401.04 170.14 393.06 174.55 386 178.4C372.21 185.93 365.64 189.56 359.83 192.84C357.82 193.98 355.34 195.32 354.33 195.83C353.32 196.34 350.88 197.71 348.91 198.88C346.93 200.05 343.71 201.81 341.74 202.79C338.53 204.39 329.31 209.41 322.67 213.16C321.29 213.94 318.14 215.66 315.67 216.99C311.06 219.45 303.55 223.57 295.83 227.84C293.45 229.16 289.93 231.1 288 232.16C277.52 237.9 271.72 245.19 269.66 255.22C268.69 259.89 268.5 660.08 269.46 665.12C270.89 672.68 276.86 684.68 281.62 689.58C293.96 702.28 309.91 707.5 327.15 704.49ZM181.5 584.11C199.63 581.31 214.91 568.17 219.08 551.78C220.25 547.2 220.27 337.22 219.11 332.65C215.73 319.42 205.12 309.11 189.83 304.18C162.44 295.35 131.28 308.99 124.89 332.61C123.83 336.5 123.83 336.5 123.73 440.5C123.63 551.47 123.59 548.68 125.3 553.74C132.64 575.44 155.98 588.05 181.5 584.11ZM483.86 383.99C490.13 382.93 508.75 374.59 519.5 368.02C520.78 367.24 525.81 364.49 530.67 361.92C587.27 331.93 619.92 296.78 637.73 246.67C648.45 216.47 651.7 182.07 646.36 155.33C646.01 153.59 645.55 151.04 645.33 149.67C644.49 144.31 640.21 128.52 637.93 122.34C627.26 93.39 614.64 73.37 594 52.64C576.9 35.46 558.97 23.5 534.49 12.91C505.89 0.55 465.02 -3.01 432.41 4.01C414.69 7.83 390.91 16.54 377 24.31C375.26 25.28 371.23 27.49 368.05 29.22C364.87 30.95 361.35 32.94 360.22 33.63C359.09 34.33 356.07 36.07 353.5 37.5C350.93 38.93 347.48 40.88 345.83 41.84C344.18 42.8 341.18 44.48 339.17 45.57C335.4 47.6 332.29 49.36 321 55.84C317.43 57.89 308.95 62.69 302.17 66.51C295.38 70.32 288.11 74.44 286 75.67C283.89 76.89 279.02 79.66 275.17 81.82C261.1 89.71 245.05 98.82 240.5 101.49C237.93 103 232.08 106.31 227.5 108.84C222.92 111.37 218.35 113.96 217.34 114.6C216.34 115.23 213.71 116.76 211.51 117.98C204.53 121.86 190.69 129.64 185.5 132.6C182.75 134.17 179.07 136.25 177.33 137.21C175.59 138.17 172.67 139.81 170.83 140.85C161.72 146.01 159.52 147.25 155.67 149.32C153.38 150.55 149.72 152.64 147.53 153.97C145.35 155.29 142.5 156.91 141.2 157.56C138.96 158.68 129.17 164.18 118.83 170.12C116.27 171.59 112.37 173.79 110.17 175.01C107.97 176.22 103.62 178.7 100.5 180.5C97.38 182.31 92.58 185.02 89.83 186.52C84.74 189.31 78.39 192.95 69.9 197.96C60.94 203.24 46.51 211.39 37.83 216.07C35.82 217.16 33.94 218.25 33.67 218.49C33.39 218.73 31.44 219.9 29.33 221.08C19.42 226.63 16.66 228.61 12.08 233.47C3.97 242.05 -0.58 254.02 0.14 264.83C1.04 278.31 9.03 292.91 18.98 299.26C20 299.91 21.82 301.08 23.03 301.86C32.85 308.17 46.72 309.32 57.2 304.69C59.83 303.52 74.75 295.26 85.83 288.83C87.48 287.87 90.03 286.45 91.5 285.66C92.97 284.88 96.49 282.92 99.33 281.31C102.18 279.7 109.48 275.56 115.57 272.11C121.67 268.66 130.37 263.75 134.91 261.21C139.45 258.67 146.54 254.68 150.67 252.34C154.79 250.01 160.64 246.7 163.67 245.01C166.69 243.31 171.04 240.83 173.33 239.51C175.62 238.18 179.45 236 181.83 234.66C184.22 233.32 189.77 230.17 194.17 227.66C198.57 225.15 203.52 222.38 205.17 221.49C206.82 220.61 211.69 217.87 216 215.4C222.56 211.64 234.07 205.17 249.5 196.58C251.15 195.67 255.17 193.35 258.43 191.44C261.7 189.53 266.5 186.8 269.1 185.37C276.84 181.14 280.68 178.98 283.5 177.28C286.13 175.7 290.13 173.41 305.17 164.91C309.38 162.53 316.06 158.75 320 156.51C323.94 154.27 328.37 151.79 329.83 151C331.3 150.21 334.68 148.26 337.33 146.68C339.99 145.09 344.19 142.69 346.67 141.35C349.14 140 352.82 137.96 354.83 136.81C356.85 135.66 361.65 132.96 365.5 130.81C381.64 121.79 384.14 120.39 390.5 116.73C404.61 108.6 408.19 106.78 417.03 103.22C465.29 83.77 517.81 99.08 540.81 139.3C553.6 161.68 556.46 186.15 549.32 212.17C543.56 233.12 528.2 255.7 512.53 266.23C511.78 266.74 510.34 267.77 509.33 268.52C504.82 271.9 498.19 275.75 483.5 283.51C478.92 285.93 473.52 288.84 471.5 289.97C469.48 291.11 466.71 292.57 465.33 293.23C458.17 296.66 446.47 303.5 443.08 306.25C426.69 319.48 422.38 339.13 431.75 357.83C439.69 373.68 452.69 382.54 471.33 384.79C473.47 385.05 480.12 384.63 483.86 383.99Z' };
+    const markPath = new Path2D(MARK.d);
+
+    const BR_FONT = "'TP Plex', 'IBM Plex Sans', 'Segoe UI', system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif";
+
+    const BR_SWATCHES = [
+      ['#6366F1', 'Indigo'], ['#4F46E5', 'Deep indigo'], ['#A3A6FB', 'Soft indigo'],
+      ['#FFFFFF', 'White'], ['#E9EBF2', 'Mist'], ['#979DB1', 'Slate'],
+      ['#0C0E14', 'Graphite'], ['#171A24', 'Surface'], ['#000000', 'Black']
+    ];
+
+    const BR_TYPES = [
+      { id: 'profile', name: 'Profile picture', short: 'Profile', icon: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="10" r="3"/><path d="M6.6 18.4a6.5 6.5 0 0 1 10.8 0"/>' },
+      { id: 'logo', name: 'Logo', short: 'Logo', icon: '<path d="M4.5 9.5 13 4.8a4 4 0 0 1 4.6 6.5l-3 1.8"/><path d="M10 9.2V20"/><path d="M6.4 11.8v5.4"/>' },
+      { id: 'lockup', name: 'Lockup', short: 'Lockup', icon: '<rect x="2.5" y="7" width="7" height="10" rx="2"/><path d="M12.5 10h9"/><path d="M12.5 14h6"/>' },
+      { id: 'banner', name: 'Banner', short: 'Banner', icon: '<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M6 15h7"/><path d="M6 11.5h4"/>' }
+    ];
+
+    const BR_BANNERS = {
+      x: { name: 'X / Twitter header', short: 'X header', w: 1500, h: 500 },
+      linkedin: { name: 'LinkedIn cover', short: 'LinkedIn', w: 1584, h: 396 },
+      og: { name: 'Link preview', short: 'Link preview', w: 1200, h: 630 },
+      youtube: { name: 'YouTube banner', short: 'YouTube', w: 2560, h: 1440, safe: { w: 1546, h: 423 } }
+    };
+
+    const BR_SIZES = {
+      profile: [[400, '400'], [512, '512'], [800, '800'], [1024, '1024'], [2048, '2048']],
+      icons: [[16, '16'], [32, '32'], [48, '48'], [180, '180', 'Apple'], [192, '192'], [512, '512', 'PWA']],
+      logo: [[256, '256'], [512, '512'], [1024, '1024'], [2048, '2048'], [4096, '4096']],
+      lockup: [[128, '128'], [256, '256'], [512, '512'], [1024, '1024']]
+    };
+    const ICON_SET = [16, 32, 48, 180, 192, 512, 1024];
+
+    const BR_DEFAULTS = {
+      profile: {
+        shape: 'circle', radius: 23, fill: true, bgColor: '#6366F1', bgStyle: 'solid', bgIntensity: 50,
+        outsideTransparent: true, outsideColor: '#0C0E14',
+        logoColor: '#FFFFFF', logoSize: 52, offsetX: 0, offsetY: 0,
+        ringWidth: 0, ringColor: '#FFFFFF', size: 1024
+      },
+      logo: { frame: 'square', padding: 10, transparent: true, bgColor: '#0C0E14', logoColor: '#6366F1', size: 1024 },
+      lockup: {
+        layout: 'horizontal', showMark: true, markColor: '#6366F1', tradeColor: '#FFFFFF', printColor: '#6366F1',
+        weight: 700, markScale: 100, gap: 100, transparent: true, bgColor: '#0C0E14', bgShape: 'rounded', padding: 30, height: 512
+      },
+      banner: {
+        format: 'x', layout: 'left', bgColor: '#0C0E14', bgStyle: 'grid', bgIntensity: 55,
+        showMark: true, showWordmark: true, markColor: '#6366F1', tradeColor: '#FFFFFF', printColor: '#6366F1',
+        showTagline: true, tagline: 'Journal every trade. Find your edge.', taglineColor: '#E9EBF2',
+        showSub: true, sub: 'tradeprint.ai', subColor: '#979DB1',
+        showCta: false, cta: 'Start journaling', ctaColor: '#6366F1', ctaTextColor: '#FFFFFF',
+        textSize: 'm', scale: 1
+      }
+    };
+
+    const BRAND_COLORS = { markColor: '#6366F1', tradeColor: '#FFFFFF', printColor: '#6366F1' };
+    const BR_PRESETS = {
+      profile: [
+        { name: 'Indigo square', v: { shape: 'square', bgColor: '#6366F1', logoColor: '#FFFFFF' } },
+        { name: 'Indigo circle', v: { shape: 'circle', bgColor: '#6366F1', logoColor: '#FFFFFF' } },
+        { name: 'Indigo rounded', v: { shape: 'rounded', bgColor: '#6366F1', logoColor: '#FFFFFF' } },
+        { name: 'Clear, indigo mark', v: { shape: 'none', fill: false, logoColor: '#6366F1', logoSize: 70 } },
+        { name: 'Clear, white mark', v: { shape: 'none', fill: false, logoColor: '#FFFFFF', logoSize: 70 } },
+        { name: 'Graphite circle', v: { shape: 'circle', bgColor: '#0C0E14', logoColor: '#6366F1' } },
+        { name: 'Graphite app icon', v: { shape: 'rounded', bgColor: '#0C0E14', bgStyle: 'spotlight', bgIntensity: 55, logoColor: '#6366F1' } },
+        { name: 'White circle', v: { shape: 'circle', bgColor: '#FFFFFF', logoColor: '#6366F1' } },
+        { name: 'Graphite grid', v: { shape: 'square', bgColor: '#0C0E14', bgStyle: 'grid', bgIntensity: 65, logoColor: '#6366F1' } },
+        { name: 'Indigo spotlight', v: { shape: 'circle', bgColor: '#6366F1', bgStyle: 'spotlight', bgIntensity: 70, logoColor: '#FFFFFF' } },
+        { name: 'Indigo ring', v: { shape: 'circle', bgColor: '#0C0E14', logoColor: '#FFFFFF', ringWidth: 3.5, ringColor: '#6366F1' } },
+        { name: 'Black circle', v: { shape: 'circle', bgColor: '#000000', logoColor: '#FFFFFF' } }
+      ],
+      logo: [
+        { name: 'Indigo', v: { logoColor: '#6366F1' } },
+        { name: 'White', v: { logoColor: '#FFFFFF' } },
+        { name: 'Graphite', v: { logoColor: '#0C0E14' } },
+        { name: 'Black', v: { logoColor: '#000000' } },
+        { name: 'Soft indigo', v: { logoColor: '#A3A6FB' } },
+        { name: 'Tight crop', v: { frame: 'tight', padding: 0, logoColor: '#6366F1' } },
+        { name: 'Indigo on graphite', v: { transparent: false, bgColor: '#0C0E14', logoColor: '#6366F1', padding: 20 } },
+        { name: 'White on indigo', v: { transparent: false, bgColor: '#6366F1', logoColor: '#FFFFFF', padding: 20 } },
+        { name: 'Indigo on white', v: { transparent: false, bgColor: '#FFFFFF', logoColor: '#6366F1', padding: 20 } }
+      ],
+      lockup: [
+        { name: 'Dark mode', v: { ...BRAND_COLORS } },
+        { name: 'Light mode', v: { ...BRAND_COLORS, tradeColor: '#0C0E14' } },
+        { name: 'All white', v: { markColor: '#FFFFFF', tradeColor: '#FFFFFF', printColor: '#FFFFFF' } },
+        { name: 'All graphite', v: { markColor: '#0C0E14', tradeColor: '#0C0E14', printColor: '#0C0E14' } },
+        { name: 'Graphite pill', v: { ...BRAND_COLORS, transparent: false, bgColor: '#0C0E14', bgShape: 'pill', padding: 34 } },
+        { name: 'Indigo card', v: { markColor: '#FFFFFF', tradeColor: '#FFFFFF', printColor: '#FFFFFF', transparent: false, bgColor: '#6366F1', bgShape: 'rounded', padding: 40 } },
+        { name: 'Stacked', v: { ...BRAND_COLORS, layout: 'stacked' } },
+        { name: 'Stacked card', v: { ...BRAND_COLORS, layout: 'stacked', transparent: false, bgColor: '#0C0E14', bgShape: 'rounded', padding: 24 } },
+        { name: 'Wordmark only', v: { ...BRAND_COLORS, layout: 'wordmark' } }
+      ],
+      banner: [
+        { name: 'Graphite grid', v: {} },
+        { name: 'Indigo, centered', v: { layout: 'center', bgColor: '#6366F1', bgStyle: 'spotlight', bgIntensity: 60, markColor: '#FFFFFF', tradeColor: '#FFFFFF', printColor: '#FFFFFF', taglineColor: '#FFFFFF', subColor: '#E0E1FD', ctaColor: '#FFFFFF', ctaTextColor: '#4F46E5' } },
+        { name: 'Equity line', v: { layout: 'right', bgColor: '#10121A', bgStyle: 'equity', bgIntensity: 60 } },
+        { name: 'Mark hero', v: { layout: 'hero', bgColor: '#0C0E14', bgStyle: 'solid', showCta: true } },
+        { name: 'Split', v: { layout: 'split', bgColor: '#0C0E14', bgStyle: 'dots', bgIntensity: 55, showCta: true } },
+        { name: 'Light', v: { bgColor: '#FFFFFF', bgStyle: 'grid', bgIntensity: 50, tradeColor: '#0C0E14', taglineColor: '#171A24', subColor: '#6D7388' } }
+      ]
+    };
+
+    // What a preset leaves alone: export size and banner wording stay as they are.
+    const BR_KEEP = {
+      profile: ['size'], logo: ['size'], lockup: ['height'],
+      banner: ['format', 'scale', 'tagline', 'sub', 'cta', 'textSize']
+    };
+
+    const brand = {
+      type: 'profile', backdrop: 'checker', guides: true,
+      profile: { ...BR_DEFAULTS.profile }, logo: { ...BR_DEFAULTS.logo },
+      lockup: { ...BR_DEFAULTS.lockup }, banner: { ...BR_DEFAULTS.banner },
+      preset: {}
+    };
+    const brOpen = new Set(['Presets', 'Shape', 'Background', 'Logo', 'Layout', 'Text', 'Colors', 'Export', 'Format']);
+
+    /* ---------- state ---------- */
+    function loadBrand() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(BRAND_KEY) || 'null');
+        if (!saved || typeof saved !== 'object') return;
+        if (BR_TYPES.some(t => t.id === saved.type)) brand.type = saved.type;
+        if (['checker', 'dark', 'light'].includes(saved.backdrop)) brand.backdrop = saved.backdrop;
+        if (typeof saved.guides === 'boolean') brand.guides = saved.guides;
+        for (const t of Object.keys(BR_DEFAULTS)) {
+          const src = saved[t] || {};
+          for (const [k, def] of Object.entries(BR_DEFAULTS[t])) {
+            if (src[k] !== undefined && typeof src[k] === typeof def) brand[t][k] = src[k];
+          }
+        }
+        if (!BR_BANNERS[brand.banner.format]) brand.banner.format = 'x';
+      } catch (err) {}
+    }
+
+    function saveBrand() {
+      try {
+        const { preset, ...rest } = brand;
+        localStorage.setItem(BRAND_KEY, JSON.stringify(rest));
+      } catch (err) {}
+    }
+
+    /* ---------- color helpers ---------- */
+    function normHex(value, fallback) {
+      const m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(String(value || '').trim());
+      if (!m) return fallback;
+      let h = m[1];
+      if (h.length === 3) h = h.split('').map(c => c + c).join('');
+      return '#' + h.toUpperCase();
+    }
+
+    function hexRgb(hex) {
+      const n = parseInt(normHex(hex, '#000000').slice(1), 16);
+      return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+    }
+
+    function luminance(hex) {
+      const [r, g, b] = hexRgb(hex).map(c => { c /= 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; });
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    }
+
+    const isDarkColor = hex => luminance(hex) < 0.3;
+    const rgbaOf = (hex, a) => { const [r, g, b] = hexRgb(hex); return `rgba(${r},${g},${b},${Math.max(0, Math.min(1, a))})`; };
+    const inkFor = bg => isDarkColor(bg) ? '#FFFFFF' : '#0C0E14';
+    const isIndigoish = hex => { const [r, g, b] = hexRgb(hex); return b > 170 && b - r > 55 && b - g > 50; };
+
+    /* ---------- drawing primitives ---------- */
+    function roundRectPath(ctx, x, y, w, h, r) {
+      r = Math.max(0, Math.min(r, w / 2, h / 2));
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+    }
+
+    function shapePath(ctx, shape, x, y, w, h, r) {
+      ctx.beginPath();
+      if (shape === 'circle') ctx.ellipse(x + w / 2, y + h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
+      else if (shape === 'rounded') roundRectPath(ctx, x, y, w, h, r);
+      else if (shape === 'pill') roundRectPath(ctx, x, y, w, h, Math.min(w, h) / 2);
+      else ctx.rect(x, y, w, h);
+    }
+
+    function drawMark(ctx, cx, cy, h, color, alpha = 1) {
+      const s = h / MARK.h;
+      ctx.save();
+      ctx.globalAlpha *= alpha;
+      ctx.translate(cx - (MARK.w * s) / 2, cy - h / 2);
+      ctx.scale(s, s);
+      ctx.fillStyle = color;
+      ctx.fill(markPath);
+      ctx.restore();
+    }
+
+    function equityValues() {
+      let acc = 0;
+      return [0, ...EQUITY_SHAPE.map(v => (acc += v))];
+    }
+
+    function drawEquityLine(ctx, x, y, w, h, bg, k, unit) {
+      const vals = equityValues();
+      const min = Math.min(...vals), max = Math.max(...vals);
+      const top = y + h * 0.3, bottom = y + h * 0.86;
+      const pts = vals.map((v, i) => [x - w * 0.02 + (w * 1.04 * i) / (vals.length - 1), bottom - ((v - min) / (max - min)) * (bottom - top)]);
+      const col = isIndigoish(bg) ? '#FFFFFF' : '#6366F1';
+      const line = new Path2D();
+      line.moveTo(pts[0][0], pts[0][1]);
+      for (let i = 1; i < pts.length - 1; i++) {
+        line.quadraticCurveTo(pts[i][0], pts[i][1], (pts[i][0] + pts[i + 1][0]) / 2, (pts[i][1] + pts[i + 1][1]) / 2);
+      }
+      line.lineTo(pts[pts.length - 1][0], pts[pts.length - 1][1]);
+      const area = new Path2D(line);
+      area.lineTo(x + w * 1.02, y + h);
+      area.lineTo(x - w * 0.02, y + h);
+      area.closePath();
+      const g = ctx.createLinearGradient(0, top, 0, y + h);
+      g.addColorStop(0, rgbaOf(col, 0.18 * k));
+      g.addColorStop(1, rgbaOf(col, 0));
+      ctx.fillStyle = g;
+      ctx.fill(area);
+      ctx.strokeStyle = rgbaOf(col, 0.22 + 0.55 * k);
+      ctx.lineWidth = Math.max(1, unit * 0.0065);
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+      ctx.stroke(line);
+    }
+
+    // Solid color plus an optional texture. unit = the length textures scale with.
+    function paintBackground(ctx, x, y, w, h, bg, style, intensity, unit) {
+      const k = clamp(Number(intensity) || 0, 0, 100) / 100;
+      ctx.fillStyle = bg;
+      ctx.fillRect(x, y, w, h);
+      if (style === 'solid' || k === 0) return;
+      const ink = inkFor(bg);
+      const dark = isDarkColor(bg);
+
+      if (style === 'spotlight') {
+        const cx = x + w * 0.5, cy = y - h * 0.18, r = Math.hypot(w, h) * 0.9;
+        const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+        g.addColorStop(0, rgbaOf(ink, (dark ? 0.22 : 0.09) * k));
+        g.addColorStop(1, rgbaOf(ink, 0));
+        ctx.fillStyle = g;
+        ctx.fillRect(x, y, w, h);
+        return;
+      }
+
+      if (style === 'grid' || style === 'dots') {
+        const W = Math.max(1, Math.ceil(w)), H = Math.max(1, Math.ceil(h));
+        const off = document.createElement('canvas');
+        off.width = W; off.height = H;
+        const o = off.getContext('2d');
+        const step = unit / (style === 'grid' ? 7 : 11);
+        const base = style === 'grid' ? (dark ? 0.075 : 0.07) : (dark ? 0.17 : 0.15);
+        o.fillStyle = rgbaOf(ink, base * (0.3 + 1.4 * k));
+        if (style === 'grid') {
+          const lw = Math.max(1, unit * 0.0022);
+          for (let gx = (W / 2) % step; gx < W; gx += step) o.fillRect(gx - lw / 2, 0, lw, H);
+          for (let gy = (H / 2) % step; gy < H; gy += step) o.fillRect(0, gy - lw / 2, W, lw);
+        } else {
+          const r = Math.max(0.7, unit * 0.0048);
+          for (let gx = (W / 2) % step; gx < W + r; gx += step) {
+            for (let gy = (H / 2) % step; gy < H + r; gy += step) { o.beginPath(); o.arc(gx, gy, r, 0, Math.PI * 2); o.fill(); }
+          }
+        }
+        o.globalCompositeOperation = 'destination-in';
+        const g = o.createRadialGradient(W / 2, H * 0.45, 0, W / 2, H * 0.45, Math.hypot(W, H) * 0.56);
+        g.addColorStop(0, 'rgba(0,0,0,1)');
+        g.addColorStop(1, 'rgba(0,0,0,0.14)');
+        o.fillStyle = g;
+        o.fillRect(0, 0, W, H);
+        ctx.drawImage(off, x, y, w, h);
+        return;
+      }
+
+      if (style === 'equity') drawEquityLine(ctx, x, y, w, h, bg, k, unit);
+    }
+
+    /* ---------- type ---------- */
+    const setFont = (ctx, weight, size) => { ctx.font = `${weight} ${size}px ${BR_FONT}`; };
+
+    // Letter positions with the wordmark's -0.03em tracking (kerning kept).
+    function spacedRun(ctx, text, tracking) {
+      const xs = [];
+      for (let i = 0; i < text.length; i++) xs.push(ctx.measureText(text.slice(0, i)).width + i * tracking);
+      return { text, xs, width: ctx.measureText(text).width + Math.max(0, text.length - 1) * tracking };
+    }
+
+    // Geometry of the mark + "tradeprint" lockup at font size F.
+    function lockupGeom(ctx, F, o) {
+      const weight = o.weight || 700;
+      setFont(ctx, weight, F);
+      const showWord = o.layout !== 'markonly' && o.showWord !== false;
+      const showMark = o.showMark !== false && o.layout !== 'wordmark';
+      const run = showWord ? spacedRun(ctx, 'tradeprint', -0.03 * F) : { text: '', xs: [], width: 0 };
+      const asc = ctx.measureText('d').actualBoundingBoxAscent || F * 0.72;
+      const desc = ctx.measureText('p').actualBoundingBoxDescent || F * 0.21;
+      const ms = (o.markScale || 100) / 100, gs = (o.gap || 100) / 100;
+
+      if (o.layout === 'stacked') {
+        const mh = showMark ? F * 1.7 * ms : 0, mw = mh * MARK.w / MARK.h;
+        const gap = showMark && showWord ? F * 0.42 * gs : 0;
+        const w = Math.max(mw, run.width);
+        const baseline = mh + gap + (showWord ? asc : 0);
+        return { w, h: showWord ? baseline + desc : mh, baseline, markX: (w - mw) / 2, markY: 0, mh, mw, textX: (w - run.width) / 2, run, F, weight };
+      }
+
+      const mh = showMark ? F * 1.08 * ms : 0, mw = mh * MARK.w / MARK.h;
+      const gap = showMark && showWord ? F * 0.42 * gs : 0;
+      const markCy = -0.36 * F;
+      const top = Math.min(showWord ? -asc : Infinity, showMark ? markCy - mh / 2 : Infinity);
+      const bottom = Math.max(showWord ? desc : -Infinity, showMark ? markCy + mh / 2 : -Infinity);
+      return { w: mw + gap + run.width, h: bottom - top, baseline: -top, markX: 0, markY: markCy - mh / 2 - top, mh, mw, textX: mw + gap, run, F, weight };
+    }
+
+    function drawLockup(ctx, x, y, g, colors) {
+      if (g.mh) drawMark(ctx, x + g.markX + g.mw / 2, y + g.markY + g.mh / 2, g.mh, colors.mark);
+      if (!g.run.width) return;
+      setFont(ctx, g.weight, g.F);
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'alphabetic';
+      for (let i = 0; i < g.run.text.length; i++) {
+        ctx.fillStyle = i < 5 ? colors.trade : colors.print;
+        ctx.fillText(g.run.text[i], x + g.textX + g.run.xs[i], y + g.baseline);
+      }
+    }
+
+    function wrapLines(ctx, text, maxW) {
+      const words = String(text || '').trim().split(/\s+/).filter(Boolean);
+      const lines = [];
+      let line = '';
+      for (const word of words) {
+        const test = line ? line + ' ' + word : word;
+        if (ctx.measureText(test).width <= maxW || !line) line = test;
+        else { lines.push(line); line = word; }
+      }
+      if (line) lines.push(line);
+      return lines;
+    }
+
+    const measureCtx = document.createElement('canvas').getContext('2d');
+
+    /* ---------- asset renderers ---------- */
+    function renderProfile(ctx, W, H, s) {
+      const S = Math.min(W, H);
+      ctx.clearRect(0, 0, W, H);
+      const hasShape = s.shape !== 'none';
+      const r = (s.radius / 100) * S;
+      if (hasShape && s.shape !== 'square' && !s.outsideTransparent) {
+        ctx.fillStyle = s.outsideColor;
+        ctx.fillRect(0, 0, W, H);
+      }
+      ctx.save();
+      if (hasShape) {
+        shapePath(ctx, s.shape, 0, 0, S, S, r);
+        ctx.clip();
+        if (s.fill) paintBackground(ctx, 0, 0, S, S, s.bgColor, s.bgStyle, s.bgIntensity, S);
+      }
+      drawMark(ctx, S / 2 + (s.offsetX / 100) * S, S / 2 + (s.offsetY / 100) * S, (S * s.logoSize) / 100, s.logoColor);
+      ctx.restore();
+      if (hasShape && s.ringWidth > 0) {
+        const lw = (S * s.ringWidth) / 100;
+        ctx.save();
+        shapePath(ctx, s.shape, lw / 2, lw / 2, S - lw, S - lw, Math.max(0, r - lw / 2));
+        ctx.lineWidth = lw;
+        ctx.strokeStyle = s.ringColor;
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    function logoDims(s, size = s.size) {
+      if (s.frame === 'tight') {
+        const p = s.padding / 100;
+        const mh = size / (1 + 2 * p);
+        return { w: Math.max(1, Math.round(mh * MARK.w / MARK.h + 2 * p * mh)), h: size };
+      }
+      return { w: size, h: size };
+    }
+
+    function renderLogo(ctx, W, H, s) {
+      ctx.clearRect(0, 0, W, H);
+      if (!s.transparent) { ctx.fillStyle = s.bgColor; ctx.fillRect(0, 0, W, H); }
+      const p = s.padding / 100;
+      const mh = s.frame === 'tight' ? H / (1 + 2 * p) : Math.min(H, W * MARK.h / MARK.w) * (1 - 2 * p);
+      drawMark(ctx, W / 2, H / 2, mh, s.logoColor);
+    }
+
+    function lockupDims(s, height = s.height) {
+      const g = lockupGeom(measureCtx, 100, s);
+      const p = s.padding / 100;
+      const k = height / (g.h * (1 + 2 * p));
+      const extra = !s.transparent && s.bgShape === 'pill' ? g.h * 0.35 : 0;
+      return { w: Math.max(1, Math.round((g.w + 2 * p * g.h + 2 * extra) * k)), h: height, F: 100 * k };
+    }
+
+    function renderLockup(ctx, W, H, s) {
+      ctx.clearRect(0, 0, W, H);
+      const g = lockupGeom(ctx, lockupDims(s, H).F, s);
+      if (!s.transparent) {
+        shapePath(ctx, s.bgShape, 0, 0, W, H, H * 0.22);
+        ctx.fillStyle = s.bgColor;
+        ctx.fill();
+      }
+      drawLockup(ctx, (W - g.w) / 2, (H - g.h) / 2, g, { mark: s.markColor, trade: s.tradeColor, print: s.printColor });
+    }
+
+    function bannerBox(s, W, H) {
+      const f = BR_BANNERS[s.format] || BR_BANNERS.x;
+      // On X the profile photo covers the bottom left, so left-side layouts sit higher.
+      if (s.format === 'x' && ['left', 'hero', 'split'].includes(s.layout)) return { x: 0, y: 0, w: W, h: H * 0.7 };
+      if (!f.safe) return { x: 0, y: 0, w: W, h: H };
+      const k = W / f.w;
+      return { x: (W - f.safe.w * k) / 2, y: (H - f.safe.h * k) / 2, w: f.safe.w * k, h: f.safe.h * k };
+    }
+
+    function renderBanner(ctx, W, H, s) {
+      const f = BR_BANNERS[s.format] || BR_BANNERS.x;
+      const box = bannerBox(s, W, H);
+      // Type scales with the visible area (the safe area on YouTube), not the layout box
+      const k = W / f.w;
+      const safe = f.safe ? { x: (W - f.safe.w * k) / 2, y: (H - f.safe.h * k) / 2, w: f.safe.w * k, h: f.safe.h * k } : { x: 0, y: 0, w: W, h: H };
+      const unit = f.safe ? safe.h * 1.6 : H;
+      ctx.clearRect(0, 0, W, H);
+      paintBackground(ctx, 0, 0, W, H, s.bgColor, s.bgStyle, s.bgIntensity, unit);
+
+      const F0 = safe.h * (f.safe ? 1.25 : 1) * ({ s: 0.13, m: 0.16, l: 0.195 }[s.textSize] || 0.16);
+      const padX = box.w * 0.07;
+      const colors = { mark: s.markColor, trade: s.tradeColor, print: s.printColor };
+      const lockOpts = { layout: 'horizontal', showMark: s.showMark, showWord: s.showWordmark, weight: 700 };
+      const lockOn = s.showMark || s.showWordmark;
+      const tagOn = s.showTagline && String(s.tagline).trim();
+      const subOn = s.showSub && String(s.sub).trim();
+      const ctaOn = s.showCta && String(s.cta).trim();
+
+      if (s.layout === 'hero') {
+        const mh = safe.h * 1.3;
+        drawMark(ctx, safe.x + safe.w - mh * MARK.w / MARK.h * 0.22, safe.y + safe.h * 0.56, mh, s.markColor, isDarkColor(s.bgColor) ? 0.16 : 0.14);
+      }
+
+      // Stack of blocks: lockup, tagline, then website + CTA on one row.
+      function stack(F, maxW, opts) {
+        const blocks = [];
+        if (opts.lockup && lockOn) {
+          let g = lockupGeom(ctx, F, lockOpts);
+          if (g.w > maxW) g = lockupGeom(ctx, F * maxW / g.w, lockOpts);
+          blocks.push({ h: g.h, gap: F * 0.42, draw: (ax, y) => drawLockup(ctx, ax(g.w), y, g, colors) });
+        }
+        if (opts.text && tagOn) {
+          let ts = F * 0.4;
+          setFont(ctx, 500, ts);
+          let lines = wrapLines(ctx, s.tagline, maxW);
+          while (lines.length > 2 && ts > F * 0.24) { ts *= 0.92; setFont(ctx, 500, ts); lines = wrapLines(ctx, s.tagline, maxW); }
+          const lh = ts * 1.28;
+          const size = ts;
+          blocks.push({
+            h: lh * lines.length, gap: F * 0.36,
+            draw: (ax, y) => {
+              setFont(ctx, 500, size);
+              ctx.fillStyle = s.taglineColor;
+              ctx.textBaseline = 'alphabetic';
+              ctx.textAlign = 'left';
+              lines.forEach((ln, i) => ctx.fillText(ln, ax(ctx.measureText(ln).width), y + i * lh + size * 1.02));
+            }
+          });
+        }
+        if (opts.text && (subOn || ctaOn)) {
+          const ss = F * 0.27, cs = F * 0.26;
+          const pillH = ctaOn ? cs * 2.35 : 0, pillPad = cs * 1.15;
+          setFont(ctx, 500, ss);
+          const subW = subOn ? ctx.measureText(s.sub).width : 0;
+          setFont(ctx, 600, cs);
+          const ctaW = ctaOn ? ctx.measureText(s.cta).width + pillPad * 2 : 0;
+          const gapX = subOn && ctaOn ? F * 0.4 : 0;
+          const rowW = subW + gapX + ctaW, rowH = Math.max(subOn ? ss * 1.35 : 0, pillH);
+          blocks.push({
+            h: rowH, gap: 0,
+            draw: (ax, y) => {
+              let x = ax(rowW);
+              if (ctaOn && opts.ctaFirst) {
+                drawCta(x, y); x += ctaW + gapX;
+                drawSub(x, y);
+              } else {
+                drawSub(x, y); x += subW + gapX;
+                if (ctaOn) drawCta(x, y);
+              }
+              function drawSub(px, py) {
+                if (!subOn) return;
+                setFont(ctx, 500, ss);
+                ctx.fillStyle = s.subColor;
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(s.sub, px, py + rowH / 2 + ss * 0.04);
+              }
+              function drawCta(px, py) {
+                const top = py + (rowH - pillH) / 2;
+                shapePath(ctx, 'pill', px, top, ctaW, pillH);
+                ctx.fillStyle = s.ctaColor;
+                ctx.fill();
+                setFont(ctx, 600, cs);
+                ctx.fillStyle = s.ctaTextColor;
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(s.cta, px + pillPad, top + pillH / 2 + cs * 0.04);
+              }
+            }
+          });
+        }
+        const total = blocks.reduce((sum, b, i) => sum + b.h + (i < blocks.length - 1 ? b.gap : 0), 0);
+        return { blocks, total };
+      }
+
+      function place(st, anchor, align, top) {
+        const ax = align === 'center' ? (w) => anchor - w / 2 : align === 'right' ? (w) => anchor - w : () => anchor;
+        let y = top;
+        st.blocks.forEach((b, i) => { b.draw(ax, y); y += b.h + (i < st.blocks.length - 1 ? b.gap : 0); });
+      }
+
+      if (s.layout === 'split') {
+        const divX = box.x + box.w * 0.5;
+        const left = stack(F0, divX - box.x - padX - F0 * 0.6, { lockup: true });
+        const rightX = divX + F0 * 0.6;
+        const right = stack(F0, box.x + box.w - padX - rightX, { text: true });
+        if (left.blocks.length) place(left, box.x + padX, 'left', box.y + (box.h - left.total) / 2);
+        if (right.blocks.length) {
+          place(right, rightX, 'left', box.y + (box.h - right.total) / 2);
+          if (left.blocks.length) {
+            ctx.fillStyle = rgbaOf(inkFor(s.bgColor), 0.16);
+            const dh = Math.max(left.total, right.total) * 1.15;
+            ctx.fillRect(divX - Math.max(1, F0 * 0.012) / 2, box.y + (box.h - dh) / 2, Math.max(1, F0 * 0.012), dh);
+          }
+        }
+        return;
+      }
+
+      const align = s.layout === 'center' ? 'center' : s.layout === 'right' ? 'right' : 'left';
+      const maxW = align === 'center' ? box.w * 0.82 : box.w * (s.layout === 'hero' ? 0.56 : 0.62);
+      const st = stack(F0, maxW, { lockup: true, text: true });
+      const anchor = align === 'center' ? box.x + box.w / 2 : align === 'right' ? box.x + box.w - padX : box.x + padX;
+      place(st, anchor, align, box.y + (box.h - st.total) / 2);
+    }
+
+    const BR_RENDER = { profile: renderProfile, logo: renderLogo, lockup: renderLockup, banner: renderBanner };
+
+    function assetDims(type, s = brand[type], sizeOverride) {
+      if (type === 'profile') { const n = sizeOverride || s.size; return { w: n, h: n }; }
+      if (type === 'logo') return logoDims(s, sizeOverride || s.size);
+      if (type === 'lockup') { const d = lockupDims(s, sizeOverride || s.height); return { w: d.w, h: d.h }; }
+      const f = BR_BANNERS[s.format] || BR_BANNERS.x;
+      return { w: f.w * s.scale, h: f.h * s.scale };
+    }
+
+    function drawAsset(canvas, type, s, w, h) {
+      canvas.width = Math.max(1, Math.round(w));
+      canvas.height = Math.max(1, Math.round(h));
+      const ctx = canvas.getContext('2d');
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      BR_RENDER[type](ctx, canvas.width, canvas.height, s);
+      return canvas;
+    }
+
+    // Does the exported PNG have transparent pixels?
+    function hasTransparency(type, s) {
+      if (type === 'profile') return s.shape === 'none' || !s.fill || (s.shape !== 'square' && s.outsideTransparent);
+      if (type === 'logo' || type === 'lockup') return s.transparent || (type === 'lockup' && s.bgShape !== 'square');
+      return false;
+    }
+
+    /* ---------- fonts ---------- */
+    let brandFontOk = true;
+    const brandFontsReady = fontReady
+      .then(() => Promise.all([500, 600, 700].map(w => document.fonts.load(`${w} 64px 'TP Plex'`))))
+      .catch(() => {})
+      .then(() => {
+        try { brandFontOk = document.fonts.check("700 64px 'TP Plex'") || document.fonts.check("700 64px 'IBM Plex Sans'"); } catch (err) {}
+      });
+
+    /* ---------- controls ---------- */
+    const brControls = $('#brandControls');
+    const brCanvas = $('#brandCanvas');
+    const brGuides = $('#brandGuides');
+    const brStage = $('#brandStage');
+    const brViewport = $('#brandViewport');
+
+    const bGroup = (title, body, small = '') =>
+      `<details class="ctl-group" data-group="${esc(title)}" ${brOpen.has(title) ? 'open' : ''}><summary>${esc(title)}${small ? `<small>${small}</small>` : ''}</summary><div class="ctl-body">${body}</div></details>`;
+
+    const bSeg = (key, options, value) =>
+      `<div class="seg" role="group" data-bseg="${key}">${options.map(([v, label]) =>
+        `<button type="button" data-value="${esc(v)}" aria-pressed="${String(v) === String(value)}">${esc(label)}</button>`).join('')}</div>`;
+
+    const bField = (label, inner, hint = '') =>
+      `<div class="field">${label ? `<span class="field-label">${label}</span>` : ''}${inner}${hint ? `<div class="field-hint">${hint}</div>` : ''}</div>`;
+
+    const bRange = (key, label, value, min, max, step = 1, unit = '%') =>
+      bField(label, `<div class="range-row"><input type="range" data-brange="${key}" min="${min}" max="${max}" step="${step}" value="${value}" aria-label="${esc(label)}"><output data-bout="${key}">${value}${unit}</output></div>`);
+
+    const bSwitch = (key, label, checked, hint = '') =>
+      `<label class="toggle-row"><span>${label}${hint ? `<small>${hint}</small>` : ''}</span><span class="switch"><input type="checkbox" data-bcheck="${key}" ${checked ? 'checked' : ''} aria-label="${esc(label)}"><span></span></span></label>`;
+
+    function bColor(key, label, value) {
+      const hex = normHex(value, '#6366F1');
+      return `<div class="field color-ctl" data-colorfield="${key}">
+        <span class="field-label">${label}<span class="field-count" data-bhexlabel="${key}">${hex}</span></span>
+        <div class="swatches">${BR_SWATCHES.map(([c, name]) =>
+          `<button type="button" class="swatch" data-bswatch="${key}" data-value="${c}" style="background:${c}" title="${name} ${c}" aria-label="${name}" aria-pressed="${c === hex}"></button>`).join('')}</div>
+        <div class="color-input-row"><input type="color" data-bcolor="${key}" value="${hex.toLowerCase()}" aria-label="${esc(label)} picker"><input type="text" data-bhex="${key}" value="${hex}" maxlength="7" spellcheck="false" autocomplete="off" aria-label="${esc(label)} hex code"></div>
+      </div>`;
+    }
+
+    const bText = (key, label, value, max) =>
+      `<div class="field"><label for="b-${key}">${label}<span class="field-count" data-bcount="${key}">${String(value).length}/${max}</span></label><input type="text" id="b-${key}" data-btext="${key}" value="${esc(value)}" maxlength="${max}" autocomplete="off"></div>`;
+
+    function presetGroup(type) {
+      const wide = type === 'banner' || type === 'lockup';
+      const tiles = BR_PRESETS[type].map((p, i) =>
+        `<button type="button" class="preset-tile" data-bpreset="${i}" aria-pressed="${brand.preset[type] === i}" title="${esc(p.name)}"><span class="preset-thumb" data-thumb="${i}"></span><span class="preset-name">${esc(p.name)}</span></button>`).join('');
+      return bGroup('Presets', `<div class="preset-grid${wide ? ' wide' : ''}">${tiles}</div>`, 'Click to apply');
+    }
+
+    function sizeChips(key, list, value, title) {
+      return `<div class="field"><span class="field-label">${title}</span><div class="size-chips" role="group">${list.map(([v, label, note]) =>
+        `<button type="button" data-bsize="${key}" data-value="${v}" aria-pressed="${Number(v) === Number(value)}">${label}${note ? `<small>${note}</small>` : ''}</button>`).join('')}</div></div>`;
+    }
+
+    function exportGroup(type) {
+      const s = brand[type];
+      const d = assetDims(type);
+      const transparent = hasTransparency(type, s);
+      let sizes = '';
+      if (type === 'profile') sizes = sizeChips('size', BR_SIZES.profile, s.size, 'Size (px)') + sizeChips('size', BR_SIZES.icons, s.size, 'Icon and favicon sizes');
+      if (type === 'logo') sizes = sizeChips('size', BR_SIZES.logo, s.size, s.frame === 'tight' ? 'Height (px)' : 'Size (px)');
+      if (type === 'lockup') sizes = sizeChips('height', BR_SIZES.lockup, s.height, 'Height (px)');
+      if (type === 'banner') sizes = bField('Resolution', bSeg('scale', [[1, '1×'], [2, '2×']], s.scale));
+      return bGroup('Export', `
+        ${sizes}
+        <div class="br-export-info"><b>${d.w} × ${d.h}</b> PNG · ${transparent ? 'transparent background' : 'solid background'}<br><span class="field-hint">${esc(brandFileName(type))}</span></div>
+        <div class="br-actions">
+          <button class="btn btn-primary" type="button" id="brDownload"><svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>Download PNG</button>
+          <button class="btn" type="button" id="brCopy" title="Copy the PNG to the clipboard">Copy</button>
+          ${type === 'profile' && !IS_TOUCH ? `<button class="btn btn-wide" type="button" id="brIconSet" title="${ICON_SET.join(', ')} px">Download icon set (${ICON_SET.length} sizes)</button>` : ''}
+        </div>
+        <div class="br-status" id="brStatus" role="status" aria-live="polite"></div>
+      `);
+    }
+
+    const BG_STYLES = [['solid', 'Solid'], ['spotlight', 'Spotlight'], ['grid', 'Grid'], ['dots', 'Dots'], ['equity', 'Equity line']];
+
+    function renderBrandControls() {
+      const type = brand.type;
+      const s = brand[type];
+      let html = presetGroup(type);
+
+      if (type === 'profile') {
+        html += bGroup('Shape', `
+          ${bField('Frame', bSeg('shape', [['square', 'Square'], ['rounded', 'Rounded'], ['circle', 'Circle'], ['none', 'None']], s.shape),
+            s.shape === 'none' ? 'Just the mark on a transparent square.' : s.shape === 'square' ? 'A full square. X and Instagram crop it to a circle.' : 'Outside the shape is transparent in the PNG unless you turn that off below.')}
+          ${s.shape === 'rounded' ? bRange('radius', 'Corner radius', s.radius, 4, 50) : ''}
+          ${s.shape !== 'none' ? bRange('ringWidth', 'Ring width', s.ringWidth, 0, 12, 0.5) : ''}
+          ${s.shape !== 'none' && s.ringWidth > 0 ? bColor('ringColor', 'Ring color', s.ringColor) : ''}
+          ${s.shape === 'circle' || s.shape === 'rounded' ? bSwitch('outsideTransparent', 'Transparent outside the shape', s.outsideTransparent, 'Off fills the corners with a color') : ''}
+          ${(s.shape === 'circle' || s.shape === 'rounded') && !s.outsideTransparent ? bColor('outsideColor', 'Corner color', s.outsideColor) : ''}
+        `);
+        if (s.shape !== 'none') {
+          html += bGroup('Background', `
+            ${bSwitch('fill', 'Fill the shape', s.fill, s.fill ? 'Solid color inside the shape' : 'Transparent inside the shape')}
+            ${s.fill ? bColor('bgColor', 'Background color', s.bgColor) : ''}
+            ${s.fill ? bField('Style', bSeg('bgStyle', BG_STYLES.slice(0, 4), s.bgStyle)) : ''}
+            ${s.fill && s.bgStyle !== 'solid' ? bRange('bgIntensity', 'Texture strength', s.bgIntensity, 0, 100) : ''}
+          `);
+        }
+        html += bGroup('Logo', `
+          ${bColor('logoColor', 'Logo color', s.logoColor)}
+          ${bRange('logoSize', 'Logo size', s.logoSize, 20, 90)}
+          <div class="field-row">${bRange('offsetX', 'Move left / right', s.offsetX, -20, 20, 0.5)}${bRange('offsetY', 'Move up / down', s.offsetY, -20, 20, 0.5)}</div>
+        `);
+      }
+
+      if (type === 'logo') {
+        html += bGroup('Shape', `
+          ${bField('Canvas', bSeg('frame', [['square', 'Square'], ['tight', 'Tight crop']], s.frame), s.frame === 'tight' ? 'The canvas hugs the mark. Good for websites and documents.' : 'A square canvas with the mark centered.')}
+          ${bRange('padding', 'Padding', s.padding, 0, 30)}
+        `);
+        html += bGroup('Background', `
+          ${bSwitch('transparent', 'Transparent background', s.transparent)}
+          ${!s.transparent ? bColor('bgColor', 'Background color', s.bgColor) : ''}
+        `);
+        html += bGroup('Logo', bColor('logoColor', 'Logo color', s.logoColor));
+      }
+
+      if (type === 'lockup') {
+        html += bGroup('Layout', `
+          ${bField('Arrangement', bSeg('layout', [['horizontal', 'Horizontal'], ['stacked', 'Stacked'], ['wordmark', 'Wordmark']], s.layout))}
+          ${bField('Weight', bSeg('weight', [[700, 'Bold'], [600, 'Semibold']], s.weight))}
+          ${s.layout !== 'wordmark' ? bRange('markScale', 'Mark size', s.markScale, 60, 160) : ''}
+          ${s.layout !== 'wordmark' ? bRange('gap', 'Space between', s.gap, 40, 200) : ''}
+          ${bRange('padding', 'Padding', s.padding, 0, 80)}
+        `);
+        html += bGroup('Colors', `
+          ${s.layout !== 'wordmark' ? bColor('markColor', 'Mark', s.markColor) : ''}
+          ${bColor('tradeColor', '"trade"', s.tradeColor)}
+          ${bColor('printColor', '"print"', s.printColor)}
+        `);
+        html += bGroup('Background', `
+          ${bSwitch('transparent', 'Transparent background', s.transparent)}
+          ${!s.transparent ? bField('Shape', bSeg('bgShape', [['square', 'Rectangle'], ['rounded', 'Rounded'], ['pill', 'Pill']], s.bgShape)) : ''}
+          ${!s.transparent ? bColor('bgColor', 'Background color', s.bgColor) : ''}
+        `);
+      }
+
+      if (type === 'banner') {
+        const f = BR_BANNERS[s.format];
+        html += bGroup('Format', `
+          <div class="tpl-grid">${Object.entries(BR_BANNERS).map(([id, b]) =>
+            `<button type="button" class="tpl-tile" data-bformat="${id}" aria-pressed="${id === s.format}"><span class="tpl-tile-name">${esc(b.short)}<br><small style="color:var(--text3);font-weight:500">${b.w} × ${b.h}</small></span></button>`).join('')}</div>
+          ${f.safe ? '<div class="field-hint">YouTube crops the banner on phones and desktop. The text stays inside the safe area that shows everywhere.</div>' : ''}
+          ${s.format === 'x' ? '<div class="field-hint">Your X profile photo covers part of the bottom left, so left-side layouts sit higher. Guides show roughly where the photo goes, using your current Profile design.</div>' : ''}
+          ${s.format === 'linkedin' ? '<div class="field-hint">LinkedIn also puts your profile photo over the bottom left. Centered or right layouts keep clear of it.</div>' : ''}
+        `);
+        html += bGroup('Layout', `
+          ${bField('Composition', bSeg('layout', [['left', 'Left'], ['center', 'Center'], ['right', 'Right']], s.layout))}
+          ${bField('', bSeg('layout', [['split', 'Split'], ['hero', 'Mark hero']], s.layout))}
+          ${bField('Text size', bSeg('textSize', [['s', 'Small'], ['m', 'Medium'], ['l', 'Large']], s.textSize))}
+        `);
+        html += bGroup('Text', `
+          <div class="toggle-list">
+            ${bSwitch('showMark', 'Logo mark', s.showMark)}
+            ${bSwitch('showWordmark', '"tradeprint" wordmark', s.showWordmark)}
+            ${bSwitch('showTagline', 'Tagline', s.showTagline)}
+            ${bSwitch('showSub', 'Website / subline', s.showSub)}
+            ${bSwitch('showCta', 'Button', s.showCta)}
+          </div>
+          ${s.showTagline ? bText('tagline', 'Tagline', s.tagline, 70) : ''}
+          ${s.showSub ? bText('sub', 'Website / subline', s.sub, 40) : ''}
+          ${s.showCta ? bText('cta', 'Button text', s.cta, 26) : ''}
+        `);
+        html += bGroup('Background', `
+          ${bColor('bgColor', 'Background color', s.bgColor)}
+          ${bField('Style', bSeg('bgStyle', BG_STYLES.slice(0, 3), s.bgStyle))}
+          ${bField('', bSeg('bgStyle', BG_STYLES.slice(3), s.bgStyle))}
+          ${s.bgStyle !== 'solid' ? bRange('bgIntensity', 'Texture strength', s.bgIntensity, 0, 100) : ''}
+        `);
+        html += bGroup('Colors', `
+          ${s.showMark ? bColor('markColor', 'Logo mark', s.markColor) : ''}
+          ${s.showWordmark ? bColor('tradeColor', '"trade"', s.tradeColor) + bColor('printColor', '"print"', s.printColor) : ''}
+          ${s.showTagline ? bColor('taglineColor', 'Tagline', s.taglineColor) : ''}
+          ${s.showSub ? bColor('subColor', 'Website / subline', s.subColor) : ''}
+          ${s.showCta ? bColor('ctaColor', 'Button', s.ctaColor) + bColor('ctaTextColor', 'Button text', s.ctaTextColor) : ''}
+        `);
+      }
+
+      html += exportGroup(type);
+      if (!brandFontOk && (type === 'lockup' || type === 'banner')) {
+        html += `<div class="br-font-warn">IBM Plex Sans could not load, so text uses a fallback font. Check your connection and reload.</div>`;
+      }
+      html += `<div class="ctl-footer"><button class="btn" type="button" id="brReset">Restore ${esc(BR_TYPES.find(t => t.id === type).short)} defaults</button></div>`;
+      brControls.innerHTML = html;
+      drawPresetThumbs();
+    }
+
+    function presetState(type, i) {
+      const keep = {};
+      BR_KEEP[type].forEach(k => { keep[k] = brand[type][k]; });
+      return { ...BR_DEFAULTS[type], ...BR_PRESETS[type][i].v, ...keep };
+    }
+
+    function drawPresetThumbs() {
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      brControls.querySelectorAll('[data-thumb]').forEach(el => {
+        const i = Number(el.dataset.thumb);
+        const type = brand.type;
+        const s = presetState(type, i);
+        const d = assetDims(type, s, type === 'profile' || type === 'logo' ? 96 : type === 'lockup' ? 60 : undefined);
+        const cssW = el.clientWidth || 100;
+        let cssH = cssW * d.h / d.w;
+        if (type === 'lockup') cssH = Math.min(cssH, cssW * 0.5);
+        el.style.height = Math.round(cssH) + 'px';
+        const c = document.createElement('canvas');
+        if (type === 'lockup') {
+          // fit the lockup inside a fixed 2:1 tile
+          c.width = Math.round(cssW * dpr); c.height = Math.round(cssH * dpr);
+          const inner = drawAsset(document.createElement('canvas'), type, s, d.w * (cssH * dpr * 0.7 / d.h), cssH * dpr * 0.7);
+          const scale = Math.min(1, (c.width * 0.88) / inner.width);
+          const ctx = c.getContext('2d');
+          ctx.drawImage(inner, (c.width - inner.width * scale) / 2, (c.height - inner.height * scale) / 2, inner.width * scale, inner.height * scale);
+        } else {
+          drawAsset(c, type, s, cssW * dpr, cssH * dpr);
+        }
+        el.innerHTML = '';
+        el.appendChild(c);
+      });
+    }
+
+    function brandFileName(type = brand.type, sizeOverride) {
+      const s = brand[type];
+      const hex = (v) => normHex(v, '#000000').slice(1).toLowerCase();
+      const d = assetDims(type, s, sizeOverride);
+      if (type === 'profile') {
+        const shape = s.shape === 'none' ? 'mark' : s.shape;
+        const bg = s.shape === 'none' || !s.fill ? 'transparent' : hex(s.bgColor);
+        return `tradeprint-profile-${shape}-${bg}-${hex(s.logoColor)}-${d.w}.png`;
+      }
+      if (type === 'logo') return `tradeprint-logo-${hex(s.logoColor)}-${s.transparent ? 'transparent' : 'on-' + hex(s.bgColor)}-${d.w}x${d.h}.png`;
+      if (type === 'lockup') return `tradeprint-lockup-${s.layout}-${s.transparent ? 'transparent' : hex(s.bgColor)}-${d.w}x${d.h}.png`;
+      return `tradeprint-banner-${s.format}-${s.layout}-${d.w}x${d.h}.png`;
+    }
+
+    /* ---------- preview ---------- */
+    let brRaf = 0;
+    function queueBrand() {
+      cancelAnimationFrame(brRaf);
+      brRaf = requestAnimationFrame(() => { layoutBrand(); renderBrandContext(); });
+    }
+
+    function layoutBrand() {
+      if ($('#brandView').hidden) return;
+      const type = brand.type;
+      const s = brand[type];
+      const d = assetDims(type);
+      const cs = getComputedStyle(brViewport);
+      const narrow = window.matchMedia('(max-width: 900px)').matches;
+      const availW = brViewport.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+      let availH = brViewport.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+      if (narrow) availH = Math.min(window.innerHeight * 0.55, availW * d.h / d.w);
+      const cap = type === 'banner' ? Infinity : type === 'lockup' ? 900 : 560;
+      const sc = Math.min(availW / d.w, availH / d.h, cap / Math.max(d.w, d.h));
+      const cssW = Math.max(1, Math.round(d.w * sc)), cssH = Math.max(1, Math.round(d.h * sc));
+      brStage.style.width = cssW + 'px';
+      brStage.style.height = cssH + 'px';
+      brStage.className = `br-stage bd-${brand.backdrop}`;
+      const dpr = Math.min(3, window.devicePixelRatio || 1);
+      drawAsset(brCanvas, type, s, cssW * dpr, cssH * dpr);
+      drawBrandGuides(cssW * dpr, cssH * dpr, dpr);
+      const f = type === 'banner' ? BR_BANNERS[s.format] : null;
+      $('#brandSize').textContent = `${f ? f.short + ' · ' : ''}${d.w} × ${d.h} PNG${hasTransparency(type, s) ? ' · transparent' : ''}`;
+    }
+
+    function guideLabel(ctx, text, x, y, dpr, align = 'center') {
+      ctx.save();
+      ctx.font = `600 ${11 * dpr}px ${BR_FONT}`;
+      const w = ctx.measureText(text).width + 12 * dpr, h = 20 * dpr;
+      const left = align === 'center' ? x - w / 2 : x;
+      ctx.fillStyle = 'rgba(12,14,20,0.85)';
+      shapePath(ctx, 'pill', left, y - h / 2, w, h);
+      ctx.fill();
+      ctx.fillStyle = '#fca5a5';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, left + 6 * dpr, y + 0.5 * dpr);
+      ctx.restore();
+    }
+
+    function drawBrandGuides(W, H, dpr) {
+      brGuides.width = Math.round(W);
+      brGuides.height = Math.round(H);
+      const ctx = brGuides.getContext('2d');
+      ctx.clearRect(0, 0, W, H);
+      $('#brandGuidesBtn').setAttribute('aria-pressed', String(brand.guides));
+      if (!brand.guides) return;
+      const type = brand.type;
+      const s = brand[type];
+      ctx.strokeStyle = 'rgba(239, 68, 68, 0.85)';
+      ctx.lineWidth = 1.5 * dpr;
+      ctx.setLineDash([6 * dpr, 5 * dpr]);
+
+      if (type === 'profile' && (s.shape === 'square' || s.shape === 'rounded')) {
+        ctx.beginPath();
+        ctx.arc(W / 2, H / 2, W / 2 - ctx.lineWidth, 0, Math.PI * 2);
+        ctx.stroke();
+        guideLabel(ctx, 'Circle crop', W / 2, 16 * dpr, dpr);
+      }
+
+      if (type === 'banner') {
+        const f = BR_BANNERS[s.format];
+        if (f.safe) {
+          const b = bannerBox(s, W, H);
+          ctx.strokeRect(b.x, b.y, b.w, b.h);
+          guideLabel(ctx, 'Safe area (shows on every device)', b.x + b.w / 2, b.y - 14 * dpr, dpr);
+        }
+        if (s.format === 'x') {
+          // X shows the profile photo over the bottom left (approximate position).
+          const r = H * 0.334, cx = W * 0.138, cy = H;
+          ctx.save();
+          ctx.setLineDash([]);
+          ctx.beginPath();
+          ctx.arc(cx, cy, r + r * 0.05, 0, Math.PI * 2);
+          ctx.fillStyle = '#000000';
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(cx, cy, r, 0, Math.PI * 2);
+          ctx.clip();
+          const av = drawAsset(document.createElement('canvas'), 'profile', { ...brand.profile, shape: 'circle', outsideTransparent: true }, r * 2, r * 2);
+          ctx.drawImage(av, cx - r, cy - r, r * 2, r * 2);
+          ctx.restore();
+          ctx.beginPath();
+          ctx.arc(cx, cy, r + r * 0.05, Math.PI, Math.PI * 2);
+          ctx.stroke();
+          guideLabel(ctx, 'Profile photo (approx.)', cx + r * 1.15, H - 16 * dpr, dpr, 'left');
+        }
+      }
+    }
+
+    function renderBrandContext() {
+      const box = $('#brandContext');
+      const type = brand.type;
+      const s = brand[type];
+      if (type === 'banner') { box.hidden = true; return; }
+      box.hidden = false;
+      const dpr = Math.min(3, window.devicePixelRatio || 1);
+      const chips = type === 'profile'
+        ? [['on-dark', [96, 48, 28]], ['on-light', [96, 48, 28]]]
+        : type === 'logo'
+          ? [['on-dark', [64, 32, 16]], ['on-light', [64, 32, 16]], ...(isIndigoish(s.logoColor) ? [] : [['on-indigo', [64, 32, 16]]])]
+          : [['on-dark', [44, 26]], ['on-light', [44, 26]]];
+      box.innerHTML = `<span class="br-context-label">Size check</span>` + chips.map(([cls, sizes]) =>
+        `<div class="br-ctx ${cls}">${sizes.map(n => `<canvas data-ctx="${n}"></canvas>`).join('')}<small>${type === 'lockup' ? sizes.join(' / ') + 'px tall' : sizes.join(' / ') + 'px'}</small></div>`).join('');
+      box.querySelectorAll('canvas[data-ctx]').forEach(c => {
+        const n = Number(c.dataset.ctx);
+        let d = type === 'lockup' ? assetDims('lockup', s, n) : type === 'logo' ? logoDims(s, n) : { w: n, h: n };
+        c.style.width = d.w + 'px';
+        c.style.height = d.h + 'px';
+        drawAsset(c, type, s, d.w * dpr, d.h * dpr);
+      });
+    }
+
+    function renderBrandTypes() {
+      $('#brandTypes').innerHTML = BR_TYPES.map(t =>
+        `<button type="button" data-btype="${t.id}" aria-pressed="${t.id === brand.type}" title="${esc(t.name)}" aria-label="${esc(t.name)}"><svg viewBox="0 0 24 24" aria-hidden="true">${t.icon}</svg><span>${esc(t.short)}</span></button>`).join('');
+      $('#brandBackdrop').innerHTML = [['checker', 'Transparency grid'], ['dark', 'Dark background'], ['light', 'Light background']].map(([id, label]) =>
+        `<button type="button" data-bbackdrop="${id}" aria-pressed="${id === brand.backdrop}" title="Preview on: ${label}" aria-label="Preview on ${label}"><i class="bd-${id}"></i></button>`).join('');
+    }
+
+    function renderBrandAll() {
+      renderBrandTypes();
+      renderBrandControls();
+      layoutBrand();
+      renderBrandContext();
+    }
+
+    /* ---------- control events ---------- */
+    function brandChanged({ controls = false } = {}) {
+      brand.preset[brand.type] = undefined;
+      saveBrand();
+      if (controls) renderBrandControls();
+      else refreshExportInfo();
+      queueBrand();
+    }
+
+    function refreshExportInfo() {
+      const info = brControls.querySelector('.br-export-info');
+      if (!info) return;
+      const type = brand.type, s = brand[type], d = assetDims(type);
+      info.innerHTML = `<b>${d.w} × ${d.h}</b> PNG · ${hasTransparency(type, s) ? 'transparent background' : 'solid background'}<br><span class="field-hint">${esc(brandFileName(type))}</span>`;
+    }
+
+    function setBrandColor(key, value, from) {
+      const s = brand[brand.type];
+      const hex = normHex(value, null);
+      if (!hex) return false;
+      s[key] = hex;
+      const field = brControls.querySelector(`[data-colorfield="${key}"]`);
+      if (field) {
+        field.querySelectorAll('[data-bswatch]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.value === hex)));
+        const label = field.querySelector('[data-bhexlabel]');
+        if (label) label.textContent = hex;
+        if (from !== 'picker') { const pick = field.querySelector('[data-bcolor]'); if (pick) pick.value = hex.toLowerCase(); }
+        if (from !== 'hex') { const txt = field.querySelector('[data-bhex]'); if (txt) txt.value = hex; }
+      }
+      return true;
+    }
+
+    brControls.addEventListener('click', (e) => {
+      const s = brand[brand.type];
+      const segBtn = e.target.closest('[data-bseg] button');
+      if (segBtn) {
+        const key = segBtn.parentElement.dataset.bseg;
+        const raw = segBtn.dataset.value;
+        const prev = s[key];
+        s[key] = typeof BR_DEFAULTS[brand.type][key] === 'number' ? Number(raw) : raw;
+        // Leaving "None" brings the fill back; choosing it turns the fill off
+        if (key === 'shape' && raw === 'none') s.fill = false;
+        else if (key === 'shape' && prev === 'none') s.fill = true;
+        return brandChanged({ controls: true });
+      }
+      const sw = e.target.closest('[data-bswatch]');
+      if (sw) { setBrandColor(sw.dataset.bswatch, sw.dataset.value); return brandChanged(); }
+      const size = e.target.closest('[data-bsize]');
+      if (size) { s[size.dataset.bsize] = Number(size.dataset.value); return brandChanged({ controls: true }); }
+      const fmt = e.target.closest('[data-bformat]');
+      if (fmt) { s.format = fmt.dataset.bformat; return brandChanged({ controls: true }); }
+      const preset = e.target.closest('[data-bpreset]');
+      if (preset) {
+        const i = Number(preset.dataset.bpreset);
+        brand[brand.type] = presetState(brand.type, i);
+        saveBrand();
+        brand.preset[brand.type] = i;
+        renderBrandControls();
+        queueBrand();
+        return;
+      }
+      if (e.target.closest('#brDownload')) return brandDownload();
+      if (e.target.closest('#brCopy')) return brandCopy();
+      if (e.target.closest('#brIconSet')) return brandIconSet();
+      if (e.target.closest('#brReset')) {
+        brand[brand.type] = { ...BR_DEFAULTS[brand.type] };
+        brand.preset[brand.type] = undefined;
+        saveBrand();
+        renderBrandControls();
+        queueBrand();
+      }
+    });
+
+    brControls.addEventListener('input', (e) => {
+      const s = brand[brand.type];
+      const t = e.target;
+      if (t.dataset.brange) {
+        s[t.dataset.brange] = Number(t.value);
+        const out = brControls.querySelector(`[data-bout="${t.dataset.brange}"]`);
+        if (out) out.textContent = t.value + '%';
+        // The ring color field appears once the ring has a width
+        const needsControls = t.dataset.brange === 'ringWidth' && (Number(t.value) > 0) !== !!brControls.querySelector('[data-colorfield="ringColor"]');
+        return brandChanged({ controls: needsControls });
+      }
+      if (t.dataset.bcolor) { setBrandColor(t.dataset.bcolor, t.value, 'picker'); return brandChanged(); }
+      if (t.dataset.bhex) { if (setBrandColor(t.dataset.bhex, t.value, 'hex')) brandChanged(); return; }
+      if (t.dataset.btext) {
+        s[t.dataset.btext] = t.value;
+        const count = brControls.querySelector(`[data-bcount="${t.dataset.btext}"]`);
+        if (count) count.textContent = `${t.value.length}/${t.maxLength}`;
+        return brandChanged();
+      }
+    });
+
+    brControls.addEventListener('change', (e) => {
+      const t = e.target;
+      if (t.dataset.bcheck) {
+        brand[brand.type][t.dataset.bcheck] = t.checked;
+        return brandChanged({ controls: true });
+      }
+      if (t.dataset.bhex) {
+        const s = brand[brand.type];
+        t.value = s[t.dataset.bhex];
+      }
+    });
+
+    brControls.addEventListener('toggle', (e) => {
+      const g = e.target.closest && e.target.closest('details[data-group]');
+      if (!g) return;
+      if (g.open) brOpen.add(g.dataset.group); else brOpen.delete(g.dataset.group);
+      if (g.open && g.dataset.group === 'Presets') drawPresetThumbs();
+    }, true);
+
+    $('#brandTypes').addEventListener('click', (e) => {
+      const b = e.target.closest('[data-btype]');
+      if (!b || b.dataset.btype === brand.type) return;
+      brand.type = b.dataset.btype;
+      saveBrand();
+      renderBrandAll();
+    });
+
+    $('#brandBackdrop').addEventListener('click', (e) => {
+      const b = e.target.closest('[data-bbackdrop]');
+      if (!b) return;
+      brand.backdrop = b.dataset.bbackdrop;
+      saveBrand();
+      renderBrandTypes();
+      layoutBrand();
+    });
+
+    $('#brandGuidesBtn').addEventListener('click', () => {
+      brand.guides = !brand.guides;
+      saveBrand();
+      layoutBrand();
+    });
+
+    /* ---------- export ---------- */
+    let brandUrl = '';
+
+    async function brandBlob(type = brand.type, sizeOverride) {
+      await brandFontsReady;
+      const s = brand[type];
+      const d = assetDims(type, s, sizeOverride);
+      const canvas = drawAsset(document.createElement('canvas'), type, s, d.w, d.h);
+      const blob = await canvasToBlob(canvas);
+      return { blob, d, name: brandFileName(type, sizeOverride) };
+    }
+
+    function brandStatus(text, cls = '') {
+      const el = $('#brStatus');
+      if (el) { el.textContent = text; el.className = 'br-status' + (cls ? ' ' + cls : ''); }
+    }
+
+    async function brandDownload() {
+      try {
+        const { blob, d, name } = await brandBlob();
+        if (brandUrl) URL.revokeObjectURL(brandUrl);
+        brandUrl = URL.createObjectURL(blob);
+        const file = new File([blob], name, { type: 'image/png' });
+        const canShare = IS_TOUCH && navigator.canShare && navigator.canShare({ files: [file] });
+        const kb = Math.max(1, Math.round(blob.size / 1024));
+        const transparent = hasTransparency(brand.type, brand[brand.type]);
+        openSheet(`
+          <div class="sheet-preview" style="${transparent ? 'background:repeating-conic-gradient(#2b3043 0% 25%, #1e2232 0% 50%) 50% / 16px 16px' : ''}"><img src="${brandUrl}" alt="Exported asset" /></div>
+          <div class="sheet-copy">${esc(name)}<br>${d.w} × ${d.h} PNG · ${kb.toLocaleString()} KB${transparent ? ' · transparent' : ''}${IS_TOUCH ? '<br>On iPhone you can also press and hold the image and choose Save to Photos.' : ''}</div>
+          <div class="sheet-actions">
+            ${canShare ? '<button class="btn btn-primary" type="button" id="brShareBtn">Save or share</button>' : ''}
+            <button class="btn ${canShare ? '' : 'btn-primary'}" type="button" id="brSheetDl">Download PNG</button>
+          </div>`);
+        $('#exportTitle').textContent = 'Download PNG';
+        $('#brSheetDl').addEventListener('click', () => triggerDownload(brandUrl, name));
+        const share = $('#brShareBtn');
+        if (share) share.addEventListener('click', () => navigator.share({ files: [file] }).catch(() => {}));
+        if (!IS_TOUCH) triggerDownload(brandUrl, name);
+        brandStatus(`Saved ${name}`, 'ok');
+      } catch (err) {
+        console.error('[Brand] Export failed:', err);
+        brandStatus('Export failed: ' + (err.message || err), 'err');
+      }
+    }
+
+    async function brandCopy() {
+      try {
+        if (!navigator.clipboard || !window.ClipboardItem) throw new Error('This browser cannot copy images.');
+        const item = new ClipboardItem({ 'image/png': brandBlob().then(r => r.blob) });
+        await navigator.clipboard.write([item]);
+        brandStatus('Copied to the clipboard.', 'ok');
+      } catch (err) {
+        brandStatus(err.message || 'Copy failed.', 'err');
+      }
+    }
+
+    async function brandIconSet() {
+      brandStatus('Preparing icons...');
+      try {
+        for (const n of ICON_SET) {
+          const { blob } = await brandBlob('profile', n);
+          const url = URL.createObjectURL(blob);
+          triggerDownload(url, `tradeprint-icon-${n}.png`);
+          setTimeout(() => URL.revokeObjectURL(url), 4000);
+          await new Promise(r => setTimeout(r, 350));
+        }
+        brandStatus(`Downloaded ${ICON_SET.length} icon sizes.`, 'ok');
+      } catch (err) {
+        brandStatus('Icon export failed: ' + (err.message || err), 'err');
+      }
+    }
+
+    $('#brandTopDl').addEventListener('click', () => brandDownload());
+
+    /* ---------- view switching ---------- */
+    const ADS_TITLE = document.title;
+    const VIEW_ICONS = {
+      brand: '<rect x="3" y="3" width="7" height="7" rx="2"/><circle cx="17.5" cy="6.5" r="3.5"/><rect x="3" y="14" width="18" height="7" rx="2"/>',
+      back: '<path d="M19 12H5"/><path d="m12 19-7-7 7-7"/>'
+    };
+    let studioView = 'ads';
+    let brandStarted = false;
+
+    function setView(next, push = true) {
+      studioView = next === 'brand' ? 'brand' : 'ads';
+      const on = studioView === 'brand';
+      if (on && shotActive) exitShotMode();
+      $('.st-main').hidden = on;
+      $('#brandView').hidden = !on;
+      $('#shotBtn').hidden = on;
+      $('#exportBtn').hidden = on;
+      $('#brandTopDl').hidden = !on;
+      const btn = $('#viewBtn');
+      btn.classList.toggle('is-back', on);
+      $('#viewBtnIcon').innerHTML = on ? VIEW_ICONS.back : VIEW_ICONS.brand;
+      $('#viewBtnLabel').textContent = on ? 'Back to Ads' : 'Brand Assets';
+      btn.title = on ? 'Back to the ad templates' : 'Logos, profile pictures, lockups and banners';
+      btn.setAttribute('aria-label', on ? 'Back to Ads' : 'Brand Assets');
+      if (!on) $('#exportTitle').textContent = 'Export PNG';
+      document.title = on ? 'Tradeprint | Brand Assets' : ADS_TITLE;
+      if (push) {
+        const url = on ? '#brand' : location.pathname + location.search;
+        try { history.pushState({ view: studioView }, '', url); } catch (err) {}
+      }
+      if (on) {
+        if (!brandStarted) {
+          brandStarted = true;
+          new ResizeObserver(() => { if (studioView === 'brand') queueBrand(); }).observe(brViewport);
+        }
+        renderBrandAll();
+      } else {
+        layoutPreview();
+      }
+    }
+
+    $('#viewBtn').addEventListener('click', () => setView(studioView === 'brand' ? 'ads' : 'brand'));
+    window.addEventListener('popstate', () => setView(location.hash === '#brand' ? 'brand' : 'ads', false));
+    window.addEventListener('hashchange', () => {
+      const want = location.hash === '#brand' ? 'brand' : 'ads';
+      if (want !== studioView) setView(want, false);
+    });
+    window.addEventListener('resize', () => { if (studioView === 'brand') queueBrand(); });
+
+    loadBrand();
+    if (location.hash === '#brand') setView('brand', false);
+    brandFontsReady.then(() => { if (studioView === 'brand') renderBrandAll(); });
+
+    // Debug hook for checks in the browser console: window.__brand
+    window.__brand = {
+      state: brand, presets: BR_PRESETS, defaults: BR_DEFAULTS, banners: BR_BANNERS, mark: MARK,
+      setView, setType(t) { brand.type = t; saveBrand(); renderBrandAll(); },
+      apply(type, values) { Object.assign(brand[type], values); saveBrand(); if (studioView === 'brand') renderBrandAll(); },
+      blob: brandBlob, dims: assetDims, fileName: brandFileName, fontsReady: brandFontsReady,
+      render: renderBrandAll
     };
   })();
   </script>
