@@ -4927,7 +4927,7 @@ body.light .prop-modal-box input[type="date"]::-webkit-calendar-picker-indicator
 .trading-rule-label { font-size: var(--fs-md); font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .trading-rule-type { font-size: var(--fs-xs); color: var(--text-3); margin-top: 1px; }
 .trading-rule-actions { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
-.trading-rules-empty { padding: 16px 14px; }
+.trading-rules-empty { padding: 13px 14px 12px; }
 .trading-rules-add { border: 1px solid var(--line-soft); border-radius: var(--r-md); padding: 14px 14px 12px; background: color-mix(in srgb, var(--surface) 60%, var(--inset)); }
 .trading-rules-add-title { font-size: var(--fs-md); font-weight: 600; color: var(--text); margin-bottom: 12px; }
 .trading-rules-add-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
@@ -7250,9 +7250,30 @@ body.light .prop-modal-box input[type="date"]::-webkit-calendar-picker-indicator
               </div>
             </div>
 
-            <div id="proSettingsActions"></div>
+                      <div id="proSettingsActions"></div>
           </section>
 
+          <section class="settings-section settings-compact" aria-labelledby="settingsPrefsTitle">
+            <div class="settings-section-title">
+              <span id="settingsPrefsTitle">Appearance &amp; Session</span>
+            </div>
+
+            <div class="settings-row-item">
+              <div class="settings-row-copy">
+                <div class="settings-row-title">Light Mode</div>
+                <div class="settings-hint">Saved on this device. The dark theme is the default.</div>
+              </div>
+              <label class="switch"><input type="checkbox" id="themeToggle" onchange="toggleTheme()" aria-label="Light mode"/><span class="slider"></span></label>
+            </div>
+
+            <div class="settings-row-item">
+              <div class="settings-row-copy">
+                <div class="settings-row-title">Log Out</div>
+                <div class="settings-hint">Log out of your Tradeprint account on this device.</div>
+              </div>
+              <button class="danger-btn" type="button" onclick="logout()">Log Out</button>
+            </div>
+          </section>
         </div>
 
         <div class="settings-stack settings-stack-right">
@@ -7295,29 +7316,7 @@ body.light .prop-modal-box input[type="date"]::-webkit-calendar-picker-indicator
                 <button class="save-btn" id="tradingRuleSaveBtn" onclick="saveTradingRuleFromForm()">Add Rule</button>
               </div>
             </div>
-          </section>
-
-          <section class="settings-section settings-compact" aria-labelledby="settingsPrefsTitle">
-            <div class="settings-section-title">
-              <span id="settingsPrefsTitle">Appearance &amp; Session</span>
-            </div>
-
-            <div class="settings-row-item">
-              <div class="settings-row-copy">
-                <div class="settings-row-title">Light Mode</div>
-                <div class="settings-hint">Saved on this device. The dark theme is the default.</div>
-              </div>
-              <label class="switch"><input type="checkbox" id="themeToggle" onchange="toggleTheme()" aria-label="Light mode"/><span class="slider"></span></label>
-            </div>
-
-            <div class="settings-row-item">
-              <div class="settings-row-copy">
-                <div class="settings-row-title">Log Out</div>
-                <div class="settings-hint">Log out of your Tradeprint account on this device.</div>
-              </div>
-              <button class="danger-btn" type="button" onclick="logout()">Log Out</button>
-            </div>
-          </section>
+                    </section>
         </div>
       </div>
     </div>
