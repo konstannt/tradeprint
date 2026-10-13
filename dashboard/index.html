@@ -907,9 +907,9 @@ input:checked + .slider::before, .prints-mini-switch input:checked + span::befor
 .sidebar-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 0 12px 0 18px;
+  justify-content: flex-start;
+  gap: 6px;
+  padding: 0 12px 0 15px;
   min-height: 36px;
   margin-bottom: 14px;
 }
@@ -931,7 +931,7 @@ input:checked + .slider::before, .prints-mini-switch input:checked + span::befor
 
 .sidebar-logo span, .mobile-logo span { color: var(--accent); }
 
-.sidebar.collapsed .sidebar-header { padding: 0 14px; justify-content: center; }
+.sidebar.collapsed .sidebar-header { padding: 0 17px; justify-content: flex-start; }
 .sidebar.collapsed .sidebar-logo { opacity: 0; width: 0; position: absolute; pointer-events: none; }
 
 .toggle-btn { width: 30px; height: 30px; color: var(--text-3); }
@@ -939,7 +939,7 @@ input:checked + .slider::before, .prints-mini-switch input:checked + span::befor
 .toggle-btn svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 
 /* Navigation */
-.nav-section { flex: 1; display: flex; flex-direction: column; gap: 2px; padding: 0 10px; overflow-y: auto; overflow-x: hidden; }
+.nav-section { flex: 1; display: flex; flex-direction: column; gap: 4px; padding: 0 10px; overflow-y: auto; overflow-x: hidden; }
 
 .nav-group-label {
   font-size: var(--fs-xs);
@@ -955,12 +955,12 @@ input:checked + .slider::before, .prints-mini-switch input:checked + span::befor
   position: relative;
   display: flex;
   align-items: center;
-  gap: 11px;
-  min-height: 34px;
-  padding: 0 10px;
+  gap: 12px;
+  min-height: 38px;
+  padding: 0 11px;
   border-radius: var(--r-md);
   cursor: pointer;
-  font-size: var(--fs-md);
+  font-size: var(--fs-base);
   font-weight: 500;
   color: var(--text2);
   text-decoration: none;
@@ -969,9 +969,11 @@ input:checked + .slider::before, .prints-mini-switch input:checked + span::befor
   transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
 }
 
+.nav-item svg.nav-icon-logo { width: 20px; height: 20px; margin: 0 -1px; stroke-width: 1.575; }
+
 .nav-item svg, .settings-row svg {
-  width: 17px;
-  height: 17px;
+  width: 18px;
+  height: 18px;
   stroke: currentColor;
   fill: none;
   stroke-width: 1.75;
@@ -1011,7 +1013,7 @@ input:checked + .slider::before, .prints-mini-switch input:checked + span::befor
 .sidebar-bottom {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
   padding: 12px 10px 0;
   margin-top: 8px;
   border-top: 1px solid var(--line-soft);
@@ -1026,7 +1028,7 @@ input:checked + .slider::before, .prints-mini-switch input:checked + span::befor
   border: 1px solid var(--line);
   background: var(--bg2);
   color: var(--text);
-  min-height: 38px;
+  min-height: 40px;
   margin-bottom: 4px;
 }
 
@@ -1199,10 +1201,11 @@ input:checked + .slider::before, .prints-mini-switch input:checked + span::befor
 
   .sidebar.mobile-open { transform: translateX(0); box-shadow: var(--shadow-modal); }
   .sidebar.collapsed .nav-label, .sidebar.collapsed .settings-label { display: inline; }
-  .sidebar.collapsed .nav-item, .sidebar.collapsed .settings-row { justify-content: flex-start; padding: 0 10px; }
+    .sidebar.collapsed .nav-item, .sidebar.collapsed .settings-row { justify-content: flex-start; padding: 0 11px; }
   .sidebar.collapsed .sidebar-logo { opacity: 1; width: auto; position: static; pointer-events: auto; }
   .sidebar.collapsed .user-details { display: block; }
   .toggle-btn { display: none; }
+  .sidebar-header, .sidebar.collapsed .sidebar-header { padding: 0 12px 0 18px; }
 
   .mobile-topbar { display: flex; }
 
@@ -6247,10 +6250,10 @@ body.light .prop-modal-box input[type="date"]::-webkit-calendar-picker-indicator
   <!-- SIDEBAR -->
   <div class="sidebar" id="sidebar">
     <div class="sidebar-header">
-      <a href="/dashboard" class="sidebar-logo">trade<span>print</span></a>
-      <button class="toggle-btn" type="button" onclick="toggleSidebar()" aria-label="Collapse sidebar" title="Collapse sidebar">
+            <button class="toggle-btn" type="button" onclick="toggleSidebar()" aria-label="Collapse sidebar" title="Collapse sidebar">
         <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
+      <a href="/dashboard" class="sidebar-logo">trade<span>print</span></a>
     </div>
     <div class="nav-section">
       <a class="nav-item active" tabindex="0" onclick="showPage('dashboard', this)">
@@ -6258,7 +6261,7 @@ body.light .prop-modal-box input[type="date"]::-webkit-calendar-picker-indicator
         <span class="nav-label">Dashboard</span>
       </a>
       <a class="nav-item" tabindex="0" onclick="showPage('tradeprint', this)">
-    <svg viewBox="0 0 24 24">
+        <svg class="nav-icon-logo" viewBox="0 0 24 24">
     <path d="M3.37 9.09L14.27 3.04A4.28 4.28 0 0 1 18.59 10.43L16.72 11.58"/>
     <path d="M15.89 7.05L11.8 9.38V21.5"/>
     <path d="M7.24 11.88V17.81"/>
