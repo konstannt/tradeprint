@@ -3915,67 +3915,157 @@ body.tp-trade-reviews .trade-review-btn { display: inline-flex; }
 }
 
 /* =====================================================================
-   CALCULATOR
+   CALCULATOR · two matched calculators, then sizing, specs and defaults
    ===================================================================== */
-.calc-layout { width: 100%; max-width: 1240px; }
-.calc-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; margin-bottom: 16px; }
-.calc-column { min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+.calc-layout { width: 100%; display: grid; gap: 16px; }
+.calc-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: stretch; }
+.calc-lower { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: stretch; }
 
 .calc-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
-  padding: 18px 20px 20px;
+  padding: 18px 20px 0;
 }
 
 .calc-card-title {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   margin: -18px -20px 16px;
   padding: 14px 20px;
   border-bottom: 1px solid var(--line-soft);
-  font-size: var(--fs-md);
-  font-weight: 600;
-  color: var(--text);
 }
 
-.calc-card-title svg { width: 16px; height: 16px; stroke: var(--accent-text); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.calc-title-icon { width: 32px; height: 32px; border-radius: var(--r-md); display: grid; place-items: center; background: var(--accent-soft); color: var(--accent-text); flex-shrink: 0; }
+.calc-title-icon svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.calc-title-text { display: flex; flex-direction: column; min-width: 0; font-size: var(--fs-base); font-weight: 600; color: var(--text); line-height: 1.3; }
+.calc-title-text small { font-size: var(--fs-sm); font-weight: 400; color: var(--text2); margin-top: 1px; }
 
-.calc-column > .calc-card:first-child { display: flex; flex-direction: column; }
-.calc-column > .calc-card:first-child .calc-reset-btn { align-self: flex-start; margin-top: 16px; }
-
-.calc-input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.calc-tool-body { display: grid; gap: 14px; }
+.calc-input-grid { display: grid; gap: 12px; }
+.calc-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.calc-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .calc-field { display: flex; flex-direction: column; min-width: 0; }
-.calc-field label { margin-bottom: 7px; }
+.calc-field label { margin-bottom: 6px; }
 .calc-field input, .calc-field select { min-height: 40px; font-size: 15px; font-variant-numeric: tabular-nums; }
+.calc-field .tp-select { min-width: 0; }
+.calc-field .tp-select-menu { min-width: 100%; }
 
-.calc-results { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border: 1px solid var(--line-soft); border-radius: var(--r-md); overflow: hidden; background: var(--inset); }
-.calc-result-card { padding: 16px 18px; text-align: left; box-shadow: 1px 0 0 var(--line-soft); }
+/* Selected contract: tick and point value right where prices are typed */
+.calc-spec {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  min-height: 34px;
+  padding: 7px 12px;
+  border-radius: var(--r-md);
+  background: var(--inset);
+  border: 1px solid var(--line-soft);
+  font-size: var(--fs-sm);
+  color: var(--text2);
+  font-variant-numeric: tabular-nums;
+}
+
+.calc-spec b { color: var(--text); font-weight: 600; }
+.calc-spec-ticker { font-weight: 700; color: var(--accent-text); letter-spacing: 0.02em; }
+
+/* Results: always on the card, idle until the inputs are complete */
+.calc-output { margin: 18px -20px 0; padding: 16px 20px; border-top: 1px solid var(--line-soft); background: color-mix(in srgb, var(--surface) 55%, var(--inset)); display: grid; gap: 12px; flex: 1 0 auto; align-content: start; }
+.calc-results { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--line-soft); border-radius: var(--r-md); overflow: hidden; background: var(--surface); }
+.calc-result-card { padding: 12px 14px; box-shadow: 1px 0 0 var(--line-soft); min-width: 0; }
 .calc-result-card:last-child { box-shadow: none; }
-.calc-result-label { font-size: var(--fs-sm); color: var(--text2); font-weight: 500; margin-bottom: 4px; }
-.calc-result-value { font-family: var(--font-num); font-size: 26px; font-weight: 600; color: var(--text); line-height: 1.2; letter-spacing: -0.01em; }
+.calc-result-label { font-size: var(--fs-sm); color: var(--text2); font-weight: 500; margin-bottom: 3px; }
+.calc-result-value { font-family: var(--font-num); font-size: 24px; font-weight: 600; color: var(--text); line-height: 1.2; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .calc-result-value.green { color: var(--success); }
 .calc-result-value.red { color: var(--danger); }
 .calc-result-value.accent { color: var(--accent-text); }
+.calc-output.is-idle .calc-result-value { color: var(--text-3); }
 
-.calc-reset-btn { min-height: 34px; font-size: var(--fs-md); }
-.calc-defaults-card .calc-input-grid { grid-template-columns: repeat(2, minmax(0, 240px)); }
-.calc-defaults-card .calc-reset-btn { margin-top: 16px; }
+.calc-rr-bar { --risk-share: 50%; display: flex; height: 8px; border-radius: 999px; overflow: hidden; background: var(--raised); gap: 2px; }
+.calc-rr-bar i { display: block; height: 100%; transition: width 220ms var(--ease); }
+.calc-rr-bar .risk { width: var(--risk-share); background: var(--danger); }
+.calc-rr-bar .reward { flex: 1; background: var(--success); }
+.calc-output.is-idle .calc-rr-bar i { background: var(--line-strong); opacity: 0.6; }
 
-@media (max-width: 900px) {
+.calc-breakdown { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 18px; align-content: start; }
+.calc-breakdown-row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--line-soft); font-size: var(--fs-sm); color: var(--text2); min-width: 0; }
+.calc-breakdown-row b { color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.calc-breakdown-row.is-long b { color: var(--success); }
+.calc-breakdown-row.is-short b { color: var(--danger); }
+.calc-hint { grid-column: 1 / -1; font-size: var(--fs-xs); color: var(--text-3); line-height: 1.5; padding-top: 8px; }
+.calc-output.is-idle .calc-hint { padding-top: 0; font-size: var(--fs-sm); color: var(--text2); }
+.calc-warning { grid-column: 1 / -1; margin-bottom: 4px; padding: 7px 10px; border-radius: var(--r-md); border: 1px solid var(--warn-line); background: var(--warn-soft); color: var(--warn); font-size: var(--fs-sm); line-height: 1.45; }
+
+.calc-tool-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: auto -20px 0; padding: 12px 20px; border-top: 1px solid var(--line-soft); }
+.calc-output + .calc-tool-foot { margin-top: 0; }
+.calc-foot-note { font-size: var(--fs-xs); color: var(--text-3); line-height: 1.4; }
+.calc-reset-btn { min-height: 34px; font-size: var(--fs-md); flex-shrink: 0; }
+.calc-save-btn { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: var(--btn-sheen); }
+.calc-save-btn:hover { background: var(--accent-hover); border-color: var(--accent-hover); color: #fff; }
+.calc-tool-foot .msg { margin: 0; flex: 1; min-width: 0; }
+
+/* Position size */
+.calc-sizer-out { margin-top: 14px; padding: 14px 16px; border-radius: var(--r-md); border: 1px solid var(--line-soft); background: var(--inset); display: grid; gap: 6px; }
+.calc-sizer-main { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.calc-sizer-label { font-size: var(--fs-sm); color: var(--text2); font-weight: 500; }
+.calc-sizer-value { font-family: var(--font-num); font-size: 30px; font-weight: 600; line-height: 1.1; color: var(--accent-text); font-variant-numeric: tabular-nums; }
+.calc-sizer-detail { font-size: var(--fs-sm); color: var(--text2); line-height: 1.5; font-variant-numeric: tabular-nums; }
+.calc-sizer-out.is-idle .calc-sizer-value { color: var(--text-3); }
+.calc-sizer-out.is-over { border-color: var(--warn-line); background: var(--warn-soft); }
+.calc-sizer-out.is-over .calc-sizer-value { color: var(--warn); }
+.calc-sizer .calc-tool-foot { margin-top: auto; }
+.calc-sizer-out + .calc-tool-foot { margin-top: 16px; }
+
+/* Contract specs */
+.calc-specs-table { margin: -16px -20px 0; flex: 1; }
+.calc-specs-table table { width: 100%; border-collapse: collapse; font-size: var(--fs-md); font-variant-numeric: tabular-nums; }
+.calc-specs-table th, .calc-specs-table td { padding: 9px 12px; text-align: right; border-bottom: 1px solid var(--line-soft); white-space: nowrap; }
+.calc-specs-table th:first-child, .calc-specs-table td:first-child { text-align: left; padding-left: 20px; }
+.calc-specs-table th:last-child, .calc-specs-table td:last-child { padding-right: 20px; }
+.calc-specs-table thead th { font-size: var(--fs-xs); font-weight: 600; color: var(--text2); background: var(--inset); }
+.calc-specs-table tbody th { font-weight: 700; color: var(--text); }
+.calc-specs-table tbody td { color: var(--text2); }
+.calc-specs-table tbody td:last-child { color: var(--text); font-weight: 600; }
+.calc-specs-table tbody tr:last-child th, .calc-specs-table tbody tr:last-child td { border-bottom: none; }
+
+/* Defaults */
+.calc-defaults-copy { margin-top: 12px; font-size: var(--fs-sm); color: var(--text2); line-height: 1.55; }
+.calc-defaults-card .calc-tool-foot { margin-top: auto; }
+.calc-defaults-copy + .calc-tool-foot { margin-top: 16px; }
+
+@media (max-width: 1280px) {
+  .calc-lower { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .calc-sizer { grid-column: 1 / -1; }
+}
+
+@media (max-width: 1020px) {
   .calc-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 768px) {
-  .calc-input-grid, .calc-defaults-card .calc-input-grid { grid-template-columns: 1fr; }
-  .calc-card { padding: 16px; }
+  .calc-lower { grid-template-columns: 1fr; }
+  .calc-card { padding: 16px 16px 0; }
   .calc-card-title { margin: -16px -16px 14px; padding: 12px 16px; }
+  .calc-output { margin: 16px -16px 0; padding: 14px 16px; }
+  .calc-tool-foot { margin-left: -16px; margin-right: -16px; padding: 12px 16px; }
+  .calc-specs-table { margin: -14px -16px 0; }
+  .calc-specs-table th:first-child, .calc-specs-table td:first-child { padding-left: 16px; }
+  .calc-specs-table th:last-child, .calc-specs-table td:last-child { padding-right: 16px; }
+  .calc-cols-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .calc-cols-3 > .calc-field:first-child { grid-column: 1 / -1; }
+  .calc-result-value { font-size: 19px; }
+  .calc-result-card { padding: 10px 10px; }
+  .calc-breakdown { grid-template-columns: 1fr; }
+  .calc-foot-note { display: none; }
 }
 
-@media (max-width: 460px) {
-  .calc-results { grid-template-columns: 1fr; }
-  .calc-result-card { box-shadow: 0 1px 0 var(--line-soft); }
+@media (max-width: 420px) {
+  .calc-cols-2 { grid-template-columns: 1fr; }
 }
 
 /* =====================================================================
@@ -4824,26 +4914,47 @@ body.light .prop-modal-box input[type="date"]::-webkit-calendar-picker-indicator
 }
 
 /* =====================================================================
-   SETTINGS
+   SETTINGS · two columns: Profile | Log Trade Defaults on the first row,
+   then Account (plus plan and appearance) | Trading Rules
    ===================================================================== */
+.settings-layout {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-areas: "profile defaults" "left right";
+  gap: 16px;
+  align-items: start;
+}
 
-.settings-layout { display: grid; grid-template-columns: minmax(0, 600px) minmax(300px, 420px); gap: 20px; align-items: start; }
-.settings-main-column, .settings-side-column { min-width: 0; }
-.settings-side-column { position: sticky; top: 0; }
+.settings-profile { grid-area: profile; }
+.settings-defaults { grid-area: defaults; }
+.settings-stack-left { grid-area: left; }
+.settings-stack-right { grid-area: right; }
+.settings-layout > .settings-profile,
+.settings-layout > .settings-defaults { align-self: stretch; }
+
+.settings-stack { display: grid; gap: 16px; align-content: start; min-width: 0; }
 
 .settings-section {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
-  padding: 20px 22px 22px;
-  margin-bottom: 16px;
-  max-width: 600px;
+  padding: 18px 22px 20px;
+  margin-bottom: 0;
 }
 
-#page-settings .settings-layout .settings-section { max-width: none; }
+/* The Creator page reuses .settings-section; keep its previous block layout. */
+#page-creator .settings-section { display: block; max-width: 600px; margin-bottom: 16px; padding: 20px 22px 22px; }
+#page-creator .settings-section-title { display: block; margin: -20px -22px 18px; }
 
 .settings-section-title {
-  margin: -20px -22px 18px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: -18px -22px 18px;
   padding: 14px 22px;
   border-bottom: 1px solid var(--line-soft);
   font-size: var(--fs-base);
@@ -4851,23 +4962,38 @@ body.light .prop-modal-box input[type="date"]::-webkit-calendar-picker-indicator
   color: var(--text);
 }
 
-.settings-defaults-copy { color: var(--text2); font-size: var(--fs-md); line-height: 1.55; margin-bottom: 18px; }
+.settings-section-sub { font-size: var(--fs-sm); font-weight: 400; color: var(--text-3); text-align: right; }
+.settings-defaults-copy { color: var(--text2); font-size: var(--fs-md); line-height: 1.55; margin-bottom: 16px; }
+.settings-hint { font-size: var(--fs-sm); color: var(--text2); line-height: 1.5; }
 
-.settings-field { margin-bottom: 16px; }
-.settings-field input, .settings-field select { width: 100%; }
-#bioInput { min-height: 84px; resize: vertical; line-height: 1.5; }
+.settings-field { margin-bottom: 14px; min-width: 0; }
+.settings-field input, .settings-field select, .settings-field textarea { width: 100%; }
+.settings-field-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.settings-field-grow { flex: 1; display: flex; flex-direction: column; }
+#bioInput { flex: 1; min-height: 96px; resize: vertical; line-height: 1.5; }
 
-.avatar-upload { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+/* One action row per form: status on the left, the save button on the right */
+.settings-actions { display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin-top: 4px; }
+.settings-actions .msg { flex: 1; min-width: 0; margin: 0; }
+.settings-actions .save-btn, .trading-rules-add-actions .save-btn { min-height: 36px; }
+.settings-profile .settings-actions, .settings-defaults .settings-actions { margin-top: auto; padding-top: 14px; }
+
+#page-settings .settings-section .msg:not(:empty) { font-size: var(--fs-sm); }
+#page-settings .settings-section .msg.success::before, #page-settings .settings-section .msg.error::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 7px; vertical-align: 2px; background: currentColor; }
+
+.avatar-upload { display: flex; align-items: center; gap: 18px; margin-bottom: 18px; padding-bottom: 18px; border-bottom: 1px solid var(--line-soft); }
+.avatar-upload-copy { display: grid; gap: 6px; justify-items: start; min-width: 0; }
+.avatar-upload-copy .msg { margin: 0; }
 
 .avatar-large {
-  width: 68px;
-  height: 68px;
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
   background: var(--accent);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 600;
   color: #fff;
   overflow: hidden;
@@ -4877,10 +5003,42 @@ body.light .prop-modal-box input[type="date"]::-webkit-calendar-picker-indicator
 
 .avatar-large img { width: 100%; height: 100%; object-fit: cover; }
 
+/* Log Trade Defaults: fields, then what is saved right now */
+.settings-defaults-fields { display: grid; gap: 0; }
+.settings-saved { margin-top: 4px; border: 1px solid var(--line-soft); border-radius: var(--r-md); background: var(--inset); padding: 10px 14px 4px; }
+.settings-saved-title { font-size: var(--fs-xs); font-weight: 600; color: var(--text-3); margin-bottom: 4px; }
+.settings-saved-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 7px 0; border-top: 1px solid var(--line-soft); font-size: var(--fs-md); color: var(--text2); }
+.settings-saved-row:first-child { border-top: none; }
+.settings-saved-row b { font-weight: 500; color: var(--text-3); text-align: right; }
+.settings-saved-row.is-set b { color: var(--text); font-weight: 600; }
+
+/* Account: two subsections split by a hairline */
+.settings-group + .settings-group { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--line-soft); }
+.settings-group-head { margin-bottom: 12px; }
+.settings-group-title { font-size: var(--fs-md); font-weight: 600; color: var(--text); margin-bottom: 2px; }
+
+.settings-pw { position: relative; }
+.settings-pw input { padding-right: 44px; }
+.settings-pw-toggle { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 32px; height: 32px; display: grid; place-items: center; border: none; border-radius: var(--r-sm); background: none; color: var(--text2); cursor: pointer; }
+.settings-pw-toggle:hover { color: var(--text); background: var(--hover); }
+.settings-pw-toggle svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Appearance & session rows */
+.settings-row-item { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 0; border-top: 1px solid var(--line-soft); }
+.settings-section-title + .settings-row-item { border-top: none; padding-top: 0; }
+.settings-row-item:last-child { padding-bottom: 0; }
+.settings-row-copy { min-width: 0; }
+.settings-row-title { font-size: var(--fs-md); font-weight: 600; color: var(--text); margin-bottom: 1px; }
+.settings-row-item .danger-btn { min-height: 34px; flex-shrink: 0; }
+
+#page-settings .settings-section .pro-status-card { margin-bottom: 14px; }
+#page-settings .settings-section .pro-status-card:has(+ #proSettingsActions:empty) { margin-bottom: 0; }
+#proSettingsActions:empty { display: none; }
+
 /* Trading rules */
-.trading-rules-list { display: flex; flex-direction: column; gap: 0; margin-bottom: 20px; border: 1px solid var(--line-soft); border-radius: var(--r-md); overflow: hidden; background: var(--inset); }
+.trading-rules-list { display: flex; flex-direction: column; margin-bottom: 18px; border: 1px solid var(--line-soft); border-radius: var(--r-md); overflow: hidden; background: var(--inset); }
 .trading-rules-list:has(> .trading-rules-empty:only-child) { border-style: dashed; }
-.trading-rule-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px 10px 14px; border-bottom: 1px solid var(--line-soft); background: transparent; transition: background var(--dur) var(--ease); }
+.trading-rule-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px 10px 14px; border-bottom: 1px solid var(--line-soft); transition: background var(--dur) var(--ease); }
 .trading-rule-item:last-child { border-bottom: none; }
 .trading-rule-item:hover { background: var(--hover); }
 .trading-rule-item .switch { flex: 0 0 auto; }
@@ -4889,10 +5047,11 @@ body.light .prop-modal-box input[type="date"]::-webkit-calendar-picker-indicator
 .trading-rule-label { font-size: var(--fs-md); font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .trading-rule-type { font-size: var(--fs-xs); color: var(--text-3); margin-top: 1px; }
 .trading-rule-actions { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
-.trading-rules-empty { padding: 16px 12px; }
-.trading-rules-add { border-top: 1px solid var(--line-soft); padding-top: 18px; }
-.trading-rules-add-title { font-size: var(--fs-md); font-weight: 600; color: var(--text); margin-bottom: 14px; }
-.trading-rules-add-actions { display: flex; align-items: center; gap: 8px; }
+.trading-rules-empty { padding: 16px 14px; }
+.trading-rules-add { border: 1px solid var(--line-soft); border-radius: var(--r-md); padding: 14px 14px 12px; background: color-mix(in srgb, var(--surface) 60%, var(--inset)); }
+.trading-rules-add-title { font-size: var(--fs-md); font-weight: 600; color: var(--text); margin-bottom: 12px; }
+.trading-rules-add-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+.trading-rules-add-actions .msg { flex: 1; min-width: 0; margin: 0; }
 
 .weekday-chips { display: flex; flex-wrap: wrap; gap: 4px; }
 
@@ -4915,20 +5074,24 @@ body.light .prop-modal-box input[type="date"]::-webkit-calendar-picker-indicator
 .weekday-chip:hover { border-color: var(--line-strong); color: var(--text); }
 .weekday-chip.active { border-color: var(--accent-line); background: var(--accent-soft); color: var(--accent-text); }
 
-@media (max-width: 980px) {
-  .settings-layout { grid-template-columns: 1fr; }
-  .settings-side-column { position: static; }
+@media (max-width: 1080px) {
+  .settings-layout { grid-template-columns: 1fr; grid-template-areas: "profile" "left" "defaults" "right"; }
 }
 
 @media (max-width: 768px) {
   .settings-section { padding: 16px 16px 18px; }
-  .settings-section-title { margin: -16px -16px 16px; padding: 12px 16px; }
+  .settings-section-title { margin: -16px -16px 16px; padding: 12px 16px; flex-direction: column; gap: 1px; }
+  #page-creator .settings-section { padding: 16px 16px 18px; }
+  #page-creator .settings-section-title { margin: -16px -16px 16px; padding: 12px 16px; }
+  .settings-section-sub { text-align: left; }
+  .settings-field-row { grid-template-columns: 1fr; gap: 0; }
+  .avatar-upload { gap: 14px; }
+  .settings-actions { flex-wrap: wrap; }
 }
 
 /* =====================================================================
    CREATOR
    ===================================================================== */
-#page-creator .settings-section { max-width: 600px; }
 #page-creator .pro-status-pill { text-transform: none; }
 .pro-status-pill.creator-pending { background: var(--warn-soft); color: var(--warn); border-color: var(--warn-line); }
 .pro-status-pill.creator-attention { background: var(--neg-soft); color: var(--danger); border-color: var(--neg-line); }
@@ -4945,31 +5108,55 @@ body.light .prop-modal-box input[type="date"]::-webkit-calendar-picker-indicator
 }
 
 /* =====================================================================
-   MENTORSHIP · trader side, mentor dashboard, mentor trader view
+   MENTORSHIP · trader dashboard, mentor dashboard, mentee workspace
    ===================================================================== */
-.mentorship-layout, .mentor-dashboard-layout { max-width: 880px; width: 100%; }
+.mentorship-layout,
+.mentor-dashboard-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  gap: 16px;
+  align-items: start;
+  width: 100%;
+}
+
+.mentorship-col { display: grid; gap: 16px; align-content: start; min-width: 0; }
 
 .mentorship-section {
+  min-width: 0;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
-  padding: 20px 22px 22px;
-  margin-bottom: 16px;
+  padding: 18px 20px 20px;
 }
 
 .mentorship-section-title {
-  margin: -20px -22px 18px;
-  padding: 14px 22px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: -18px -20px 16px;
+  padding: 13px 20px;
   border-bottom: 1px solid var(--line-soft);
-  font-size: var(--fs-base);
-  font-weight: 600;
-  color: var(--text);
 }
 
-.mentorship-invite-row { display: flex; gap: 8px; margin-bottom: 8px; }
-.mentorship-invite-row input { flex: 1; }
-.mentorship-invite-row .btn-primary { flex-shrink: 0; min-height: 38px; }
+.mentorship-title-icon { width: 32px; height: 32px; border-radius: var(--r-md); display: grid; place-items: center; background: var(--accent-soft); color: var(--accent-text); flex-shrink: 0; }
+.mentorship-title-icon svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.mentorship-title-text { flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: var(--fs-base); font-weight: 600; color: var(--text); line-height: 1.3; }
+.mentorship-title-text small { font-size: var(--fs-sm); font-weight: 400; color: var(--text2); margin-top: 1px; }
+.mentorship-count { min-width: 24px; height: 22px; padding: 0 8px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; background: var(--raised); color: var(--text2); font-size: var(--fs-xs); font-weight: 700; font-variant-numeric: tabular-nums; }
+.mentorship-count:empty { display: none; }
 
+/* Invite */
+.mentorship-invite-row { display: flex; gap: 8px; margin-bottom: 8px; }
+.mentorship-invite-row input { flex: 1; min-width: 0; }
+.mentorship-invite-row .btn-primary { flex-shrink: 0; min-height: 38px; }
+.mentorship-hint { font-size: var(--fs-sm); color: var(--text2); line-height: 1.5; }
+.mentorship-invite .msg:not(:empty) { margin-top: 8px; }
+.mentorship-steps { list-style: none; margin: 16px 0 0; padding: 14px 0 0; border-top: 1px solid var(--line-soft); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; counter-reset: step; }
+.mentorship-steps li { counter-increment: step; display: grid; grid-template-columns: 22px minmax(0, 1fr); column-gap: 8px; row-gap: 1px; font-size: var(--fs-sm); color: var(--text2); line-height: 1.4; }
+.mentorship-steps li::before { content: counter(step); grid-row: 1 / span 2; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: var(--raised); color: var(--text); font-size: var(--fs-xs); font-weight: 700; }
+.mentorship-steps b { color: var(--text); font-weight: 600; }
+
+/* Shared cards */
 .mentor-card {
   background: var(--inset);
   border: 1px solid var(--line-soft);
@@ -4990,26 +5177,71 @@ body.light .prop-modal-box input[type="date"]::-webkit-calendar-picker-indicator
 .mentor-card-actions .btn-secondary, .mentor-card-actions .btn-primary, .mentor-card-actions .danger-btn { min-height: 32px; font-size: var(--fs-sm); }
 .mentor-card-actions button:disabled, #mentorInviteBtn:disabled { opacity: 0.55; cursor: not-allowed; }
 
-.mentor-status-pill { display: inline-flex; align-items: center; min-height: 22px; padding: 0 9px; border-radius: 999px; font-size: var(--fs-xs); font-weight: 600; text-transform: capitalize; border: 1px solid var(--line); }
+.mentor-status-pill { display: inline-flex; align-items: center; min-height: 22px; padding: 0 9px; border-radius: 999px; font-size: var(--fs-xs); font-weight: 600; text-transform: capitalize; border: 1px solid var(--line); white-space: nowrap; }
 .mentor-status-pill.pending { background: var(--warn-soft); color: var(--warn); border-color: var(--warn-line); }
 .mentor-status-pill.active { background: var(--pos-soft); color: var(--success); border-color: var(--pos-line); }
 .mentor-status-pill.revoked { background: var(--neg-soft); color: var(--danger); border-color: var(--neg-line); }
 
-.mentor-permissions-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 6px; margin-top: 12px; }
-.mentor-perm-toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 10px 8px 12px; background: var(--surface); border: 1px solid var(--line-soft); border-radius: var(--r-md); }
-.mentor-perm-label { font-size: var(--fs-md); color: var(--text); }
 .mentor-empty { padding: 22px 12px; border: 1px dashed var(--line); border-radius: var(--r-md); }
+.mentorship-empty { display: grid; gap: 3px; padding: 24px 18px; }
+.mentorship-empty b { color: var(--text); font-weight: 600; font-size: var(--fs-md); }
+.mentorship-empty span { font-size: var(--fs-sm); }
 
-.feedback-list { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
-.feedback-item { background: var(--inset); border: 1px solid var(--line-soft); border-left: 3px solid var(--accent); border-radius: var(--r-md); padding: 12px 14px; }
-.feedback-item-meta { font-size: var(--fs-xs); font-weight: 500; color: var(--text-3); margin-bottom: 5px; }
-.feedback-item-body { font-size: var(--fs-base); color: var(--text); line-height: 1.6; }
+/* Your Mentors: identity row, then permissions */
+.mentor-rel { display: block; padding: 0; overflow: hidden; }
+.mentor-rel-head { display: flex; align-items: center; gap: 12px; padding: 14px 16px; }
+.mentor-rel-avatar { width: 36px; height: 36px; font-size: 14px; }
+.mentor-rel.is-pending .mentor-rel-avatar, .mentor-rel.is-revoked .mentor-rel-avatar { background: var(--raised); color: var(--text2); }
+.mentor-rel .mentor-card-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; }
+.mentor-perms { padding: 12px 16px 14px; border-top: 1px solid var(--line-soft); background: color-mix(in srgb, var(--inset) 60%, var(--surface)); }
+.mentor-perms-title { font-size: var(--fs-xs); font-weight: 600; color: var(--text2); margin-bottom: 8px; }
+.mentor-permissions-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.mentor-perm-toggle { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 10px 9px 12px; background: var(--surface); border: 1px solid var(--line-soft); border-radius: var(--r-md); min-width: 0; }
+.mentor-perm-label { display: flex; flex-direction: column; min-width: 0; font-size: var(--fs-md); font-weight: 500; color: var(--text); line-height: 1.3; }
+.mentor-perm-label small { font-size: var(--fs-xs); font-weight: 400; color: var(--text-3); margin-top: 1px; }
+.mentor-perms-note { margin-top: 10px; font-size: var(--fs-xs); color: var(--text-3); }
 
+/* Recent Feedback: mentor commentary */
+.feedback-list { display: flex; flex-direction: column; gap: 10px; }
+.feedback-item { background: var(--inset); border: 1px solid var(--line-soft); border-radius: var(--r-md); padding: 14px 16px; position: relative; }
+.feedback-item-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.feedback-avatar { width: 30px; height: 30px; font-size: 12px; }
+.feedback-item-who { flex: 1; min-width: 0; }
+.feedback-item-from { font-size: var(--fs-md); font-weight: 600; color: var(--text); overflow-wrap: anywhere; }
+.feedback-item-when { font-size: var(--fs-xs); color: var(--text-3); margin-top: 1px; }
+.feedback-kind { font-size: var(--fs-xs); font-weight: 600; color: var(--accent-text); background: var(--accent-soft); border: 1px solid var(--accent-line); border-radius: 999px; padding: 1px 8px; flex-shrink: 0; }
+.feedback-item-meta { font-size: var(--fs-sm); font-weight: 500; color: var(--text2); margin-bottom: 6px; }
+.feedback-item-body { font-size: var(--fs-base); color: var(--text); line-height: 1.65; white-space: pre-wrap; word-break: break-word; padding-left: 12px; border-left: 2px solid var(--accent); }
+
+/* Review requests */
+.review-req { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border: 1px solid var(--line-soft); border-radius: var(--r-md); background: var(--inset); margin-bottom: 8px; }
+.review-req:last-child { margin-bottom: 0; }
+.review-req-icon { width: 30px; height: 30px; border-radius: var(--r-sm); display: grid; place-items: center; background: var(--raised); color: var(--text2); flex-shrink: 0; }
+.review-req-icon svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.review-req.is-active .review-req-icon { background: var(--pos-soft); color: var(--success); }
+.review-req.is-pending .review-req-icon { background: var(--warn-soft); color: var(--warn); }
+.review-req-main { flex: 1; min-width: 0; }
+.review-req-title { font-size: var(--fs-md); font-weight: 600; color: var(--text); overflow-wrap: anywhere; }
+.review-req-meta { display: flex; flex-wrap: wrap; gap: 2px 10px; font-size: var(--fs-sm); color: var(--text2); margin-top: 2px; }
+.review-req-meta span + span::before { content: '·'; margin-right: 10px; color: var(--text-3); }
+.review-req-detail { margin-top: 4px; font-size: var(--fs-xs); color: var(--text-3); }
+.review-req-note { margin-top: 6px; font-size: var(--fs-sm); color: var(--text2); font-style: italic; white-space: pre-wrap; word-break: break-word; }
+.review-req-side { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
+.review-req-cancel { min-height: 28px; font-size: var(--fs-xs); padding: 0 10px; }
+
+/* Mentor dashboard */
 .mentor-trader-card {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  font: inherit;
+  color: inherit;
   background: var(--inset);
   border: 1px solid var(--line-soft);
   border-radius: var(--r-md);
-  padding: 14px 16px;
+  padding: 12px 14px;
   margin-bottom: 8px;
   cursor: pointer;
   transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease);
@@ -5017,12 +5249,16 @@ body.light .prop-modal-box input[type="date"]::-webkit-calendar-picker-indicator
 
 .mentor-trader-card:last-child { margin-bottom: 0; }
 .mentor-trader-card:hover { border-color: var(--accent-line); background: var(--accent-softer); }
-.mentor-trader-name { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
-.mentor-trader-meta { font-size: var(--fs-sm); color: var(--text2); }
+.mentor-trader-avatar { width: 38px; height: 38px; font-size: 15px; }
+.mentor-trader-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.mentor-trader-name { font-size: var(--fs-base); font-weight: 600; color: var(--text); }
+.mentor-trader-meta { font-size: var(--fs-sm); color: var(--text2); margin-top: 1px; }
+.mentor-trader-chevron { width: 16px; height: 16px; stroke: var(--text-3); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+.mentor-trader-card:hover .mentor-trader-chevron { stroke: var(--accent-text); }
 
 .mentor-review-queue { display: flex; flex-direction: column; gap: 8px; }
 .mentor-review-item { background: var(--inset); border: 1px solid var(--line-soft); border-radius: var(--r-md); padding: 14px 16px; }
-.mentor-review-item-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
+.mentor-review-item-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
 .mentor-review-item-title { font-size: var(--fs-base); font-weight: 600; color: var(--text); }
 .mentor-review-item-meta { font-size: var(--fs-sm); color: var(--text2); margin-top: 3px; line-height: 1.5; }
 .mentor-journal-preview, .mentor-journal-full { overflow-wrap: anywhere; }
@@ -5033,16 +5269,153 @@ body.light .prop-modal-box input[type="date"]::-webkit-calendar-picker-indicator
 .mentor-feedback-compose textarea { min-height: 84px; resize: vertical; line-height: 1.5; background: var(--surface); }
 .mentor-feedback-compose-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
 
-#page-mentor-trader-view > div:first-child { padding-bottom: 18px; margin-bottom: 20px !important; border-bottom: 1px solid var(--line-soft); }
-#page-mentor-trader-view > div:first-child .btn-secondary { min-height: 34px; }
+/* Mentee workspace: header, collapsible review panels, access rail */
+.mentee-header { display: grid; gap: 14px; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--line-soft); }
+.mentee-back { justify-self: start; display: inline-flex; align-items: center; gap: 6px; min-height: 30px; padding: 0 10px 0 6px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface); color: var(--text2); font: inherit; font-size: var(--fs-sm); font-weight: 600; cursor: pointer; }
+.mentee-back:hover { color: var(--text); border-color: var(--line-strong); }
+.mentee-back svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.mentee-identity { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.mentee-avatar { width: 52px; height: 52px; font-size: 20px; box-shadow: 0 0 0 1px var(--line), 0 0 0 3px var(--canvas), 0 0 0 4px var(--line-soft); }
+.mentee-identity-text { min-width: 0; }
+.mentee-identity-text .page-title { margin-bottom: 2px; overflow-wrap: anywhere; }
+.mentee-identity-text .page-subtitle { margin-bottom: 0; }
+
+.mentee-workspace { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 16px; align-items: start; }
+.mentee-main { display: grid; gap: 12px; min-width: 0; }
+.mentee-rail { display: grid; gap: 16px; min-width: 0; position: sticky; top: 0; }
+
+.mentee-no-access { padding: 18px 20px; border: 1px dashed var(--line); border-radius: var(--r-lg); color: var(--text2); font-size: var(--fs-md); line-height: 1.55; background: var(--surface); }
+.mentee-no-access[hidden] { display: none; }
+
+.mentee-acc { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); overflow: hidden; transition: border-color var(--dur) var(--ease); }
+.mentee-acc.is-open { border-color: var(--line-strong); }
+
+.mentee-acc-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--dur) var(--ease);
+}
+
+.mentee-acc-head:hover { background: var(--hover); }
+.mentee-acc-head:focus-visible { box-shadow: inset 0 0 0 2px rgba(99, 102, 241, 0.7); border-radius: var(--r-lg); }
+.mentee-acc-icon { width: 34px; height: 34px; border-radius: var(--r-md); display: grid; place-items: center; background: var(--raised); color: var(--text2); flex-shrink: 0; transition: background var(--dur) var(--ease), color var(--dur) var(--ease); }
+.mentee-acc-icon svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.mentee-acc.is-open .mentee-acc-icon { background: var(--accent-soft); color: var(--accent-text); }
+.mentee-acc-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.mentee-acc-title { font-size: 15px; font-weight: 600; color: var(--text); }
+.mentee-acc-sub { font-size: var(--fs-sm); color: var(--text2); margin-top: 1px; }
+.mentee-acc-count { min-width: 26px; height: 22px; padding: 0 8px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; background: var(--raised); color: var(--text2); font-size: var(--fs-xs); font-weight: 700; font-variant-numeric: tabular-nums; }
+.mentee-acc-count:empty { display: none; }
+.mentee-acc-chevron { width: 18px; height: 18px; stroke: var(--text2); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; transition: transform 200ms var(--ease); }
+.mentee-acc.is-open .mentee-acc-chevron { transform: rotate(180deg); }
+
+/* Height animates with grid rows (0fr to 1fr); closed panels are not focusable */
+.mentee-acc-body { display: grid; grid-template-rows: 0fr; visibility: hidden; transition: grid-template-rows 220ms var(--ease), visibility 0s linear 220ms; }
+.mentee-acc.is-open .mentee-acc-body { grid-template-rows: 1fr; visibility: visible; transition: grid-template-rows 220ms var(--ease), visibility 0s; }
+.mentee-acc-inner { min-height: 0; overflow: hidden; }
+.mentee-acc-content { padding: 14px 18px 18px; border-top: 1px solid var(--line-soft); display: grid; gap: 8px; }
+.mentee-acc-content > .btn-secondary { width: 100%; margin-top: 4px; }
+
+/* Journal rows */
+.mentee-journal { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; gap: 14px; align-items: start; padding: 12px 14px; margin: 0; }
+.mentee-journal-date { display: grid; justify-items: center; padding: 6px 0; border-radius: var(--r-md); background: var(--surface); border: 1px solid var(--line-soft); font-size: 10.5px; font-weight: 600; color: var(--text2); line-height: 1.25; }
+.mentee-journal-date b { font-family: var(--font-num); font-size: 19px; color: var(--text); font-weight: 600; line-height: 1.1; }
+.mentee-journal-main { min-width: 0; }
+.mentee-journal-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.mentee-journal .mentor-journal-preview { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.mentee-journal .mentor-journal-preview[hidden] { display: none; }
+.mentee-journal-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.mentee-journal-actions .btn-secondary, .mentee-journal-actions .btn-primary { min-height: 30px; padding: 0 12px; font-size: var(--fs-sm); }
+
+/* Trade rows: compact, scannable, with the result as a left rule */
+.mentee-trade {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 16px;
+  align-items: center;
+  padding: 11px 14px 11px 16px;
+  border: 1px solid var(--line-soft);
+  border-left: 3px solid var(--line-strong);
+  border-radius: var(--r-md);
+  background: var(--inset);
+}
+
+.mentee-trade.is-win { border-left-color: var(--success); }
+.mentee-trade.is-loss { border-left-color: var(--danger); }
+.mentee-trade-main { min-width: 0; display: grid; gap: 4px; }
+.mentee-trade-title { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0; }
+.mentee-trade-strategy { font-size: var(--fs-base); font-weight: 600; color: var(--text); }
+.mentee-trade-asset { font-size: var(--fs-xs); font-weight: 700; color: var(--text2); border: 1px solid var(--line); border-radius: var(--r-xs); padding: 1px 6px; letter-spacing: 0.02em; }
+.mentee-trade-meta { display: flex; flex-wrap: wrap; gap: 2px 10px; font-size: var(--fs-sm); color: var(--text2); font-variant-numeric: tabular-nums; }
+.mentee-trade-meta span + span::before { content: '·'; margin-right: 10px; color: var(--text-3); }
+.mentee-trade-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.mentee-chip { display: inline-flex; align-items: center; min-height: 20px; padding: 0 8px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line-soft); font-size: var(--fs-xs); color: var(--text2); white-space: nowrap; }
+.mentee-chip.is-more { color: var(--text-3); }
+.mentee-chip.is-empty { border-style: dashed; color: var(--text-3); }
+.mentee-trade-side { display: flex; align-items: center; gap: 12px; }
+.mentee-trade-pnl { font-family: var(--font-num); font-size: 16px; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.mentee-trade-pnl.green { color: var(--success); }
+.mentee-trade-pnl.red { color: var(--danger); }
+.mentee-trade-pnl.flat, .mentee-trade-pnl.is-hidden { color: var(--text-3); }
+.mentee-feedback-btn { min-height: 30px; padding: 0 12px; font-size: var(--fs-sm); }
+.mentee-trade-notes { grid-column: 1 / -1; font-size: var(--fs-sm); color: var(--text2); font-style: italic; white-space: pre-wrap; word-break: break-word; padding-left: 10px; border-left: 2px solid var(--line); }
+.mentee-trade > .trade-chart-preview-list { grid-column: 1 / -1; }
+.mentor-journal-full .mentee-trade { margin-top: 6px; }
+
+/* Access rail */
+.mentee-perm-list { list-style: none; margin: 0; padding: 0; display: grid; }
+.mentee-perm-list li { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line-soft); font-size: var(--fs-md); color: var(--text); }
+.mentee-perm-list li:last-child { border-bottom: none; }
+.mentee-perm-list svg { width: 16px; height: 16px; fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.mentee-perm-list li.is-on svg { stroke: var(--success); }
+.mentee-perm-list li.is-off { color: var(--text-3); }
+.mentee-perm-list li.is-off svg { stroke: var(--text-3); }
+.mentee-perm-list small { font-size: var(--fs-xs); color: var(--text-3); }
+.mentee-since { margin-top: 10px; font-size: var(--fs-sm); color: var(--text2); }
+.mentee-since:empty { display: none; }
+#mentorViewFeedbackList { display: grid; gap: 8px; }
+#mentorViewFeedbackList .feedback-item { margin-bottom: 0 !important; padding: 12px 14px; }
+#mentorViewFeedbackList .feedback-item-body { padding-left: 10px; font-size: var(--fs-md); }
+
+@media (max-width: 1100px) {
+  .mentee-workspace { grid-template-columns: 1fr; }
+  .mentee-rail { position: static; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+}
+
+@media (max-width: 980px) {
+  .mentorship-layout, .mentor-dashboard-layout { grid-template-columns: 1fr; }
+}
 
 @media (max-width: 768px) {
   .mentorship-section { padding: 16px 16px 18px; }
-  .mentorship-section-title { margin: -16px -16px 16px; padding: 12px 16px; }
+  .mentorship-section-title { margin: -16px -16px 14px; padding: 12px 16px; }
   .mentorship-invite-row { flex-direction: column; }
+  .mentorship-steps { grid-template-columns: 1fr; }
   .mentor-card { flex-direction: column; }
   .mentor-card-actions { width: 100%; }
+  .mentor-rel-head { flex-wrap: wrap; }
+  .mentor-rel-head .mentor-card-actions { width: 100%; }
   .mentor-permissions-grid { grid-template-columns: 1fr; }
+  .review-req { flex-wrap: wrap; }
+  .review-req-side { flex-direction: row; align-items: center; width: 100%; justify-content: space-between; padding-left: 42px; }
+  .mentee-rail { grid-template-columns: 1fr; }
+  .mentee-acc-head { padding: 12px 14px; }
+  .mentee-acc-sub { display: none; }
+  .mentee-acc-content { padding: 12px 12px 14px; }
+  .mentee-journal { grid-template-columns: 44px minmax(0, 1fr); }
+  .mentee-journal-actions { grid-column: 1 / -1; }
+  .mentee-journal-actions button { flex: 1; }
+  .mentee-trade { grid-template-columns: 1fr; }
+  .mentee-trade-side { justify-content: space-between; }
 }
 
 /* =====================================================================
@@ -6481,17 +6854,25 @@ body.light .prop-modal-box input[type="date"]::-webkit-calendar-picker-indicator
     </div>
 
     <div class="page" id="page-calculator">
-  <div class="page-title">Calculator</div>
-  <div class="page-subtitle">Calculate futures risk, reward, and position outcomes.</div>
+  <div class="page-header">
+    <div class="page-heading">
+      <h1>Calculator</h1>
+      <p>Size positions and check risk and reward before you take a trade.</p>
+    </div>
+  </div>
 
   <div class="calc-layout">
     <div class="calc-grid">
-      <div class="calc-column">
-        <div class="calc-card">
-          <div class="calc-card-title">Futures P&L Calculator</div>
-          <div class="calc-input-grid">
+      <section class="calc-card calc-tool" id="calcPnlTool" aria-labelledby="calcPnlTitle">
+        <div class="calc-card-title">
+          <span class="calc-title-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
+          <span class="calc-title-text"><span id="calcPnlTitle">Futures P&amp;L Calculator</span><small>Risk and reward from your entry, stop and target prices</small></span>
+        </div>
+
+        <div class="calc-tool-body">
+          <div class="calc-input-grid calc-cols-2">
             <div class="calc-field">
-              <label>Ticker</label>
+              <label for="calcTicker">Ticker</label>
               <select id="calcTicker" onchange="handleCalcTickerChange()">
                 <option value="MNQ">MNQ</option>
                 <option value="NQ">NQ</option>
@@ -6503,56 +6884,68 @@ body.light .prop-modal-box input[type="date"]::-webkit-calendar-picker-indicator
             </div>
 
             <div class="calc-field">
-              <label>Contracts</label>
+              <label for="calcContracts">Contracts</label>
               <input type="number" id="calcContracts" placeholder="e.g. 2" min="1" oninput="runCalc()"/>
             </div>
+          </div>
 
+          <div class="calc-spec" id="calcSpec" aria-live="polite"></div>
+
+          <div class="calc-input-grid calc-cols-3">
             <div class="calc-field">
-              <label>Entry Price</label>
+              <label for="calcEntry">Entry Price</label>
               <input type="number" id="calcEntry" placeholder="e.g. 25235.50" step="0.01" oninput="runCalc()"/>
             </div>
 
             <div class="calc-field">
-              <label>Stop Loss Price</label>
+              <label for="calcSL">Stop Loss Price</label>
               <input type="number" id="calcSL" placeholder="e.g. 25207" step="0.01" oninput="runCalc()"/>
             </div>
 
             <div class="calc-field">
-              <label>Target Price</label>
+              <label for="calcTP">Target Price</label>
               <input type="number" id="calcTP" placeholder="e.g. 25598.75" step="0.01" oninput="runCalc()"/>
             </div>
           </div>
-
-          <button class="calc-reset-btn" onclick="resetCalc()">Clear</button>
         </div>
 
-        <div class="calc-card" id="calcResultsCard" style="display:none;">
-          <div class="calc-card-title">Results</div>
+        <div class="calc-output is-idle" id="calcResultsCard">
           <div class="calc-results">
-            <div class="calc-result-card">
+            <div class="calc-result-card is-risk">
               <div class="calc-result-label">Dollar Risk</div>
               <div class="calc-result-value red" id="calcRisk">—</div>
             </div>
 
-            <div class="calc-result-card">
+            <div class="calc-result-card is-reward">
               <div class="calc-result-label">Dollar Profit</div>
               <div class="calc-result-value green" id="calcProfit">—</div>
             </div>
 
-            <div class="calc-result-card">
+            <div class="calc-result-card is-ratio">
               <div class="calc-result-label">R:R Ratio</div>
               <div class="calc-result-value accent" id="calcRR">—</div>
             </div>
           </div>
+          <div class="calc-rr-bar" id="calcRrBar" aria-hidden="true"><i class="risk"></i><i class="reward"></i></div>
+          <div class="calc-breakdown" id="calcBreakdown"></div>
         </div>
-      </div>
 
-      <div class="calc-column">
-        <div class="calc-card">
-          <div class="calc-card-title">Futures Points Calculator</div>
-          <div class="calc-input-grid">
+        <div class="calc-tool-foot">
+          <span class="calc-foot-note">Clear resets contracts and prices. The ticker stays selected.</span>
+          <button class="calc-reset-btn" type="button" onclick="resetCalc()">Clear</button>
+        </div>
+      </section>
+
+      <section class="calc-card calc-tool" id="calcPointsTool" aria-labelledby="calcPointsTitle">
+        <div class="calc-card-title">
+          <span class="calc-title-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><polyline points="4 17 10 11 14 15 20 9"/><polyline points="15 9 20 9 20 14"/></svg></span>
+          <span class="calc-title-text"><span id="calcPointsTitle">Futures Points Calculator</span><small>Risk and reward from stop and target distances in points</small></span>
+        </div>
+
+        <div class="calc-tool-body">
+          <div class="calc-input-grid calc-cols-2">
             <div class="calc-field">
-              <label>Ticker</label>
+              <label for="pointsCalcTicker">Ticker</label>
               <select id="pointsCalcTicker" onchange="handlePointsCalcTickerChange()">
                 <option value="MNQ">MNQ</option>
                 <option value="NQ">NQ</option>
@@ -6564,70 +6957,139 @@ body.light .prop-modal-box input[type="date"]::-webkit-calendar-picker-indicator
             </div>
 
             <div class="calc-field">
-              <label>Contracts</label>
+              <label for="pointsCalcContracts">Contracts</label>
               <input type="number" id="pointsCalcContracts" placeholder="1" min="1" oninput="runPointsCalc()"/>
             </div>
+          </div>
 
+          <div class="calc-spec" id="pointsCalcSpec" aria-live="polite"></div>
+
+          <div class="calc-input-grid calc-cols-2">
             <div class="calc-field">
-              <label>Stop Loss Points</label>
+              <label for="pointsCalcSL">Stop Loss Points</label>
               <input type="number" id="pointsCalcSL" placeholder="e.g. 50" step="0.01" oninput="runPointsCalc()"/>
             </div>
 
             <div class="calc-field">
-              <label>Target Points</label>
+              <label for="pointsCalcTP">Target Points</label>
               <input type="number" id="pointsCalcTP" placeholder="e.g. 100" step="0.01" oninput="runPointsCalc()"/>
             </div>
           </div>
-
-          <button class="calc-reset-btn" onclick="resetPointsCalc()">Clear</button>
         </div>
 
-        <div class="calc-card" id="pointsCalcResultsCard" style="display:none;">
-          <div class="calc-card-title">Results</div>
+        <div class="calc-output is-idle" id="pointsCalcResultsCard">
           <div class="calc-results">
-            <div class="calc-result-card">
+            <div class="calc-result-card is-risk">
               <div class="calc-result-label">Dollar Risk</div>
               <div class="calc-result-value red" id="pointsCalcRisk">—</div>
             </div>
 
-            <div class="calc-result-card">
+            <div class="calc-result-card is-reward">
               <div class="calc-result-label">Dollar Profit</div>
               <div class="calc-result-value green" id="pointsCalcProfit">—</div>
             </div>
 
-            <div class="calc-result-card">
+            <div class="calc-result-card is-ratio">
               <div class="calc-result-label">R:R Ratio</div>
               <div class="calc-result-value accent" id="pointsCalcRR">—</div>
             </div>
           </div>
+          <div class="calc-rr-bar" id="pointsCalcRrBar" aria-hidden="true"><i class="risk"></i><i class="reward"></i></div>
+          <div class="calc-breakdown" id="pointsCalcBreakdown"></div>
         </div>
-            </div>
+
+        <div class="calc-tool-foot">
+          <span class="calc-foot-note">Clear resets contracts and points. The ticker stays selected.</span>
+          <button class="calc-reset-btn" type="button" onclick="resetPointsCalc()">Clear</button>
+        </div>
+      </section>
     </div>
 
-    <div class="calc-card calc-defaults-card">
-      <div class="calc-card-title">Calculator Defaults</div>
-
-      <div class="calc-input-grid">
-        <div class="calc-field">
-          <label>Default Ticker</label>
-          <select id="defaultTicker">
-            <option value="MNQ">MNQ</option>
-            <option value="NQ">NQ</option>
-            <option value="MES">MES</option>
-            <option value="ES">ES</option>
-            <option value="MGC">MGC</option>
-            <option value="GC">GC</option>
-          </select>
+    <div class="calc-lower">
+      <section class="calc-card calc-sizer" aria-labelledby="calcSizerTitle">
+        <div class="calc-card-title">
+          <span class="calc-title-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="4" height="10" rx="1"/><rect x="10" y="7" width="4" height="14" rx="1"/><rect x="17" y="3" width="4" height="18" rx="1"/></svg></span>
+          <span class="calc-title-text"><span id="calcSizerTitle">Position Size</span><small>How many contracts fit a dollar risk budget</small></span>
         </div>
 
-        <div class="calc-field">
-          <label>Default Contracts</label>
-          <input type="number" id="defaultContracts" placeholder="e.g. 2" min="1"/>
-        </div>
-      </div>
+        <div class="calc-input-grid calc-cols-3">
+          <div class="calc-field">
+            <label for="sizerTicker">Ticker</label>
+            <select id="sizerTicker" onchange="runPositionSizer()">
+              <option value="MNQ">MNQ</option>
+              <option value="NQ">NQ</option>
+              <option value="MES">MES</option>
+              <option value="ES">ES</option>
+              <option value="MGC">MGC</option>
+              <option value="GC">GC</option>
+            </select>
+          </div>
 
-      <button class="calc-reset-btn" onclick="saveCalcDefaults()">Save Defaults</button>
-      <div class="msg" id="calcMsg"></div>
+          <div class="calc-field">
+            <label for="sizerBudget">Max Risk ($)</label>
+            <input type="number" id="sizerBudget" placeholder="e.g. 500" min="0" step="1" oninput="runPositionSizer()"/>
+          </div>
+
+          <div class="calc-field">
+            <label for="sizerStop">Stop (points)</label>
+            <input type="number" id="sizerStop" placeholder="e.g. 20" min="0" step="0.25" oninput="runPositionSizer()"/>
+          </div>
+        </div>
+
+        <div class="calc-sizer-out is-idle" id="sizerResult" aria-live="polite">
+          <div class="calc-sizer-main">
+            <span class="calc-sizer-label">Max contracts</span>
+            <span class="calc-sizer-value" id="sizerContracts">—</span>
+          </div>
+          <div class="calc-sizer-detail" id="sizerDetail">Enter a dollar budget and a stop distance.</div>
+        </div>
+
+        <div class="calc-tool-foot">
+          <span class="calc-foot-note">Rounds down so the stop never risks more than your budget.</span>
+          <button class="calc-reset-btn" type="button" onclick="resetPositionSizer()">Clear</button>
+        </div>
+      </section>
+
+      <section class="calc-card calc-specs" aria-labelledby="calcSpecsTitle">
+        <div class="calc-card-title">
+          <span class="calc-title-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="10" x2="9" y2="20"/></svg></span>
+          <span class="calc-title-text"><span id="calcSpecsTitle">Contract Specs</span><small>Values every calculation on this page uses</small></span>
+        </div>
+        <div class="calc-specs-table" id="calcSpecsTable"></div>
+      </section>
+
+      <section class="calc-card calc-defaults-card" aria-labelledby="calcDefaultsTitle">
+        <div class="calc-card-title">
+          <span class="calc-title-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg></span>
+          <span class="calc-title-text"><span id="calcDefaultsTitle">Calculator Defaults</span><small>Applied when the Calculator loads</small></span>
+        </div>
+
+        <div class="calc-input-grid calc-cols-2">
+          <div class="calc-field">
+            <label for="defaultTicker">Default Ticker</label>
+            <select id="defaultTicker">
+              <option value="MNQ">MNQ</option>
+              <option value="NQ">NQ</option>
+              <option value="MES">MES</option>
+              <option value="ES">ES</option>
+              <option value="MGC">MGC</option>
+              <option value="GC">GC</option>
+            </select>
+          </div>
+
+          <div class="calc-field">
+            <label for="defaultContracts">Default Contracts</label>
+            <input type="number" id="defaultContracts" placeholder="e.g. 2" min="1"/>
+          </div>
+        </div>
+
+        <p class="calc-defaults-copy">Saving switches both calculators to the default ticker now. Default contracts are filled in the next time you load Tradeprint.</p>
+
+        <div class="calc-tool-foot">
+          <div class="msg" id="calcMsg"></div>
+          <button class="calc-reset-btn calc-save-btn" type="button" onclick="saveCalcDefaults()">Save Defaults</button>
+        </div>
+      </section>
     </div>
   </div>
 </div>
@@ -6767,148 +7229,62 @@ body.light .prop-modal-box input[type="date"]::-webkit-calendar-picker-indicator
 </div>
     
 <div class="page" id="page-settings">
-      <div class="page-title">Settings</div>
-      <div class="page-subtitle">Manage your account and preferences.</div>
+      <div class="page-header">
+        <div class="page-heading">
+          <h1>Settings</h1>
+          <p>Manage your profile, sign-in details, trading defaults and rules.</p>
+        </div>
+      </div>
 
       <div class="settings-layout">
-        <div class="settings-main-column">
-      <div class="settings-section">
-
-        <div class="settings-section-title">Profile</div>
-        <div class="avatar-upload">
-          <div class="avatar-large" id="settingsAvatar">?</div>
-          <div>
-            <input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="openCropper(event)"/>
-            <button class="upload-btn" onclick="document.getElementById('avatarInput').click()">Upload Photo</button>
-            <div style="font-size:12px;color:var(--text2);margin-top:6px;">JPG or PNG, max 2MB</div>
-            <div class="msg" id="avatarMsg" style="margin-top:6px;"></div>
-          </div>
-        </div>
-        <div class="settings-field"><label>Username</label><input type="text" id="usernameInput" placeholder="e.g. konstannt" /></div>
-        <div class="settings-field">
-  <label>Bio</label>
-  <textarea id="bioInput" placeholder="A short trading bio..." style="width:100%;min-height:82px;padding:10px 14px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;resize:vertical;font-family:inherit;"></textarea>
-</div>
-        <button class="save-btn" onclick="saveProfile()">Save Profile</button>
-        <div class="msg" id="profileMsg"></div>
-      </div>
-      <div class="settings-section">
-        <div class="settings-section-title">Account</div>
-        <div class="settings-field"><label>Email</label><input type="email" id="emailInput" placeholder="your@email.com" /></div>
-        <button class="save-btn" onclick="saveEmail()">Update Email</button>
-        <div class="msg" id="emailMsg"></div>
-        <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border);">
-          <div class="settings-field">
-  <label>New Password</label>
-  <div style="position:relative;">
-    <input type="password" id="newPassword" placeholder="••••••••" style="padding-right:44px;"/>
-    <button onclick="toggleSettingsPw('newPassword', this)" tabindex="-1" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text2);padding:4px;display:flex;align-items:center;">
-      <svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-    </button>
-  </div>
-</div>
-<div class="settings-field">
-  <label>Confirm New Password</label>
-  <div style="position:relative;">
-    <input type="password" id="confirmPassword" placeholder="••••••••" style="padding-right:44px;"/>
-    <button onclick="toggleSettingsPw('confirmPassword', this)" tabindex="-1" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text2);padding:4px;display:flex;align-items:center;">
-      <svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-    </button>
-  </div>
-</div>
-          <button class="save-btn" onclick="savePassword()">Update Password</button>
-          <div class="msg" id="passwordMsg"></div>
-        </div>
-      </div>
-      <div class="settings-section">
-        <div class="settings-section-title">Appearance</div>
-        <div class="toggle-switch">
-          <span>Light Mode</span>
-          <label class="switch"><input type="checkbox" id="themeToggle" onchange="toggleTheme()"/><span class="slider"></span></label>
-        </div>
-      </div>
-
-                <div class="settings-section" id="tradingRulesSection">
-        <div class="settings-section-title">Trading Rules</div>
-        <div class="settings-defaults-copy">
-          Define the rules you want Tradeprint to hold you accountable to. Automatic rules are checked against your logged trades. Custom rules are saved for manual review.
-        </div>
-
-        <div class="trading-rules-list" id="tradingRulesList">
-          <div class="trading-rules-empty">Loading rules...</div>
-        </div>
-
-        <div class="trading-rules-add">
-          <div class="trading-rules-add-title" id="tradingRuleFormTitle">Add a rule</div>
-
-          <div class="settings-field">
-            <label>Rule Type</label>
-            <select id="newRuleType" onchange="renderTradingRuleConfigInputs()">
-              <option value="no_trades_before">No trades before a time</option>
-              <option value="no_trades_after">No trades after a time</option>
-              <option value="max_trades_per_day">Maximum trades per day</option>
-              <option value="max_daily_loss_dollars">Maximum daily loss ($)</option>
-              <option value="max_daily_loss_r">Maximum daily loss (R)</option>
-              <option value="max_losing_trades_per_day">Maximum losing trades per day</option>
-              <option value="allowed_weekdays">Allowed trading weekdays</option>
-              <option value="custom">Custom rule (manual)</option>
-            </select>
+        <section class="settings-section settings-profile" aria-labelledby="settingsProfileTitle">
+          <div class="settings-section-title">
+            <span id="settingsProfileTitle">Profile</span>
+            <span class="settings-section-sub">Shown on Prints and to your mentors</span>
           </div>
 
-          <div id="tradingRuleConfigInputs"></div>
-
-          <div class="trading-rules-add-actions">
-            <button class="save-btn" id="tradingRuleSaveBtn" onclick="saveTradingRuleFromForm()">Add Rule</button>
-            <button class="btn-secondary" id="tradingRuleCancelBtn" onclick="cancelTradingRuleEdit()" style="display:none;">Cancel</button>
-          </div>
-          <div class="msg" id="tradingRulesMsg"></div>
-        </div>
-      </div>
-        
-        <div class="settings-section">
-        <div class="settings-section-title">Tradeprint Pro</div>
-
-        <div class="pro-status-card">
-          <div class="pro-status-row">
-            <div>
-              <div class="pro-status-label">Current Plan</div>
-              <div class="pro-status-copy" id="proSettingsEmail">Checking your subscription...</div>
+          <div class="avatar-upload">
+            <div class="avatar-large" id="settingsAvatar">?</div>
+            <div class="avatar-upload-copy">
+              <input type="file" id="avatarInput" accept="image/*" style="display:none" onchange="openCropper(event)"/>
+              <button class="upload-btn" type="button" onclick="document.getElementById('avatarInput').click()">Upload Photo</button>
+              <div class="settings-hint">JPG or PNG, max 2MB. You can crop it before it saves.</div>
+              <div class="msg" id="avatarMsg"></div>
             </div>
-            <div class="pro-status-pill free" id="proSettingsStatus">Free</div>
           </div>
 
-          <div class="pro-status-copy" id="proSettingsCopy">
-            Tradeprint Pro unlocks Tradeprint, Calculator, and advanced review tools.
+          <div class="settings-field"><label for="usernameInput">Username</label><input type="text" id="usernameInput" placeholder="e.g. konstannt" /></div>
+          <div class="settings-field settings-field-grow">
+            <label for="bioInput">Bio</label>
+            <textarea id="bioInput" placeholder="A short trading bio..."></textarea>
           </div>
-        </div>
 
-        <div id="proSettingsActions"></div>
-      </div>
-  
-            <div class="settings-section">
-        <div class="settings-section-title" style="color:var(--danger)">Danger Zone</div>
-        <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">Log out of your Tradeprint account.</p>
-        <button class="danger-btn" onclick="logout()">Log Out</button>
-      </div>
-        </div>
+          <div class="settings-actions">
+            <div class="msg" id="profileMsg"></div>
+            <button class="save-btn" type="button" onclick="saveProfile()">Save Profile</button>
+          </div>
+        </section>
 
-        <div class="settings-side-column">
-          <div class="settings-section">
-            <div class="settings-section-title">Log Trade Defaults</div>
+        <section class="settings-section settings-defaults" aria-labelledby="settingsDefaultsTitle">
+          <div class="settings-section-title">
+            <span id="settingsDefaultsTitle">Log Trade Defaults</span>
+            <span class="settings-section-sub">Pre-selected in every new trade</span>
+          </div>
 
-            <div class="settings-defaults-copy">
-              Choose what should be pre-selected whenever you open a new Log Trade modal.
-            </div>
+          <div class="settings-defaults-copy">
+            Choose what should be pre-selected whenever you open a new Log Trade modal. You can still change either one in the form, and editing an existing trade never uses these.
+          </div>
 
+          <div class="settings-defaults-fields">
             <div class="settings-field">
-              <label>Default Strategy</label>
+              <label for="defaultTradeStrategy">Default Strategy</label>
               <select id="defaultTradeStrategy">
                 <option value="">No default strategy</option>
               </select>
             </div>
 
             <div class="settings-field">
-              <label>Default Trade Type</label>
+              <label for="defaultTradeType">Default Trade Type</label>
               <select id="defaultTradeType">
                 <option value="">No default trade type</option>
                 <option value="Shares">Shares</option>
@@ -6918,10 +7294,158 @@ body.light .prop-modal-box input[type="date"]::-webkit-calendar-picker-indicator
                 <option value="Crypto">Crypto</option>
               </select>
             </div>
-
-            <button class="save-btn" onclick="saveTradeDefaults()">Save Defaults</button>
-            <div class="msg" id="tradeDefaultsMsg"></div>
           </div>
+
+          <div class="settings-saved" aria-live="polite">
+            <div class="settings-saved-title">Currently saved</div>
+            <div class="settings-saved-rows" id="settingsSavedDefaults"></div>
+          </div>
+
+          <div class="settings-actions">
+            <div class="msg" id="tradeDefaultsMsg"></div>
+            <button class="save-btn" type="button" onclick="saveTradeDefaults()">Save Defaults</button>
+          </div>
+        </section>
+
+        <div class="settings-stack settings-stack-left">
+          <section class="settings-section" aria-labelledby="settingsAccountTitle">
+            <div class="settings-section-title">
+              <span id="settingsAccountTitle">Account</span>
+              <span class="settings-section-sub">Sign-in email and password</span>
+            </div>
+
+            <div class="settings-group">
+              <div class="settings-group-head">
+                <div class="settings-group-title">Email</div>
+                <div class="settings-hint">The address you sign in with and where account emails go.</div>
+              </div>
+              <div class="settings-field"><label for="emailInput">Email</label><input type="email" id="emailInput" placeholder="your@email.com" /></div>
+              <div class="settings-actions">
+                <div class="msg" id="emailMsg"></div>
+                <button class="save-btn" type="button" onclick="saveEmail()">Update Email</button>
+              </div>
+            </div>
+
+            <div class="settings-group">
+              <div class="settings-group-head">
+                <div class="settings-group-title">Password</div>
+                <div class="settings-hint">Enter the new password twice to change it.</div>
+              </div>
+              <div class="settings-field-row">
+                <div class="settings-field">
+                  <label for="newPassword">New Password</label>
+                  <div class="settings-pw">
+                    <input type="password" id="newPassword" placeholder="••••••••"/>
+                    <button class="settings-pw-toggle" type="button" onclick="toggleSettingsPw('newPassword', this)" tabindex="-1" aria-label="Show or hide password">
+                      <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                  </div>
+                </div>
+                <div class="settings-field">
+                  <label for="confirmPassword">Confirm New Password</label>
+                  <div class="settings-pw">
+                    <input type="password" id="confirmPassword" placeholder="••••••••"/>
+                    <button class="settings-pw-toggle" type="button" onclick="toggleSettingsPw('confirmPassword', this)" tabindex="-1" aria-label="Show or hide password">
+                      <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="settings-actions">
+                <div class="msg" id="passwordMsg"></div>
+                <button class="save-btn" type="button" onclick="savePassword()">Update Password</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="settings-section" aria-labelledby="settingsPlanTitle">
+            <div class="settings-section-title">
+              <span id="settingsPlanTitle">Tradeprint Pro</span>
+              <span class="settings-section-sub">Your plan and billing</span>
+            </div>
+
+            <div class="pro-status-card">
+              <div class="pro-status-row">
+                <div>
+                  <div class="pro-status-label">Current Plan</div>
+                  <div class="pro-status-copy" id="proSettingsEmail">Checking your subscription...</div>
+                </div>
+                <div class="pro-status-pill free" id="proSettingsStatus">Free</div>
+              </div>
+
+              <div class="pro-status-copy" id="proSettingsCopy">
+                Tradeprint Pro unlocks Tradeprint, Calculator, and advanced review tools.
+              </div>
+            </div>
+
+            <div id="proSettingsActions"></div>
+          </section>
+
+        </div>
+
+        <div class="settings-stack settings-stack-right">
+          <section class="settings-section settings-rules" id="tradingRulesSection" aria-labelledby="settingsRulesTitle">
+            <div class="settings-section-title">
+              <span id="settingsRulesTitle">Trading Rules</span>
+              <span class="settings-section-sub" id="tradingRulesSummary"></span>
+            </div>
+
+            <div class="settings-defaults-copy">
+              Define the rules you want Tradeprint to hold you accountable to. Automatic rules are checked against your logged trades. Custom rules are saved for manual review.
+            </div>
+
+            <div class="trading-rules-list" id="tradingRulesList">
+              <div class="trading-rules-empty">Loading rules...</div>
+            </div>
+
+            <div class="trading-rules-add">
+              <div class="trading-rules-add-title" id="tradingRuleFormTitle">Add a rule</div>
+
+              <div class="settings-field">
+                <label for="newRuleType">Rule Type</label>
+                <select id="newRuleType" onchange="renderTradingRuleConfigInputs()">
+                  <option value="no_trades_before">No trades before a time</option>
+                  <option value="no_trades_after">No trades after a time</option>
+                  <option value="max_trades_per_day">Maximum trades per day</option>
+                  <option value="max_daily_loss_dollars">Maximum daily loss ($)</option>
+                  <option value="max_daily_loss_r">Maximum daily loss (R)</option>
+                  <option value="max_losing_trades_per_day">Maximum losing trades per day</option>
+                  <option value="allowed_weekdays">Allowed trading weekdays</option>
+                  <option value="custom">Custom rule (manual)</option>
+                </select>
+              </div>
+
+              <div id="tradingRuleConfigInputs"></div>
+
+              <div class="trading-rules-add-actions">
+                <div class="msg" id="tradingRulesMsg"></div>
+                <button class="btn-secondary" id="tradingRuleCancelBtn" onclick="cancelTradingRuleEdit()" style="display:none;">Cancel</button>
+                <button class="save-btn" id="tradingRuleSaveBtn" onclick="saveTradingRuleFromForm()">Add Rule</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="settings-section settings-compact" aria-labelledby="settingsPrefsTitle">
+            <div class="settings-section-title">
+              <span id="settingsPrefsTitle">Appearance &amp; Session</span>
+            </div>
+
+            <div class="settings-row-item">
+              <div class="settings-row-copy">
+                <div class="settings-row-title">Light Mode</div>
+                <div class="settings-hint">Saved on this device. The dark theme is the default.</div>
+              </div>
+              <label class="switch"><input type="checkbox" id="themeToggle" onchange="toggleTheme()" aria-label="Light mode"/><span class="slider"></span></label>
+            </div>
+
+            <div class="settings-row-item">
+              <div class="settings-row-copy">
+                <div class="settings-row-title">Log Out</div>
+                <div class="settings-hint">Log out of your Tradeprint account on this device.</div>
+              </div>
+              <button class="danger-btn" type="button" onclick="logout()">Log Out</button>
+            </div>
+          </section>
         </div>
       </div>
     </div>
@@ -6952,83 +7476,159 @@ body.light .prop-modal-box input[type="date"]::-webkit-calendar-picker-indicator
     
 <!-- MENTORSHIP PAGE (Trader side) -->
 <div class="page" id="page-mentorship">
-  <div class="page-header" style="margin-bottom:24px;">
-    <div>
+  <div class="page-header">
+    <div class="page-heading">
       <h1>Mentorship</h1>
       <p>Invite a mentor to review your trades and journals.</p>
     </div>
   </div>
+
   <div class="mentorship-layout">
+    <div class="mentorship-col">
+      <section class="mentorship-section mentorship-invite" aria-labelledby="mentorInviteTitle">
+        <div class="mentorship-section-title">
+          <span class="mentorship-title-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></span>
+          <span class="mentorship-title-text"><span id="mentorInviteTitle">Invite a Mentor</span><small>Share your trading with someone you trust</small></span>
+        </div>
+        <div class="mentorship-invite-row">
+          <input type="email" id="mentorEmailInput" placeholder="Mentor's email address" aria-label="Mentor's email address"/>
+          <button class="btn-primary" id="mentorInviteBtn" onclick="sendMentorInvite()">Send Invite</button>
+        </div>
+        <div class="mentorship-hint">They'll get a link to accept and create or log in to a Tradeprint account.</div>
+        <div class="msg" id="mentorInviteMsg"></div>
+        <ol class="mentorship-steps">
+          <li><b>Invite</b><span>Your mentor gets an email link.</span></li>
+          <li><b>They accept</b><span>The mentorship turns active.</span></li>
+          <li><b>You choose</b><span>Turn on exactly what they can see.</span></li>
+        </ol>
+      </section>
 
-    <div class="mentorship-section">
-      <div class="mentorship-section-title">Invite a Mentor</div>
-      <div class="mentorship-invite-row">
-        <input type="email" id="mentorEmailInput" placeholder="Mentor's email address"/>
-                <button class="btn-primary" id="mentorInviteBtn" onclick="sendMentorInvite()">Send Invite</button>
-      </div>
-      <div style="font-size:12px;color:var(--text2);">They'll get a link to accept and create or log in to a Tradeprint account.</div>
-      <div class="msg" id="mentorInviteMsg"></div>
+      <section class="mentorship-section" aria-labelledby="mentorListTitle">
+        <div class="mentorship-section-title">
+          <span class="mentorship-title-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+          <span class="mentorship-title-text"><span id="mentorListTitle">Your Mentors</span><small>Status, permissions and access</small></span>
+          <span class="mentorship-count" id="mentorListCount"></span>
+        </div>
+        <div id="mentorRelationshipsList"><div class="mentor-empty">No mentors yet.</div></div>
+      </section>
     </div>
 
-    <div class="mentorship-section">
-      <div class="mentorship-section-title">Your Mentors</div>
-      <div id="mentorRelationshipsList"><div class="mentor-empty">No mentors yet.</div></div>
-    </div>
+    <div class="mentorship-col">
+      <section class="mentorship-section" id="mentorFeedbackSection" aria-labelledby="mentorFeedbackTitle">
+        <div class="mentorship-section-title">
+          <span class="mentorship-title-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+          <span class="mentorship-title-text"><span id="mentorFeedbackTitle">Recent Feedback</span><small>Notes your mentors left on your trades and journal</small></span>
+          <span class="mentorship-count" id="mentorFeedbackCount"></span>
+        </div>
+        <div class="feedback-list" id="traderFeedbackList"><div class="mentor-empty">Loading feedback...</div></div>
+      </section>
 
-        <div class="mentorship-section" id="mentorFeedbackSection" style="display:none;">
-      <div class="mentorship-section-title">Recent Feedback</div>
-      <div class="feedback-list" id="traderFeedbackList"></div>
+      <section class="mentorship-section" id="reviewRequestsSection" aria-labelledby="reviewRequestsTitle">
+        <div class="mentorship-section-title">
+          <span class="mentorship-title-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+          <span class="mentorship-title-text"><span id="reviewRequestsTitle">Review Requests</span><small>Trades and journal days you asked a mentor to review</small></span>
+          <span class="mentorship-count" id="reviewRequestsCount"></span>
+        </div>
+        <div id="traderReviewRequestsList"><div class="mentor-empty">Loading review requests...</div></div>
+      </section>
     </div>
-
-    <div class="mentorship-section" id="reviewRequestsSection" style="display:none;">
-      <div class="mentorship-section-title">Review Requests</div>
-      <div id="traderReviewRequestsList"></div>
-    </div>
-
   </div>
 </div>
 
 <!-- MENTOR DASHBOARD PAGE -->
 <div class="page" id="page-mentor-dashboard">
-  <div class="page-title">Mentor Dashboard</div>
-  <div class="page-subtitle">Traders who've invited you, and their review queue.</div>
+  <div class="page-header">
+    <div class="page-heading">
+      <h1>Mentor Dashboard</h1>
+      <p>Traders who've invited you, and their review queue.</p>
+    </div>
+  </div>
   <div class="mentor-dashboard-layout">
 
-    <div class="mentorship-section">
-      <div class="mentorship-section-title">Traders You Mentor</div>
+    <section class="mentorship-section" aria-labelledby="mentorTradersTitle">
+      <div class="mentorship-section-title">
+        <span class="mentorship-title-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+        <span class="mentorship-title-text"><span id="mentorTradersTitle">Traders You Mentor</span><small>Open a trader to review their journal and trades</small></span>
+      </div>
       <div id="mentorTradersList"><div class="mentor-empty">No active traders yet.</div></div>
-    </div>
+    </section>
 
-    <div class="mentorship-section" id="mentorReviewQueueSection">
-      <div class="mentorship-section-title">Review Queue</div>
+    <section class="mentorship-section" id="mentorReviewQueueSection" aria-labelledby="mentorQueueTitle">
+      <div class="mentorship-section-title">
+        <span class="mentorship-title-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></span>
+        <span class="mentorship-title-text"><span id="mentorQueueTitle">Review Queue</span><small>Requests waiting for your feedback</small></span>
+      </div>
       <div class="mentor-review-queue" id="mentorReviewQueue"><div class="mentor-empty">No pending reviews.</div></div>
-    </div>
+    </section>
 
   </div>
 </div>
 
 <!-- MENTOR VIEW TRADER PAGE -->
 <div class="page" id="page-mentor-trader-view">
-  <div style="display:flex;align-items:center;gap:14px;margin-bottom:28px;">
-    <button class="btn-secondary" onclick="showPage('mentor-dashboard', findNavItemForPage('mentor-dashboard'))">← Back</button>
-    <div>
-      <div class="page-title" id="mentorViewTraderTitle" style="margin-bottom:0;">Trader</div>
-      <div class="page-subtitle" id="mentorViewTraderSub" style="margin-bottom:0;"></div>
+  <div class="mentee-header">
+    <button class="mentee-back" type="button" onclick="showPage('mentor-dashboard', findNavItemForPage('mentor-dashboard'))">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+      Mentor Dashboard
+    </button>
+    <div class="mentee-identity">
+      <div class="avatar mentee-avatar" id="mentorViewAvatar" aria-hidden="true">?</div>
+      <div class="mentee-identity-text">
+        <div class="page-title" id="mentorViewTraderTitle">Trader</div>
+        <div class="page-subtitle" id="mentorViewTraderSub"></div>
+      </div>
     </div>
   </div>
-  <div class="mentor-dashboard-layout">
-    <div class="mentorship-section" id="mentorViewTradesSection" style="display:none;">
-      <div class="mentorship-section-title">Recent Trades</div>
-      <div id="mentorViewTradesList"></div>
+
+  <div class="mentee-workspace">
+    <div class="mentee-main">
+      <div class="mentee-no-access" id="mentorViewNoAccess" hidden>
+        This trader isn't sharing trades or journal notes with you right now. Feedback you've already left is still listed here.
+      </div>
+
+      <section class="mentee-acc" id="mentorViewJournalsSection" style="display:none;">
+        <button class="mentee-acc-head" type="button" id="mentorViewJournalsToggle" aria-expanded="false" aria-controls="mentorViewJournalsBody" onclick="tpToggleMenteeSection(this)">
+          <span class="mentee-acc-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span>
+          <span class="mentee-acc-text"><span class="mentee-acc-title">Journal Notes</span><span class="mentee-acc-sub">Daily analysis and journal entries</span></span>
+          <span class="mentee-acc-count" id="mentorViewJournalsCount"></span>
+          <svg class="mentee-acc-chevron" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="mentee-acc-body" id="mentorViewJournalsBody" role="region" aria-labelledby="mentorViewJournalsToggle">
+          <div class="mentee-acc-inner"><div class="mentee-acc-content" id="mentorViewJournalsList"></div></div>
+        </div>
+      </section>
+
+      <section class="mentee-acc" id="mentorViewTradesSection" style="display:none;">
+        <button class="mentee-acc-head" type="button" id="mentorViewTradesToggle" aria-expanded="false" aria-controls="mentorViewTradesBody" onclick="tpToggleMenteeSection(this)">
+          <span class="mentee-acc-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span>
+          <span class="mentee-acc-text"><span class="mentee-acc-title">Recent Trades</span><span class="mentee-acc-sub">Individual trades to review and comment on</span></span>
+          <span class="mentee-acc-count" id="mentorViewTradesCount"></span>
+          <svg class="mentee-acc-chevron" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="mentee-acc-body" id="mentorViewTradesBody" role="region" aria-labelledby="mentorViewTradesToggle">
+          <div class="mentee-acc-inner"><div class="mentee-acc-content" id="mentorViewTradesList"></div></div>
+        </div>
+      </section>
     </div>
-        <div class="mentorship-section" id="mentorViewJournalsSection" style="display:none;">
-      <div class="mentorship-section-title">Recent Journal Notes</div>
-      <div id="mentorViewJournalsList"></div>
-    </div>
-    <div class="mentorship-section" id="mentorViewFeedbackSection" style="display:none;">
-      <div class="mentorship-section-title">Your Feedback</div>
-      <div id="mentorViewFeedbackList"></div>
-    </div>
+
+    <aside class="mentee-rail">
+      <section class="mentorship-section mentee-access" aria-labelledby="mentorViewAccessTitle">
+        <div class="mentorship-section-title">
+          <span class="mentorship-title-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+          <span class="mentorship-title-text"><span id="mentorViewAccessTitle">Your Access</span><small>Set by the trader</small></span>
+        </div>
+        <ul class="mentee-perm-list" id="mentorViewAccess"></ul>
+        <div class="mentee-since" id="mentorViewSince"></div>
+      </section>
+
+      <section class="mentorship-section" id="mentorViewFeedbackSection" style="display:none;" aria-labelledby="mentorViewFeedbackTitle">
+        <div class="mentorship-section-title">
+          <span class="mentorship-title-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+          <span class="mentorship-title-text"><span id="mentorViewFeedbackTitle">Your Feedback</span><small>What you've sent this trader</small></span>
+        </div>
+        <div id="mentorViewFeedbackList"></div>
+      </section>
+    </aside>
   </div>
 </div>
 
@@ -11241,7 +11841,7 @@ document.getElementById('calcEntry').value = '';
 document.getElementById('calcSL').value = '';
 document.getElementById('calcTP').value = '';
 updateCalcPricePlaceholders(defaultTicker);
-document.getElementById('calcResultsCard').style.display = 'none';
+renderCalcOutput('pnl', null);
 
   document.getElementById('pointsCalcTicker').value = defaultTicker;
       updateCalcPricePlaceholders(defaultTicker);
@@ -11249,7 +11849,174 @@ syncPrettySelects();
   document.getElementById('pointsCalcContracts').value = defaultContracts;
   document.getElementById('pointsCalcSL').value = '';
   document.getElementById('pointsCalcTP').value = '';
-  document.getElementById('pointsCalcResultsCard').style.display = 'none';
+  renderCalcOutput('points', null);
+  renderCalcSpecsTable();
+  initPositionSizer(defaultTicker);
+}
+
+// ─── CALCULATOR OUTPUT (presentation) ───────────────────────
+// runCalc() and runPointsCalc() do the math exactly as before and hand their
+// numbers to renderCalcOutput(). This only formats them, and derives the
+// breakdown (points, ticks, per-contract amounts) from the same TICK_SPECS.
+const CALC_OUTPUT_IDS = {
+  pnl: { ticker: 'calcTicker', out: 'calcResultsCard', risk: 'calcRisk', profit: 'calcProfit', rr: 'calcRR', bar: 'calcRrBar', breakdown: 'calcBreakdown', spec: 'calcSpec' },
+  points: { ticker: 'pointsCalcTicker', out: 'pointsCalcResultsCard', risk: 'pointsCalcRisk', profit: 'pointsCalcProfit', rr: 'pointsCalcRR', bar: 'pointsCalcRrBar', breakdown: 'pointsCalcBreakdown', spec: 'pointsCalcSpec' }
+};
+
+function formatCalcNumber(value, maxDecimals = 2) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return '—';
+  return n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: maxDecimals });
+}
+
+// Point value = tick value / tick size (e.g. MNQ $0.50 / 0.25 = $2.00 a point).
+function getCalcContractSpec(ticker) {
+  const spec = TICK_SPECS[ticker];
+  if (!spec) return null;
+  return { tickSize: spec.tickSize, tickValue: spec.tickValue, pointValue: spec.tickValue / spec.tickSize };
+}
+
+function renderCalcSpecStrip(el, ticker) {
+  if (!el) return;
+  const spec = getCalcContractSpec(ticker);
+  el.innerHTML = spec
+    ? `<span class="calc-spec-ticker">${escapeHtml(ticker)}</span><span>Tick <b>${formatCalcNumber(spec.tickSize)}</b> = <b>$${spec.tickValue.toFixed(2)}</b></span><span>1 point = <b>$${spec.pointValue.toFixed(2)}</b> per contract</span>`
+    : '';
+}
+
+function calcBreakdownRow(label, value, cls = '') {
+  return `<div class="calc-breakdown-row${cls ? ` ${cls}` : ''}"><span>${escapeHtml(label)}</span><b>${escapeHtml(value)}</b></div>`;
+}
+
+function renderCalcOutput(kind, data) {
+  const ids = CALC_OUTPUT_IDS[kind];
+  if (!ids) return;
+
+  const ticker = document.getElementById(ids.ticker)?.value || '';
+  renderCalcSpecStrip(document.getElementById(ids.spec), ticker);
+
+  const out = document.getElementById(ids.out);
+  const bar = document.getElementById(ids.bar);
+  const breakdown = document.getElementById(ids.breakdown);
+  if (!out) return;
+
+  if (!data) {
+    out.classList.add('is-idle');
+    ['risk', 'profit', 'rr'].forEach(key => {
+      const el = document.getElementById(ids[key]);
+      if (el) el.textContent = '—';
+    });
+    if (bar) bar.style.setProperty('--risk-share', '50%');
+    if (breakdown) {
+      breakdown.innerHTML = `<div class="calc-hint">${kind === 'pnl'
+        ? 'Enter contracts, entry, stop and target to see your risk and reward.'
+        : 'Enter contracts, stop points and target points to see your risk and reward.'}</div>`;
+    }
+    return;
+  }
+
+  out.classList.remove('is-idle');
+
+  const spec = TICK_SPECS[data.ticker];
+  const total = data.risk + data.profit;
+  if (bar) bar.style.setProperty('--risk-share', total > 0 ? `${((data.risk / total) * 100).toFixed(2)}%` : '50%');
+  if (!breakdown || !spec) return;
+
+  const stopPoints = data.slTicks * spec.tickSize;
+  const targetPoints = data.tpTicks * spec.tickSize;
+  const rows = [];
+
+  if (kind === 'pnl') {
+    const { entry, sl, tp } = data;
+    let direction = '';
+    let warning = '';
+    if (tp > entry && sl < entry) direction = 'Long';
+    else if (tp < entry && sl > entry) direction = 'Short';
+    else if (sl === entry) warning = 'Your stop equals your entry, so there is no risk to measure.';
+    else if (tp === entry) warning = 'Your target equals your entry, so there is no reward to measure.';
+    else warning = 'Stop and target are on the same side of entry. Check your levels.';
+
+    if (direction) rows.push(calcBreakdownRow('Direction', direction, direction === 'Long' ? 'is-long' : 'is-short'));
+    if (warning) rows.push(`<div class="calc-warning">${escapeHtml(warning)}</div>`);
+  }
+
+  rows.push(calcBreakdownRow('Stop distance', `${formatCalcNumber(stopPoints)} pts · ${formatCalcNumber(data.slTicks)} ticks`));
+  rows.push(calcBreakdownRow('Target distance', `${formatCalcNumber(targetPoints)} pts · ${formatCalcNumber(data.tpTicks)} ticks`));
+  if (data.contracts > 0) {
+    rows.push(calcBreakdownRow('Per contract', `-$${(data.risk / data.contracts).toFixed(2)} / +$${(data.profit / data.contracts).toFixed(2)}`));
+  }
+  // At R:R r, a win rate p breaks even when p * r = 1 - p, so p = 1 / (1 + r).
+  rows.push(calcBreakdownRow('Win rate to break even', data.rr > 0 ? `${(100 / (1 + data.rr)).toFixed(1)}%` : '—'));
+
+  breakdown.innerHTML = rows.join('') + '<div class="calc-hint">Break-even win rate is 1 / (1 + R:R), before fees and commissions.</div>';
+}
+
+// Contract reference table, from the same TICK_SPECS every calculation uses.
+function renderCalcSpecsTable() {
+  const host = document.getElementById('calcSpecsTable');
+  if (!host) return;
+
+  const rows = Object.keys(TICK_SPECS).map(ticker => {
+    const spec = getCalcContractSpec(ticker);
+    return `<tr><th scope="row">${escapeHtml(ticker)}</th><td>${formatCalcNumber(spec.tickSize)}</td><td>$${spec.tickValue.toFixed(2)}</td><td>$${spec.pointValue.toFixed(2)}</td></tr>`;
+  }).join('');
+
+  host.innerHTML = `<table><thead><tr><th scope="col">Contract</th><th scope="col">Tick</th><th scope="col">Tick value</th><th scope="col">Point value</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+// ─── POSITION SIZE ───────────────────────────────────────────
+// Risk for one contract at the stop uses the same formula as the calculators:
+// (stop points / tick size) x tick value. Max contracts rounds down, so the
+// position never risks more than the budget.
+function runPositionSizer() {
+  const ticker = document.getElementById('sizerTicker')?.value || '';
+  const budgetInput = document.getElementById('sizerBudget');
+  const stopInput = document.getElementById('sizerStop');
+  const out = document.getElementById('sizerResult');
+  const main = document.getElementById('sizerContracts');
+  const detail = document.getElementById('sizerDetail');
+  const spec = TICK_SPECS[ticker];
+
+  if (stopInput) stopInput.step = getPriceStepForTicker(ticker);
+  if (!out || !main || !detail) return;
+
+  const budget = parseFloat(budgetInput?.value);
+  const stop = parseFloat(stopInput?.value);
+
+  if (!spec || !(budget > 0) || !(stop > 0)) {
+    out.classList.add('is-idle');
+    out.classList.remove('is-over');
+    main.textContent = '—';
+    detail.textContent = 'Enter a dollar budget and a stop distance.';
+    return;
+  }
+
+  const ticks = Math.round((stop / spec.tickSize) * 1e6) / 1e6;
+  const perContract = Math.round(ticks * spec.tickValue * 100) / 100;
+  const maxContracts = Math.floor(budget / perContract + 1e-9);
+
+  out.classList.remove('is-idle');
+  out.classList.toggle('is-over', maxContracts < 1);
+  main.textContent = String(maxContracts);
+
+  detail.textContent = maxContracts >= 1
+    ? `${maxContracts} × $${perContract.toFixed(2)} = $${(maxContracts * perContract).toFixed(2)} at risk on a ${formatCalcNumber(stop)}-point stop (${formatCalcNumber(ticks)} ticks). One contract risks $${perContract.toFixed(2)}.`
+    : `One ${ticker} contract risks $${perContract.toFixed(2)} on a ${formatCalcNumber(stop)}-point stop, more than your $${formatCalcNumber(budget)} budget.`;
+}
+
+function resetPositionSizer() {
+  const budget = document.getElementById('sizerBudget');
+  const stop = document.getElementById('sizerStop');
+  if (budget) budget.value = '';
+  if (stop) stop.value = '';
+  runPositionSizer();
+}
+
+function initPositionSizer(ticker) {
+  const select = document.getElementById('sizerTicker');
+  if (select && TICK_SPECS[ticker]) select.value = ticker;
+  syncPrettySelects();
+  runPositionSizer();
 }
 
 function runCalc() {
@@ -11262,7 +12029,7 @@ function runCalc() {
   const tp = parseFloat(document.getElementById('calcTP').value);
 
   if (!contracts || isNaN(entry) || isNaN(sl) || isNaN(tp)) {
-    document.getElementById('calcResultsCard').style.display = 'none';
+    renderCalcOutput('pnl', null);
     return;
   }
 
@@ -11276,7 +12043,7 @@ function runCalc() {
   document.getElementById('calcRisk').textContent = `-$${risk.toFixed(2)}`;
   document.getElementById('calcProfit').textContent = `+$${profit.toFixed(2)}`;
   document.getElementById('calcRR').textContent = `${rr.toFixed(2)}R`;
-  document.getElementById('calcResultsCard').style.display = 'block';
+  renderCalcOutput('pnl', { ticker, contracts, entry, sl, tp, slTicks, tpTicks, risk, profit, rr });
 }
 
 function resetCalc() {
@@ -11284,7 +12051,7 @@ function resetCalc() {
   document.getElementById('calcEntry').value = '';
   document.getElementById('calcSL').value = '';
   document.getElementById('calcTP').value = '';
-  document.getElementById('calcResultsCard').style.display = 'none';
+  renderCalcOutput('pnl', null);
 }
 
 function runPointsCalc() {
@@ -11295,7 +12062,7 @@ function runPointsCalc() {
   const tpPoints = parseFloat(document.getElementById('pointsCalcTP').value);
 
   if (!contracts || isNaN(slPoints) || isNaN(tpPoints)) {
-    document.getElementById('pointsCalcResultsCard').style.display = 'none';
+    renderCalcOutput('points', null);
     return;
   }
 
@@ -11309,14 +12076,14 @@ function runPointsCalc() {
   document.getElementById('pointsCalcRisk').textContent = `-$${risk.toFixed(2)}`;
   document.getElementById('pointsCalcProfit').textContent = `+$${profit.toFixed(2)}`;
   document.getElementById('pointsCalcRR').textContent = `${rr.toFixed(2)}R`;
-  document.getElementById('pointsCalcResultsCard').style.display = 'block';
+  renderCalcOutput('points', { ticker, contracts, slTicks, tpTicks, risk, profit, rr });
 }
 
 function resetPointsCalc() {
   document.getElementById('pointsCalcContracts').value = '';
   document.getElementById('pointsCalcSL').value = '';
   document.getElementById('pointsCalcTP').value = '';
-  document.getElementById('pointsCalcResultsCard').style.display = 'none';
+  renderCalcOutput('points', null);
 }
     
     // ─── CALENDAR ───────────────────────────────────────────────
@@ -23449,6 +24216,15 @@ function describeMentorStatus(r) {
   return { pill: 'pending', label: 'Pending', meta: `Emailed ${formatMentorDate(r.invite_last_sent_at)}, expires ${formatMentorDate(r.invite_expires_at)}` };
 }
 
+// One line under each permission switch, so the trader knows what it shares.
+const MENTOR_PERMISSION_HINTS = {
+  canViewTrades: 'Your logged trades and their charts',
+  canViewJournals: 'Your calendar day notes',
+  canComment: 'Comment on your trades and days',
+  canViewPnL: 'Dollar P&L on your trades',
+  canViewAccountNames: 'Your broker account names'
+};
+
 function renderMentorRelationships() {
   const container = document.getElementById('mentorRelationshipsList');
   if (!container) return;
@@ -23461,7 +24237,7 @@ function renderMentorRelationships() {
   );
 
   if (!visible.length) {
-    container.innerHTML = '<div class="mentor-empty">No mentors yet. Send an invite above.</div>';
+    container.innerHTML = '<div class="mentor-empty mentorship-empty"><b>No mentors yet</b><span>Send an invite above. Pending invites and active mentors are listed here.</span></div>';
     return;
   }
 
@@ -23472,9 +24248,9 @@ function renderMentorRelationships() {
 
     const permToggles = Object.entries(MENTOR_PERMISSION_LABELS).map(([key, label]) => `
       <div class="mentor-perm-toggle">
-        <span class="mentor-perm-label">${label}</span>
+        <span class="mentor-perm-label">${label}<small>${escapeHtml(MENTOR_PERMISSION_HINTS[key] || '')}</small></span>
         <label class="prints-mini-switch">
-          <input type="checkbox" ${perms[key] ? 'checked' : ''} onchange="updateMentorPermission('${id}', '${key}', this.checked, this)"/>
+          <input type="checkbox" ${perms[key] ? 'checked' : ''} onchange="updateMentorPermission('${id}', '${key}', this.checked, this)" aria-label="${escapeHtml(label)}"/>
           <span></span>
         </label>
       </div>
@@ -23491,17 +24267,24 @@ function renderMentorRelationships() {
     }
 
     return `
-      <div class="mentor-card">
-        <div class="mentor-card-info">
-          <div class="mentor-card-email">${escapeHtml(r.mentor_email)}</div>
-          <div class="mentor-card-meta">
-            <span class="mentor-status-pill ${status.pill}">${status.label}</span>
-            &nbsp;· ${escapeHtml(status.meta)}
+      <div class="mentor-card mentor-rel is-${status.pill}">
+        <div class="mentor-rel-head">
+          <span class="avatar mentor-rel-avatar" aria-hidden="true">${escapeHtml((String(r.mentor_email || '?').trim().charAt(0) || '?').toUpperCase())}</span>
+          <div class="mentor-card-info">
+            <div class="mentor-card-email">${escapeHtml(r.mentor_email)}</div>
+            <div class="mentor-card-meta">
+              <span class="mentor-status-pill ${status.pill}">${status.label}</span>
+              <span>${escapeHtml(status.meta)}</span>
+            </div>
           </div>
-                    ${r.status === 'active' ? `<div class="mentor-permissions-grid" style="margin-top:14px;">${permToggles}</div>
-          <div class="mentor-card-meta" style="margin-top:10px;">View Trades and View Journals also share the screenshots and images in them, exactly as uploaded. If an image shows your P&amp;L or account name, your mentor will see it even with See PnL or See Account Names off. Your Notes tab is never shared.</div>` : ''}
+          <div class="mentor-card-actions">${actions}</div>
         </div>
-        <div class="mentor-card-actions">${actions}</div>
+        ${r.status === 'active' ? `
+          <div class="mentor-perms">
+            <div class="mentor-perms-title">What this mentor can see and do</div>
+            <div class="mentor-permissions-grid">${permToggles}</div>
+            <div class="mentor-card-meta mentor-perms-note">View Trades and View Journals also share the screenshots and images in them, exactly as uploaded. If an image shows your P&amp;L or account name, your mentor will see it even with See PnL or See Account Names off. Your Notes tab is never shared.</div>
+          </div>` : ''}
       </div>
     `;
   }).join('');
@@ -23857,22 +24640,32 @@ async function renderTraderFeedback() {
   const list = document.getElementById('traderFeedbackList');
   if (!section || !list) return;
 
+  // The section always stays on the page (it is half of the two-column layout).
+  section.style.display = '';
+
   if (!feedback.length) {
-    section.style.display = 'none';
-    list.innerHTML = '';
+    list.innerHTML = '<div class="mentor-empty mentorship-empty"><b>No feedback yet</b><span>When a mentor comments on one of your trades or journal days, it shows up here.</span></div>';
     return;
   }
 
-  section.style.display = 'block';
   list.innerHTML = feedback.map(f => {
     const context = f.trade_id ? describeOwnTrade(f.trade_id) : f.journal_date ? `Journal · ${formatMentorDay(f.journal_date)}` : 'General feedback';
+    const kind = f.trade_id ? 'Trade' : f.journal_date ? 'Journal' : 'General';
+    const from = mentorEmailForRelationship(f.relationship_id);
 
     return `
-      <div class="feedback-item">
+      <article class="feedback-item">
+        <div class="feedback-item-head">
+          <span class="avatar feedback-avatar" aria-hidden="true">${escapeHtml((String(from).trim().charAt(0) || 'M').toUpperCase())}</span>
+          <div class="feedback-item-who">
+            <div class="feedback-item-from">${escapeHtml(from)}</div>
+            <div class="feedback-item-when">${escapeHtml(formatMentorDate(f.created_at))}${f.request_id ? ' · Answered your review request' : ''}</div>
+          </div>
+          <span class="feedback-kind">${escapeHtml(kind)}</span>
+        </div>
         <div class="feedback-item-meta">${escapeHtml(context)}</div>
-        <div class="feedback-item-body" style="white-space:pre-wrap;word-break:break-word;">${escapeHtml(f.comment)}</div>
-        <div style="font-size:12px;color:var(--text2);margin-top:8px;">From ${escapeHtml(mentorEmailForRelationship(f.relationship_id))} · ${escapeHtml(formatMentorDate(f.created_at))}${f.request_id ? ' · Answered your review request' : ''}</div>
-      </div>
+        <div class="feedback-item-body">${escapeHtml(f.comment)}</div>
+      </article>
     `;
   }).join('');
 }
@@ -23902,13 +24695,14 @@ async function renderTraderReviewRequests() {
 
   const requests = await loadTraderReviewRequests();
 
+  // The section always stays on the page (it is half of the two-column layout).
+  section.style.display = '';
+
   if (!requests.length) {
-    section.style.display = 'none';
-    list.innerHTML = '';
+    list.innerHTML = '<div class="mentor-empty mentorship-empty"><b>No review requests</b><span>Use Request Review on a trade or a calendar day to ask an active mentor for feedback.</span></div>';
     return;
   }
 
-  section.style.display = 'block';
   list.innerHTML = requests.map(q => {
     const rel = mentorRelationships.find(r => r.id === q.relationship_id);
     const ended = q.status === 'pending' && rel?.status !== 'active';
@@ -23920,16 +24714,20 @@ async function renderTraderReviewRequests() {
       : '';
 
     return `
-      <div class="mentor-card">
-        <div class="mentor-card-info">
-          <div class="mentor-card-email">${escapeHtml(target)}</div>
-          <div class="mentor-card-meta">
-            <span class="mentor-status-pill ${status.pill}">${escapeHtml(status.label)}</span>
-            &nbsp;· ${escapeHtml(rel?.mentor_email || 'Mentor')} · ${escapeHtml(formatMentorDate(q.created_at))}${detail ? ` · ${escapeHtml(detail)}` : ''}
-          </div>
-          ${q.note_from_trader ? `<div class="mentor-card-meta" style="margin-top:6px;white-space:pre-wrap;word-break:break-word;">"${escapeHtml(q.note_from_trader)}"</div>` : ''}
+      <div class="review-req is-${status.pill}">
+        <span class="review-req-icon" aria-hidden="true">${q.trade_id
+          ? '<svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>'
+          : '<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'}</span>
+        <div class="review-req-main">
+          <div class="review-req-title">${escapeHtml(target)}</div>
+          <div class="review-req-meta"><span>${escapeHtml(rel?.mentor_email || 'Mentor')}</span><span>${escapeHtml(formatMentorDate(q.created_at))}</span></div>
+          ${detail ? `<div class="review-req-detail">${escapeHtml(detail)}</div>` : ''}
+          ${q.note_from_trader ? `<div class="review-req-note">${escapeHtml(q.note_from_trader)}</div>` : ''}
         </div>
-        ${q.status === 'pending' ? `<div class="mentor-card-actions"><button class="btn-secondary" type="button" style="font-size:13px;" onclick="cancelReviewRequest('${escapeHtml(q.id)}', this)">Cancel request</button></div>` : ''}
+        <div class="review-req-side">
+          <span class="mentor-status-pill ${status.pill}">${escapeHtml(status.label)}</span>
+          ${q.status === 'pending' ? `<button class="btn-secondary review-req-cancel" type="button" onclick="cancelReviewRequest('${escapeHtml(q.id)}', this)">Cancel request</button>` : ''}
+        </div>
       </div>
     `;
   }).join('');
@@ -24081,6 +24879,17 @@ async function submitReviewRequest() {
 // ── Mentor Dashboard ──────────────────────────────────────────
 
 let mentorReviewQueue = [];
+// Profiles of the traders you mentor, from the dashboard's existing profiles
+// read (username, avatar_url). The trader view reuses them for its header.
+let mentorTraderProfiles = {};
+
+// An avatar for mentorship lists: the profile photo when it is an https URL,
+// otherwise the name's first letter. Text only goes through escapeHtml.
+function mentorAvatarHtml(profile, name) {
+  const url = typeof profile?.avatar_url === 'string' && /^https:\/\//i.test(profile.avatar_url) ? profile.avatar_url : '';
+  if (url) return `<img src="${escapeHtml(url)}" alt="" loading="lazy" referrerpolicy="no-referrer"/>`;
+  return escapeHtml((String(name || '?').trim().charAt(0) || '?').toUpperCase());
+}
 
 const REVIEW_BLOCKED_TEXT = {
   comment_disabled: 'They turned off feedback from you',
@@ -24116,15 +24925,23 @@ async function loadMentorDashboard() {
   const profileMap = {};
   if (Array.isArray(profiles)) profiles.forEach(p => { profileMap[p.id] = p; });
 
+  mentorTraderProfiles = profileMap;
+
   tradersEl.innerHTML = myMentorships.map(r => {
     const profile = profileMap[r.trader_user_id] || {};
     const username = profile.username || 'Trader';
+    const perms = r.permissions || {};
+    const shared = [perms.canViewJournals ? 'Journal' : '', perms.canViewTrades ? 'Trades' : '', perms.canComment ? 'Feedback' : ''].filter(Boolean);
 
     return `
-      <div class="mentor-trader-card" onclick="openMentorTraderView('${r.trader_user_id}', '${r.id}')">
-        <div class="mentor-trader-name">${escapeHtml(username)}</div>
-                <div class="mentor-trader-meta">Active since ${new Date(r.accepted_at || r.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</div>
-      </div>
+      <button class="mentor-trader-card" type="button" onclick="openMentorTraderView('${r.trader_user_id}', '${r.id}')">
+        <span class="avatar mentor-trader-avatar" aria-hidden="true">${mentorAvatarHtml(profile, username)}</span>
+        <span class="mentor-trader-text">
+          <span class="mentor-trader-name">${escapeHtml(username)}</span>
+          <span class="mentor-trader-meta">Active since ${new Date(r.accepted_at || r.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}${shared.length ? ` · ${escapeHtml(shared.join(', '))}` : ' · Nothing shared yet'}</span>
+        </span>
+        <svg class="mentor-trader-chevron" viewBox="0 0 24 24" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
     `;
   }).join('');
 
@@ -24349,25 +25166,35 @@ function renderMentorTradeCard(t) {
   const hasPnl = Object.prototype.hasOwnProperty.call(t, 'pnl') && t.pnl !== null;
   const pnl = parseFloat(t.pnl) || 0;
   const pnlDisplay = hasPnl ? formatPnl(pnl) : '—';
-  const pnlColor = hasPnl ? (pnl > 0 ? 'var(--success)' : pnl < 0 ? 'var(--danger)' : 'var(--text)') : 'var(--text2)';
+  const pnlClass = hasPnl ? (pnl > 0 ? 'green' : pnl < 0 ? 'red' : 'flat') : 'is-hidden';
   const accountName = t.account_name || '';
   const strategy = t.strategy_name || 'Unknown';
-  const confluenceCount = Array.isArray(t.confluences_used) ? t.confluences_used.length : 0;
+  const confluences = Array.isArray(t.confluences_used) ? t.confluences_used.filter(c => typeof c === 'string' && c.trim()) : [];
+  const result = ['win', 'loss', 'breakeven'].includes(t.result) ? t.result : '';
+  const resultLabel = result === 'breakeven' ? 'be' : result;
+  const direction = typeof normalizeDirection === 'function' ? normalizeDirection(t.direction) : '';
+  const directionText = direction && typeof formatTradeDirection === 'function' ? formatTradeDirection(direction) : '';
+  const meta = [formatMentorDay(t.date), accountName, directionText, t.actual_rr ? `${t.actual_rr}R` : ''].filter(Boolean);
+  const chips = confluences.slice(0, 4).map(c => `<span class="mentee-chip">${escapeHtml(c)}</span>`).join('')
+    + (confluences.length > 4 ? `<span class="mentee-chip is-more">+${confluences.length - 4}</span>` : '');
 
   return `
-    <div class="mentor-review-item" style="margin-bottom:10px;">
-      <div class="mentor-review-item-head">
-        <div>
-          <div class="mentor-review-item-title">${escapeHtml(strategy)}${t.asset ? ` · ${escapeHtml(t.asset)}` : ''}${accountName ? ` · ${escapeHtml(accountName)}` : ''}</div>
-          <div class="mentor-review-item-meta">${escapeHtml(t.date)} · ${escapeHtml(t.result)} · ${confluenceCount} confluences${t.actual_rr ? ` · ${escapeHtml(t.actual_rr)}R` : ''}</div>
+    <article class="mentee-trade${result ? ` is-${result}` : ''}">
+      <div class="mentee-trade-main">
+        <div class="mentee-trade-title">
+          <span class="mentee-trade-strategy">${escapeHtml(strategy)}</span>
+          ${t.asset ? `<span class="mentee-trade-asset">${escapeHtml(t.asset)}</span>` : ''}
+          ${resultLabel ? `<span class="trades-badge ${result}">${escapeHtml(resultLabel)}</span>` : ''}
         </div>
-        <div style="display:flex;align-items:center;gap:12px;">
-          <span style="font-size:15px;font-weight:800;color:${pnlColor};">${pnlDisplay}</span>
-          ${view.perms.canComment ? `<button class="btn-primary" style="font-size:12px;padding:7px 12px;" onclick="openMentorFeedbackModal('${escapeHtml(view.relationshipId)}', '${escapeHtml(view.traderId)}', '${escapeHtml(t.id)}', null, null)">Feedback</button>` : ''}
-        </div>
+        <div class="mentee-trade-meta">${meta.map(m => `<span>${escapeHtml(m)}</span>`).join('')}</div>
+        <div class="mentee-trade-chips">${chips || '<span class="mentee-chip is-empty">No confluences</span>'}</div>
       </div>
-      ${t.notes ? `<div style="font-size:12px;color:var(--text2);margin-top:6px;font-style:italic;white-space:pre-wrap;word-break:break-word;">"${escapeHtml(t.notes)}"</div>` : ''}
-    </div>
+      <div class="mentee-trade-side">
+        <span class="mentee-trade-pnl ${pnlClass}"${hasPnl ? '' : ' title="P&amp;L is not shared with you"'}>${pnlDisplay}</span>
+        ${view.perms.canComment ? `<button class="btn-primary mentee-feedback-btn" type="button" onclick="openMentorFeedbackModal('${escapeHtml(view.relationshipId)}', '${escapeHtml(view.traderId)}', '${escapeHtml(t.id)}', null, null)">Feedback</button>` : ''}
+      </div>
+      ${t.notes ? `<div class="mentee-trade-notes">${escapeHtml(t.notes)}</div>` : ''}
+    </article>
   `;
 }
 
@@ -24453,20 +25280,27 @@ function renderMentorJournalItem(j) {
   const date = escapeHtml(j.date);
   const preview = j.preview || (j.images ? '' : 'No text.');
   const more = (j.chars || 0) > (j.preview || '').length;
-  const images = j.images ? `${preview ? ' · ' : ''}${j.images} image${j.images === 1 ? '' : 's'}` : '';
+  const images = j.images ? `${j.images} image${j.images === 1 ? '' : 's'}` : '';
+  const day = new Date(`${String(j.date || '').slice(0, 10)}T12:00:00`);
+  const valid = !Number.isNaN(day.getTime());
+  const month = valid ? day.toLocaleDateString('en-US', { month: 'short' }) : '';
+  const dayNum = valid ? String(day.getDate()) : '';
+  const weekday = valid ? day.toLocaleDateString('en-US', { weekday: 'short' }) : '';
 
   return `
-    <div class="mentor-review-item" style="margin-bottom:10px;" data-journal-date="${date}">
-      <div class="mentor-review-item-head">
-        <div style="min-width:0;flex:1;">
-          <div class="mentor-review-item-title">Journal — ${date}</div>
-          <div class="mentor-review-item-meta mentor-journal-preview">${escapeHtml(preview)}${more ? '...' : ''}${escapeHtml(images)}</div>
-          <div class="mentor-journal-full" hidden></div>
+    <div class="mentor-review-item mentee-journal" data-journal-date="${date}">
+      <div class="mentee-journal-date" aria-hidden="true"><span>${escapeHtml(month)}</span><b>${escapeHtml(dayNum)}</b><span>${escapeHtml(weekday)}</span></div>
+      <div class="mentee-journal-main">
+        <div class="mentee-journal-head">
+          <div class="mentor-review-item-title">${escapeHtml(formatMentorDay(j.date) || j.date)}</div>
+          ${images ? `<span class="mentee-chip">${escapeHtml(images)}</span>` : ''}
         </div>
-        <div style="display:flex;gap:8px;flex-shrink:0;">
-          <button class="btn-secondary" type="button" style="font-size:12px;padding:7px 12px;" onclick="toggleMentorJournal('${date}', this)">Read</button>
-          ${view.perms.canComment ? `<button class="btn-primary" style="font-size:12px;padding:7px 12px;" onclick="openMentorFeedbackModal('${escapeHtml(view.relationshipId)}', '${escapeHtml(view.traderId)}', null, '${date}', null)">Feedback</button>` : ''}
-        </div>
+        <div class="mentor-review-item-meta mentor-journal-preview">${escapeHtml(preview)}${more ? '...' : ''}</div>
+        <div class="mentor-journal-full" hidden></div>
+      </div>
+      <div class="mentee-journal-actions">
+        <button class="btn-secondary" type="button" onclick="toggleMentorJournal('${date}', this)">Read</button>
+        ${view.perms.canComment ? `<button class="btn-primary" type="button" onclick="openMentorFeedbackModal('${escapeHtml(view.relationshipId)}', '${escapeHtml(view.traderId)}', null, '${date}', null)">Feedback</button>` : ''}
       </div>
     </div>
   `;
@@ -27311,6 +28145,188 @@ setTimeout(enhanceAllSelects, 0);
       msg.style.scrollMarginBottom = `${footerHeight + 12}px`;
       msg.scrollIntoView({ block: 'nearest' });
     }).observe(msg, { childList: true, characterData: true, subtree: true });
+  });
+
+  // ── Mentor View: mentee workspace ────────────────────────────────
+  // Journal Notes and Recent Trades are collapsible panels. Their content is
+  // already loaded when a mentee opens; opening a panel only shows it, so it
+  // never triggers another request. Both start collapsed for every mentee.
+  function setMenteeSection(section, open) {
+    if (!section) return;
+    section.classList.toggle('is-open', open);
+    const head = section.querySelector('.mentee-acc-head');
+    if (head) head.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+
+  window.tpToggleMenteeSection = function (btn) {
+    const section = btn && btn.closest('.mentee-acc');
+    if (section) setMenteeSection(section, !section.classList.contains('is-open'));
+  };
+
+  function syncMenteeCount(listId, countId, itemSelector, moreId) {
+    const list = document.getElementById(listId);
+    const count = document.getElementById(countId);
+    if (!list || !count) return;
+    const n = list.querySelectorAll(`:scope > ${itemSelector}`).length;
+    const more = !!document.getElementById(moreId);
+    count.textContent = n ? `${n}${more ? '+' : ''}` : '';
+    count.title = n ? `${n}${more ? ' loaded, more available' : ''}` : '';
+  }
+
+  function syncMenteeCounts() {
+    syncMenteeCount('mentorViewJournalsList', 'mentorViewJournalsCount', '.mentee-journal', 'mentorViewJournalsMore');
+    syncMenteeCount('mentorViewTradesList', 'mentorViewTradesCount', '.mentee-trade', 'mentorViewTradesMore');
+  }
+
+  const MENTEE_ACCESS_ROWS = [
+    ['canViewJournals', 'Journal notes'],
+    ['canViewTrades', 'Trades and charts'],
+    ['canComment', 'Leave feedback'],
+    ['canViewPnL', 'Dollar P&L'],
+    ['canViewAccountNames', 'Account names']
+  ];
+
+  function renderMenteeHeaderExtras() {
+    const view = typeof mentorTraderView !== 'undefined' ? mentorTraderView : null;
+    if (!view || !view.relationshipId) return;
+    const perms = view.perms || {};
+
+    // Avatar: the profile photo from the dashboard's profiles read, else the first letter.
+    const avatar = document.getElementById('mentorViewAvatar');
+    if (avatar) {
+      const profile = typeof mentorTraderProfiles !== 'undefined' ? mentorTraderProfiles[view.traderId] : null;
+      const name = (document.getElementById('mentorViewTraderTitle') || {}).textContent || '?';
+      const url = profile && typeof profile.avatar_url === 'string' && /^https:\/\//i.test(profile.avatar_url) ? profile.avatar_url : '';
+      avatar.textContent = '';
+      if (url) {
+        const img = document.createElement('img');
+        img.alt = '';
+        img.referrerPolicy = 'no-referrer';
+        img.src = url;
+        img.addEventListener('error', () => { avatar.textContent = (name.trim().charAt(0) || '?').toUpperCase(); });
+        avatar.appendChild(img);
+      } else {
+        avatar.textContent = (name.trim().charAt(0) || '?').toUpperCase();
+      }
+    }
+
+    const list = document.getElementById('mentorViewAccess');
+    if (list) {
+      list.textContent = '';
+      MENTEE_ACCESS_ROWS.forEach(([key, label]) => {
+        const on = perms[key] === true;
+        const li = h('li', on ? 'is-on' : 'is-off');
+        li.appendChild(icon(on
+          ? [['polyline', { points: '20 6 9 17 4 12' }]]
+          : [['line', { x1: 18, y1: 6, x2: 6, y2: 18 }], ['line', { x1: 6, y1: 6, x2: 18, y2: 18 }]]));
+        li.appendChild(h('span', '', label));
+        li.appendChild(h('small', '', on ? 'Shared' : 'Not shared'));
+        list.appendChild(li);
+      });
+    }
+
+    const since = document.getElementById('mentorViewSince');
+    if (since) {
+      const rel = typeof myMentorships !== 'undefined' && Array.isArray(myMentorships) ? myMentorships.find(r => r.id === view.relationshipId) : null;
+      const when = rel && (rel.accepted_at || rel.created_at);
+      since.textContent = when ? `Mentoring since ${new Date(when).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}` : '';
+    }
+
+    const noAccess = document.getElementById('mentorViewNoAccess');
+    if (noAccess) noAccess.hidden = !!(perms.canViewTrades || perms.canViewJournals);
+    syncMenteeCounts();
+  }
+
+  function resetMenteeHeader() {
+    ['mentorViewJournalsSection', 'mentorViewTradesSection'].forEach(id => setMenteeSection(document.getElementById(id), false));
+    const avatar = document.getElementById('mentorViewAvatar');
+    if (avatar) avatar.textContent = '?';
+    ['mentorViewAccess', 'mentorViewSince', 'mentorViewJournalsCount', 'mentorViewTradesCount'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = '';
+    });
+    const noAccess = document.getElementById('mentorViewNoAccess');
+    if (noAccess) noAccess.hidden = true;
+  }
+
+  if (typeof openMentorTraderView === 'function') {
+    const baseOpenMentorTraderView = openMentorTraderView;
+    openMentorTraderView = async function () {
+      safe('mentee reset', resetMenteeHeader);
+      const out = await baseOpenMentorTraderView.apply(this, arguments);
+      safe('mentee header', renderMenteeHeaderExtras);
+      return out;
+    };
+  }
+
+  safe('mentee counts', () => {
+    ['mentorViewJournalsList', 'mentorViewTradesList'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) new MutationObserver(syncMenteeCounts).observe(el, { childList: true });
+    });
+  });
+
+  // ── Mentorship page: section counts ──────────────────────────────
+  safe('mentorship counts', () => {
+    const watch = (listId, countId, selector) => {
+      const list = document.getElementById(listId);
+      const count = document.getElementById(countId);
+      if (!list || !count) return;
+      const sync = () => {
+        const n = list.querySelectorAll(selector).length;
+        count.textContent = n ? String(n) : '';
+      };
+      new MutationObserver(sync).observe(list, { childList: true });
+      sync();
+    };
+    watch('mentorRelationshipsList', 'mentorListCount', ':scope > .mentor-rel');
+    watch('traderFeedbackList', 'mentorFeedbackCount', ':scope > .feedback-item');
+    watch('traderReviewRequestsList', 'reviewRequestsCount', ':scope > .review-req');
+  });
+
+  // ── Settings: saved defaults summary + trading rules summary ──────
+  function renderSavedTradeDefaults() {
+    const host = document.getElementById('settingsSavedDefaults');
+    if (!host || typeof getSavedTradeDefaults !== 'function') return;
+    const saved = getSavedTradeDefaults();
+    const strategies = typeof allStrategies !== 'undefined' && Array.isArray(allStrategies) ? allStrategies : [];
+    const strategy = strategies.find(s => s.id === saved.strategyId);
+    const typeOk = typeof TRADE_TYPES !== 'undefined' && Array.isArray(TRADE_TYPES) && TRADE_TYPES.includes(saved.tradeType);
+    const rows = [
+      ['Strategy', strategy ? strategy.name : 'You choose each time', !!strategy],
+      ['Trade type', typeOk ? saved.tradeType : 'You choose each time', typeOk]
+    ];
+    host.textContent = '';
+    rows.forEach(([label, value, set]) => {
+      const row = h('div', `settings-saved-row${set ? ' is-set' : ''}`);
+      row.appendChild(h('span', '', label));
+      row.appendChild(h('b', '', value));
+      host.appendChild(row);
+    });
+  }
+
+  ['syncTradeDefaultsInputs', 'saveTradeDefaults'].forEach(name => {
+    const base = window[name];
+    if (typeof base !== 'function') return;
+    window[name] = function () {
+      const out = base.apply(this, arguments);
+      safe('saved defaults', renderSavedTradeDefaults);
+      return out;
+    };
+  });
+  safe('saved defaults (initial)', renderSavedTradeDefaults);
+
+  safe('trading rules summary', () => {
+    const list = document.getElementById('tradingRulesList');
+    const summary = document.getElementById('tradingRulesSummary');
+    if (!list || !summary) return;
+    const sync = () => {
+      const all = list.querySelectorAll(':scope > .trading-rule-item').length;
+      const on = list.querySelectorAll(':scope > .trading-rule-item:not(.disabled)').length;
+      summary.textContent = all ? `${all} rule${all === 1 ? '' : 's'} · ${on} on` : 'Hold yourself accountable';
+    };
+    new MutationObserver(sync).observe(list, { childList: true });
+    sync();
   });
 
   // ── keyboard: nav rows are focusable; Enter/Space activates them ─
