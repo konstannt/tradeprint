@@ -1169,7 +1169,6 @@ input:checked + .slider::before, .prints-mini-switch input:checked + span::befor
   overflow-y: auto;
   overflow-x: hidden;
   padding: 26px 34px 56px;
-  scroll-behavior: smooth;
 }
 
 .page { display: none; width: 100%; max-width: 1480px; margin: 0 auto; }
@@ -5296,6 +5295,79 @@ body.light .prop-modal-box input[type="date"]::-webkit-calendar-picker-indicator
 @media (max-width: 768px) {
   .trades-search { flex: 1 1 100%; max-width: none; }
 }
+
+/* =====================================================================
+   POLISH FIXES
+   ===================================================================== */
+
+/* Modal messages sit inside the sticky footer, on their own row above the
+   actions, so validation and status text is always on screen */
+.modal-footer { flex-wrap: wrap; }
+.modal-footer > .modal-msg { order: -1; flex: 1 1 100%; margin: 0; min-height: 0; line-height: 1.45; }
+.modal-footer > .modal-msg:empty { display: none; }
+.modal-footer > .modal-msg.error,
+.modal-footer > .modal-msg.success {
+  padding: 8px 12px;
+  border-radius: var(--r-md);
+  border: 1px solid transparent;
+}
+.modal-footer > .modal-msg.error { color: var(--danger); background: var(--neg-soft); border-color: var(--neg-line); }
+.modal-footer > .modal-msg.success { color: var(--success); background: var(--pos-soft); border-color: var(--pos-line); }
+
+/* Trades pagination */
+#page-trades .trades-toolbar { scroll-margin-top: 16px; }
+
+.trades-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  margin-top: 12px;
+  padding: 0 2px;
+}
+
+.trades-pagination-info { font-size: var(--fs-sm); color: var(--text2); font-variant-numeric: tabular-nums; }
+.trades-pagination-info b { color: var(--text); font-weight: 600; }
+.trades-pagination-controls { display: flex; align-items: center; gap: 6px; }
+.trades-page-list { display: flex; align-items: center; gap: 4px; }
+
+.trades-page-btn {
+  min-width: 34px;
+  height: 34px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text2);
+  font: inherit;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+
+.trades-page-btn:hover:not(:disabled):not(.is-current) { color: var(--text); border-color: var(--line-strong); background: var(--raised); }
+.trades-page-btn.is-current { background: var(--accent); border-color: var(--accent); color: #fff; cursor: default; box-shadow: var(--btn-sheen); }
+.trades-page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.trades-page-step svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.trades-page-gap { min-width: 18px; text-align: center; color: var(--text-3); font-size: var(--fs-md); user-select: none; }
+
+@media (max-width: 768px) {
+  #page-trades .trades-toolbar { scroll-margin-top: 70px; }
+  .trades-pagination { flex-direction: column; align-items: stretch; gap: 10px; }
+  .trades-pagination-info { text-align: center; }
+  .trades-pagination-controls { justify-content: space-between; gap: 4px; }
+  .trades-page-list { gap: 2px; }
+  .trades-page-btn { min-width: 32px; height: 38px; padding: 0 8px; }
+  .trades-page-step { min-width: 38px; padding: 0; }
+  .trades-page-step span { display: none; }
+}
   </style>
 </head>
 <body id="body">
@@ -5329,10 +5401,10 @@ body.light .prop-modal-box input[type="date"]::-webkit-calendar-picker-indicator
         <div style="font-size:12px;color:var(--text2);">Press Enter or click Add to add each confluence.</div>
       </div>
       <div class="modal-footer">
+        <div class="modal-msg" id="strategyMsg" aria-live="polite"></div>
         <button class="btn-secondary" onclick="closeStrategyModal()">Cancel</button>
         <button class="btn-primary" onclick="saveStrategy()">Save Strategy</button>
       </div>
-      <div class="modal-msg" id="strategyMsg"></div>
     </div>
   </div>
 
@@ -5669,13 +5741,12 @@ body.light .prop-modal-box input[type="date"]::-webkit-calendar-picker-indicator
 
             <div class="trade-rule-warning" id="tradeRuleWarning"></div>
       <div class="modal-footer log-trade-footer">
+  <div class="modal-msg" id="tradeMsg" aria-live="polite"></div>
   <div class="log-trade-actions">
     <button class="btn-secondary" onclick="closeLogTrade()">Cancel</button>
     <button class="btn-primary" id="saveTradeBtn" onclick="saveTrade()">Save Trade</button>
   </div>
 </div>
-
-      <div class="modal-msg" id="tradeMsg"></div>
     </div>
   </div>
 
@@ -5802,10 +5873,10 @@ body.light .prop-modal-box input[type="date"]::-webkit-calendar-picker-indicator
       <textarea id="reviewRequestNote" placeholder="What do you want feedback on?" style="width:100%;min-height:80px;padding:10px 14px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;resize:vertical;font-family:inherit;"></textarea>
     </div>
     <div class="modal-footer">
+      <div class="modal-msg" id="reviewRequestMsg" aria-live="polite"></div>
       <button class="btn-secondary" onclick="closeReviewRequestModal()">Cancel</button>
       <button class="btn-primary" onclick="submitReviewRequest()">Send Request</button>
     </div>
-    <div class="modal-msg" id="reviewRequestMsg"></div>
   </div>
 </div>
 
@@ -5821,10 +5892,10 @@ body.light .prop-modal-box input[type="date"]::-webkit-calendar-picker-indicator
       <textarea id="mentorFeedbackText" placeholder="Write your feedback, observations, or suggestions..." style="width:100%;min-height:120px;padding:10px 14px;font-size:14px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;resize:vertical;font-family:inherit;"></textarea>
     </div>
     <div class="modal-footer">
+      <div class="modal-msg" id="mentorFeedbackMsg" aria-live="polite"></div>
       <button class="btn-secondary" onclick="closeMentorFeedbackModal()">Cancel</button>
       <button class="btn-primary" onclick="submitMentorFeedback()">Submit Feedback</button>
     </div>
-    <div class="modal-msg" id="mentorFeedbackMsg"></div>
   </div>
 </div>
   
@@ -5845,8 +5916,8 @@ body.light .prop-modal-box input[type="date"]::-webkit-calendar-picker-indicator
         <button class="modal-close" onclick="closePropModal()">×</button>
       </div>
       <div id="propModalBody"></div>
+      <div class="modal-msg" id="propModalMsg" aria-live="polite"></div>
       <div class="modal-footer" id="propModalFooter"></div>
-      <div class="modal-msg" id="propModalMsg"></div>
     </div>
   </div>
   
@@ -5902,13 +5973,13 @@ body.light .prop-modal-box input[type="date"]::-webkit-calendar-picker-indicator
       </div>
 
       <div class="modal-footer trade-recap-footer">
+        <div class="modal-msg" id="tradeRecapMsg" aria-live="polite"></div>
         <div class="trade-recap-footer-meta" id="tradeRecapMeta"></div>
         <div class="trade-recap-footer-actions">
           <button class="btn-secondary" type="button" onclick="closeTradeRecapModal()">Close</button>
           <button class="btn-primary" type="button" id="tradeRecapDownloadBtn" onclick="downloadTradeRecapImage()" disabled>Download Image</button>
         </div>
       </div>
-      <div class="modal-msg" id="tradeRecapMsg"></div>
     </div>
   </div>
   
@@ -10948,11 +11019,20 @@ async function showPage(name, el) {
     name = 'pro';
   }
 
+  const previousPage = document.querySelector('.page.active');
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item, .settings-row').forEach(n => n.classList.remove('active'));
 
   const page = document.getElementById('page-' + name);
   if (page) page.classList.add('active');
+
+  // A different main tab always opens at the top. .main is the app's scroll
+  // container (the body itself never scrolls). Reset in the same task as the
+  // page switch, so the new page is never painted at the old position.
+  if (page && page !== previousPage) {
+    const main = document.querySelector('.main');
+    if (main) main.scrollTop = 0;
+  }
 
   if (el) el.classList.add('active');
   if (tok !== pageSwitchToken) return;
@@ -11729,23 +11809,8 @@ async function uploadNoteImage(file, folder = 'notes', options = {}) {
   document.getElementById('dayModal').classList.add('active');
   renderDayEconPreview(dateStr);
 
-// Inject review request button into day modal header if trader has active mentors.
-// Mentorship is Tradeprint Pro, so free users never get this button.
-const activeMentors = hasPro ? mentorRelationships.filter(r => canMentorReview(r, 'journal')) : [];
-const existingReviewBtn = document.getElementById('dayModalReviewBtn');
-if (existingReviewBtn) existingReviewBtn.remove();
-if (activeMentors.length) {
-  const dayModalActions = document.getElementById('dayModalHeaderActions');
-  if (dayModalActions) {
-    const btn = document.createElement('button');
-    btn.id = 'dayModalReviewBtn';
-    btn.className = 'review-request-btn';
-    btn.title = 'Request mentor review for this day';
-    btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Request Review`;
-    btn.onclick = () => openReviewRequestModal('journal', dateStr);
-    dayModalActions.insertBefore(btn, dayModalActions.querySelector('.day-modal-share'));
-  }
-}
+// Request Review button (only with an active mentor who can review this day).
+syncDayModalReviewButton();
       
   await nextFrame();
 
@@ -14340,6 +14405,94 @@ function clearTradeFilters() {
         <div class="stat-card"><div class="stat-label">Avg Hold Time</div><div class="stat-value">${formatHoldDuration(holdStats.avgAll)}</div></div>` : ''}`;
     }
 
+    // ─── TRADES PAGINATION ────────────────────────────────────────
+// filterTrades() filters and sorts the full list into filteredTrades (stats use
+// all of it). renderTradesList() then renders only the current page's 50 rows.
+// Changing any filter, the sort, the search or the selected accounts goes back
+// to page 1; anything else (edit, delete, reload) keeps the page, clamped to
+// the last page that still exists.
+const TRADES_PAGE_SIZE = 50;
+let tradesPage = 1;
+let tradesPageSignature = null;
+
+function getTradesFilterSignature() {
+  const val = id => String(document.getElementById(id)?.value || '');
+  return JSON.stringify([
+    val('filterStrategy'), val('filterResult'), val('filterType'), val('filterDirection'), val('filterSort'),
+    val('filterSearch').trim().toLowerCase(),
+    Array.isArray(activeAccountIds) ? activeAccountIds.join(',') : ''
+  ]);
+}
+
+function getTradesPageInfo() {
+  const total = filteredTrades.length;
+  const pageCount = Math.max(1, Math.ceil(total / TRADES_PAGE_SIZE));
+  const signature = getTradesFilterSignature();
+
+  if (signature !== tradesPageSignature) {
+    tradesPageSignature = signature;
+    tradesPage = 1;
+  }
+
+  tradesPage = Math.min(Math.max(1, tradesPage), pageCount);
+  const start = (tradesPage - 1) * TRADES_PAGE_SIZE;
+  return { page: tradesPage, pageCount, total, start, end: Math.min(start + TRADES_PAGE_SIZE, total) };
+}
+
+// Compact page list: every page up to 7, otherwise first, last and the pages
+// around the current one, with gaps marked.
+function getTradesPageList(current, count) {
+  if (count <= 7) return Array.from({ length: count }, (_, i) => i + 1);
+  const pages = new Set([1, count, current - 1, current, current + 1]);
+  if (current <= 3) [2, 3, 4].forEach(p => pages.add(p));
+  if (current >= count - 2) [count - 1, count - 2, count - 3].forEach(p => pages.add(p));
+  const sorted = Array.from(pages).filter(p => p >= 1 && p <= count).sort((a, b) => a - b);
+  const out = [];
+  sorted.forEach((p, i) => {
+    if (i && p - sorted[i - 1] > 1) out.push('gap');
+    out.push(p);
+  });
+  return out;
+}
+
+function renderTradesPagination(info) {
+  const from = info.total ? info.start + 1 : 0;
+  const summary = `<div class="trades-pagination-info">Showing <b>${from}–${info.end}</b> of <b>${info.total}</b> trade${info.total === 1 ? '' : 's'}</div>`;
+  if (info.pageCount <= 1) return `<nav class="trades-pagination is-single" aria-label="Trades pages">${summary}</nav>`;
+
+  const pageButtons = getTradesPageList(info.page, info.pageCount).map(p => p === 'gap'
+    ? '<span class="trades-page-gap" aria-hidden="true">…</span>'
+    : `<button class="trades-page-btn${p === info.page ? ' is-current' : ''}" type="button" onclick="goToTradesPage(${p})" aria-label="Page ${p}"${p === info.page ? ' aria-current="page"' : ''}>${p}</button>`
+  ).join('');
+
+  return `<nav class="trades-pagination" aria-label="Trades pages">
+    ${summary}
+    <div class="trades-pagination-controls">
+      <button class="trades-page-btn trades-page-step" type="button" onclick="goToTradesPage(${info.page - 1})" aria-label="Previous page"${info.page <= 1 ? ' disabled' : ''}><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg><span>Previous</span></button>
+      <div class="trades-page-list">${pageButtons}</div>
+      <button class="trades-page-btn trades-page-step" type="button" onclick="goToTradesPage(${info.page + 1})" aria-label="Next page"${info.page >= info.pageCount ? ' disabled' : ''}><span>Next</span><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></button>
+    </div>
+  </nav>`;
+}
+
+// Page change: re-slices the already filtered and sorted list. No refiltering,
+// no stats recalculation.
+function goToTradesPage(page) {
+  const pageCount = Math.max(1, Math.ceil(filteredTrades.length / TRADES_PAGE_SIZE));
+  const next = Math.min(Math.max(1, Math.floor(Number(page)) || 1), pageCount);
+  if (next === tradesPage) return;
+
+  tradesPage = next;
+  renderTradesList();
+
+  const toolbar = document.querySelector('#page-trades .trades-toolbar');
+  const main = document.querySelector('.main');
+  const margin = toolbar ? parseFloat(getComputedStyle(toolbar).scrollMarginTop) || 0 : 0;
+  if (toolbar && main && toolbar.getBoundingClientRect().top < main.getBoundingClientRect().top + margin) {
+    toolbar.scrollIntoView({ block: 'start' });
+  }
+}
+
     function renderTradesList() {
   const container = document.getElementById('tradesListContainer');
 
@@ -14350,7 +14503,8 @@ function clearTradeFilters() {
 
   const dash = '<span class="trade-cell-empty">—</span>';
 
-  const rows = filteredTrades.map(t => {
+  const pageInfo = getTradesPageInfo();
+  const rows = filteredTrades.slice(pageInfo.start, pageInfo.end).map(t => {
     const hasPnl = t.pnl !== null && t.pnl !== undefined && t.pnl !== '';
     const pnl = hasPnl ? (parseFloat(t.pnl) || 0) : 0;
     const pnlColor = pnl > 0 ? 'var(--success)' : pnl < 0 ? 'var(--danger)' : 'var(--text)';
@@ -14455,7 +14609,7 @@ const strategy = t.strategies?.name || '';
       <div></div>
     </div>
     ${rows}
-  </div>`;
+  </div>${renderTradesPagination(pageInfo)}`;
 }
 
     async function openEditTradeFromList(id) { logFromPage = true; await openEditTrade(id); }
@@ -19761,20 +19915,9 @@ function handleCalendarNewsPointerUp(event) {
 // ── day modal: header pill + compact news strip ────────────────
 const ECON_STRIP_MAX_INLINE = 3; // more events than this always collapse to "News · N events"
 
+// The day's news shows as the strip under the day header (it opens the Economic
+// News modal). There is no separate news pill in the day modal header.
 function ensureEconDayModalNodes() {
-  let btn = document.getElementById('dayModalNewsBtn');
-  if (!btn) {
-    const actions = document.getElementById('dayModalHeaderActions');
-    if (!actions) return null;
-    btn = document.createElement('button');
-    btn.type = 'button';
-    btn.id = 'dayModalNewsBtn';
-    btn.className = 'econ-news-btn';
-    btn.style.display = 'none';
-    btn.setAttribute('aria-label', 'Economic news for this day');
-    btn.addEventListener('click', e => { e.stopPropagation(); openEconModalForDay(); });
-    actions.insertBefore(btn, actions.firstElementChild);
-  }
   let block = document.getElementById('dayEconBlock');
   if (!block) {
     const banner = document.getElementById('dayRuleBanner');
@@ -19787,7 +19930,7 @@ function ensureEconDayModalNodes() {
     block.addEventListener('click', e => { e.stopPropagation(); openEconModalForDay(); });
     banner.insertAdjacentElement('afterend', block);
   }
-  return { btn, block };
+  return { block };
 }
 
 function renderEconStripEvent(ev) {
@@ -19819,13 +19962,10 @@ async function renderDayEconPreview(dateStr, options = {}) {
     if (econDayModalDate !== dateStr) return;
     const events = getEconEventsForDate(dateStr);
     if (!events.length) {
-      nodes.btn.style.display = 'none';
       nodes.block.style.display = 'none';
       nodes.block.innerHTML = '';
       return;
     }
-    nodes.btn.style.display = 'inline-flex';
-    nodes.btn.innerHTML = `${ECON_NEWS_ICON}<span class="econ-news-btn-long">${econEscape(getEconNewsButtonLabel(events))}</span><span class="econ-news-btn-short">News ${events.length}</span>`;
 
     const countText = `${events.length} event${events.length === 1 ? '' : 's'}`;
     const inline = events.length <= ECON_STRIP_MAX_INLINE;
@@ -23628,6 +23768,37 @@ function canMentorReview(rel, kind) {
 // Shows the Request Review buttons on trades when a mentor can review trades.
 function updateTradeReviewAvailability() {
   document.body.classList.toggle('tp-trade-reviews', !!hasPro && mentorRelationships.some(r => canMentorReview(r, 'trade')));
+  syncDayModalReviewButton();
+}
+
+// Request Review in the day modal header. Shown only while the signed-in trader
+// has at least one active, linked mentor who can review a journal day (the same
+// canMentorReview() rule the review request itself enforces; Mentorship is Pro).
+// No active mentor, only pending invites, or every mentor revoked: no button.
+// Runs when a day opens and whenever mentor data changes (loaded, permissions
+// changed, access revoked), so the button never lingers or appears early.
+function syncDayModalReviewButton() {
+  const actions = document.getElementById('dayModalHeaderActions');
+  const existing = document.getElementById('dayModalReviewBtn');
+  const dateStr = selectedDate;
+  const dayOpen = !!document.getElementById('dayModal')?.classList.contains('active');
+  const eligible = !!hasPro && Array.isArray(mentorRelationships) && mentorRelationships.some(r => canMentorReview(r, 'journal'));
+
+  if (!actions || !dateStr || !dayOpen || !eligible) {
+    if (existing) existing.remove();
+    return;
+  }
+
+  const btn = existing || document.createElement('button');
+  if (!existing) {
+    btn.id = 'dayModalReviewBtn';
+    btn.type = 'button';
+    btn.className = 'review-request-btn';
+    btn.title = 'Request mentor review for this day';
+    btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Request Review`;
+    actions.insertBefore(btn, actions.querySelector('.day-modal-share'));
+  }
+  btn.onclick = () => openReviewRequestModal('journal', dateStr);
 }
 
 function renderTradeReviewButton(tradeId) {
@@ -26431,17 +26602,18 @@ setTimeout(enhanceAllSelects, 0);
   }
 
   function safe(label, fn) {
-    try { return fn(); } catch (err) { console.warn(`[UI] ${label} failed:`, err); }
+    try { return fn(); } catch (err) { console.error(`[Tradeprint UI] ${label} failed:`, err); }
     return undefined;
   }
 
   // ── line chart (equity style) ───────────────────────────────────
   // values[0] is the 0 baseline; values[i] is the running total after point i.
   function drawLineChart(host, values, opts) {
-    host.textContent = '';
     const w = host.clientWidth;
     const hgt = host.clientHeight;
     if (!w || !hgt || values.length < 2) return null;
+    host.textContent = '';
+    host.classList.remove('is-hovering');
 
     const padL = opts.padL || 52;
     const padR = 8;
@@ -26536,17 +26708,57 @@ setTimeout(enhanceAllSelects, 0);
     return { show, hide };
   }
 
-  function watchSize(host, redraw) {
-    if (!host || host._tpObserved || typeof ResizeObserver !== 'function') return;
-    host._tpObserved = true;
-    let lastW = host.clientWidth;
-    new ResizeObserver(() => {
-      const wNow = host.clientWidth;
-      if (wNow && wNow !== lastW) {
-        lastW = wNow;
-        redraw();
-      }
-    }).observe(host);
+  // ── chart lifecycle ─────────────────────────────────────────────
+  // Charts are drawn at their container's real pixel size. A container on a
+  // page that is not showing measures 0x0, so a draw requested then (a trade
+  // saved or the account switched from another tab) is parked as pending and
+  // the container is left untouched. One shared ResizeObserver paints a chart
+  // when its container becomes measurable with a pending draw, or when its
+  // width or height actually changes (window resize, mobile breakpoint).
+  const chartHosts = new Map(); // container -> { draw, pending, w, h }
+  const chartObserver = typeof ResizeObserver === 'function'
+    ? new ResizeObserver(entries => {
+      entries.forEach(entry => {
+        const host = entry.target;
+        const st = chartHosts.get(host);
+        if (!st || !host.isConnected) return;
+        const w = host.clientWidth;
+        const hh = host.clientHeight;
+        if (!w || !hh) return;
+        if (st.pending || w !== st.w || hh !== st.h) paintChart(host, st);
+      });
+    })
+    : null;
+
+  function paintChart(host, st) {
+    st.pending = false;
+    st.w = host.clientWidth;
+    st.h = host.clientHeight;
+    try {
+      st.draw(host);
+    } catch (err) {
+      console.error(`[Tradeprint UI] chart "${host.id || host.className}" failed to draw:`, err);
+      host.onpointermove = host.onpointerdown = host.onpointerleave = null;
+      host.textContent = '';
+      host.appendChild(h('div', 'dash-equity-empty', 'This chart could not be drawn. Refresh the page to try again.'));
+    }
+  }
+
+  function requestChart(host, draw) {
+    if (!host) return;
+    let st = chartHosts.get(host);
+    if (!st) {
+      st = { draw, pending: true, w: 0, h: 0 };
+      chartHosts.set(host, st);
+      if (chartObserver) chartObserver.observe(host);
+    }
+    st.draw = draw;
+    if (host.clientWidth && host.clientHeight) paintChart(host, st);
+    else st.pending = true;
+  }
+
+  function releaseChart(host) {
+    if (host && chartHosts.delete(host) && chartObserver) chartObserver.unobserve(host);
   }
 
   // ── page titles: "Tradeprint | Page" ────────────────────────────
@@ -26564,8 +26776,18 @@ setTimeout(enhanceAllSelects, 0);
     if (document.title !== title) document.title = title;
   }
 
+  let lastActivePageId = (document.querySelector('.page.active') || {}).id || '';
+
+  function onPageChange() {
+    syncDocumentTitle();
+    const activeId = (document.querySelector('.page.active') || {}).id || '';
+    if (activeId === lastActivePageId) return;
+    lastActivePageId = activeId;
+    if (activeId === 'page-dashboard') safe('dashboard refresh', refreshDashboardIfStale);
+  }
+
   safe('page titles', () => {
-    const observer = new MutationObserver(syncDocumentTitle);
+    const observer = new MutationObserver(onPageChange);
     document.querySelectorAll('.page').forEach(page => observer.observe(page, { attributes: true, attributeFilter: ['class'] }));
     syncDocumentTitle();
   });
@@ -26616,8 +26838,7 @@ setTimeout(enhanceAllSelects, 0);
     ]);
   }
 
-  function drawEquity() {
-    const host = document.getElementById('dashEquityChart');
+  function drawEquity(host) {
     if (!host || !equityState) return;
 
     if (!equityState.points.length) {
@@ -26691,8 +26912,7 @@ setTimeout(enhanceAllSelects, 0);
     }
 
     defaultEquityReadout();
-    drawEquity();
-    watchSize(document.getElementById('dashEquityChart'), drawEquity);
+    requestChart(document.getElementById('dashEquityChart'), drawEquity);
   }
 
   function kv(label, value, cls) {
@@ -26769,13 +26989,25 @@ setTimeout(enhanceAllSelects, 0);
     safe('performance profile', () => renderProfile(trades));
   }
 
+  // The list the dashboard last rendered from. Some paths (deleting a trade
+  // from Trades or a calendar day) replace allTrades without re-rendering the
+  // dashboard; when the Dashboard is shown again with a different list, it
+  // re-renders once with the app's own renderDashboard().
+  let dashboardRenderedFrom = null;
+
   if (typeof renderDashboard === 'function') {
     const baseRenderDashboard = renderDashboard;
     renderDashboard = function () {
       const out = baseRenderDashboard.apply(this, arguments);
+      dashboardRenderedFrom = typeof allTrades !== 'undefined' ? allTrades : null;
       renderDashboardEnhancements();
       return out;
     };
+  }
+
+  function refreshDashboardIfStale() {
+    if (typeof tradesLoaded === 'undefined' || !tradesLoaded || typeof allTrades === 'undefined') return;
+    if (allTrades !== dashboardRenderedFrom && typeof renderDashboard === 'function') renderDashboard();
   }
 
   // ── calendar: today, heat tint, month review ────────────────────
@@ -26822,8 +27054,7 @@ setTimeout(enhanceAllSelects, 0);
     nodes.forEach(part => el.append(part));
   }
 
-  function drawMonthChart() {
-    const host = document.getElementById('calReviewChart');
+  function drawMonthChart(host) {
     if (!host || !monthChartState) return;
     const st = monthChartState;
     const n = st.values.length - 1;
@@ -26867,6 +27098,7 @@ setTimeout(enhanceAllSelects, 0);
   function renderMonthReview(trades) {
     const host = document.getElementById('calMonthReview');
     if (!host || typeof getCalendarVisibleRange !== 'function') return;
+    releaseChart(document.getElementById('calReviewChart'));
     host.textContent = '';
     monthChartState = null;
 
@@ -26978,8 +27210,7 @@ setTimeout(enhanceAllSelects, 0);
 
     monthChartState = { values, keys, dayPnl };
     monthReadout(['Month ', bold(fmtPnl(running), tone(running))]);
-    drawMonthChart();
-    watchSize(chart, drawMonthChart);
+    requestChart(chart, drawMonthChart);
   }
 
   if (typeof renderCalendar === 'function') {
@@ -27005,7 +27236,7 @@ setTimeout(enhanceAllSelects, 0);
     if (shown === total) {
       meta.append(bold(String(total)), ` trade${total === 1 ? '' : 's'}`);
     } else {
-      meta.append('Showing ', bold(String(shown)), ` of ${total}`);
+      meta.append(bold(String(shown)), ` of ${total} match`);
     }
   }
 
@@ -27042,6 +27273,44 @@ setTimeout(enhanceAllSelects, 0);
     };
     new MutationObserver(sync).observe(score, { childList: true, characterData: true, subtree: true });
     sync();
+  });
+
+  // ── Log Trade modal: every open starts at the top ───────────────
+  // One watcher on the modal's open state covers every entry point (Dashboard,
+  // Trades, a calendar day, Edit Trade). It only moves scroll positions; the
+  // form itself is initialised by the app's own open functions.
+  safe('log trade scroll reset', () => {
+    const modal = document.getElementById('logTradeModal');
+    const box = document.getElementById('logTradeModalBox');
+    if (!modal || !box) return;
+    const toTop = () => {
+      modal.scrollTop = 0;
+      box.scrollTop = 0;
+      const checklist = document.getElementById('confluenceChecklist');
+      if (checklist) checklist.scrollTop = 0;
+    };
+    let wasOpen = modal.classList.contains('active');
+    new MutationObserver(() => {
+      const open = modal.classList.contains('active');
+      if (open && !wasOpen) {
+        toTop();                      // visible now: start at the top
+        requestAnimationFrame(toTop); // and again after this frame's form setup and layout
+      }
+      wasOpen = open;
+    }).observe(modal, { attributes: true, attributeFilter: ['class'] });
+  });
+
+  // ── Prop modal: bring a new message into view above the sticky footer ──
+  safe('prop modal message', () => {
+    const msg = document.getElementById('propModalMsg');
+    if (!msg) return;
+    new MutationObserver(() => {
+      if (!msg.textContent.trim() || !document.getElementById('propModal')?.classList.contains('active')) return;
+      const footer = document.getElementById('propModalFooter');
+      const footerHeight = footer && footer.offsetParent ? footer.offsetHeight : 0;
+      msg.style.scrollMarginBottom = `${footerHeight + 12}px`;
+      msg.scrollIntoView({ block: 'nearest' });
+    }).observe(msg, { childList: true, characterData: true, subtree: true });
   });
 
   // ── keyboard: nav rows are focusable; Enter/Space activates them ─
