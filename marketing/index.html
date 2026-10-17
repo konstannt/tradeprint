@@ -1930,10 +1930,16 @@
       .preset-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 
-    /* Narrow phones: the top bar has a third button now, so Screenshot shows as an icon */
+        /* Narrow phones: the top bar has a third button now, so Screenshot shows as an icon */
     @media (max-width: 440px) {
       #shotBtn { padding: 0 10px; }
       #shotBtn > span { display: none; }
+    }
+
+    /* Very narrow phones: tighter top bar so the Video Studio button fits */
+    @media (max-width: 360px) {
+      .st-top { gap: 6px; }
+      .st-view-btn { padding: 0 7px; margin-left: 0; }
     }
   </style>
 </head>
@@ -1945,8 +1951,12 @@
     <span class="st-tag">Marketing Studio 2.0</span>
     <button class="btn btn-quiet st-view-btn" id="viewBtn" type="button" title="Logos, profile pictures, lockups and banners">
       <svg viewBox="0 0 24 24" id="viewBtnIcon"><rect x="3" y="3" width="7" height="7" rx="2"/><circle cx="17.5" cy="6.5" r="3.5"/><rect x="3" y="14" width="18" height="7" rx="2"/></svg>
-      <span id="viewBtnLabel">Brand Assets</span>
+            <span id="viewBtnLabel">Brand Assets</span>
     </button>
+    <a class="btn btn-quiet st-view-btn" id="videoBtn" href="/marketing/video" title="Animated MP4 ads for Reels, TikTok and Shorts" style="text-decoration:none">
+      <svg viewBox="0 0 24 24"><path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"/><path d="m6.2 5.3 3.1 3.9"/><path d="m12.4 3.4 3.1 4"/><path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg>
+      <span>Video Studio</span>
+    </a>
     <div class="st-top-actions">
       <button class="btn" id="shotBtn" type="button" title="Show only the ad (for screenshots)" aria-label="Screenshot mode">
         <svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
