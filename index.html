@@ -668,23 +668,7 @@
     .hero-stack .t-tpmain, .hero-stack .t-score { box-shadow: var(--sh-modal); border-color: var(--line-strong); }
     .hero-stage-note { position: relative; z-index: 4; }
 
-    @media (min-width: 1200px) {
-      .hero-copy {
-        --hs: clamp(64px, 6.1vw, 88px);
-        display: grid; grid-template-columns: 52fr 48fr; grid-template-rows: calc(var(--hs) * 0.98) auto; column-gap: 40px;
-      }
-      .hero-title { grid-column: 1 / -1; grid-row: 1 / 3; font-size: var(--hs); }
-      .hero-title span { display: block; }
-      .hero-title .l1 { white-space: nowrap; }
-      .hero-side { grid-column: 2; grid-row: 2; padding-top: calc(var(--hs) * 0.14); }
-      .hero-lede { margin-top: 0; }
-      .hero-ctas { margin-top: 22px; }
-      .hero-stage-inner { grid-template-columns: minmax(0, 1fr) 24px 336px; }
-      .hw { grid-column: 1 / 3; grid-row: 1; }
-      .hero-stack { grid-column: 2 / 4; grid-row: 1; margin-top: 78px; }
-    }
-
-    @media (min-width: 720px) and (max-width: 1199px) {
+    @media (min-width: 720px) and (max-width: 1023px) {
       .hero-title { font-size: clamp(52px, 7.2vw, 76px); }
       .hero-title .l1 { white-space: nowrap; }
       .hero-title span { display: block; }
@@ -934,7 +918,7 @@
     /* =========================================================
        10. Responsive
        ========================================================= */
-    @media (max-width: 1199px) {
+    @media (max-width: 1023px) {
       .ov-row { grid-template-columns: repeat(4, minmax(0, 1fr)); }
       .feat-split, .feat-split.flip { grid-template-columns: minmax(0, 1fr); gap: 32px; }
       .feat-split.flip > .feat-copy { order: 0; }
@@ -1100,6 +1084,213 @@
       .ov-name { font-size: 13px; }
     }
 
+    /* =========================================================
+       11. Desktop (1024px and up)
+       Phones and tablets (up to 1023px) are untouched. Everything here
+       sits inside min-width queries, and the few desktop-only elements
+       below are hidden at smaller sizes.
+       ========================================================= */
+    .hero-eyebrow, .hero-plans, .plan-fine-free { display: none; }
+
+    @media (min-width: 1024px) {
+      /* ---- Shared rhythm and type scale ---- */
+      .section { padding-block: clamp(88px, 7vw, 116px); }
+      .h2 { font-size: clamp(36px, 1.5vw + 20px, 46px); line-height: 1.08; letter-spacing: -0.032em; }
+      .h3 { font-size: clamp(24px, 0.6vw + 17px, 28px); line-height: 1.16; letter-spacing: -0.025em; }
+      .lede { font-size: 17.5px; line-height: 1.62; }
+
+      /* ---- Header ---- */
+      .main-nav { margin-left: 20px; }
+
+      /* ---- Hero: one centred column, product directly underneath ---- */
+      .hero { padding-top: clamp(64px, 5.4vw, 96px); padding-bottom: clamp(80px, 6.4vw, 112px); }
+      .hero::before { top: 470px; width: min(1600px, 130vw); height: 860px; }
+      .hero-copy { display: flex; flex-direction: column; align-items: center; text-align: center; max-width: 900px; margin-inline: auto; }
+      .hero-eyebrow {
+        display: inline-flex; align-items: center; gap: 9px; height: 32px; padding: 0 15px 0 13px; margin-bottom: 26px;
+        border-radius: 999px; border: 1px solid var(--line-strong); background: rgba(23, 26, 36, 0.72);
+        font-size: 13.5px; font-weight: 500; color: var(--text2); white-space: nowrap;
+      }
+      .hero-eyebrow::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+      .hero-title { font-size: clamp(52px, 3.1vw + 20px, 72px); line-height: 1.02; letter-spacing: -0.042em; }
+      .hero-title span { display: block; }
+      .hero-side { display: flex; flex-direction: column; align-items: center; }
+      .hero-lede { margin-top: 24px; max-width: 33em; font-size: clamp(18px, 0.25vw + 15.5px, 19.5px); }
+      .hero-ctas { justify-content: center; gap: 12px; margin-top: 32px; }
+      .hero-ctas .btn-lg { min-height: 52px; padding: 0 26px; }
+      .hero-note { display: none; }
+      .hero-plans { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; row-gap: 8px; margin-top: 22px; font-size: 14px; line-height: 1.4; color: var(--text2); }
+      .hero-plans li { display: inline-flex; align-items: center; gap: 8px; padding: 0 16px; }
+      .hero-plans li + li { border-left: 1px solid var(--line-strong); }
+      .hero-plans .hp-free::before { content: ''; width: 17px; height: 17px; border-radius: 5px; flex: none; background: var(--accent-soft) var(--check) center / 11px no-repeat; }
+      .hero-plans b { color: var(--text); font-weight: 600; }
+      .hero-plans a { color: var(--text2); text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 3px; transition: text-decoration-color 140ms var(--ease); }
+      .hero-plans a b { color: var(--accent-text); }
+      .hero-plans a:hover { text-decoration-color: var(--accent-text); }
+
+      .hero-stage { --rail: 340px; display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 24px; margin-top: clamp(64px, 5.2vw, 80px); }
+      .hero-stage-inner { grid-column: 1 / -1; grid-row: 1; grid-template-columns: minmax(0, 1fr) var(--rail); column-gap: 20px; align-items: stretch; }
+      .hw { grid-column: 1; grid-row: 1; align-self: start; }
+      /* The rail matches the dashboard's height: the fingerprint card keeps its
+         natural size and the Clarity Score becomes a gauge that fills the rest. */
+      .hero-stack { grid-column: 2; grid-row: 1; margin: 0; gap: 14px; grid-template-rows: auto minmax(0, 1fr); }
+      .stage-cap { grid-column: 1; grid-row: 2; margin: 18px 0 0; font-size: 14px; }
+      .hero-stage-note { grid-column: 2; grid-row: 2; margin-top: 18px; }
+      .hero-stack .t-tpmain { padding: 24px 24px 24px 28px; }
+      .hero-stack .t-score {
+        grid-template-columns: minmax(0, 1fr); grid-template-areas: "ring" "label" "sub";
+        justify-items: center; align-content: center; text-align: center; row-gap: 0; padding: 22px 24px;
+      }
+      .hero-stack .t-ring { width: 112px; height: 112px; margin-bottom: 14px; }
+      .hero-stack .t-ring b { font-size: 29px; letter-spacing: -0.01em; }
+      .hero-stack .t-score-label { font-size: 15px; }
+      .hero-stack .t-score-sub { font-size: 13px; margin-top: 3px; }
+    }
+
+    @media (min-width: 1024px) and (max-width: 1279px) {
+      .hero-stage { --rail: 288px; }
+      .hw .t-side { display: none; }
+      .hw .t-window-main { padding: 20px 20px 22px; }
+      .hw .t-hero > .t-stats .t-stat { padding: 18px 18px; }
+      .hw .t-hero > .t-stats .t-stat-value { font-size: 22px; }
+      .hw .t-hero > .t-stats .t-stat.primary .t-stat-value { font-size: 30px; }
+      .hw .t-equity { padding: 14px 18px 16px; }
+      .hw .t-equity-readout { display: none; }
+      .hw .t-minis { gap: 18px; }
+      .hw .t-mini b { font-size: 15.5px; }
+      .hero-stack .t-tpmain { padding: 20px 20px 20px 24px; }
+      .hero-stack .t-tpmain h4 { font-size: 21px; }
+    }
+
+    /* ---- Feature overview, pricing, closing and footer ---- */
+    @media (min-width: 1024px) {
+      .ov-head { display: block; max-width: 760px; margin: 0 auto 48px; text-align: center; }
+      .ov-head .lede { margin: 16px auto 0; }
+      .ov { gap: 14px; }
+      .ov-row { grid-template-columns: 176px repeat(7, minmax(0, 1fr)); }
+      .ov-plan { padding: 20px; gap: 8px; }
+      .ov-tile { padding: 18px 16px 20px; gap: 7px; }
+      .ov-ico { margin-bottom: 6px; }
+      .ov-name, .ov-desc { text-wrap: pretty; }
+
+      .pricing-head { max-width: 760px; margin: 0 auto 48px; text-align: center; }
+      .pricing-head .lede { margin-inline: auto; }
+      .plans { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 20px; align-items: stretch; }
+      .plan { padding: 36px 34px 34px; }
+      .plan-price { margin-top: 16px; }
+      .plan-list { gap: 12px; }
+      .plan-cta { padding-top: 32px; }
+      .plan-fine-free { display: block; }
+      .plan-fine-free { min-height: calc(2 * 1.55em); }
+      .plan-fine-free[hidden] { display: none; }
+      /* Pro: price across the top, then what's included beside the promo code and checkout */
+      .plan-pro { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto auto auto auto minmax(0, 1fr); column-gap: 44px; padding: 36px 40px 34px; }
+      .plan-pro > .plan-name, .plan-pro > .plan-price, .plan-pro > .plan-copy { grid-column: 1 / -1; }
+      .plan-pro > .plan-includes { grid-column: 1; grid-row: 4; margin-top: 28px; }
+      .plan-pro > .pro-cols { grid-column: 1; grid-row: 5; align-self: start; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+      .plan-pro .pro-cols .plan-list { gap: 12px; }
+      .pro-buy { grid-column: 2; grid-row: 4 / 6; display: flex; flex-direction: column; margin-top: 28px; }
+      .pro-buy .promo { margin-top: 0; grid-template-columns: minmax(0, 1fr); gap: 16px; padding: 20px 20px 18px; }
+      .pro-buy .plan-cta { margin-top: auto; padding-top: 24px; }
+      .promo-line { font-size: 16.5px; }
+      .code-btn { justify-content: space-between; width: 100%; }
+      .legal-note { text-align: center; margin-top: 28px; }
+
+      .closing { padding-block: clamp(72px, 5.6vw, 96px); border-top: none; }
+      .closing .wrap { position: relative; isolation: isolate; padding-block: clamp(64px, 5.6vw, 84px); }
+      .closing .wrap::before {
+        content: ''; position: absolute; z-index: -1; inset: 0 var(--gutter); border-radius: 24px;
+        border: 1px solid var(--line); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        background: radial-gradient(70% 90% at 50% 0%, rgba(99, 102, 241, 0.16), rgba(99, 102, 241, 0.04) 55%, transparent 80%), var(--canvas);
+      }
+      .closing-mark { width: 84px; margin-bottom: 26px; }
+      .closing p { max-width: 34em; }
+      .closing .hero-ctas { margin-top: 32px; }
+
+      .site-footer { padding: 64px 0 44px; }
+      .footer-grid { grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr)); gap: 40px; }
+      .footer-bottom { margin-top: 52px; grid-template-columns: minmax(0, 1fr) auto; align-items: start; column-gap: 48px; }
+      .copyright { white-space: nowrap; }
+    }
+
+    @media (min-width: 1024px) and (max-width: 1279px) {
+      .ov-row { grid-template-columns: 168px repeat(4, minmax(0, 1fr)); }
+      .ov-plan { grid-row: span 2; }
+      .ov-tile:last-child { grid-column: span 2; }
+      .plan { padding: 30px 28px 28px; }
+      .plan-pro { padding: 30px 30px 28px; column-gap: 30px; }
+    }
+
+    /* ---- Feature details (inside the "Explore" panel) ---- */
+    @media (min-width: 1024px) {
+      .deep-body { padding-top: 40px; }
+      .feat { padding-block: 72px; }
+      .feat-first { padding-top: 48px; }
+      .feat .lede { font-size: 16.5px; }
+
+      /* Analytics: copy stays in view beside the taller product view */
+      .feat-split { grid-template-columns: minmax(0, 4fr) minmax(0, 7.4fr); gap: 56px; align-items: start; }
+      .feat-split > .feat-copy { position: sticky; top: calc(var(--header-h) + 40px); padding-top: 12px; }
+      .an-grid .t-split .t-simple-main { font-size: 21px; }
+
+      /* Journal: copy and calendar on the left, the open day on the right, no overlap */
+      .jr-grid { --jr-day: 500px; grid-template-columns: minmax(0, 1fr) var(--jr-day); grid-template-rows: auto minmax(0, 1fr); column-gap: 32px; row-gap: 36px; align-items: start; }
+      .jr-left { display: contents; }
+      .jr-copy { grid-column: 1; grid-row: 1; }
+      .jr-calfig { grid-column: 1; grid-row: 2; align-self: end; margin-bottom: 31px; } /* bottom lines up with the day view above its caption */
+      .jr-right { grid-column: 2; grid-row: 1 / 3; width: auto; margin: 0; }
+      .jr-cal .t-today { display: none; }
+      .jr-day .t-mstats { grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.45fr) minmax(0, 1fr) minmax(0, 0.8fr) minmax(0, 0.85fr); }
+      .jr-day .t-mstat { padding: 13px 8px 13px 20px; }
+      .jr-day .t-mstat + .t-mstat { padding-left: 12px; }
+      .jr-day .t-mstat-val { font-size: 21px; }
+
+      /* Prop firms: heading and copy on one line of sight */
+      .feat-head { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 16px 64px; align-items: start; margin-bottom: 40px; }
+      .feat-head > div:last-child { padding-top: 46px; }
+
+      .duo { gap: 20px; }
+      .card { padding: 32px; }
+
+      /* Prints: heading row, then the post and the leaderboard side by side */
+      .card-prints { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px 24px; }
+      .card-prints > .prints-copy { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); column-gap: 64px; align-items: end; }
+      .prints-copy .module { grid-column: 1; grid-row: 1; }
+      .prints-copy .h3 { grid-column: 1; grid-row: 2; }
+      .prints-copy .lede { grid-column: 2; grid-row: 2; margin-top: 0; }
+
+      .tools-grid { gap: 56px; }
+    }
+
+    @media (min-width: 1024px) and (max-width: 1279px) {
+      .feat-split { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+      .feat-split > .feat-copy { position: static; padding-top: 0; max-width: 720px; }
+
+      .jr-grid { --jr-day: 420px; column-gap: 24px; }
+      .jr-cal { --wk: 84px; }
+      .jr-cal .t-cal-heads, .jr-cal .t-cal-grid { grid-template-columns: repeat(5, minmax(0, 1fr)) var(--wk); }
+      .jr-cal .wkend { display: none; }
+      .jr-cal .t-calhead { flex-direction: column; align-items: stretch; gap: 10px; padding: 10px 12px; }
+      .jr-cal .t-calnav { justify-content: space-between; }
+      .jr-cal .t-calstats { justify-content: flex-start; }
+      .jr-cal .t-calstat { text-align: left; padding: 0 16px; }
+      .jr-cal .t-calstat:first-child { padding-left: 2px; }
+      .jr-day .t-mstats { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.3fr) minmax(0, 1fr); }
+      .jr-day .t-mstat.extra { display: none; }
+      .jr-day .t-feed-acts { display: none; }
+
+      .pr-portfolio { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .pr-stage .t-ptable .hide-sm { display: none; }
+      .pr-stage .t-ptable .sm-only { display: block; margin-top: 2px; font-size: 12px; color: var(--text2); }
+
+      .t-mentor-head .t-btn { display: none; }
+
+      .tools-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr); gap: 36px; }
+      .tool-list { column-gap: 20px; }
+      .t-cbreak { grid-template-columns: minmax(0, 1fr); }
+      .t-cres-value { font-size: 21px; }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
       *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-delay: 0ms !important; }
@@ -1175,6 +1366,7 @@
     <section class="hero" aria-labelledby="hero-title">
       <div class="wrap">
         <div class="hero-copy">
+          <p class="hero-eyebrow">For futures, stock and options traders</p>
           <h1 class="hero-title" id="hero-title"><span class="l1">Discover your trading</span> <span class="l2">fingerprint.</span></h1>
           <div class="hero-side">
             <p class="hero-lede"><strong>Tradeprint is more than a trading journal:</strong> it shows you the setups, times and habits behind your results.</p>
@@ -1183,6 +1375,11 @@
               <a class="btn btn-secondary btn-lg" href="#pricing">See pricing</a>
             </div>
             <p class="hero-note">Free plan, no card needed. Pro is $29.99/month, or <a href="#pricing">$20.99/month with code TRADEPRINT</a>.</p>
+            <ul class="hero-plans" aria-label="Plans">
+              <li class="hp-free"><span><b>Free plan</b>, no card needed</span></li>
+              <li><span><b>Pro</b> $29.99/month</span></li>
+              <li><a href="#pricing"><b>$20.99/month</b> with code TRADEPRINT</a></li>
+            </ul>
           </div>
         </div>
 
@@ -1324,6 +1521,7 @@
             </ul>
             <div class="plan-cta">
               <a class="btn btn-secondary btn-lg" href="/app" data-session-label="Open your dashboard">Create free account</a>
+              <p class="plan-fine plan-fine-free" data-session-hide>No card needed.</p>
             </div>
           </div>
 
@@ -1346,6 +1544,7 @@
               </ul>
             </div>
 
+            <div class="pro-buy">
             <div class="promo">
               <div>
                 <p class="promo-q">Have a promo code?</p>
@@ -1361,6 +1560,7 @@
             <div class="plan-cta">
               <a class="btn btn-primary btn-lg" href="/checkout">Get Tradeprint Pro</a>
               <p class="plan-fine">Billed monthly. Mentors can review your trades on a free account.</p>
+            </div>
             </div>
           </div>
         </div>
